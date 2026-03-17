@@ -25,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider localization={heIL}>
+    <ClerkProvider localization={heIL as any}>
       <html lang="he" dir="rtl">
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
