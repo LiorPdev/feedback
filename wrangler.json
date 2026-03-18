@@ -1,0 +1,9 @@
+{
+    "d1_databases": [
+        {
+            "binding": "DB",
+            "database_name": "feedback-db",
+            "database_id": "4349e88b-a871-41ab-8085-930b01fb4ffc"
+        }
+    ]
+}

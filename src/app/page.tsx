@@ -1,5 +1,7 @@
 "use client";
 
+import Navbar from "@/components/Navbar";
+
 import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { motion } from "framer-motion";
 import { CheckCircle, BarChart3, Users, ArrowRight } from "lucide-react";
@@ -25,33 +27,7 @@ const staggerContainer = {
 export default function Home() {
   return (
     <div className={styles.landingPage}>
-      {/* Navbar */}
-      <nav className={styles.navbar}>
-        <div className={styles.navContent}>
-          <div className={styles.logo}>
-            <img
-              src="/Logo.png?v=2"
-              alt="פידבק ספייס"
-              width={38}
-              height={38}
-              className={styles.logoImage}
-            />
-            <span>פידבק-ספייס</span>
-          </div>
-          <div className={styles.navLinks}>
-            <SignedOut>
-              <SignInButton mode="modal">
-                <button className={styles.btnGoogle} style={{ padding: "0.5rem 1.2rem", fontSize: "0.95rem" }}>
-                  התחברות
-                </button>
-              </SignInButton>
-            </SignedOut>
-            <SignedIn>
-              <UserButton afterSignOutUrl="/" />
-            </SignedIn>
-          </div>
-        </div>
-      </nav>
+      {/* Navbar is now global in layout.tsx */}
 
       {/* Hero Section */}
       <header className={styles.hero}>
@@ -71,15 +47,15 @@ export default function Home() {
               <span style={{ color: "var(--primary)" }}>ההצלחה שלך</span>
             </motion.h1>
             <motion.p className={styles.heroSubtitle} variants={fadeInUp}>
-              מערכת לקבלת פידבקים אמיתיים על היצירות שלך
+              קהילה לקבלת פידבקים אמיתיים על היצירות שלנו
             </motion.p>
             <motion.div className={styles.howItWorks} variants={fadeInUp}>
               <h3>איך זה עובד?</h3>
-              <p>בפידבק-ספייס אתה מעלה יצירה כדי לקבל משוב כנה מאנשי הקהילה, או נותן פידבק לאחרים כדי לעזור להם להשתפר.</p>
+              <p>אתם מעלים יצירה כדי לקבל משוב כנה מאנשי הקהילה, או נותנים פידבק לאחרים כדי לעזור להם להשתפר.</p>
             </motion.div>
             <motion.div className={styles.heroButtons} variants={fadeInUp}>
               <SignedOut>
-                <SignInButton mode="modal" forceRedirectUrl="/get-feedback">
+                <SignInButton mode="modal" forceRedirectUrl="/dashboard">
                   <button className={styles.btnPrimary}>
                     אני רוצה לקבל פידבק
                   </button>
@@ -91,7 +67,7 @@ export default function Home() {
                 </SignInButton>
               </SignedOut>
               <SignedIn>
-                <button className={styles.btnPrimary} onClick={() => window.location.href = "/get-feedback"}>
+                <button className={styles.btnPrimary} onClick={() => window.location.href = "/dashboard"}>
                   אני רוצה לקבל פידבק
                 </button>
                 <button className={styles.btnSecondary} onClick={() => window.location.href = "/dashboard"}>
@@ -131,10 +107,11 @@ export default function Home() {
             featuresSection?.scrollIntoView({ behavior: 'smooth' });
           }}
           initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: [0, 10, 0] }}
+          animate={{ opacity: 1, y: [0, 15, 0], scale: [1, 1.1, 1] }}
           transition={{
             opacity: { duration: 0.5, delay: 1 },
-            y: { repeat: Infinity, duration: 2, ease: "easeInOut" }
+            y: { repeat: Infinity, duration: 1, ease: "easeInOut" },
+            scale: { repeat: Infinity, duration: 1, ease: "easeInOut" }
           }}
           aria-label="גלול למטה"
         >

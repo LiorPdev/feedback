@@ -1,0 +1,205 @@
+.form {
+  width: 100%;
+  max-width: 600px;
+  background: #ffffff;
+  padding: 2.5rem;
+  border-radius: 24px;
+  box-shadow: 0 10px 40px -10px rgba(0, 45, 77, 0.1);
+  border: 1px solid rgba(64, 192, 208, 0.15);
+  direction: rtl;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.heading {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #002D4D;
+  margin: 0 0 2rem 0;
+  text-align: center;
+}
+
+.ratingGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.ratingGroup {
+  flex: 1 1 250px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ratingLabel {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #64748B;
+}
+
+.stars {
+  display: flex;
+  gap: 6px;
+  color: #E2E8F0;
+}
+
+.starBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  color: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.starBtn:hover {
+  transform: scale(1.2);
+  color: #40C0D0;
+}
+
+.starFilled {
+  color: #40C0D0;
+}
+
+.commentGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+  width: 100%;
+}
+
+.label {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #002D4D;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 1.25rem;
+  border-radius: 16px;
+  border: 1.5px solid #E2E8F0;
+  font-family: inherit;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  resize: vertical;
+  background: #f8fafc;
+  box-sizing: border-box;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: #40C0D0;
+  background: white;
+  box-shadow: 0 0 0 4px rgba(64, 192, 208, 0.08);
+}
+
+.submitBtn {
+  width: 100%;
+  padding: 1.25rem;
+  background: #002D4D;
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 20px -5px rgba(0, 45, 77, 0.2);
+}
+
+.submitBtn:hover:not(:disabled) {
+  background: #001D33;
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px -10px rgba(0, 45, 77, 0.3);
+}
+
+.submitBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.error {
+  background: #FEF2F2;
+  color: #DC2626;
+  padding: 1rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-align: center;
+  border: 1px solid rgba(220, 38, 38, 0.1);
+}
+
+.successCard {
+  width: 100%;
+  max-width: 600px;
+  background: white;
+  padding: 4rem 2rem;
+  border-radius: 24px;
+  text-align: center;
+  box-shadow: 0 10px 40px -10px rgba(0, 45, 77, 0.1);
+  border: 1px solid rgba(64, 192, 208, 0.15);
+  direction: rtl;
+  margin: 0 auto;
+}
+
+.successIcon {
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+}
+
+.successCard h3 {
+  font-size: 1.75rem;
+  font-weight: 900;
+  color: #002D4D;
+  margin: 0 0 0.75rem 0;
+}
+
+.successCard p {
+  font-size: 1.1rem;
+  color: #64748B;
+  margin-bottom: 2.5rem;
+  font-weight: 500;
+}
+
+.resetBtn {
+  padding: 0.9rem 2rem;
+  background: #f1f5f9;
+  color: #64748B;
+  border: none;
+  border-radius: 100px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+}
+
+.resetBtn:hover {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

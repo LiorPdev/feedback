@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Heebo } from "next/font/google";
 import { ClerkProvider } from '@clerk/nextjs'
 import { heIL } from '@clerk/localizations'
+import Navbar from "@/components/Navbar";
 import "./globals.css";
 import Script from "next/script";
 
@@ -24,17 +25,17 @@ const heebo = Heebo({
 export const metadata: Metadata = {
   metadataBase: new URL("https://feedback.activitywiz.com"),
   title: {
-    default: "פידבק-ספייס | מערכת לקבלת פידבקים",
+    default: "פידבק-ספייס | קהילה לקבלת פידבקים",
     template: "%s | פידבק-ספייס",
   },
-  description: "מערכת לקבלת פידבקים קלה ומהירה, מותאמת לאמנים ויוצרים.",
+  description: "קהילה לקבלת פידבקים קלה ומהירה, מותאמת לאמנים ויוצרים.",
   icons: {
     icon: "/Logo.png",
     apple: "/Logo192.png",
   },
   openGraph: {
-    title: "פידבק-ספייס | מערכת לקבלת פידבקים",
-    description: "מערכת לקבלת פידבקים קלה ומהירה, מותאמת לאמנים ויוצרים.",
+    title: "פידבק-ספייס | קהילה לקבלת פידבקים",
+    description: "קהילה לקבלת פידבקים קלה ומהירה, מותאמת לאמנים ויוצרים.",
     url: "https://feedback.activitywiz.com",
     siteName: "פידבק-ספייס",
     images: [
@@ -42,7 +43,7 @@ export const metadata: Metadata = {
         url: "/og_image.png",
         width: 1200,
         height: 630,
-        alt: "פידבק-ספייס | מערכת לקבלת פידבקים",
+        alt: "פידבק-ספייס | קהילה לקבלת פידבקים",
       },
     ],
     locale: "he_IL",
@@ -50,8 +51,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "פידבק-ספייס | מערכת לקבלת פידבקים",
-    description: "מערכת לקבלת פידבקים קלה ומהירה, מותאמת לאמנים ויוצרים.",
+    title: "פידבק-ספייס | קהילה לקבלת פידבקים",
+    description: "קהילה לקבלת פידבקים קלה ומהירה, מותאמת לאמנים ויוצרים.",
     images: ["/og_image.png"],
   },
   robots: {
@@ -78,7 +79,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider 
+    <ClerkProvider
       localization={heIL as any}
       appearance={{
         elements: {
@@ -90,6 +91,7 @@ export default function RootLayout({
         <body
           className={`${geistSans.variable} ${geistMono.variable} ${heebo.variable} antialiased`}
         >
+          <Navbar />
           {children}
           <Script
             id="clarity-script"
