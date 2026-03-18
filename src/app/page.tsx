@@ -1,36 +1,159 @@
 "use client";
 
 import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { motion } from "framer-motion";
+import { CheckCircle, BarChart3, Users, ArrowRight } from "lucide-react";
+import Image from "next/image";
+import styles from "./landing.module.css";
+
+// Animation variants
+const fadeInUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0 },
+};
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2,
+    },
+  },
+};
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-slate-50">
-      <h1 className="text-5xl font-extrabold text-blue-600 mb-4 text-center">Feedback Flow</h1>
-      <p className="text-slate-500 mb-12 text-xl text-center">מערכת הפידבקים של Activity Wizard</p>
-
-      <div className="bg-white p-12 rounded-3xl shadow-2xl border border-slate-100 text-center max-w-md w-full">
-        <SignedOut>
-          <h2 className="text-2xl font-bold mb-4 text-slate-800">ברוכים הבאים</h2>
-          <p className="mb-8 text-slate-600">כדי להתחיל להשתמש במערכת, אנא התחברו:</p>
-          <SignInButton mode="modal">
-            <button className="w-full bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-lg">
-              התחברות למערכת
-            </button>
-          </SignInButton>
-        </SignedOut>
-
-        <SignedIn>
-          <div className="flex flex-col items-center gap-6">
-            <div className="bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-bold">
-              מחובר בהצלחה
-            </div>
-            <p className="text-slate-800 text-lg">שלום לך!</p>
-            <div className="scale-150 my-4">
-              <UserButton />
-            </div>
+    <div className={styles.landingPage}>
+      {/* Navbar */}
+      <nav className={styles.navbar}>
+        <div className={styles.navContent}>
+          <div className={styles.logo}>פידבק ספייס</div>
+          <div className={styles.navLinks}>
+            <SignedOut>
+              <SignInButton mode="modal">
+                <button className={styles.btnGoogle} style={{ padding: "0.5rem 1.2rem", fontSize: "0.95rem" }}>
+                  התחברות
+                </button>
+              </SignInButton>
+            </SignedOut>
+            <SignedIn>
+              <UserButton afterSignOutUrl="/" />
+            </SignedIn>
           </div>
-        </SignedIn>
-      </div>
-    </main>
+        </div>
+      </nav>
+
+      {/* Hero Section */}
+      <header className={styles.hero}>
+        <div className={styles.heroBackground}>
+          <div className={`${styles.blob} ${styles.blob1}`} />
+          <div className={`${styles.blob} ${styles.blob2}`} />
+        </div>
+        <div className={styles.heroWrapper}>
+          <motion.div
+            className={styles.heroContent}
+            initial="hidden"
+            animate="visible"
+            variants={staggerContainer}
+          >
+            <motion.h1 className={styles.heroTitle} variants={fadeInUp}>
+              פידבק אמיתי <br />
+              <span style={{ color: "var(--primary)" }}>ההצלחה שלך</span>
+            </motion.h1>
+            <motion.p className={styles.heroSubtitle} variants={fadeInUp}>
+              מערכת לקבלת פידבקים אמיתיים ואנונימיים על היצירות שלך
+            </motion.p>
+            <motion.div className={styles.heroButtons} variants={fadeInUp}>
+              <SignedOut>
+                <SignInButton mode="modal">
+                  <button className={styles.btnGoogle}>
+                    בואו נתחיל
+                  </button>
+                </SignInButton>
+              </SignedOut>
+              <SignedIn>
+                <button className={styles.btnPrimary} onClick={() => window.location.href = "/dashboard"}>
+                  עבור ללוח הבקרה <ArrowRight size={20} style={{ marginRight: "8px" }} />
+                </button>
+              </SignedIn>
+            </motion.div>
+          </motion.div>
+
+          <motion.div
+            className={styles.heroMockup}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+          >
+            <div className={styles.mockupImage} style={{ position: "relative", width: "100%", aspectRatio: "16/10", overflow: "hidden", borderRadius: "20px" }}>
+              <Image
+                src="/feedback_dashboard_mockup_1773818196454.png"
+                alt="Feedback Flow Dashboard"
+                fill
+                style={{ objectFit: "cover" }}
+                priority
+              />
+              {!Image && (
+                <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <BarChart3 size={100} color="var(--primary)" opacity={0.2} />
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      </header>
+
+      {/* Features Section */}
+      <section className={styles.features}>
+        <motion.h2
+          className={styles.sectionTitle}
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+        >
+          למה?
+        </motion.h2>
+        <motion.div
+          className={styles.featuresGrid}
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
+          {[
+            {
+              title: "דעה כנה, לא 'לייק' מחברים",
+              desc: "נמאס לקבל לייקים רק כי לא נעים להם להגיד את האמת? כאן תקבל חוות דעת מאנשים שלא מכירים אותך ולא חייבים לך כלום. פשוט פידבק כנה שיעזור לך להשתפר.",
+              icon: <CheckCircle />
+            },
+            {
+              title: "מרחב אנונימי לפידבק נקי",
+              desc: "כשלא יודעים מי כתב את הפידבק, אין אגו ואין חששות. האנונימיות מאפשרת לאנשים לתת ביקורת בונה ומדויקת בלי לסנן מילים, כדי שתדעו בדיוק איפה היצירה שלכם עומדת.",
+              icon: <CheckCircle />
+            },
+            {
+              title: "פשוט ובחינם לגמרי",
+              desc: "מערכת פתוחה לכולם בחינם לגמרי. בלי הרשמות מסובכות וללא תשלום – פשוט מקום שנועד לעזור ליוצרים לקבל משוב ולקדם אחד את השני.",
+              icon: <CheckCircle />
+            }
+          ].map((feature, idx) => (
+            <motion.div key={idx} className={styles.featureCard} variants={fadeInUp}>
+              <div className={styles.featureIcon}>{feature.icon}</div>
+              <h3>{feature.title}</h3>
+              <p>{feature.desc}</p>
+            </motion.div>
+          ))}
+        </motion.div>
+      </section>
+
+      {/* Footer */}
+      <footer className={styles.footer}>
+        <div className={styles.footerContent}>
+          <div className={styles.logo} style={{ fontSize: "1.2rem" }}>פידבק-ספייס</div>
+          <p className={styles.copyright}>&copy; {new Date().getFullYear()} פידבק-ספייס | כל הזכויות שמורות</p>
+        </div>
+      </footer>
+    </div>
   );
 }

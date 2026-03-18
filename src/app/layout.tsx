@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Feedback Flow",
-  description: "מערכת לניהול פידבקים חכמה",
+  title: "פידבק-ספייס",
+  description: "מערכת לקבלת פידבקים",
 };
 
 export default function RootLayout({
