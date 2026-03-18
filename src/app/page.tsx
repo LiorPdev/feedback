@@ -79,20 +79,23 @@ export default function Home() {
             </motion.div>
             <motion.div className={styles.heroButtons} variants={fadeInUp}>
               <SignedOut>
-                <SignInButton mode="modal">
+                <SignInButton mode="modal" forceRedirectUrl="/get-feedback">
                   <button className={styles.btnPrimary}>
                     אני רוצה לקבל פידבק
                   </button>
                 </SignInButton>
-                <SignInButton mode="modal">
+                <SignInButton mode="modal" forceRedirectUrl="/dashboard">
                   <button className={styles.btnSecondary}>
                     אני רוצה לתת פידבק
                   </button>
                 </SignInButton>
               </SignedOut>
               <SignedIn>
-                <button className={styles.btnPrimary} onClick={() => window.location.href = "/dashboard"}>
-                  עבור ללוח הבקרה <ArrowRight size={20} style={{ marginRight: "8px" }} />
+                <button className={styles.btnPrimary} onClick={() => window.location.href = "/get-feedback"}>
+                  אני רוצה לקבל פידבק
+                </button>
+                <button className={styles.btnSecondary} onClick={() => window.location.href = "/dashboard"}>
+                  אני רוצה לתת פידבק
                 </button>
               </SignedIn>
             </motion.div>
