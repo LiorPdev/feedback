@@ -71,7 +71,7 @@ export default function Home() {
               <span style={{ color: "var(--primary)" }}>ההצלחה שלך</span>
             </motion.h1>
             <motion.p className={styles.heroSubtitle} variants={fadeInUp}>
-              מערכת לקבלת פידבקים אמיתיים ואנונימיים על היצירות שלך
+              מערכת לקבלת פידבקים אמיתיים על היצירות שלך
             </motion.p>
             <motion.div className={styles.howItWorks} variants={fadeInUp}>
               <h3>איך זה עובד?</h3>
@@ -188,7 +188,10 @@ export default function Home() {
         {/* Footer inside features */}
         <footer className={styles.footer}>
           <div className={styles.footerContent}>
-            <p className={styles.copyright}>&copy; {new Date().getFullYear()} פידבק-ספייס | כל הזכויות שמורות</p>
+            <p className={styles.copyright}>
+              &copy; 2026 פידבק-ספייס | כל הזכויות שמורות | {" "}
+              <a href="mailto:contact@feedback.activitywiz.com" className={styles.footerLink}>צור קשר</a>
+            </p>
           </div>
         </footer>
       </section>

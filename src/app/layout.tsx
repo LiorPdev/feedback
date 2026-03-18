@@ -29,8 +29,8 @@ export const metadata: Metadata = {
   },
   description: "מערכת לקבלת פידבקים קלה ומהירה, מותאמת לאמנים ויוצרים.",
   icons: {
-    icon: "/favicon.ico",
-    apple: "/logo192.png",
+    icon: "/Logo.png",
+    apple: "/Logo192.png",
   },
   openGraph: {
     title: "פידבק-ספייס | מערכת לקבלת פידבקים",
