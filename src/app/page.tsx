@@ -28,7 +28,16 @@ export default function Home() {
       {/* Navbar */}
       <nav className={styles.navbar}>
         <div className={styles.navContent}>
-          <div className={styles.logo}>פידבק ספייס</div>
+          <div className={styles.logo}>
+            <img
+              src="/Logo.png?v=2"
+              alt="פידבק ספייס"
+              width={38}
+              height={38}
+              className={styles.logoImage}
+            />
+            <span>פידבק-ספייס</span>
+          </div>
           <div className={styles.navLinks}>
             <SignedOut>
               <SignInButton mode="modal">
@@ -64,11 +73,20 @@ export default function Home() {
             <motion.p className={styles.heroSubtitle} variants={fadeInUp}>
               מערכת לקבלת פידבקים אמיתיים ואנונימיים על היצירות שלך
             </motion.p>
+            <motion.div className={styles.howItWorks} variants={fadeInUp}>
+              <h3>איך זה עובד?</h3>
+              <p>בפידבק-ספייס אתה מעלה יצירה כדי לקבל משוב כנה מאנשי הקהילה, או נותן פידבק לאחרים כדי לעזור להם להשתפר.</p>
+            </motion.div>
             <motion.div className={styles.heroButtons} variants={fadeInUp}>
               <SignedOut>
                 <SignInButton mode="modal">
-                  <button className={styles.btnGoogle}>
-                    בואו נתחיל
+                  <button className={styles.btnPrimary}>
+                    אני רוצה לקבל פידבק
+                  </button>
+                </SignInButton>
+                <SignInButton mode="modal">
+                  <button className={styles.btnSecondary}>
+                    אני רוצה לתת פידבק
                   </button>
                 </SignInButton>
               </SignedOut>
@@ -102,58 +120,78 @@ export default function Home() {
             </div>
           </motion.div>
         </div>
+
+        <motion.button
+          className={styles.scrollDownFab}
+          onClick={() => {
+            const featuresSection = document.querySelector(`.${styles.features}`);
+            featuresSection?.scrollIntoView({ behavior: 'smooth' });
+          }}
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: [0, 10, 0] }}
+          transition={{
+            opacity: { duration: 0.5, delay: 1 },
+            y: { repeat: Infinity, duration: 2, ease: "easeInOut" }
+          }}
+          aria-label="גלול למטה"
+        >
+          <svg stroke="currentColor" fill="currentColor" strokeWidth="0" viewBox="0 0 512 512" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
+            <path fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="48" d="m112 184 144 144 144-144"></path>
+          </svg>
+        </motion.button>
       </header>
 
       {/* Features Section */}
       <section className={styles.features}>
-        <motion.h2
-          className={styles.sectionTitle}
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-        >
-          למה?
-        </motion.h2>
-        <motion.div
-          className={styles.featuresGrid}
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-        >
-          {[
-            {
-              title: "דעה כנה, לא 'לייק' מחברים",
-              desc: "נמאס לקבל לייקים רק כי לא נעים להם להגיד את האמת? כאן תקבל חוות דעת מאנשים שלא מכירים אותך ולא חייבים לך כלום. פשוט פידבק כנה שיעזור לך להשתפר.",
-              icon: <CheckCircle />
-            },
-            {
-              title: "מרחב אנונימי לפידבק נקי",
-              desc: "כשלא יודעים מי כתב את הפידבק, אין אגו ואין חששות. האנונימיות מאפשרת לאנשים לתת ביקורת בונה ומדויקת בלי לסנן מילים, כדי שתדעו בדיוק איפה היצירה שלכם עומדת.",
-              icon: <CheckCircle />
-            },
-            {
-              title: "פשוט ובחינם לגמרי",
-              desc: "מערכת פתוחה לכולם בחינם לגמרי. בלי הרשמות מסובכות וללא תשלום – פשוט מקום שנועד לעזור ליוצרים לקבל משוב ולקדם אחד את השני.",
-              icon: <CheckCircle />
-            }
-          ].map((feature, idx) => (
-            <motion.div key={idx} className={styles.featureCard} variants={fadeInUp}>
-              <div className={styles.featureIcon}>{feature.icon}</div>
-              <h3>{feature.title}</h3>
-              <p>{feature.desc}</p>
-            </motion.div>
-          ))}
-        </motion.div>
-      </section>
-
-      {/* Footer */}
-      <footer className={styles.footer}>
-        <div className={styles.footerContent}>
-          <div className={styles.logo} style={{ fontSize: "1.2rem" }}>פידבק-ספייס</div>
-          <p className={styles.copyright}>&copy; {new Date().getFullYear()} פידבק-ספייס | כל הזכויות שמורות</p>
+        <div className={styles.featuresContent}>
+          <motion.h2
+            className={styles.sectionTitle}
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+          >
+            למה?
+          </motion.h2>
+          <motion.div
+            className={styles.featuresGrid}
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
+            {[
+              {
+                title: "דעה כנה, לא 'לייק' מחברים",
+                desc: "נמאס לקבל לייקים רק כי לא נעים להם להגיד את האמת? כאן תקבל חוות דעת מאנשים שלא מכירים אותך ולא חייבים לך כלום. פשוט פידבק כנה שיעזור לך להשתפר.",
+                icon: <CheckCircle />
+              },
+              {
+                title: "מרחב אנונימי לפידבק נקי",
+                desc: "כשלא יודעים מי כתב את הפידבק, אין אגו ואין חששות. האנונימיות מאפשרת לאנשים לתת ביקורת בונה ומדויקת בלי לסנן מילים, כדי שתדעו בדיוק איפה היצירה שלכם עומדת.",
+                icon: <CheckCircle />
+              },
+              {
+                title: "פשוט ובחינם לגמרי",
+                desc: "מערכת פתוחה לכולם בחינם לגמרי. בלי הרשמות מסובכות וללא תשלום – פשוט מקום שנועד לעזור ליוצרים לקבל משוב ולקדם אחד את השני.",
+                icon: <CheckCircle />
+              }
+            ].map((feature, idx) => (
+              <motion.div key={idx} className={styles.featureCard} variants={fadeInUp}>
+                <div className={styles.featureIcon}>{feature.icon}</div>
+                <h3>{feature.title}</h3>
+                <p>{feature.desc}</p>
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
-      </footer>
+
+        {/* Footer inside features */}
+        <footer className={styles.footer}>
+          <div className={styles.footerContent}>
+            <p className={styles.copyright}>&copy; {new Date().getFullYear()} פידבק-ספייס | כל הזכויות שמורות</p>
+          </div>
+        </footer>
+      </section>
     </div>
   );
 }

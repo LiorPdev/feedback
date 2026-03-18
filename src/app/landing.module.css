@@ -1,6 +1,6 @@
 .landingPage {
   direction: rtl;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-heebo), sans-serif;
   scroll-snap-type: y mandatory;
   overflow-y: scroll;
   height: 100vh;
@@ -15,7 +15,7 @@
   --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-  --nav-height: 70px;
+  --nav-height: 60px;
 }
 
 .navbar {
@@ -45,8 +45,15 @@
 .logo {
   font-size: 1.5rem;
   font-weight: 800;
-  color: var(--primary);
+  color: #4d5561;
   text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.logoImage {
+  border-radius: 8px;
 }
 
 .navLinks {
@@ -131,6 +138,27 @@
   line-height: 1.6;
 }
 
+.howItWorks {
+  background: rgba(37, 99, 235, 0.05);
+  padding: 1.5rem;
+  border-radius: 16px;
+  border: 1px solid rgba(37, 99, 235, 0.1);
+  max-width: 500px;
+}
+
+.howItWorks h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: var(--primary);
+}
+
+.howItWorks p {
+  font-size: 1rem;
+  color: var(--text-light);
+  line-height: 1.5;
+}
+
 .heroButtons {
   display: flex;
   gap: 1rem;
@@ -152,6 +180,24 @@
   background: var(--primary-hover);
   transform: translateY(-2px);
   box-shadow: var(--shadow-xl);
+}
+
+.btnSecondary {
+  background: white;
+  color: var(--primary);
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  font-weight: 700;
+  transition: all 0.3s ease;
+  border: 2px solid var(--primary);
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+
+.btnSecondary:hover {
+  background: var(--primary-light);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 
 .btnGoogle {
@@ -191,13 +237,20 @@
 
 /* Features Section */
 .features {
-  padding: 100px 5vw;
+  padding: 80px 5vw 0;
   background: var(--bg-light);
   scroll-snap-align: start;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+}
+
+.featuresContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   justify-content: center;
+  padding-bottom: 40px;
 }
 
 .sectionTitle {
@@ -255,8 +308,8 @@
 
 /* Footer */
 .footer {
-  padding: 4rem 5vw 2rem;
-  background: white;
+  padding: 2rem 5vw;
+  background: transparent;
   border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
 
@@ -279,11 +332,76 @@
     text-align: center;
     padding-top: 120px;
   }
+
   .heroContent {
     align-items: center;
   }
+
   .hero {
     height: auto;
     padding-bottom: 100px;
+  }
+}
+
+@media (max-width: 768px) {
+  .featuresGrid {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 1.5rem;
+    padding: 1rem 5vw 2rem;
+    margin: 0 -5vw;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    scroll-padding: 5vw;
+  }
+
+  .featuresGrid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .featureCard {
+    flex: 0 0 85%;
+    scroll-snap-align: center;
+    padding: 2rem;
+    box-shadow: var(--shadow);
+  }
+
+  .sectionTitle {
+    margin-bottom: 2rem;
+  }
+}
+
+.scrollDownFab {
+  position: absolute;
+  bottom: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50px;
+  height: 50px;
+  background: var(--white);
+  border: 1.5px solid var(--primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-lg);
+  color: var(--primary);
+  z-index: 10;
+  transition: all 0.3s ease;
+}
+
+.scrollDownFab:hover {
+  background: var(--primary-light);
+  transform: translateX(-50%) translateY(-5px);
+  box-shadow: var(--shadow-xl);
+}
+
+@media (max-width: 768px) {
+  .scrollDownFab {
+    bottom: 2rem;
+    width: 44px;
+    height: 44px;
   }
 }
