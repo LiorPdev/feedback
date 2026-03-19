@@ -1,7 +1,7 @@
 import { getDb } from './src/lib/db';
 
 async function test() {
-    const db = getDb(process);
+    const db = await getDb(process);
     try {
         await db.user.upsert({
             where: { id: 'test' },

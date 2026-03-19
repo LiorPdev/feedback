@@ -6,15 +6,13 @@ import { Music, Coins, ExternalLink, Plus, Clock, Trash2 } from "lucide-react";
 import DeleteSongButton from "@/components/DeleteSongButton";
 import styles from "./dashboard.module.css";
 
-export const runtime = "edge";
-
 export default async function DashboardPage() {
   const clerkUser = await currentUser();
   if (!clerkUser) {
     redirect("/");
   }
 
-  const db = getDb(process);
+  const db = await getDb(process);
   const user = await db.user.findUnique({
     where: { id: clerkUser.id },
     include: {
@@ -60,14 +58,14 @@ export default async function DashboardPage() {
         {user.songs.length === 0 ? (
           <div className={styles.emptyState}>
             <Music size={48} className={styles.emptyIcon} />
-            <p>עדיין לא שלחת שירים לפידבק</p>
+            <p>לא נשלחו עדיין שירים לקבלת פידבק מהקהילה</p>
             <Link href="/get-feedback" className={styles.emptyBtn}>
-              שלח את השיר הראשון שלך
+              שלחו את השיר הראשון שלכם
             </Link>
           </div>
         ) : (
           <div className={styles.songGrid}>
-            {user.songs.map((song) => (
+            {user.songs.map((song: any) => (
               <div key={song.id} className={styles.songCard}>
                 <div className={styles.songMain}>
                   <div className={styles.songHeader}>

@@ -2,11 +2,9 @@ import { getDb } from "@/lib/db";
 import { notFound, redirect } from "next/navigation";
 import styles from "./give-feedback.module.css";
 import Link from "next/link";
-import { ArrowLeft, Music, Calendar, Disc, Star } from "lucide-react";
+import { ArrowRight, Music, Calendar, Disc, Star } from "lucide-react";
 import FeedbackForm from "@/components/FeedbackForm";
 import { auth } from "@clerk/nextjs/server";
-
-export const runtime = 'edge';
 
 interface GiveFeedbackPageProps {
   params: {
@@ -16,7 +14,7 @@ interface GiveFeedbackPageProps {
 
 export default async function GiveFeedbackPage({ params }: GiveFeedbackPageProps) {
   const { slug } = await params;
-  const db = getDb(process);
+  const db = await getDb(process);
   const { userId } = await auth();
 
   const song = await db.song.findUnique({
@@ -47,15 +45,15 @@ export default async function GiveFeedbackPage({ params }: GiveFeedbackPageProps
   return (
     <div className={styles.container}>
       <div className={styles.blob} />
-      
+
       <main className={styles.main}>
         <div className={styles.card}>
           <div className={styles.iconWrapper}>
             <Music size={40} strokeWidth={1.5} />
           </div>
-          
+
           <h1 className={styles.title}>{song.title}</h1>
-          
+
           <div className={styles.stats}>
             <div className={styles.statItem}>
               <Disc size={18} />
@@ -70,7 +68,7 @@ export default async function GiveFeedbackPage({ params }: GiveFeedbackPageProps
 
         <section className={styles.feedbackSection}>
           <FeedbackForm songId={song.id} />
-          
+
           {song.feedbacks.length > 0 && (
             <div className={styles.feedbacksList}>
               <h3 className={styles.listHeading}>ביקורות קודמות ({song.feedbacks.length})</h3>
@@ -95,7 +93,7 @@ export default async function GiveFeedbackPage({ params }: GiveFeedbackPageProps
         </section>
 
         <Link href="/dashboard" className={styles.homeLink}>
-          <ArrowLeft size={16} /> חזרה למרחב האישי
+          <ArrowRight size={16} /> חזרה למרחב האישי
         </Link>
       </main>
     </div>
