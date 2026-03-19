@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "start http://localhost:3000 && next dev",
-    "build": "next build",
+    "build": "next build --webpack",
+    "build:cloudflare": "npm run build && npx @opennextjs/cloudflare build && node src/scripts/post-build.js",
     "start": "next start",
     "lint": "eslint"
   },

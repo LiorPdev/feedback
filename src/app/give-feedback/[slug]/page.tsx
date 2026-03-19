@@ -6,12 +6,11 @@ import { ArrowRight, Music, Calendar, Disc, Star } from "lucide-react";
 import FeedbackForm from "@/components/FeedbackForm";
 import { auth } from "@clerk/nextjs/server";
 
-export const runtime = 'edge';
 
 interface GiveFeedbackPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 export default async function GiveFeedbackPage({ params }: GiveFeedbackPageProps) {

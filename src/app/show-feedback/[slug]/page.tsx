@@ -5,12 +5,11 @@ import Link from "next/link";
 import { ArrowRight, Music, Calendar, Disc } from "lucide-react";
 import { auth } from "@clerk/nextjs/server";
 
-export const runtime = 'edge';
 
 interface ShowFeedbackPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps) {

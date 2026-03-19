@@ -127,7 +127,7 @@ export default function RootLayout({
           />
           <Script
             id="dynamic-manifest"
-            strategy="beforeInteractive"
+            strategy="afterInteractive"
             dangerouslySetInnerHTML={{
               __html: `
                 window.addEventListener('beforeinstallprompt', (e) => {
