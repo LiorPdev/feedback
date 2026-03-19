@@ -12,11 +12,9 @@
     "@clerk/localizations": "^4.2.2",
     "@clerk/nextjs": "^6.12.1",
     "@opennextjs/cloudflare": "^1.17.1",
-    "@prisma/adapter-better-sqlite3": "^7.5.0",
-    "@prisma/adapter-d1": "^7.5.0",
-    "@prisma/client": "^7.5.0",
     "@prisma/config": "^7.5.0",
     "better-sqlite3": "^12.8.0",
+    "drizzle-orm": "^0.45.1",
     "framer-motion": "^12.38.0",
     "lucide-react": "^0.577.0",
     "nanoid": "^5.1.7",
@@ -29,9 +27,9 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.1.7",
-    "prisma": "^7.5.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

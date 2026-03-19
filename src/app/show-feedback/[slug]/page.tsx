@@ -18,18 +18,16 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
   const db = await getDb();
   const { userId } = await auth();
 
-  const song = await db.song.findUnique({
-    where: { slug },
-    include: {
+  const song = await db.query.songs.findFirst({
+    where: (songs, { eq }) => eq(songs.slug, slug),
+    with: {
       user: {
-        select: {
+        columns: {
           name: true,
         },
       },
       feedbacks: {
-        orderBy: {
-          createdAt: 'desc'
-        }
+        orderBy: (feedbacks, { desc }) => [desc(feedbacks.createdAt)]
       }
     },
   });

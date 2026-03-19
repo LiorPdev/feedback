@@ -15,11 +15,11 @@ export default async function DashboardPage() {
   }
 
   const db = await getDb();
-  const user = await db.user.findUnique({
-    where: { id: clerkUser.id },
-    include: {
+  const user = await db.query.users.findFirst({
+    where: (users, { eq }) => eq(users.id, clerkUser.id),
+    with: {
       songs: {
-        orderBy: { createdAt: "desc" },
+        orderBy: (songs, { desc }) => [desc(songs.createdAt)],
       },
     },
   });

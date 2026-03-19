@@ -4,6 +4,8 @@ import { getDb } from '@/lib/db';
 import { nanoid } from 'nanoid';
 import { revalidatePath } from 'next/cache';
 import { currentUser } from '@clerk/nextjs/server';
+import { eq } from 'drizzle-orm';
+import { users, songs, feedbacks } from '@/lib/schema';
 
 export async function createSong(formData: FormData, userId: string) {
     // Extract data from form
@@ -30,30 +32,23 @@ export async function createSong(formData: FormData, userId: string) {
         const providerId = primaryAccount ? primaryAccount.externalId : null;
 
         // Sync user with Clerk to DB
-        const existingUser = await db.user.findUnique({
-            where: { id: clerkUser.id }
+        const existingUser = await db.query.users.findFirst({
+            where: (users, { eq }) => eq(users.id, clerkUser.id)
         });
 
         if (existingUser) {
-            await db.user.update({
-                where: { id: clerkUser.id },
-                data: { email, name, provider, providerId }
-            });
+            await db.update(users).set({ email, name, provider, providerId }).where(eq(users.id, clerkUser.id));
         } else {
-            await db.user.create({
-                data: { id: clerkUser.id, email, name, provider, providerId }
-            });
+            await db.insert(users).values({ id: clerkUser.id, email, name, provider, providerId });
         }
 
-        const newSong = await db.song.create({
-            data: {
-                userId: clerkUser.id,
-                url,
-                title,
-                genre,
-                slug,
-            },
-        });
+        const [newSong] = await db.insert(songs).values({
+            userId: clerkUser.id,
+            url,
+            title,
+            genre,
+            slug,
+        }).returning();
 
         revalidatePath('/dashboard');
         return { success: true, song: newSong };
@@ -76,16 +71,14 @@ export async function addFeedback(data: {
 }) {
     const db = await getDb();
     try {
-        const feedback = await db.feedback.create({
-            data: {
-                songId: data.songId,
-                lyrics: data.lyrics,
-                composition: data.composition,
-                production: data.production,
-                overall: data.overall,
-                comment: data.comment,
-            }
-        });
+        const [feedback] = await db.insert(feedbacks).values({
+            songId: data.songId,
+            lyrics: data.lyrics,
+            composition: data.composition,
+            production: data.production,
+            overall: data.overall,
+            comment: data.comment,
+        }).returning();
 
         // Revalidate both views to show the new feedback
         revalidatePath('/give-feedback/[slug]', 'page');
@@ -106,18 +99,16 @@ export async function deleteSong(songId: string) {
     const db = await getDb();
     try {
         // Double check ownership
-        const song = await db.song.findUnique({
-            where: { id: songId },
-            select: { userId: true }
+        const song = await db.query.songs.findFirst({
+            where: (songs, { eq }) => eq(songs.id, songId),
+            columns: { userId: true }
         });
 
         if (!song || song.userId !== clerkUser.id) {
             return { success: false, error: "לא מורשה" };
         }
 
-        await db.song.delete({
-            where: { id: songId }
-        });
+        await db.delete(songs).where(eq(songs.id, songId));
 
         revalidatePath('/dashboard');
         return { success: true };
