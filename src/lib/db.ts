@@ -1,6 +1,15 @@
 import { drizzle } from 'drizzle-orm/d1';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
-import * as schema from './schema';
+import { users, songs, feedbacks, usersRelations, songsRelations, feedbacksRelations } from './schema';
+
+const drizzleSchema = {
+    users,
+    songs,
+    feedbacks,
+    usersRelations,
+    songsRelations,
+    feedbacksRelations,
+};
 
 /**
  * Gets the Drizzle database client via Cloudflare D1.
@@ -13,5 +22,5 @@ export const getDb = async () => {
     if (!env?.DB) {
         throw new Error("D1 database binding (DB) not found in Cloudflare context.");
     }
-    return drizzle(env.DB, { schema });
+    return drizzle(env.DB, { schema: drizzleSchema });
 }
