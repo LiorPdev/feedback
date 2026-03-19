@@ -25,6 +25,11 @@
   text-align: center;
 }
 
+.form {
+  display: flex;
+  flex-direction: column;
+}
+
 .header h1 {
   font-size: 2rem;
   font-weight: 800;
@@ -63,8 +68,8 @@
 
 .input:focus {
   outline: none;
-  border-color: #40C0D0;
-  box-shadow: 0 0 0 4px rgba(64, 192, 208, 0.1);
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 4px var(--brand-light);
 }
 
 .selectWrapper {
@@ -95,13 +100,13 @@
 }
 
 .select:hover {
-  border-color: #40C0D0;
+  border-color: var(--brand-primary);
 }
 
 .select:focus {
   outline: none;
-  border-color: #40C0D0;
-  box-shadow: 0 0 0 4px rgba(64, 192, 208, 0.1);
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 4px var(--brand-light);
 }
 
 .select:disabled {
@@ -113,7 +118,7 @@
   width: 70%;
   margin: calc(1rem + 10px) auto 0;
   padding: 1.1rem;
-  background-color: #000000e3;
+  background-color: #000000;
   color: white;
   border: none;
   border-radius: 14px;
@@ -125,17 +130,20 @@
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  margin-top: calc(1rem + 10px);
+}
+
+.tokenLabel {
+  font-size: 0.6em;
+  opacity: 0.8;
 }
 
 .submitBtn:hover:not(:disabled) {
-  background-color: #1a1a1a;
   transform: translateY(-1px);
   box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
 }
 
 .submitBtn:disabled {
-  opacity: 0.7;
+  opacity: 0.3;
   cursor: not-allowed;
 }
 
@@ -179,7 +187,6 @@
   align-items: stretch;
   flex-direction: column;
   gap: 20px;
-  border-radius: 24px;
 }
 
 .toastHeader {
@@ -200,6 +207,11 @@
   justify-content: space-between;
 }
 
+.copyLabel {
+  font-size: 14px;
+  font-weight: 500;
+}
+
 .copyBtn {
   background: transparent;
   border: none;
@@ -208,13 +220,6 @@
   align-items: center;
   padding: 4px;
   position: relative;
-}
-
-.tokenCount {
-  font-size: 0.9rem;
-  font-weight: normal;
-  color: #64748B;
-  margin-right: 8px;
 }
 
 .closeToastBtn {

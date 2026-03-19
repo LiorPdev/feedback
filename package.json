@@ -6,6 +6,7 @@
     "dev": "start http://localhost:3000 && next dev",
     "build": "next build --webpack",
     "build:cloudflare": "npm run build && npx @opennextjs/cloudflare build && node src/scripts/post-build.js",
+    "studio": "powershell -Command \"Copy-Item -Path '.wrangler/state/v3/d1/miniflare-D1DatabaseObject/*.sqlite' -Destination 'debug.sqlite' -Force\" && npx drizzle-kit studio",
     "start": "next start",
     "lint": "eslint"
   },

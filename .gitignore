@@ -43,3 +43,11 @@ next-env.d.ts
 
 # clerk configuration (can include secrets)
 /.clerk/
+
+# database & wrangler
+.wrangler/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+dev.db
+debug.sqlite

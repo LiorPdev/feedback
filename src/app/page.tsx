@@ -1,12 +1,14 @@
 "use client";
 
-import Navbar from "@/components/Navbar";
+import Link from "next/link";
 
-import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { SignInButton, SignedIn, SignedOut, useUser } from "@clerk/nextjs";
 import { motion } from "framer-motion";
-import { CheckCircle, BarChart3, Users, ArrowRight } from "lucide-react";
+import { CheckCircle, BarChart3 } from "lucide-react";
 import Image from "next/image";
 import styles from "./landing.module.css";
+import { useState, useEffect } from "react";
+import { getUserSongCount } from "@/app/actions/songs";
 
 // Animation variants
 const fadeInUp = {
@@ -25,6 +27,21 @@ const staggerContainer = {
 };
 
 export default function Home() {
+  const { user, isLoaded } = useUser();
+  const [hasSongs, setHasSongs] = useState(false);
+
+  useEffect(() => {
+    async function checkSongs() {
+      if (isLoaded && user) {
+        const result = await getUserSongCount(user.id);
+        if (result.success && result.count > 0) {
+          setHasSongs(true);
+        }
+      }
+    }
+    checkSongs();
+  }, [user, isLoaded]);
+
   return (
     <div className={styles.landingPage}>
       {/* Navbar is now global in layout.tsx */}
@@ -44,7 +61,7 @@ export default function Home() {
           >
             <motion.h1 className={styles.heroTitle} variants={fadeInUp}>
               פידבק אמיתי <br />
-              <span style={{ color: "var(--primary)" }}>ההצלחה שלך</span>
+              <span style={{ color: "var(--brand-primary)" }}>ההצלחה שלך</span>
             </motion.h1>
             <motion.p className={styles.heroSubtitle} variants={fadeInUp}>
               קהילה לקבלת פידבקים אמיתיים על היצירות שלנו
@@ -60,19 +77,17 @@ export default function Home() {
                     אני רוצה לקבל פידבק
                   </button>
                 </SignInButton>
-                <SignInButton mode="modal" forceRedirectUrl="/dashboard">
-                  <button className={styles.btnSecondary}>
-                    אני רוצה לתת פידבק
-                  </button>
-                </SignInButton>
+                <Link href="/give-feedback" className={styles.btnSecondary}>
+                  אני רוצה לתת פידבק
+                </Link>
               </SignedOut>
               <SignedIn>
                 <button className={styles.btnPrimary} onClick={() => window.location.href = "/dashboard"}>
-                  אני רוצה לקבל פידבק
+                  {hasSongs ? "המרחב האישי שלי" : "אני רוצה לקבל פידבק"}
                 </button>
-                <button className={styles.btnSecondary} onClick={() => window.location.href = "/dashboard"}>
+                <Link href="/give-feedback" className={styles.btnSecondary}>
                   אני רוצה לתת פידבק
-                </button>
+                </Link>
               </SignedIn>
             </motion.div>
           </motion.div>

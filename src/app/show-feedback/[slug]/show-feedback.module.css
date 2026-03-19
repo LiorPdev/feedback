@@ -18,7 +18,7 @@
   right: -100px;
   width: 500px;
   height: 500px;
-  background: rgba(64, 192, 208, 0.05);
+  background: var(--brand-bg);
   filter: blur(100px);
   border-radius: 50%;
   z-index: 0;
@@ -51,20 +51,13 @@
 .iconWrapper {
   width: 70px;
   height: 70px;
-  background: rgba(64, 192, 208, 0.1);
-  color: #40C0D0;
+  background: var(--brand-light);
+  color: var(--brand-primary);
   border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 1.5rem;
-}
-
-.artistName {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #64748B;
-  margin-bottom: 0.5rem;
 }
 
 .title {
@@ -88,49 +81,6 @@
   gap: 0.5rem;
   font-size: 0.9rem;
   font-weight: 700;
-}
-
-.divider {
-  width: 100%;
-  height: 1px;
-  background: linear-gradient(to left, transparent, rgba(0, 0, 0, 0.05), transparent);
-  margin-bottom: 2rem;
-}
-
-.actionSection {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.25rem;
-}
-
-.prompt {
-  font-size: 1rem;
-  font-weight: 800;
-  color: #002D4D;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.playButton {
-  width: max-content;
-  min-width: 200px;
-  padding: 1.1rem 2.5rem;
-  background: #002D4D;
-  color: white;
-  text-decoration: none;
-  border-radius: 100px;
-  font-size: 1.1rem;
-  font-weight: 800;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  box-shadow: 0 10px 20px -5px rgba(0, 45, 77, 0.3);
-}
-
-.playButton:hover {
-  background: #001D33;
-  transform: scale(1.05);
-  box-shadow: 0 15px 30px -10px rgba(0, 45, 77, 0.4);
 }
 
 .feedbackSection {
@@ -188,9 +138,9 @@
 }
 
 .fbOverallBadge {
-  color: #40C0D0 !important;
-  border-color: rgba(64, 192, 208, 0.2) !important;
-  background: rgba(64, 192, 208, 0.05) !important;
+  color: var(--brand-primary) !important;
+  border-color: var(--brand-light) !important;
+  background: var(--brand-bg) !important;
 }
 
 .fbDate {
@@ -231,6 +181,6 @@
 }
 
 .homeLink:hover {
-  color: #40C0D0;
+  color: var(--brand-primary);
   transform: translateX(5px);
 }

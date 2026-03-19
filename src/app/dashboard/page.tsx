@@ -2,16 +2,22 @@ import { getDb } from "@/lib/db";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Music, Coins, ExternalLink, Plus, Clock, Trash2 } from "lucide-react";
-import DeleteSongButton from "@/components/DeleteSongButton";
+import { Music, Coins, Plus } from "lucide-react";
+import SongCard from "@/components/SongCard";
 import styles from "./dashboard.module.css";
 
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ 
+  searchParams 
+}: { 
+  searchParams: Promise<{ new?: string }> 
+}) {
   const clerkUser = await currentUser();
   if (!clerkUser) {
     redirect("/");
   }
+
+  const { new: newSlug } = await searchParams;
 
   let user;
   try {
@@ -34,8 +40,6 @@ export default async function DashboardPage() {
   }
 
   if (!user) {
-    // Falls back to creating the user if they don't exist yet in our DB 
-    // (though they should have been created during /get-feedback)
     redirect("/get-feedback");
   }
 
@@ -77,26 +81,7 @@ export default async function DashboardPage() {
         ) : (
           <div className={styles.songGrid}>
             {user.songs.map((song: any) => (
-              <div key={song.id} className={styles.songCard}>
-                <div className={styles.songMain}>
-                  <div className={styles.songHeader}>
-                    <h3 className={styles.songTitle}>{song.title}</h3>
-                    <div className={styles.songStatus}>
-                      <span className={styles.genreTag}>{song.genre}</span>
-                    </div>
-                  </div>
-                  <div className={styles.songDate}>
-                    {new Date(song.createdAt).toLocaleDateString("he-IL")}
-                  </div>
-                </div>
-
-                <div className={styles.songActions}>
-                  <Link href={`/show-feedback/${song.slug}`} className={styles.viewLink}>
-                    <ExternalLink size={16} /> לצפייה בדירוג
-                  </Link>
-                  <DeleteSongButton songId={song.id} songTitle={song.title} />
-                </div>
-              </div>
+              <SongCard key={song.id} song={song} isNew={song.slug === newSlug} />
             ))}
           </div>
         )}

@@ -4,7 +4,7 @@ import { getDb } from '@/lib/db';
 import { nanoid } from 'nanoid';
 import { revalidatePath } from 'next/cache';
 import { currentUser } from '@clerk/nextjs/server';
-import { eq } from 'drizzle-orm';
+import { eq, ne, and, sql } from 'drizzle-orm';
 import { users, songs, feedbacks } from '@/lib/schema';
 
 export async function createSong(formData: FormData, userId: string) {
@@ -115,5 +115,82 @@ export async function deleteSong(songId: string) {
     } catch (error) {
         console.error("Failed to delete song:", error);
         return { success: false, error: "שגיאה במחיקת השיר" };
+    }
+}
+
+export async function getUserSongCount(userId: string) {
+    const db = await getDb();
+    try {
+        const userSongs = await db.query.songs.findMany({
+            where: (songs, { eq }) => eq(songs.userId, userId),
+            columns: { id: true }
+        });
+        return { success: true, count: userSongs.length };
+    } catch (error) {
+        console.error("Failed to get song count:", error);
+        return { success: true, count: 0 }; // Default to 0 on error to be safe
+    }
+}
+
+export async function getFeedSongs() {
+    const clerkUser = await currentUser();
+    const db = await getDb();
+    
+    try {
+        const allSongs = await db.query.songs.findMany({
+            where: (songs, { ne }) => {
+                if (clerkUser?.id) {
+                    return ne(songs.userId, clerkUser.id);
+                }
+                return undefined;
+            },
+            with: {
+                user: {
+                    columns: {
+                        name: true
+                    }
+                }
+            },
+            orderBy: (songs, { sql }) => [sql`RANDOM()`]
+        });
+        
+        return { success: true, songs: allSongs };
+    } catch (error) {
+        console.error("Failed to fetch feed songs:", error);
+        return { success: false, error: "שגיאה בטעינת השירים" };
+    }
+}
+
+export async function updateSong(songId: string, data: { title: string, url: string, genre: string }) {
+    const clerkUser = await currentUser();
+    if (!clerkUser) {
+        return { success: false, error: "Unauthorized" };
+    }
+
+    const db = await getDb();
+    try {
+        // Double check ownership
+        const song = await db.query.songs.findFirst({
+            where: (songs, { eq }) => eq(songs.id, songId),
+            columns: { userId: true }
+        });
+
+        if (!song || song.userId !== clerkUser.id) {
+            return { success: false, error: "לא מורשה" };
+        }
+
+        await db.update(songs)
+            .set({ 
+                title: data.title, 
+                url: data.url, 
+                genre: data.genre 
+            })
+            .where(eq(songs.id, songId));
+
+        revalidatePath('/dashboard');
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to update song:", error);
+        return { success: false, error: "שגיאה בעדכון השיר" };
     }
 }

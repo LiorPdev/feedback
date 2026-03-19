@@ -20,9 +20,10 @@ const categories: RatingCategory[] = [
 
 interface FeedbackFormProps {
   songId: string;
+  onSuccess?: () => void;
 }
 
-export default function FeedbackForm({ songId }: FeedbackFormProps) {
+export default function FeedbackForm({ songId, onSuccess }: FeedbackFormProps) {
   const [ratings, setRatings] = useState({
     lyrics: 0,
     composition: 0,
@@ -63,6 +64,7 @@ export default function FeedbackForm({ songId }: FeedbackFormProps) {
 
       if (result.success) {
         setStatus("success");
+        onSuccess?.();
       } else {
         setStatus("error");
         setErrorMsg(result.error || "משהו השתבש בשליחת הפידבק.");
@@ -101,7 +103,7 @@ export default function FeedbackForm({ songId }: FeedbackFormProps) {
     <div className={styles.form}>
       <form onSubmit={handleSubmit}>
         <h2 className={styles.heading}>פידבק ודירוג</h2>
-        
+
         <div className={styles.ratingGrid}>
           {categories.map((cat) => (
             <div key={cat.key} className={styles.ratingGroup}>
@@ -113,11 +115,10 @@ export default function FeedbackForm({ songId }: FeedbackFormProps) {
                     type="button"
                     className={`${styles.starBtn} ${ratings[cat.key] >= star ? styles.starFilled : ""}`}
                     onClick={() => handleRating(cat.key, star)}
-                    onMouseEnter={() => { }}
                   >
-                    <Star 
-                      size={24} 
-                      fill={ratings[cat.key] >= star ? "currentColor" : "none"} 
+                    <Star
+                      size={20}
+                      fill={ratings[cat.key] >= star ? "currentColor" : "none"}
                       strokeWidth={1.5}
                     />
                   </button>
@@ -128,7 +129,6 @@ export default function FeedbackForm({ songId }: FeedbackFormProps) {
         </div>
 
         <div className={styles.commentGroup}>
-          <label className={styles.label}>ביקורת כתובה</label>
           <textarea
             className={styles.textarea}
             placeholder="מה דעתך על השיר? מה כדאי לשפר? (מינימום 30 תווים)"

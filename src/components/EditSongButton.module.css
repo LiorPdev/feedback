@@ -1,4 +1,4 @@
-.deleteBtn {
+.editBtn {
   background: transparent;
   border: none;
   color: #94A3B8;
@@ -11,9 +11,9 @@
   justify-content: center;
 }
 
-.deleteBtn:hover {
-  color: #ef4444;
-  background: rgba(239, 68, 68, 0.05);
+.editBtn:hover {
+  color: var(--brand-primary);
+  background: var(--brand-bg);
 }
 
 .overlay {
@@ -22,7 +22,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(15, 23, 42, 0.4); /* Slate-900 equivalent for standard dark overlay */
+  background: rgba(0, 45, 77, 0.4);
   backdrop-filter: blur(4px);
   z-index: 2000;
   display: flex;
@@ -33,50 +33,67 @@
 
 .modal {
   background: #ffffff;
-  width: 480px; 
-  max-width: 90vw;
-  padding: 2.5rem 2rem;
+  width: 500px;
+  max-width: 95vw;
+  padding: 2.5rem;
   border-radius: 24px;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  text-align: center;
   direction: rtl;
   position: relative;
-}
-
-.iconCircle {
-  width: 64px;
-  height: 64px;
-  background: rgba(239, 68, 68, 0.1);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 1.5rem;
 }
 
 .modal h3 {
   font-size: 1.5rem;
   font-weight: 800;
-  margin: 0 0 1rem 0;
+  margin: 0 0 1.5rem 0;
   color: #002D4D;
+  text-align: center;
 }
 
-.modal p {
-  color: #64748B;
-  line-height: 1.6;
-  margin-bottom: 2rem;
-  font-size: 1.05rem;
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.field label {
+  font-weight: 700;
+  color: #002D4D;
+  font-size: 0.9rem;
+}
+
+.input, .select {
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  font-size: 1rem;
+  color: #002D4D;
+  transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.input:focus, .select:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px var(--brand-light);
 }
 
 .actions {
   display: flex;
-  gap: 1.25rem;
-  margin-top: 0.5rem;
+  gap: 1rem;
+  margin-top: 1rem;
 }
 
-.cancelBtn, .confirmBtn {
+.cancelBtn, .saveBtn {
   flex: 1;
-  padding: 1.1rem 0.5rem;
+  padding: 1rem;
   border-radius: 14px;
   font-weight: 700;
   font-size: 1rem;
@@ -94,8 +111,8 @@
   background: #E2E8F0;
 }
 
-.confirmBtn {
-  background: #ef4444;
+.saveBtn {
+  background: var(--brand-primary);
   color: white;
   border: none;
   display: flex;
@@ -104,12 +121,12 @@
   gap: 8px;
 }
 
-.confirmBtn:hover:not(:disabled) {
-  background: #dc2626;
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+.saveBtn:hover:not(:disabled) {
+  background: var(--brand-hover);
+  box-shadow: 0 4px 12px var(--brand-light);
 }
 
-.confirmBtn:disabled {
+.saveBtn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }

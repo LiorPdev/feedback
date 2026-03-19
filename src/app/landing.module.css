@@ -4,62 +4,17 @@
   scroll-snap-type: y mandatory;
   overflow-y: scroll;
   height: 100vh;
-  --primary: #2563eb;
-  --primary-hover: #1d4ed8;
-  --primary-light: #eff6ff;
-  --text-dark: #0f172a;
-  --text-light: #64748b;
-  --bg-light: #f8fafc;
+  --primary: var(--brand-primary);
+  --primary-hover: var(--brand-hover);
+  --primary-light: var(--brand-light);
+  --text-dark: var(--text-dark);
+  --text-light: var(--text-light);
+  --bg-light: var(--bg-light);
   --white: #ffffff;
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-  --nav-height: 60px;
-}
-
-.navbar {
-  height: var(--nav-height);
-  width: 100%;
-  display: flex;
-  align-items: center;
-  position: fixed;
-  top: 0;
-  z-index: 1000;
-  padding: 0 5vw;
-  box-sizing: border-box;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.navContent {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.logo {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #4d5561;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.logoImage {
-  border-radius: 8px;
-}
-
-.navLinks {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
+  --shadow-sm: var(--shadow-sm);
+  --shadow: var(--shadow);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
 }
 
 /* Hero Section */
@@ -139,10 +94,10 @@
 }
 
 .howItWorks {
-  background: rgba(37, 99, 235, 0.05);
+  background: var(--brand-bg);
   padding: 1.5rem;
   border-radius: 16px;
-  border: 1px solid rgba(37, 99, 235, 0.1);
+  border: 1px solid var(--brand-light);
   max-width: 500px;
 }
 
@@ -198,29 +153,6 @@
   background: var(--primary-light);
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
-}
-
-.btnGoogle {
-  background-color: #0f172a;
-  color: white;
-  padding: 0.8rem 2rem;
-  border-radius: 14px;
-  font-weight: 700;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  transition: all 0.3s ease;
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  font-size: 1.1rem;
-}
-
-.btnGoogle:hover {
-  background-color: #000;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }
 
 .heroMockup {

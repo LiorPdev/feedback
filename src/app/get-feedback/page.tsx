@@ -1,16 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, CheckCircle2, Copy, X, Check } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
-import { createSong } from "@/app/actions/songs";
+import { createSong, getUserSongCount } from "@/app/actions/songs";
+import { useRouter } from "next/navigation";
 import styles from "./get-feedback.module.css";
 
-const genres = [
-  "אינדי", "אלקטרוני", "בלוז", "גרוב", "היפ-הופ", "ים תיכוני", "פולק", "פופ", "רוק", "אחר"
-];
+import { GENRES } from "@/lib/constants";
 
 export default function GetFeedback() {
   const [songLink, setSongLink] = useState("");
@@ -18,9 +17,21 @@ export default function GetFeedback() {
   const [selectedGenre, setSelectedGenre] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success">("idle");
   const [errorMessage, setErrorMessage] = useState("");
-  const [slug, setSlug] = useState("");
-  const [copied, setCopied] = useState(false);
+  const [hasSongs, setHasSongs] = useState(false);
   const { user } = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    async function checkSongs() {
+      if (user?.id) {
+        const result = await getUserSongCount(user.id);
+        if (result.success && result.count > 0) {
+          setHasSongs(true);
+        }
+      }
+    }
+    checkSongs();
+  }, [user?.id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,8 +48,8 @@ export default function GetFeedback() {
     try {
       const result = await createSong(formData, user.id);
       if (result.success && result.song) {
-        setSlug(result.song.slug);
-        setStatus("success");
+        // Immediate redirect with the new slug for highlighting
+        router.push(`/dashboard?new=${result.song.slug}`);
       } else {
         setErrorMessage(result.error || "שגיאה בביצוע הפעולה");
         setStatus("idle");
@@ -50,12 +61,6 @@ export default function GetFeedback() {
     }
   };
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(`https://feedback.activitywiz.com/give-feedback/${slug}`);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   return (
     <div className={styles.container}>
       <motion.div
@@ -65,9 +70,7 @@ export default function GetFeedback() {
         transition={{ duration: 0.5 }}
       >
         <div className={styles.header}>
-          <h1>
-            שליחת שיר לקבלת פידבק <span className={styles.tokenCount}>(10 טוקנים)</span>
-          </h1>
+          <h1>שליחת שיר לקבלת פידבק</h1>
         </div>
 
         <form onSubmit={handleSubmit} className={styles.form}>
@@ -81,18 +84,6 @@ export default function GetFeedback() {
               onChange={(e) => setSongLink(e.target.value)}
               required
             />
-            <AnimatePresence>
-              {errorMessage && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className={styles.errorMsg}
-                >
-                  {errorMessage}
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
 
           <div className={styles.formGroup}>
@@ -100,7 +91,7 @@ export default function GetFeedback() {
             <input
               type="text"
               className={styles.input}
-              placeholder="לדוגמא: לשרוק בחושך"
+              placeholder="לדוגמא: איך שיר נולד"
               value={songTitle}
               onChange={(e) => setSongTitle(e.target.value)}
               required
@@ -108,7 +99,7 @@ export default function GetFeedback() {
           </div>
 
           <div className={`${styles.formGroup} ${styles.genreGroup}`}>
-            <label className={styles.label}>ז'אנר</label>
+            <label className={styles.label}>סגנון</label>
             <div className={styles.selectWrapper}>
               <select
                 className={styles.select}
@@ -116,8 +107,8 @@ export default function GetFeedback() {
                 onChange={(e) => setSelectedGenre(e.target.value)}
                 required
               >
-                <option value="" disabled>בחר ז'אנר...</option>
-                {genres.map((genre) => (
+                <option value="" disabled>בחרו סגנון...</option>
+                {GENRES.map((genre) => (
                   <option key={genre} value={genre}>
                     {genre}
                   </option>
@@ -125,8 +116,6 @@ export default function GetFeedback() {
               </select>
             </div>
           </div>
-
-
 
           <button
             type="submit"
@@ -136,70 +125,31 @@ export default function GetFeedback() {
             {status === "loading" ? (
               <div className={styles.loadingSpinner} />
             ) : (
-              "שליחה"
+              <>שליחה <span className={styles.tokenLabel}>(10 טוקנים)</span></>
             )}
           </button>
+
+          <AnimatePresence>
+            {errorMessage && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className={styles.errorMsg}
+                style={{ marginTop: '1rem', textAlign: 'center' }}
+              >
+                {errorMessage}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </form>
       </motion.div>
 
-      <Link href="/dashboard" className={styles.backLink}>
-        <ArrowRight size={18} /> חזרה למרחב האישי
-      </Link>
-
-      <AnimatePresence>
-        {status === "success" && (
-          <motion.div
-            className={styles.toast}
-            initial={{ opacity: 0, x: "-50%", y: "-40%", scale: 0.9 }}
-            animate={{ opacity: 1, x: "-50%", y: "-50%", scale: 1 }}
-            exit={{ opacity: 0, x: "-50%", y: "-45%", scale: 0.9 }}
-          >
-            <button
-              onClick={() => setStatus("idle")}
-              className={styles.closeToastBtn}
-              aria-label="Close"
-            >
-              <X size={18} />
-            </button>
-            <div className={styles.toastHeader}>
-              <CheckCircle2 size={20} color="#40C0D0" />
-              <span>השיר נשלח בהצלחה!</span>
-            </div>
-            <div className={styles.copyContainer}>
-              <span style={{ fontSize: "15px", fontWeight: "600" }}>קישור לדירוג השיר</span>
-              <button
-                onClick={handleCopy}
-                className={styles.copyBtn}
-                title="Copy Link"
-              >
-                <AnimatePresence mode="wait">
-                  {copied ? (
-                    <motion.div
-                      key="check"
-                      initial={{ scale: 0.5, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ scale: 0.5, opacity: 0 }}
-                    >
-                      <Check size={18} color="#40C0D0" />
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="copy"
-                      initial={{ scale: 0.5, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ scale: 0.5, opacity: 0 }}
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                    >
-                      <Copy size={18} color="#40C0D0" />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {hasSongs && (
+        <Link href="/dashboard" className={styles.backLink}>
+          <ArrowRight size={18} /> חזרה למרחב האישי
+        </Link>
+      )}
     </div>
   );
 }

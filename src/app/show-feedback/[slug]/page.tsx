@@ -1,6 +1,6 @@
 import { getDb } from "@/lib/db";
 import { notFound, redirect } from "next/navigation";
-import styles from "./share.module.css";
+import styles from "./show-feedback.module.css";
 import Link from "next/link";
 import { ArrowRight, Music, Calendar, Disc } from "lucide-react";
 import { auth } from "@clerk/nextjs/server";

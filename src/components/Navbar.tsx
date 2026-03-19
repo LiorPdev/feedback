@@ -12,13 +12,15 @@ export default function Navbar() {
           <img
             src="/Logo.png?v=2"
             alt="פידבק ספייס"
-            width={38}
-            height={38}
+            width={30}
+            height={30}
             className={styles.logoImage}
           />
           <span>פידבק-ספייס</span>
         </Link>
         <div className={styles.navLinks}>
+          <Link href="/give-feedback" className={styles.navLink}>לתת פידבק</Link>
+          <Link href="/get-feedback" className={styles.navLink}>לקבל פידבק</Link>
           <Link href="/" className={styles.navLink}>דף הבית</Link>
           <SignedOut>
             <SignInButton mode="modal">
