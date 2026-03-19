@@ -84,7 +84,7 @@ export default function FeedbackForm({ songId, onSuccess }: FeedbackFormProps) {
       >
         <div className={styles.successIcon}>✨</div>
         <h3>תודה על הפידבק שלך!</h3>
-        <p>המשוב שלך נשלח בהצלחה ליוצר השיר.</p>
+        <p>המשוב (האנונימי) שלך נשלח בהצלחה ליוצר השיר.</p>
         <button
           className={styles.resetBtn}
           onClick={() => {
@@ -131,7 +131,7 @@ export default function FeedbackForm({ songId, onSuccess }: FeedbackFormProps) {
         <div className={styles.commentGroup}>
           <textarea
             className={styles.textarea}
-            placeholder="מה דעתך על השיר? מה כדאי לשפר? (מינימום 30 תווים)"
+            placeholder="מה דעתך על השיר? (מינימום 30 תווים)"
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             required
@@ -152,7 +152,7 @@ export default function FeedbackForm({ songId, onSuccess }: FeedbackFormProps) {
           ) : (
             <>
               <Send size={18} />
-              <span>שליחת פידבק</span>
+              <span>שליחת פידבק אנונימי</span>
             </>
           )}
         </button>

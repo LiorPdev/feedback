@@ -2,9 +2,12 @@
 
 import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import styles from "./Navbar.module.css";
 
 export default function Navbar() {
+  const pathname = usePathname();
+
   return (
     <nav className={styles.navbar}>
       <div className={styles.navContent}>
@@ -19,9 +22,9 @@ export default function Navbar() {
           <span>פידבק-ספייס</span>
         </Link>
         <div className={styles.navLinks}>
-          <Link href="/give-feedback" className={styles.navLink}>לתת פידבק</Link>
-          <Link href="/get-feedback" className={styles.navLink}>לקבל פידבק</Link>
-          <Link href="/" className={styles.navLink}>דף הבית</Link>
+          {pathname !== "/" && (
+            <Link href="/" className={styles.navLink}>דף הבית</Link>
+          )}
           <SignedOut>
             <SignInButton mode="modal">
               <button className={styles.btnGoogle}>

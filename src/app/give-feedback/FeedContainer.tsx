@@ -6,6 +6,7 @@ import { Home } from "lucide-react";
 import Link from "next/link";
 import styles from "./feed.module.css";
 import FeedbackForm from "@/components/FeedbackForm";
+import UrlPlayer, { getEmbedUrl } from "@/components/UrlPlayer";
 
 interface Song {
   id: string;
@@ -27,9 +28,13 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const currentSong = songs[currentIndex];
+  // If the URL is supported, show the player immediately.
+  const [showPlayer, setShowPlayer] = useState(!!getEmbedUrl(currentSong?.url || ""));
 
   const handleNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % songs.length);
+    const nextIndex = (currentIndex + 1) % songs.length;
+    setCurrentIndex(nextIndex);
+    setShowPlayer(!!getEmbedUrl(songs[nextIndex]?.url || ""));
   };
 
   const handlePlay = () => {
@@ -66,10 +71,16 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
             </h1>
           </div>
 
+          <div className={styles.playerSection}>
+            {showPlayer && <UrlPlayer url={currentSong.url} />}
+          </div>
+
           <div className={styles.actions}>
-            <button className={styles.btnPlay} onClick={handlePlay}>
-              <span>להקשיב</span>
-            </button>
+            {!getEmbedUrl(currentSong.url) && (
+              <button className={styles.btnPlay} onClick={handlePlay}>
+                <span>להקשיב</span>
+              </button>
+            )}
             <button className={styles.btnSkip} onClick={handleNext}>
               <span>דלג</span>
             </button>
@@ -82,7 +93,7 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
                 // We'll wait a bit before moving to the next song to show the success state
                 setTimeout(() => {
                   handleNext();
-                }, 2000);
+                }, 3000);
               }}
             />
           </div>
@@ -90,7 +101,6 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
       </AnimatePresence>
 
       <Link href="/dashboard" className={styles.homeLink}>
-        <Home size={18} />
         <span>חזרה למרחב האישי</span>
       </Link>
     </div>
