@@ -44,7 +44,7 @@ export default async function DashboardPage() {
     <div className={styles.container}>
       <div className={styles.header}>
         <div className={styles.welcome}>
-          <h1>שלום, {user.name?.split(" ")[0] || "אורח"}</h1>
+          <h1>שלום{user.name ? `, ${user.name.split(" ")[0]}` : ""}</h1>
           <p>ברוכים הבאים למרחב הפידבקים האישי</p>
         </div>
 
@@ -61,7 +61,7 @@ export default async function DashboardPage() {
 
       <div className={styles.content}>
         <div className={styles.sectionHeader}>
-          <h2>השירים שלי</h2>
+          <h2>השירים ששלחתי לקבלת פידבק</h2>
           <Link href="/get-feedback" className={styles.submitNewBtn}>
             <Plus size={18} /> שליחת שיר חדש
           </Link>

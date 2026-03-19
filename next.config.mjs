@@ -1,6 +1,6 @@
 import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 
-// Initialize Cloudflare dev bindings immediately at module load time.
+// This call is required for local development to mock Cloudflare bindings.
 initOpenNextCloudflareForDev();
 
 /** @type {import('next').NextConfig} */
