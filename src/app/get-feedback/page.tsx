@@ -9,7 +9,7 @@ import { createSong } from "@/app/actions/songs";
 import styles from "./get-feedback.module.css";
 
 const genres = [
-  "אינדי", "אלקטרוני", "בלדה", "בלוז", "ג'אז", "היפ-הופ", "ים תיכוני", "פולק", "פופ", "רגאיי", "רוק", "אחר"
+  "אינדי", "אלקטרוני", "בלוז", "גרוב", "היפ-הופ", "ים תיכוני", "פולק", "פופ", "רוק", "אחר"
 ];
 
 export default function GetFeedback() {
