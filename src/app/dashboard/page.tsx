@@ -6,6 +6,8 @@ import { Music, Coins, ExternalLink, Plus, Clock, Trash2 } from "lucide-react";
 import DeleteSongButton from "@/components/DeleteSongButton";
 import styles from "./dashboard.module.css";
 
+export const runtime = "edge";
+
 export default async function DashboardPage() {
   const clerkUser = await currentUser();
   if (!clerkUser) {

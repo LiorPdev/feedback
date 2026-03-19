@@ -5,6 +5,8 @@ import Link from "next/link";
 import { ArrowLeft, Music, Calendar, Disc, Star } from "lucide-react";
 import { auth } from "@clerk/nextjs/server";
 
+export const runtime = 'edge';
+
 interface ShowFeedbackPageProps {
   params: {
     slug: string;

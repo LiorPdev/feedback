@@ -6,6 +6,8 @@ import { ArrowLeft, Music, Calendar, Disc, Star } from "lucide-react";
 import FeedbackForm from "@/components/FeedbackForm";
 import { auth } from "@clerk/nextjs/server";
 
+export const runtime = 'edge';
+
 interface GiveFeedbackPageProps {
   params: {
     slug: string;
