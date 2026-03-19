@@ -14,15 +14,25 @@ export default async function DashboardPage() {
     redirect("/");
   }
 
-  const db = await getDb();
-  const user = await db.query.users.findFirst({
-    where: (users, { eq }) => eq(users.id, clerkUser.id),
-    with: {
-      songs: {
-        orderBy: (songs, { desc }) => [desc(songs.createdAt)],
+  let user;
+  try {
+    const db = await getDb();
+    user = await db.query.users.findFirst({
+      where: (users, { eq }) => eq(users.id, clerkUser.id),
+      with: {
+        songs: {
+          orderBy: (songs, { desc }) => [desc(songs.createdAt)],
+        },
       },
-    },
-  });
+    });
+  } catch (err: any) {
+    return (
+      <div style={{ padding: '2rem', color: 'red', direction: 'ltr' }}>
+        <h2>Database Error Detected</h2>
+        <pre>{err.stack || err.message || String(err)}</pre>
+      </div>
+    );
+  }
 
   if (!user) {
     // Falls back to creating the user if they don't exist yet in our DB 
