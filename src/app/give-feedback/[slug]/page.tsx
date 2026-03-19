@@ -6,6 +6,8 @@ import { ArrowRight, Music, Calendar, Disc, Star } from "lucide-react";
 import FeedbackForm from "@/components/FeedbackForm";
 import { auth } from "@clerk/nextjs/server";
 
+export const runtime = 'edge';
+
 interface GiveFeedbackPageProps {
   params: {
     slug: string;
@@ -14,7 +16,7 @@ interface GiveFeedbackPageProps {
 
 export default async function GiveFeedbackPage({ params }: GiveFeedbackPageProps) {
   const { slug } = await params;
-  const db = await getDb(process);
+  const db = await getDb();
   const { userId } = await auth();
 
   const song = await db.song.findUnique({

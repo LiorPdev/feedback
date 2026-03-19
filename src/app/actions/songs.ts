@@ -14,7 +14,7 @@ export async function createSong(formData: FormData, userId: string) {
     // Create random slug
     const slug = nanoid(6);
 
-    const db = await getDb(process);
+    const db = await getDb();
 
     try {
         const clerkUser = await currentUser();
@@ -74,7 +74,7 @@ export async function addFeedback(data: {
     overall: number;
     comment: string;
 }) {
-    const db = await getDb(process);
+    const db = await getDb();
     try {
         const feedback = await db.feedback.create({
             data: {
@@ -103,7 +103,7 @@ export async function deleteSong(songId: string) {
         return { success: false, error: "Unauthorized" };
     }
 
-    const db = await getDb(process);
+    const db = await getDb();
     try {
         // Double check ownership
         const song = await db.song.findUnique({

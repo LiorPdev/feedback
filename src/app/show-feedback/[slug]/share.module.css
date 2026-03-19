@@ -28,7 +28,7 @@
   position: relative;
   z-index: 1;
   width: 100%;
-  max-width: 650px; /* Slightly wider for the feedback form */
+  max-width: 650px;
   display: flex;
   flex-direction: column;
   gap: 2.5rem;
