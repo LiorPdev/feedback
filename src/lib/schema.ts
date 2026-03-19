@@ -8,8 +8,8 @@ export const users = sqliteTable('User', {
     provider: text('provider'),
     providerId: text('providerId').unique(),
     tokens: integer('tokens').default(10).notNull(),
-    createdAt: integer('createdAt', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
-    updatedAt: integer('updatedAt', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+    createdAt: text('createdAt').notNull().$defaultFn(() => new Date().toISOString()),
+    updatedAt: text('updatedAt').notNull().$defaultFn(() => new Date().toISOString()),
 });
 
 export const songs = sqliteTable('Song', {
@@ -20,8 +20,8 @@ export const songs = sqliteTable('Song', {
     genre: text('genre').notNull(),
     slug: text('slug').notNull().unique(),
     isActive: integer('isActive', { mode: 'boolean' }).default(true).notNull(),
-    createdAt: integer('createdAt', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
-    updatedAt: integer('updatedAt', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+    createdAt: text('createdAt').notNull().$defaultFn(() => new Date().toISOString()),
+    updatedAt: text('updatedAt').notNull().$defaultFn(() => new Date().toISOString()),
 }, (table) => {
     return {
         userIdIdx: index('Song_userId_idx').on(table.userId),
@@ -36,7 +36,7 @@ export const feedbacks = sqliteTable('Feedback', {
     production: integer('production').notNull(),
     overall: integer('overall').notNull(),
     comment: text('comment').notNull(),
-    createdAt: integer('createdAt', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+    createdAt: text('createdAt').notNull().$defaultFn(() => new Date().toISOString()),
 }, (table) => {
     return {
         songIdIdx: index('Feedback_songId_idx').on(table.songId),

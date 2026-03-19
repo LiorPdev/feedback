@@ -25,17 +25,20 @@ const heebo = Heebo({
 export const metadata: Metadata = {
   metadataBase: new URL("https://feedback.activitywiz.com"),
   title: {
-    default: "פידבק-ספייס | קהילה לקבלת פידבקים",
+    default: "פידבק-ספייס | קהילה לקבלת פידבקים אמיתיים",
     template: "%s | פידבק-ספייס",
   },
-  description: "קהילה לקבלת פידבקים קלה ומהירה, מותאמת לאמנים ויוצרים.",
+  description: "קהילה לקבלת פידבקים קלה ומהירה, מותאמת לאמנים ויוצרים. בואו לקבל חוות דעת כנה על היצירות שלכם.",
   icons: {
-    icon: "/Logo.png",
+    icon: [
+      { url: "/Logo.webp", type: "image/webp" },
+      { url: "/Logo.png", type: "image/png" },
+    ],
     apple: "/Logo192.png",
   },
   openGraph: {
-    title: "פידבק-ספייס | קהילה לקבלת פידבקים",
-    description: "קהילה לקבלת פידבקים קלה ומהירה, מותאמת לאמנים ויוצרים.",
+    title: "פידבק-ספייס | קהילה לקבלת פידבקים אמיתיים",
+    description: "קהילה לקבלת פידבקים קלה ומהירה, מותאמת לאמנים ויוצרים. בואו לקבל חוות דעת כנה על היצירות שלכם.",
     url: "https://feedback.activitywiz.com",
     siteName: "פידבק-ספייס",
     images: [
