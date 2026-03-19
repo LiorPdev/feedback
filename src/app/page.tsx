@@ -51,7 +51,7 @@ export default function Home() {
             </motion.p>
             <motion.div className={styles.howItWorks} variants={fadeInUp}>
               <h3>איך זה עובד?</h3>
-              <p>אתם מעלים יצירה כדי לקבל משוב כנה מאנשי הקהילה, או נותנים פידבק לאחרים כדי לעזור להם להשתפר.</p>
+              <p>אתם מעלים יצירה כדי לקבל משוב כנה מאנשי הקהילה, וגם נותנים פידבק לאחרים כדי לעזור להם להשתפר.</p>
             </motion.div>
             <motion.div className={styles.heroButtons} variants={fadeInUp}>
               <SignedOut>
