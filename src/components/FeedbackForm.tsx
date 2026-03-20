@@ -1,18 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Star, Send, Music, LogIn } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Star, Music, LogIn } from "lucide-react";
+import { motion } from "framer-motion";
 import { useUser, SignInButton } from "@clerk/nextjs";
 import { addFeedback } from "@/app/actions/songs";
-import { 
-  REWARD_LYRICS, 
-  REWARD_COMPOSITION, 
-  REWARD_PRODUCTION, 
-  REWARD_OVERALL, 
-  REWARD_COMMENT,
-  MIN_COMMENT_LENGTH 
-} from "@/lib/constants";
+import { REWARD_LYRICS, REWARD_COMPOSITION, REWARD_PRODUCTION, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH } from "@/lib/constants";
 import styles from "./FeedbackForm.module.css";
 
 interface FeedbackFormProps {
@@ -128,9 +121,7 @@ export default function FeedbackForm({ songId, onSuccess, onSkip, isDisabled, di
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
       >
-        <div className={styles.successIcon}>✨</div>
         <h3>תודה על הפידבק שלך!</h3>
-        <p>המשוב (האנונימי) שלך נשלח בהצלחה ליוצר השיר.</p>
       </motion.div>
     );
   }
@@ -153,10 +144,10 @@ export default function FeedbackForm({ songId, onSuccess, onSkip, isDisabled, di
               <label className={styles.ratingLabel}>
                 {cat.label}
                 <span className={styles.pointLabel}>
-                  ({cat.key === "lyrics" ? REWARD_LYRICS : 
+                  ({cat.key === "lyrics" ? REWARD_LYRICS :
                     cat.key === "composition" ? REWARD_COMPOSITION :
-                    cat.key === "production" ? REWARD_PRODUCTION :
-                    REWARD_OVERALL}+)
+                      cat.key === "production" ? REWARD_PRODUCTION :
+                        REWARD_OVERALL}+)
                 </span>
               </label>
               <div className={styles.stars}>
@@ -189,7 +180,12 @@ export default function FeedbackForm({ songId, onSuccess, onSkip, isDisabled, di
               if (status === "error") setStatus("idle");
             }}
           />
-          <div className={styles.commentFooter}>({REWARD_COMMENT}+) קרדיט <Music size={12} style={{ display: 'inline', verticalAlign: 'middle', marginBottom: '2px' }} /></div>
+          <div className={styles.commentFooterRow}>
+            <div className={styles.commentFooter}>({REWARD_COMMENT}+) קרדיט <Music size={12} style={{ display: 'inline', verticalAlign: 'middle', marginBottom: '2px' }} /></div>
+            <div className={`${styles.charCounter} ${comment.length === 0 ? "" : (comment.length < MIN_COMMENT_LENGTH ? styles.charCounterLow : styles.charCounterValid)}`}>
+              ({comment.length}/{MIN_COMMENT_LENGTH})
+            </div>
+          </div>
         </div>
 
         <button

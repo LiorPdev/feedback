@@ -133,9 +133,9 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
             isDisabled={!isBypassTimer && secondsRemaining > 0}
             disabledMessage={
               isBypassTimer ? "" : (
-              !isTimerActive
-                ? "יש להקשיב לשיר לפחות 30 שניות לפני שליחת פידבק"
-                : `ניתן לשלוח דירוג בעוד ${secondsRemaining} שניות...`
+                !isTimerActive
+                  ? "בבקשה הקשיבו לשיר לפחות 30 שניות לפני שליחת פידבק"
+                  : `ניתן לשלוח דירוג בעוד ${secondsRemaining} שניות...`
               )
             }
             onSuccess={() => {

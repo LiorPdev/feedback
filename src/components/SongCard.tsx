@@ -46,7 +46,7 @@ export default function SongCard({ song, isNew: propIsNew }: SongCardProps) {
 
       <div className={styles.songActions}>
         <Link href={`/show-feedback/${song.slug}`} className={styles.viewLink}>
-          <Eye size={16} /> לצפייה בפידבק
+          <Eye size={16} /> לצפייה בפידבק ({song.feedbacks?.length || 0})
         </Link>
         <div className={styles.adminActions}>
           <ShareSongButton slug={song.slug} />

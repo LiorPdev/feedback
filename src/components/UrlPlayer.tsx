@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import styles from "./UrlPlayer.module.css";
 
 // Declare global types for APIs
@@ -81,7 +81,7 @@ export default function UrlPlayer({ url, onPlay, onPause }: UrlPlayerProps) {
                 if (event.data === window.YT.PlayerState.PLAYING) {
                   onPlay?.();
                 } else if (
-                  event.data === window.YT.PlayerState.PAUSED || 
+                  event.data === window.YT.PlayerState.PAUSED ||
                   event.data === window.YT.PlayerState.ENDED
                 ) {
                   onPause?.();
@@ -102,7 +102,7 @@ export default function UrlPlayer({ url, onPlay, onPause }: UrlPlayerProps) {
           const firstScriptTag = document.getElementsByTagName("script")[0];
           firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
         }
-        
+
         // Use the global callback if it's the first time
         const previousCallback = window.onYouTubeIframeAPIReady;
         window.onYouTubeIframeAPIReady = () => {

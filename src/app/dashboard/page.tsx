@@ -27,6 +27,9 @@ export default async function DashboardPage({
       with: {
         songs: {
           orderBy: (songs, { desc }) => [desc(songs.createdAt)],
+          with: {
+            feedbacks: true,
+          },
         },
       },
     });

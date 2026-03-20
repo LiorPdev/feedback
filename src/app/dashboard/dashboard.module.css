@@ -46,6 +46,8 @@
 .submitNewBtn {
   display: flex;
   align-items: center;
+  justify-content: center;
+  text-align: center;
   gap: 8px;
   padding: 0.75rem 1.5rem;
   background: var(--brand-primary);
@@ -71,6 +73,7 @@
 }
 
 .songCard {
+  position: relative;
   background: var(--card-bg);
   padding: 1.5rem;
   border-radius: 20px;
@@ -141,6 +144,8 @@
 }
 
 .adminActions {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   gap: 0.25rem;
@@ -155,6 +160,16 @@
   align-items: center;
   gap: 6px;
   transition: opacity 0.2s;
+}
+
+.viewLink::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
 }
 
 .viewLink:hover {
