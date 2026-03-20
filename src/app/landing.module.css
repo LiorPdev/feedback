@@ -7,10 +7,12 @@
   --primary: var(--brand-primary);
   --primary-hover: var(--brand-hover);
   --primary-light: var(--brand-light);
-  --text-dark: var(--text-dark);
-  --text-light: var(--text-light);
-  --bg-light: var(--bg-light);
-  --white: #ffffff;
+  --primary-contrast: var(--brand-contrast);
+  --text-main: var(--text-main);
+  --text-muted: var(--text-muted);
+  --bg-section: var(--bg-section);
+  --card-bg: var(--card-bg);
+  --white: var(--card-bg);
   --shadow-sm: var(--shadow-sm);
   --shadow: var(--shadow);
   --shadow-lg: var(--shadow-lg);
@@ -26,7 +28,7 @@
   height: 100%;
   display: flex;
   align-items: center;
-  background-color: #ffffff;
+  background-color: var(--background);
 }
 
 .heroBackground {
@@ -83,12 +85,12 @@
   font-size: clamp(2.5rem, 5vw, 4rem);
   line-height: 1.1;
   font-weight: 900;
-  color: var(--text-dark);
+  color: var(--text-main);
 }
 
 .heroSubtitle {
   font-size: 1.25rem;
-  color: var(--text-light);
+  color: var(--text-muted);
   max-width: 500px;
   line-height: 1.6;
 }
@@ -97,7 +99,7 @@
   background: var(--brand-bg);
   padding: 1.5rem;
   border-radius: 16px;
-  border: 1px solid var(--brand-light);
+  border: 1px solid var(--border-color);
   max-width: 500px;
 }
 
@@ -105,12 +107,12 @@
   font-size: 1.1rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
-  color: var(--primary);
+  color: var(--primary-contrast);
 }
 
 .howItWorks p {
   font-size: 1rem;
-  color: var(--text-light);
+  color: var(--text-muted);
   line-height: 1.5;
 }
 
@@ -138,8 +140,8 @@
 }
 
 .btnSecondary {
-  background: white;
-  color: var(--primary);
+  background: var(--card-bg);
+  color: var(--primary-contrast);
   padding: 1rem 2rem;
   border-radius: 12px;
   font-weight: 700;
@@ -170,7 +172,7 @@
 /* Features Section */
 .features {
   padding: 80px 5vw 0;
-  background: var(--bg-light);
+  background: var(--bg-section);
   scroll-snap-align: start;
   min-height: 100%;
   display: flex;
@@ -190,7 +192,7 @@
   font-size: 2.5rem;
   font-weight: 800;
   margin-bottom: 4rem;
-  color: var(--text-dark);
+  color: var(--text-main);
 }
 
 .featuresGrid {
@@ -202,10 +204,10 @@
 }
 
 .featureCard {
-  background: white;
+  background: var(--card-bg);
   padding: 2.5rem;
   border-radius: 24px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border-color);
   transition: all 0.3s ease;
 }
 
@@ -217,24 +219,25 @@
 .featureIcon {
   width: 50px;
   height: 50px;
-  background: var(--primary-light);
-  color: var(--primary);
+  background: var(--brand-bg);
+  color: var(--primary-contrast);
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 1.5rem;
+  border: 1px solid var(--border-color);
 }
 
 .featureCard h3 {
   font-size: 1.5rem;
   font-weight: 700;
   margin-bottom: 1rem;
-  color: var(--text-dark);
+  color: var(--text-main);
 }
 
 .featureCard p {
-  color: var(--text-light);
+  color: var(--text-muted);
   line-height: 1.6;
 }
 
@@ -242,7 +245,7 @@
 .footer {
   padding: 2rem 5vw;
   background: transparent;
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  border-top: 1px solid var(--border-color);
 }
 
 .footerContent {
@@ -254,7 +257,7 @@
 }
 
 .copyright {
-  color: var(--text-light);
+  color: var(--text-muted);
   font-size: 0.9rem;
 }
 
@@ -283,7 +286,7 @@
   justify-content: center;
   cursor: pointer;
   box-shadow: var(--shadow-lg);
-  color: var(--primary);
+  color: var(--primary-contrast);
   z-index: 10;
   transition: all 0.3s ease;
 }

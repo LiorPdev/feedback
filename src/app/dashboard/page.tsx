@@ -48,18 +48,8 @@ export default async function DashboardPage({
       <div className={styles.header}>
         <div className={styles.welcome}>
           <h1>שלום{user.name ? `, ${user.name.split(" ")[0]}` : ""}</h1>
-          <p>ברוכים הבאים למרחב הפידבקים האישי</p>
         </div>
 
-        <div className={styles.tokenCard}>
-          <div className={styles.tokenIcon}>
-            <Music size={24} />
-          </div>
-          <div className={styles.tokenInfo}>
-            <span className={styles.tokenLabel}>תווי קרדיט זמינים</span>
-            <span className={styles.tokenValue}>{user.tokens}</span>
-          </div>
-        </div>
       </div>
 
       <div className={styles.content}>

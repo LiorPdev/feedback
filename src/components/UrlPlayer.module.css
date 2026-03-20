@@ -23,8 +23,8 @@
 .fallbackPlayer {
   width: 100%;
   padding: 2rem;
-  background: #f8fafc;
-  border: 2px dashed #e2e8f0;
+  background: var(--bg-section);
+  border: 2px dashed var(--border-color);
   border-radius: 12px;
   text-align: center;
   margin-bottom: 2rem;
@@ -33,7 +33,7 @@
 .fallbackLink {
   display: inline-block;
   margin-top: 1rem;
-  color: #3b82f6;
+  color: var(--brand-primary);
   text-decoration: underline;
   font-weight: 500;
   transition: color 0.15s ease-in-out;

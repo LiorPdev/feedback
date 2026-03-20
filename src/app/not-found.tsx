@@ -13,9 +13,9 @@ export default function NotFound() {
       gap: "24px",
       textAlign: "center",
       padding: "20px",
-      background: "#ffffff",
+      background: "var(--background)",
       fontFamily: "var(--font-heebo), sans-serif",
-      color: "#002D4D"
+      color: "var(--text-main)"
     }}>
       <div style={{ 
         width: "80px", 
@@ -32,14 +32,14 @@ export default function NotFound() {
       </div>
 
       <h1 style={{ fontSize: "2.5rem", fontWeight: "900", margin: 0 }}>הדף לא נמצא</h1>
-      <p style={{ color: "#64748B", fontSize: "1.1rem", maxWidth: "400px", lineHeight: "1.6" }}>
+      <p style={{ color: "var(--text-muted)", fontSize: "1.1rem", maxWidth: "400px", lineHeight: "1.6" }}>
         מצטערים, לא הצלחנו למצוא את הדף שחיפשת. ייתכן שהקישור שבור או שהשיר הוסר.
       </p>
 
       <Link href="/" style={{ 
         marginTop: "12px",
         padding: "1rem 2rem",
-        background: "#000000",
+        background: "var(--brand-primary)",
         color: "white",
         textDecoration: "none",
         borderRadius: "14px",

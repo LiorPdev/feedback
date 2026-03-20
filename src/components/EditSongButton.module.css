@@ -1,7 +1,7 @@
 .editBtn {
   background: transparent;
   border: none;
-  color: #94A3B8;
+  color: var(--text-muted);
   cursor: pointer;
   padding: 6px;
   border-radius: 8px;
@@ -32,12 +32,12 @@
 }
 
 .modal {
-  background: #ffffff;
+  background: var(--card-bg);
   width: 500px;
   max-width: 95vw;
   padding: 2.5rem;
   border-radius: 24px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--shadow-xl);
   direction: rtl;
   position: relative;
 }
@@ -46,7 +46,7 @@
   font-size: 1.5rem;
   font-weight: 800;
   margin: 0 0 1.5rem 0;
-  color: #002D4D;
+  color: var(--text-main);
   text-align: center;
 }
 
@@ -64,16 +64,17 @@
 
 .field label {
   font-weight: 700;
-  color: #002D4D;
+  color: var(--text-main);
   font-size: 0.9rem;
 }
 
 .input, .select {
   padding: 0.8rem 1rem;
   border-radius: 12px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--border-color);
   font-size: 1rem;
-  color: #002D4D;
+  color: var(--text-main);
+  background-color: var(--card-bg);
   transition: all 0.2s ease;
   width: 100%;
   box-sizing: border-box;
@@ -102,8 +103,8 @@
 }
 
 .cancelBtn {
-  background: #F1F5F9;
-  color: #64748B;
+  background: var(--bg-section);
+  color: var(--text-muted);
   border: none;
 }
 

@@ -87,7 +87,7 @@ export default function RootLayout({
       localization={heIL as any}
       appearance={{
         elements: {
-          footerAction: { display: "block" }
+          footerAction: { display: "none" }
         }
       }}
     >

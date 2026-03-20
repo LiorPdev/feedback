@@ -5,14 +5,25 @@ import { Star, Send, Music, LogIn } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUser, SignInButton } from "@clerk/nextjs";
 import { addFeedback } from "@/app/actions/songs";
+import { 
+  REWARD_LYRICS, 
+  REWARD_COMPOSITION, 
+  REWARD_PRODUCTION, 
+  REWARD_OVERALL, 
+  REWARD_COMMENT,
+  MIN_COMMENT_LENGTH 
+} from "@/lib/constants";
 import styles from "./FeedbackForm.module.css";
 
 interface FeedbackFormProps {
   songId: string;
   onSuccess?: () => void;
+  onSkip?: () => void;
+  isDisabled?: boolean;
+  disabledMessage?: string;
 }
 
-export default function FeedbackForm({ songId, onSuccess }: FeedbackFormProps) {
+export default function FeedbackForm({ songId, onSuccess, onSkip, isDisabled, disabledMessage }: FeedbackFormProps) {
   const { isLoaded, isSignedIn } = useUser();
   const [ratings, setRatings] = useState({
     lyrics: 0,
@@ -50,9 +61,9 @@ export default function FeedbackForm({ songId, onSuccess }: FeedbackFormProps) {
       return;
     }
 
-    if (hasComment && commentTrimmed.length < 30) {
+    if (hasComment && commentTrimmed.length < MIN_COMMENT_LENGTH) {
       setStatus("error");
-      setErrorMsg("התגובה קצרה מדי. אם בחרתם לכתוב תגובה, היא חייבת להכיל לפחות 30 תווים.");
+      setErrorMsg(`התגובה קצרה מדי. אם בחרתם לכתוב תגובה, היא חייבת להכיל לפחות ${MIN_COMMENT_LENGTH} תווים.`);
       return;
     }
 
@@ -72,6 +83,8 @@ export default function FeedbackForm({ songId, onSuccess }: FeedbackFormProps) {
       if (result.success) {
         setStatus("success");
         onSuccess?.();
+        // Dispatch custom event to notify Navbar or other components
+        window.dispatchEvent(new CustomEvent("tokens-updated"));
       } else {
         setStatus("error");
         setErrorMsg(result.error || "משהו השתבש בשליחת הפידבק.");
@@ -125,7 +138,14 @@ export default function FeedbackForm({ songId, onSuccess }: FeedbackFormProps) {
   return (
     <div className={styles.form}>
       <form onSubmit={handleSubmit}>
-        <h2 className={styles.heading}>פידבק ודירוג</h2>
+        <div className={styles.formHeader}>
+          {onSkip && (
+            <button type="button" className={styles.skipBtn} onClick={onSkip}>
+              דלג
+            </button>
+          )}
+          <h2 className={styles.heading}>פידבק ודירוג</h2>
+        </div>
 
         <div className={styles.ratingGrid}>
           {categories.map((cat) => (
@@ -133,7 +153,10 @@ export default function FeedbackForm({ songId, onSuccess }: FeedbackFormProps) {
               <label className={styles.ratingLabel}>
                 {cat.label}
                 <span className={styles.pointLabel}>
-                  ({cat.key === "lyrics" ? "2+" : "1+"} <Music size={12} style={{ display: 'inline', verticalAlign: 'middle', marginBottom: '2px' }} />)
+                  ({cat.key === "lyrics" ? REWARD_LYRICS : 
+                    cat.key === "composition" ? REWARD_COMPOSITION :
+                    cat.key === "production" ? REWARD_PRODUCTION :
+                    REWARD_OVERALL}+)
                 </span>
               </label>
               <div className={styles.stars}>
@@ -159,28 +182,25 @@ export default function FeedbackForm({ songId, onSuccess }: FeedbackFormProps) {
         <div className={styles.commentGroup}>
           <textarea
             className={styles.textarea}
-            placeholder="נסו להסביר למה אתם נותנים את הדירוג הזה (מינימום 30 תווים)"
+            placeholder={`נסו להסביר למה אתם נותנים את הדירוג הזה (מינימום ${MIN_COMMENT_LENGTH} תווים)`}
             value={comment}
             onChange={(e) => {
               setComment(e.target.value);
               if (status === "error") setStatus("idle");
             }}
           />
-          <div className={styles.commentFooter}>(10+ <Music size={12} style={{ display: 'inline', verticalAlign: 'middle', marginBottom: '2px' }} /> קרדיט)</div>
+          <div className={styles.commentFooter}>({REWARD_COMMENT}+) קרדיט <Music size={12} style={{ display: 'inline', verticalAlign: 'middle', marginBottom: '2px' }} /></div>
         </div>
 
         <button
           type="submit"
           className={styles.submitBtn}
-          disabled={status === "loading"}
+          disabled={status === "loading" || isDisabled}
         >
           {status === "loading" ? (
             <div className={styles.spinner} />
           ) : (
-            <>
-              <Send size={18} />
-              <span>שליחת פידבק (אנונימי)</span>
-            </>
+            <span>{isDisabled ? disabledMessage : "שליחת פידבק (אנונימי)"}</span>
           )}
         </button>
 

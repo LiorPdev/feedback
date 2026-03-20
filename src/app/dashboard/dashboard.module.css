@@ -1,14 +1,14 @@
 .container {
   min-height: 100%;
-  background-color: var(--bg-light);
+  background-color: var(--bg-section);
   padding: 1.5rem 5vw 4rem;
-  color: var(--text-dark);
+  color: var(--text-main);
   direction: rtl;
 }
 
 .header {
   max-width: 1000px;
-  margin: 0 auto 3rem;
+  margin: 0 auto 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -22,49 +22,8 @@
 }
 
 .welcome p {
-  color: var(--text-light);
+  color: var(--text-muted);
   font-size: 1.1rem;
-}
-
-.tokenCard {
-  background: #ffffff;
-  padding: 1.25rem 2rem;
-  border-radius: 20px;
-  box-shadow: var(--shadow);
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
-  border: 1px solid var(--brand-light);
-}
-
-.tokenIcon {
-  width: 48px;
-  height: 48px;
-  background: var(--brand-light);
-  color: var(--brand-primary);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.tokenInfo {
-  display: flex;
-  flex-direction: column;
-}
-
-.tokenLabel {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--text-light);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.tokenValue {
-  font-size: 1.5rem;
-  font-weight: 900;
-  color: var(--text-dark);
 }
 
 .content {
@@ -112,10 +71,10 @@
 }
 
 .songCard {
-  background: #ffffff;
+  background: var(--card-bg);
   padding: 1.5rem;
   border-radius: 20px;
-  border: 1px solid rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
@@ -145,7 +104,7 @@
   font-size: 1.25rem;
   font-weight: 800;
   margin: 0;
-  color: var(--text-dark);
+  color: var(--text-main);
   line-height: 1.2;
 }
 
@@ -156,26 +115,26 @@
 }
 
 .genreTag {
-  background: var(--bg-light);
+  background: var(--bg-section);
   padding: 0.4rem 0.8rem;
   border-radius: 100px;
   font-size: 0.85rem;
   font-weight: 700;
-  color: var(--text-light);
+  color: var(--text-muted);
 }
 
 .songDate {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: var(--text-light);
+  color: var(--text-muted);
   font-size: 0.85rem;
   font-weight: 500;
 }
 
 .songActions {
   padding-top: 1rem;
-  border-top: 1px solid #F1F5F9;
+  border-top: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -188,7 +147,7 @@
 }
 
 .viewLink {
-  color: var(--brand-primary);
+  color: var(--brand-contrast);
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 700;
@@ -203,7 +162,7 @@
 }
 
 .emptyState {
-  background: #ffffff;
+  background: var(--card-bg);
   padding: 5rem 2rem;
   border-radius: 24px;
   display: flex;
@@ -211,7 +170,7 @@
   align-items: center;
   text-align: center;
   gap: 1.5rem;
-  border: 2px dashed #E2E8F0;
+  border: 2px dashed var(--border-color);
 }
 
 .emptyIcon {
@@ -221,11 +180,11 @@
 .emptyState p {
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--text-light);
+  color: var(--text-muted);
 }
 
 .emptyBtn {
-  color: var(--brand-primary);
+  color: var(--brand-contrast);
   text-decoration: underline;
   font-weight: 700;
   font-size: 1rem;
@@ -237,11 +196,13 @@
     border-color: var(--brand-primary);
     opacity: 0.4;
   }
+
   50% {
     box-shadow: 0 0 25px 5px var(--brand-light);
     border-color: var(--brand-primary);
     transform: scale(1.02);
   }
+
   100% {
     box-shadow: 0 0 0 0 transparent;
     border-color: transparent;

@@ -1,10 +1,10 @@
 .navbar {
   height: 70px;
-  background: rgba(255, 255, 255, 0.85);
+  background: color-mix(in srgb, var(--card-bg), transparent 15%);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   z-index: 1000;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   transition: all 0.3s ease;
@@ -32,7 +32,7 @@
 .logo span {
   font-size: 1.25rem;
   font-weight: 900;
-  color: #334155;
+  color: var(--text-main);
   letter-spacing: -0.02em;
 }
 
@@ -47,28 +47,28 @@
 }
 
 .btnGoogle {
-  background: white;
-  color: #334155;
-  border: 1px solid #e2e8f0;
+  background: var(--card-bg);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
   padding: 0.5rem 1.2rem;
   border-radius: 100px;
   font-weight: 700;
   font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  box-shadow: var(--shadow-sm);
 }
 
 .btnGoogle:hover {
-  background: #f8fafc;
-  border-color: #cbd5e1;
+  background: var(--bg-section);
+  border-color: var(--brand-primary);
   transform: translateY(-1px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow);
 }
 
 .navLink {
   text-decoration: none;
-  color: #64748b;
+  color: var(--text-muted);
   font-weight: 700;
   font-size: 0.95rem;
   transition: color 0.2s ease;
@@ -78,11 +78,31 @@
   color: var(--brand-primary);
 }
 
+.tokenDisplay {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--brand-light);
+  color: var(--brand-contrast);
+  padding: 0.4rem 0.8rem;
+  border-radius: 100px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  border: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+}
+
+.tokenIcon {
+  color: var(--brand-contrast);
+  display: flex;
+  align-items: center;
+}
+
 @media (max-width: 640px) {
   .navContent {
     padding: 0 1.25rem;
   }
-  
+
   .logo span {
     font-size: 1.1rem;
   }

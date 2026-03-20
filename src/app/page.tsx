@@ -61,28 +61,33 @@ export default function Home() {
           >
             <motion.h1 className={styles.heroTitle} variants={fadeInUp}>
               פידבק אמיתי <br />
-              <span style={{ color: "var(--brand-primary)" }}>ההצלחה שלך</span>
+              <span style={{ color: "var(--brand-contrast)" }}>ההצלחה שלך</span>
             </motion.h1>
             <motion.p className={styles.heroSubtitle} variants={fadeInUp}>
               קהילה לקבלת פידבקים אמיתיים על היצירות שלנו
             </motion.p>
             <motion.div className={styles.howItWorks} variants={fadeInUp}>
               <h3>איך זה עובד?</h3>
-              <p>אתם מעלים יצירה כדי לקבל משוב כנה מאנשי הקהילה, וגם נותנים פידבק לאחרים כדי לעזור להם להשתפר.</p>
+              <p>אתם מעלים יצירה כדי לקבל משוב כנה מאנשי הקהילה וגם נותנים פידבק לאחרים כדי לעזור להם להשתפר.</p>
             </motion.div>
             <motion.div className={styles.heroButtons} variants={fadeInUp}>
               <SignedOut>
-                <SignInButton mode="modal" forceRedirectUrl="/dashboard">
+                <SignInButton mode="modal" forceRedirectUrl="/get-feedback">
                   <button className={styles.btnPrimary}>
                     אני רוצה לקבל פידבק
                   </button>
                 </SignInButton>
-                <Link href="/give-feedback" className={styles.btnSecondary}>
-                  אני רוצה לתת פידבק
-                </Link>
+                <SignInButton mode="modal" forceRedirectUrl="/give-feedback">
+                  <button className={styles.btnSecondary}>
+                    אני רוצה לתת פידבק
+                  </button>
+                </SignInButton>
               </SignedOut>
               <SignedIn>
-                <button className={styles.btnPrimary} onClick={() => window.location.href = "/dashboard"}>
+                <button
+                  className={styles.btnPrimary}
+                  onClick={() => window.location.href = hasSongs ? "/dashboard" : "/get-feedback"}
+                >
                   {hasSongs ? "המרחב האישי שלי" : "אני רוצה לקבל פידבק"}
                 </button>
                 <Link href="/give-feedback" className={styles.btnSecondary}>
@@ -122,11 +127,11 @@ export default function Home() {
             featuresSection?.scrollIntoView({ behavior: 'smooth' });
           }}
           initial={{ opacity: 0, y: -20, x: "-50%" }}
-          animate={{ 
-            opacity: 1, 
-            y: [0, 15, 0], 
+          animate={{
+            opacity: 1,
+            y: [0, 15, 0],
             scale: [1, 1.1, 1],
-            x: "-50%" 
+            x: "-50%"
           }}
           transition={{
             opacity: { duration: 0.5, delay: 1 },

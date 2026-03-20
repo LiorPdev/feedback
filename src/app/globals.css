@@ -3,13 +3,16 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --card-bg: #ffffff;
   --brand-primary: #1e3a8a;
   --brand-hover: #1e40af;
   --brand-light: rgba(30, 64, 175, 0.1);
   --brand-bg: rgba(30, 64, 175, 0.05);
-  --text-dark: #0f172a;
-  --text-light: #64748b;
-  --bg-light: #f8fafc;
+  --brand-contrast: #1e3a8a;
+  --text-main: #002D4D;
+  --text-muted: #64748b;
+  --bg-section: #F9FAFB;
+  --border-color: rgba(0, 45, 77, 0.1);
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
@@ -25,8 +28,17 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0f172a;
+    --foreground: #f8fafc;
+    --card-bg: #1e293b;
+    --text-main: #f1f5f9;
+    --text-muted: #94a3b8;
+    --bg-section: #020617;
+    --border-color: rgba(255, 255, 255, 0.1);
+    --brand-primary: #3b82f6;
+    --brand-contrast: #60a5fa;
+    --brand-light: rgba(59, 130, 246, 0.2);
+    --brand-bg: rgba(59, 130, 246, 0.1);
   }
 }
 
