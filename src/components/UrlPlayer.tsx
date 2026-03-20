@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, forwardRef, useImperativeHandle, useState } from "react";
 import styles from "./UrlPlayer.module.css";
 
 // Declare global types for APIs
@@ -9,6 +9,8 @@ declare global {
     onYouTubeIframeAPIReady: () => void;
     YT: any;
     SC: any;
+    SpotifyIFrameApi: any;
+    onSpotifyIframeApiReady: (IFrameAPI: any) => void;
   }
 }
 
@@ -16,6 +18,7 @@ interface UrlPlayerProps {
   url: string;
   onPlay?: () => void;
   onPause?: () => void;
+  isHidden?: boolean;
 }
 
 export const getEmbedUrl = (url: string) => {
@@ -27,7 +30,7 @@ export const getEmbedUrl = (url: string) => {
   );
   if (ytMatch) {
     const videoId = ytMatch[1].split(/[&?]/)[0];
-    return `https://www.youtube.com/embed/${videoId}?enablejsapi=1&origin=${window.location.origin}`;
+    return `https://www.youtube.com/embed/${videoId}?enablejsapi=1`;
   }
 
   // SoundCloud
@@ -47,24 +50,111 @@ export const getEmbedUrl = (url: string) => {
     }
   }
 
-  // Apple Music
-  if (url.includes("music.apple.com")) {
-    return url.replace("music.apple.com", "embed.music.apple.com");
-  }
-
   return null;
 };
 
-export default function UrlPlayer({ url, onPlay, onPause }: UrlPlayerProps) {
+export const getSpotifyUri = (url: string) => {
+  const match = url.match(/spotify\.com\/(track|album|playlist)\/([a-zA-Z0-9]+)/);
+  if (match) {
+    return `spotify:${match[1]}:${match[2]}`;
+  }
+  return null;
+};
+
+export interface UrlPlayerHandle {
+  getPlaybackTime: () => Promise<number>;
+  play: () => void;
+  pause: () => void;
+}
+
+const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, onPause, isHidden = false }, ref) => {
+  const [mounted, setMounted] = useState(false);
+  const [origin, setOrigin] = useState("");
+  const isPausedRef = useRef(true);
+
+  useEffect(() => {
+    setMounted(true);
+    setOrigin(window.location.origin);
+  }, []);
+
+  const isYouTube = url.includes("youtube.com") || url.includes("youtu.be");
+  const isSoundCloud = url.includes("soundcloud.com");
+  const isSpotify = url.includes("spotify.com");
+
   const embedUrl = getEmbedUrl(url);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const playerRef = useRef<any>(null);
+  const spotifyPositionRef = useRef(0);
+  const onPlayRef = useRef(onPlay);
+  const onPauseRef = useRef(onPause);
 
   useEffect(() => {
-    if (!embedUrl || !iframeRef.current) return;
+    spotifyPositionRef.current = 0;
+  }, [url]);
 
-    const isYouTube = url.includes("youtube.com") || url.includes("youtu.be");
-    const isSoundCloud = url.includes("soundcloud.com");
+  useEffect(() => {
+    onPlayRef.current = onPlay;
+    onPauseRef.current = onPause;
+  }, [onPlay, onPause]);
+
+  useImperativeHandle(ref, () => ({
+    getPlaybackTime: async () => {
+      if (isYouTube && playerRef.current) {
+        // YouTube API is sync
+        if (typeof playerRef.current.getCurrentTime === 'function') {
+          return Math.floor(playerRef.current.getCurrentTime());
+        }
+      } else if (isSoundCloud && playerRef.current) {
+        // SoundCloud API is async
+        return new Promise<number>((resolve) => {
+          try {
+            playerRef.current.getPosition((ms: number) => {
+              resolve(Math.floor(ms / 1000));
+            });
+          } catch (e) {
+            resolve(0);
+          }
+        });
+      } else if (isSpotify) {
+        return Math.floor(spotifyPositionRef.current / 1000);
+      }
+      return 0;
+    },
+    play: () => {
+      try {
+        if (isYouTube && playerRef.current?.playVideo) {
+          playerRef.current.playVideo();
+        } else if (isSoundCloud && playerRef.current?.play) {
+          playerRef.current.play();
+        } else if (isSpotify && playerRef.current?.togglePlay) {
+          if (isPausedRef.current) {
+            playerRef.current.togglePlay();
+          }
+        }
+      } catch (e) {
+        console.warn("Play error:", e);
+      }
+    },
+    pause: () => {
+      try {
+        if (isYouTube && playerRef.current?.pauseVideo) {
+          playerRef.current.pauseVideo();
+        } else if (isSoundCloud && playerRef.current?.pause) {
+          playerRef.current.pause();
+        } else if (isSpotify && playerRef.current?.togglePlay) {
+          if (!isPausedRef.current) {
+            playerRef.current.togglePlay();
+          }
+        }
+      } catch (e) {
+        console.warn("Pause error:", e);
+      }
+    }
+  }));
+
+  useEffect(() => {
+    if (!mounted || !embedUrl || !iframeRef.current) return;
+
 
     if (isYouTube) {
       const initYT = () => {
@@ -76,15 +166,18 @@ export default function UrlPlayer({ url, onPlay, onPause }: UrlPlayerProps) {
 
         try {
           playerRef.current = new window.YT.Player(iframeRef.current, {
+            playerVars: {
+              origin: origin,
+            },
             events: {
               onStateChange: (event: any) => {
                 if (event.data === window.YT.PlayerState.PLAYING) {
-                  onPlay?.();
+                  onPlayRef.current?.();
                 } else if (
                   event.data === window.YT.PlayerState.PAUSED ||
                   event.data === window.YT.PlayerState.ENDED
                 ) {
-                  onPause?.();
+                  onPauseRef.current?.();
                 }
               },
             },
@@ -121,9 +214,9 @@ export default function UrlPlayer({ url, onPlay, onPause }: UrlPlayerProps) {
           }
           const widget = window.SC.Widget(iframeRef.current);
           playerRef.current = widget;
-          widget.bind(window.SC.Widget.Events.PLAY, () => onPlay?.());
-          widget.bind(window.SC.Widget.Events.PAUSE, () => onPause?.());
-          widget.bind(window.SC.Widget.Events.FINISH, () => onPause?.());
+          widget.bind(window.SC.Widget.Events.PLAY, () => onPlayRef.current?.());
+          widget.bind(window.SC.Widget.Events.PAUSE, () => onPauseRef.current?.());
+          widget.bind(window.SC.Widget.Events.FINISH, () => onPauseRef.current?.());
         } catch (e) {
           console.error("SoundCloud Widget Init Error:", e);
         }
@@ -142,8 +235,60 @@ export default function UrlPlayer({ url, onPlay, onPause }: UrlPlayerProps) {
       } else {
         initSC();
       }
+    } else if (isSpotify) {
+      const initSpotify = () => {
+        if (!window.SpotifyIFrameApi || !iframeRef.current) {
+          setTimeout(initSpotify, 100);
+          return;
+        }
+
+        try {
+          const spotifyUri = getSpotifyUri(url);
+          window.SpotifyIFrameApi.createController(
+            iframeRef.current,
+            {
+              uri: spotifyUri,
+            },
+            (EmbedController: any) => {
+              // Set ref immediately as a backup
+              playerRef.current = EmbedController;
+
+              EmbedController.on("playback_update", (e: any) => {
+                const { isPaused, duration, position } = e.data;
+                spotifyPositionRef.current = position;
+                isPausedRef.current = isPaused;
+                if (!isPaused && position > 0) {
+                  onPlayRef.current?.();
+                } else if (isPaused || position === duration) {
+                  onPauseRef.current?.();
+                }
+              });
+            }
+          );
+        } catch (e) {
+          console.error("Spotify Embed Init Error:", e);
+        }
+      };
+
+      if (!window.SpotifyIFrameApi) {
+        if (!document.querySelector('script[src*="spotify.com/embed/iframe-api/v1"]')) {
+          const tag = document.createElement("script");
+          tag.src = "https://open.spotify.com/embed/iframe-api/v1";
+          tag.async = true;
+          document.head.appendChild(tag);
+        }
+
+        const previousSpotifyCallback = window.onSpotifyIframeApiReady;
+        window.onSpotifyIframeApiReady = (IFrameAPI: any) => {
+          if (previousSpotifyCallback) (previousSpotifyCallback as any)(IFrameAPI);
+          window.SpotifyIFrameApi = IFrameAPI;
+          initSpotify();
+        };
+      } else {
+        initSpotify();
+      }
     } else {
-      onPlay?.();
+      onPlayRef.current?.();
     }
 
     const currentIframe = iframeRef.current;
@@ -167,7 +312,17 @@ export default function UrlPlayer({ url, onPlay, onPause }: UrlPlayerProps) {
       }
       playerRef.current = null;
     };
-  }, [embedUrl, url, onPlay, onPause]);
+  }, [embedUrl, url, mounted, origin]);
+
+  if (!mounted) {
+    return (
+      <div className={`${styles.playerWrapper} ${isHidden ? styles.hidden : ""}`} style={{ minHeight: isSpotify ? "80px" : "152px" }}>
+        <div style={{ padding: "1rem", textAlign: "center", color: "var(--text-muted)" }}>
+          טוען נגן...
+        </div>
+      </div>
+    );
+  }
 
   if (!embedUrl) {
     return (
@@ -180,25 +335,28 @@ export default function UrlPlayer({ url, onPlay, onPause }: UrlPlayerProps) {
     );
   }
 
-  const isSoundCloud = url.includes("soundcloud.com");
-  const isSpotify = url.includes("spotify.com");
-  const isAppleMusic = url.includes("music.apple.com");
 
   return (
-    <div className={styles.playerWrapper}>
-      <iframe
-        ref={iframeRef}
-        width="100%"
-        height={isSoundCloud ? "80" : isSpotify ? "80" : isAppleMusic ? "52" : "152"}
-        scrolling="no"
-        frameBorder="no"
-        allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowFullScreen
-        src={embedUrl}
-        title="Media Player"
-        id="player-iframe"
-        className={styles.iframe}
-      ></iframe>
+    <div className={`${styles.playerWrapper} ${isHidden ? styles.hidden : ""}`}>
+      {isSpotify ? (
+        <div ref={iframeRef as any} id="spotify-player-container" />
+      ) : (
+        <iframe
+          ref={iframeRef}
+          width="100%"
+          height={isSoundCloud ? "80" : isSpotify ? "80" : "152"}
+          scrolling="no"
+          frameBorder="no"
+          allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          src={embedUrl || ""}
+          title="Media Player"
+          id="player-iframe"
+          className={styles.iframe}
+        ></iframe>
+      )}
     </div>
   );
-}
+});
+
+export default UrlPlayer;

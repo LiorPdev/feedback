@@ -89,6 +89,7 @@ export async function addFeedback(data: {
     production: number;
     overall: number;
     comment: string;
+    playedSeconds?: number;
 }) {
     const clerkUser = await currentUser();
     if (!clerkUser) {
@@ -129,6 +130,7 @@ export async function addFeedback(data: {
             production: data.production,
             overall: data.overall,
             comment: data.comment,
+            playedSeconds: data.playedSeconds,
         }).returning();
 
         // Calculate rewards
@@ -339,13 +341,6 @@ function cleanTitle(title: string) {
         .replace(/ \(Official Audio\)/gi, '')
         .replace(/ \(Official Music Video\)/gi, '')
         .replace(/ \(Lyrics\)/gi, '')
-        .replace(/ - Album by .* on Apple Music$/gi, '')
-        .replace(/ - EP by .* on Apple Music$/gi, '')
-        .replace(/ - Single by .* on Apple Music$/gi, '')
-        .replace(/ by .* on Apple Music$/gi, '')
-        .replace(/ on Apple Music$/gi, '')
-        .replace(/ - Single$/gi, '')
-        .replace(/ - EP$/gi, '')
         .replace(/ - Album$/gi, '')
         .replace(/ - YouTube$/gi, '')
         .trim();

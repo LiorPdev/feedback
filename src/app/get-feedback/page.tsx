@@ -110,20 +110,21 @@ export default function GetFeedback() {
             <input
               type="url"
               className={styles.input}
-              placeholder="הדביקו קישור מיוטיוב, ספוטיפי, סאונדקלאוד או אחר"
+              placeholder="הדביקו קישור מיוטיוב, ספוטיפי או סאונדקלאוד"
               value={songLink}
               onChange={(e) => setSongLink(e.target.value)}
               required
             />
             <AnimatePresence>
               {songLink.includes("music.apple.com") && (
-                <motion.p 
-                  className={styles.hint}
+                <motion.p
+                  className={styles.errorMsg}
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
+                  style={{ marginTop: '-0.25rem', fontSize: '0.875rem' }}
                 >
-                  שימו לב: משתמשים ללא מנוי Apple Music לא יוכלו להאזין לשיר.
+                  Apple Music לא נתמך. אנא השתמשו בנגנים אחרים.
                 </motion.p>
               )}
             </AnimatePresence>
@@ -168,7 +169,7 @@ export default function GetFeedback() {
           <button
             type="submit"
             className={styles.submitBtn}
-            disabled={status === "loading" || !songLink || !songTitle || !selectedGenre || !user}
+            disabled={status === "loading" || !songLink || !songTitle || !selectedGenre || !user || songLink.includes("music.apple.com")}
           >
             {status === "loading" ? (
               <div className={styles.loadingSpinner} />

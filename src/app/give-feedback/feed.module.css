@@ -79,6 +79,7 @@
   gap: 1rem;
   width: 100%;
   justify-content: center;
+  margin: 10px 0;
 }
 
 .btnPlay {
@@ -104,23 +105,41 @@
   background: var(--brand-hover);
 }
 
+.btnPause {
+  padding: 0.8rem 1.5rem;
+  background: var(--bg-section);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  border-radius: 100px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.btnPause:hover {
+  transform: translateY(-2px);
+  background: var(--border-color);
+  box-shadow: var(--shadow-md);
+}
+
 .btnSkip {
-  position: absolute;
-  top: 1.5rem;
-  left: 1.5rem;
-  padding: 0.4rem 1.2rem;
+  padding: 0.8rem 1.5rem;
   background: var(--bg-section);
   color: var(--text-muted);
   border: 1px solid var(--border-color);
   border-radius: 100px;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s;
-  z-index: 10;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .btnSkip:hover {
@@ -132,7 +151,7 @@
 
 .feedbackSection {
   width: 100%;
-  margin-top: 0.5rem;
+  margin-top: 1rem;
 }
 
 .emptyState {
@@ -154,6 +173,21 @@
   color: var(--text-main);
 }
 
+
+.loadingSpinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 @media (max-width: 600px) {
   .main {
@@ -179,15 +213,19 @@
   }
 
   .actions {
-    flex-direction: column;
-    align-items: center;
+    flex-direction: row;
+    gap: 0.5rem;
     padding: 0 1rem;
+    width: 100%;
   }
 
   .btnPlay,
+  .btnPause,
   .btnSkip {
-    width: 100%;
-    max-width: 100%;
+    flex: 1;
+    white-space: nowrap;
+    font-size: 0.85rem;
+    padding: 0.8rem 0.5rem;
   }
 
   .title {

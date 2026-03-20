@@ -19,7 +19,6 @@ export const songs = sqliteTable('Song', {
     title: text('title').notNull(),
     genre: text('genre').notNull(),
     slug: text('slug').notNull().unique(),
-    isActive: integer('isActive', { mode: 'boolean' }).default(true).notNull(),
     createdAt: text('createdAt').notNull().$defaultFn(() => new Date().toISOString()),
     updatedAt: text('updatedAt').notNull().$defaultFn(() => new Date().toISOString()),
 }, (table) => {
@@ -37,6 +36,7 @@ export const feedbacks = sqliteTable('Feedback', {
     production: integer('production').notNull(),
     overall: integer('overall').notNull(),
     comment: text('comment').notNull(),
+    playedSeconds: integer('playedSeconds'),
     createdAt: text('createdAt').notNull().$defaultFn(() => new Date().toISOString()),
 }, (table) => {
     return {

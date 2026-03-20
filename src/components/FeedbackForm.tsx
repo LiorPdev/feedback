@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Star, Music, LogIn } from "lucide-react";
-import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { Star, Music, LogIn, CheckCircle2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useUser, SignInButton } from "@clerk/nextjs";
 import { addFeedback } from "@/app/actions/songs";
 import { REWARD_LYRICS, REWARD_COMPOSITION, REWARD_PRODUCTION, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH } from "@/lib/constants";
@@ -12,11 +12,12 @@ interface FeedbackFormProps {
   songId: string;
   onSuccess?: () => void;
   onSkip?: () => void;
+  getPlayedSeconds?: () => Promise<number>;
   isDisabled?: boolean;
   disabledMessage?: string;
 }
 
-export default function FeedbackForm({ songId, onSuccess, onSkip, isDisabled, disabledMessage }: FeedbackFormProps) {
+export default function FeedbackForm({ songId, onSuccess, onSkip, getPlayedSeconds, isDisabled, disabledMessage }: FeedbackFormProps) {
   const { isLoaded, isSignedIn } = useUser();
   const [ratings, setRatings] = useState({
     lyrics: 0,
@@ -27,6 +28,29 @@ export default function FeedbackForm({ songId, onSuccess, onSkip, isDisabled, di
   const [comment, setComment] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+
+  // Reset form when song changes
+  useEffect(() => {
+    setRatings({
+      lyrics: 0,
+      composition: 0,
+      production: 0,
+      overall: 0,
+    });
+    setComment("");
+    setStatus("idle");
+    setErrorMsg("");
+  }, [songId]);
+
+  // Handle success auto-hide
+  useEffect(() => {
+    if (status === "success") {
+      const timer = setTimeout(() => {
+        setStatus("idle");
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [status]);
 
   const categories = [
     { key: "lyrics" as const, label: "מילים" },
@@ -63,6 +87,11 @@ export default function FeedbackForm({ songId, onSuccess, onSkip, isDisabled, di
     setStatus("loading");
     setErrorMsg("");
 
+    let playedSeconds = 0;
+    if (getPlayedSeconds) {
+      playedSeconds = await getPlayedSeconds();
+    }
+
     try {
       const result = await addFeedback({
         songId,
@@ -71,10 +100,19 @@ export default function FeedbackForm({ songId, onSuccess, onSkip, isDisabled, di
         production: ratings.production,
         overall: ratings.overall,
         comment: commentTrimmed,
+        playedSeconds,
       });
 
       if (result.success) {
         setStatus("success");
+        // Reset form immediately on success
+        setRatings({
+          lyrics: 0,
+          composition: 0,
+          production: 0,
+          overall: 0,
+        });
+        setComment("");
         onSuccess?.();
         // Dispatch custom event to notify Navbar or other components
         window.dispatchEvent(new CustomEvent("tokens-updated"));
@@ -114,27 +152,26 @@ export default function FeedbackForm({ songId, onSuccess, onSkip, isDisabled, di
     );
   }
 
-  if (status === "success") {
-    return (
-      <motion.div
-        className={styles.successCard}
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-      >
-        <h3>תודה על הפידבק שלך!</h3>
-      </motion.div>
-    );
-  }
-
   return (
     <div className={styles.form}>
+      <AnimatePresence>
+        {status === "success" && (
+          <div className={styles.successOverlay}>
+            <motion.div
+              className={styles.successPopup}
+              initial={{ opacity: 0, y: 20, scale: 0.8 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+            >
+              <CheckCircle2 size={20} className={styles.successIcon} />
+              <span>תודה על הפידבק שלך!</span>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       <form onSubmit={handleSubmit}>
         <div className={styles.formHeader}>
-          {onSkip && (
-            <button type="button" className={styles.skipBtn} onClick={onSkip}>
-              דלג
-            </button>
-          )}
           <h2 className={styles.heading}>פידבק ודירוג</h2>
         </div>
 
@@ -173,7 +210,7 @@ export default function FeedbackForm({ songId, onSuccess, onSkip, isDisabled, di
         <div className={styles.commentGroup}>
           <textarea
             className={styles.textarea}
-            placeholder={`נסו להסביר למה אתם נותנים את הדירוג הזה (מינימום ${MIN_COMMENT_LENGTH} תווים)`}
+            placeholder={`נסו להסביר מדוע אתם נותנים את הדירוג הזה (מינימום ${MIN_COMMENT_LENGTH} תווים)`}
             value={comment}
             onChange={(e) => {
               setComment(e.target.value);

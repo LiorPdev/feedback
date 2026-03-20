@@ -9,6 +9,7 @@
   direction: rtl;
   margin: 0 auto;
   box-sizing: border-box;
+  position: relative;
 }
 
 .formHeader {
@@ -213,36 +214,37 @@
   border: 1px solid rgba(220, 38, 38, 0.1);
 }
 
-.successCard {
-  width: 100%;
-  max-width: 600px;
-  background: var(--card-bg);
-  padding: 4rem 2rem;
-  border-radius: 24px;
-  text-align: center;
-  box-shadow: var(--shadow-lg);
-  border: 1px solid var(--border-color);
-  direction: rtl;
-  margin: 0 auto;
+.successOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 100;
+  padding: 1.5rem;
+}
+
+.successPopup {
+  pointer-events: auto;
+  background: #16A34A;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 100px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  box-shadow: 0 10px 25px -5px rgba(22, 163, 74, 0.4);
+  white-space: nowrap;
+  font-weight: 700;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .successIcon {
-  font-size: 4rem;
-  margin-bottom: 1.5rem;
-}
-
-.successCard h3 {
-  font-size: 1.75rem;
-  font-weight: 900;
-  color: var(--text-main);
-  margin: 0 0 0.75rem 0;
-}
-
-.successCard p {
-  font-size: 1.1rem;
-  color: var(--text-muted);
-  margin-bottom: 2.5rem;
-  font-weight: 500;
+  flex-shrink: 0;
 }
 
 .resetBtn {

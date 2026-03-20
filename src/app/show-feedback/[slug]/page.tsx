@@ -13,6 +13,14 @@ interface ShowFeedbackPageProps {
   }>;
 }
 
+function formatSeconds(seconds: number | null | undefined) {
+  if (!seconds || isNaN(seconds) || seconds <= 0) return null;
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  if (m === 0) return `זמן נגינה: ${s} שנ'`;
+  return `זמן נגינה: ${m}:${s.toString().padStart(2, '0')}`;
+}
+
 export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps) {
   const { slug } = await params;
   const db = await getDb();
@@ -75,16 +83,24 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
               </h3>
               {song.feedbacks.map((fb) => (
                 <div key={fb.id} className={styles.feedbackItem}>
-                  <div className={styles.fbMeta}>
-                    <div className={styles.fbRatingsRow}>
-                      <span>מילים: {fb.lyrics}</span>
-                      <span>לחן: {fb.composition}</span>
-                      <span>הפקה: {fb.production}</span>
-                      <span className={styles.fbOverallBadge}>כללי: {fb.overall}</span>
-                    </div>
+                  <div className={styles.fbHeader}>
+                    {(() => {
+                      const formatted = formatSeconds(fb.playedSeconds);
+                      return formatted ? (
+                        <span className={styles.fbPlaytime}>{formatted}</span>
+                      ) : <span />;
+                    })()}
                     <span className={styles.fbDate}>
                       {new Date(fb.createdAt).toLocaleDateString('he-IL')}
                     </span>
+                  </div>
+
+                  <div className={styles.fbRatingsRow}>
+                    <span className={styles.fbRatingLabel}>דירוג:</span>
+                    <span>מילים: {fb.lyrics}</span>
+                    <span>לחן: {fb.composition}</span>
+                    <span>הפקה: {fb.production}</span>
+                    <span className={styles.fbOverallBadge}>כללי: {fb.overall}</span>
                   </div>
                   <p className={styles.fbComment}>{fb.comment}</p>
                 </div>

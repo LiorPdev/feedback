@@ -1,10 +1,11 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "./feed.module.css";
 import FeedbackForm from "@/components/FeedbackForm";
-import UrlPlayer, { getEmbedUrl } from "@/components/UrlPlayer";
+import UrlPlayer, { getEmbedUrl, type UrlPlayerHandle } from "@/components/UrlPlayer";
 import DashboardLink from "@/components/DashboardLink";
+import { Play, Pause } from "lucide-react";
 
 interface Song {
   id: string;
@@ -26,11 +27,22 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [secondsRemaining, setSecondsRemaining] = useState(30);
   const [isTimerActive, setIsTimerActive] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isBuffering, setIsBuffering] = useState(false);
+  const [hasPlayedCurrent, setHasPlayedCurrent] = useState(false);
+  const playerRef = useRef<UrlPlayerHandle>(null);
+
+  const currentSong = songs[currentIndex];
+  const embedUrl = currentSong ? getEmbedUrl(currentSong.url) : null;
+  const showPlayer = !!embedUrl;
 
   useEffect(() => {
     // Reset timer and state when song changes
     setSecondsRemaining(30);
     setIsTimerActive(false);
+    setIsPlaying(false);
+    setIsBuffering(false);
+    setHasPlayedCurrent(false);
   }, [currentIndex, songs]);
 
   useEffect(() => {
@@ -49,37 +61,64 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
     return () => clearInterval(interval);
   }, [isTimerActive]);
 
-  const onPlayerPlay = useCallback(() => setIsTimerActive(true), []);
-  const onPlayerPause = useCallback(() => setIsTimerActive(false), []);
+  const onPlayerPlay = useCallback(() => {
+    setIsTimerActive(true);
+    setIsPlaying(true);
+  }, []);
 
-  const currentSong = songs[currentIndex];
-  // If the URL is supported, show the player immediately.
-  const [showPlayer, setShowPlayer] = useState(!!getEmbedUrl(currentSong?.url || ""));
+  const onPlayerPause = useCallback(() => {
+    setIsTimerActive(false);
+    setIsPlaying(false);
+  }, []);
 
   const handleSkip = () => {
     if (songs.length <= 1) return;
-    const nextIndex = (currentIndex + 1) % songs.length;
-    setCurrentIndex(nextIndex);
-    setShowPlayer(!!getEmbedUrl(songs[nextIndex]?.url || ""));
+    setCurrentIndex((prev) => (prev + 1) % songs.length);
   };
 
   const handleRemoveCurrent = () => {
-    const updatedSongs = songs.filter((_, i) => i !== currentIndex);
-    setSongs(updatedSongs);
+    setSongs((prevSongs) => {
+      const updatedSongs = prevSongs.filter((_, i) => i !== currentIndex);
+      if (updatedSongs.length === 0) return [];
 
-    if (updatedSongs.length > 0) {
-      // If we remove an item, we stay at the same index (which is now the next item)
-      // unless we removed the last item, then we go to 0.
-      const nextIndex = currentIndex >= updatedSongs.length ? 0 : currentIndex;
-      setCurrentIndex(nextIndex);
-      setShowPlayer(!!getEmbedUrl(updatedSongs[nextIndex]?.url || ""));
-    }
+      // Update index if needed
+      setCurrentIndex((prevIndex) => (prevIndex >= updatedSongs.length ? 0 : prevIndex));
+      return updatedSongs;
+    });
   };
 
-  const handlePlay = () => {
+  const handlePlayOld = () => {
     if (currentSong?.url) {
       window.open(currentSong.url, "_blank");
     }
+  };
+
+  const togglePlayback = () => {
+    if (!playerRef.current) return;
+    if (isBuffering) return; // Prevent multiple clicks during buffering
+
+    if (isPlaying) {
+      playerRef.current.pause();
+    } else {
+      // If it's the first time playing this song, show preloader
+      if (!hasPlayedCurrent) {
+        setIsBuffering(true);
+        playerRef.current.play();
+        setTimeout(() => {
+          setIsBuffering(false);
+          setHasPlayedCurrent(true);
+        }, 2000);
+      } else {
+        playerRef.current.play();
+      }
+    }
+  };
+
+  const getPlayedSeconds = async () => {
+    if (playerRef.current) {
+      return await playerRef.current.getPlaybackTime();
+    }
+    return 0;
   };
 
   if (!currentSong) {
@@ -91,13 +130,26 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
     );
   }
 
+  const isYouTube = currentSong.url.includes("youtube.com") || currentSong.url.includes("youtu.be");
+  const isSoundCloud = currentSong.url.includes("soundcloud.com");
   const isSpotify = currentSong.url.includes("spotify.com");
-  const isAppleMusic = currentSong.url.includes("music.apple.com");
-  const isBypassTimer = isSpotify || isAppleMusic;
+  const isBypassTimer = false;
+  const isHiddenPlayer = isYouTube || isSoundCloud || isSpotify;
 
   return (
     <div className={styles.feedWrapper}>
       <div className={styles.songCard}>
+        <div className={styles.headerRow}>
+          <h2 className={styles.title}>
+            {currentSong.title}
+          </h2>
+          {currentSong.genre && (
+            <span className={styles.genreInline}>
+              • {currentSong.genre}
+            </span>
+          )}
+        </div>
+
         <div className={styles.playerSection}>
           <AnimatePresence mode="wait">
             <motion.div
@@ -109,9 +161,11 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
             >
               {showPlayer && (
                 <UrlPlayer
+                  ref={playerRef}
                   url={currentSong.url}
                   onPlay={onPlayerPlay}
                   onPause={onPlayerPause}
+                  isHidden={isHiddenPlayer}
                 />
               )}
             </motion.div>
@@ -119,17 +173,46 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
         </div>
 
         <div className={styles.actions}>
-          {!getEmbedUrl(currentSong.url) && (
-            <button className={styles.btnPlay} onClick={handlePlay}>
+          {isHiddenPlayer ? (
+            <button
+              className={isPlaying ? styles.btnPause : styles.btnPlay}
+              onClick={togglePlayback}
+              disabled={isBuffering}
+            >
+              {isBuffering ? (
+                <>
+                  <div className={styles.loadingSpinner} />
+                  <span>טוען...</span>
+                </>
+              ) : isPlaying ? (
+                <>
+                  <Pause size={20} fill="currentColor" />
+                  <span>עצור</span>
+                </>
+              ) : (
+                <>
+                  <Play size={20} fill="currentColor" />
+                  <span>נגן</span>
+                </>
+              )}
+            </button>
+          ) : !embedUrl && (
+            <button className={styles.btnPlay} onClick={handlePlayOld}>
               <span>להקשיב</span>
             </button>
           )}
+          
+          <button className={styles.btnSkip} onClick={handleSkip}>
+            דלג
+          </button>
         </div>
 
         <div className={styles.feedbackSection}>
           <FeedbackForm
             songId={currentSong.id}
+            key={currentSong.id}
             onSkip={handleSkip}
+            getPlayedSeconds={getPlayedSeconds}
             isDisabled={!isBypassTimer && secondsRemaining > 0}
             disabledMessage={
               isBypassTimer ? "" : (

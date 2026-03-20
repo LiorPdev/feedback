@@ -1,0 +1,1 @@
+ALTER TABLE `Song` DROP COLUMN `isActive`;
