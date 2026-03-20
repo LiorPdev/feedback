@@ -1,9 +1,8 @@
 .container {
-  min-height: 100vh;
+  min-height: 100%;
   background-color: var(--bg-light);
   display: flex;
   flex-direction: column;
-  padding-top: 5rem;
   direction: rtl;
 }
 
@@ -167,10 +166,32 @@
   color: var(--brand-primary);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 600px) {
+  .main {
+    max-width: 100%;
+    padding: 0;
+    justify-content: flex-start;
+  }
+
+  .feedWrapper {
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .songCard {
+    border-radius: 0;
+    box-shadow: none;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+    border-bottom: 1px solid var(--brand-light);
+    padding: 1.5rem 1rem;
+  }
+
   .actions {
     flex-direction: column;
     align-items: center;
+    padding: 0 1rem;
   }
 
   .btnPlay,
@@ -180,6 +201,14 @@
   }
 
   .title {
-    font-size: 2rem;
+    font-size: 1.6rem;
+  }
+
+  .feedbackSection {
+    padding: 0;
+  }
+
+  .homeLink {
+    margin-top: 1.5rem;
   }
 }

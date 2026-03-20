@@ -1,11 +1,11 @@
 .container {
-  min-height: 100vh;
+  min-height: 100%;
   background-color: #F9FAFB;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 6rem 2rem 2rem;
+  padding: 1.5rem 2rem 2rem;
   font-family: var(--font-heebo), sans-serif;
   color: #002D4D;
 }

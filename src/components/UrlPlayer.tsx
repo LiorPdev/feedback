@@ -23,7 +23,7 @@ export const getEmbedUrl = (url: string) => {
   if (url.includes("soundcloud.com")) {
     return `https://w.soundcloud.com/player/?url=${encodeURIComponent(
       url
-    )}&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true`;
+    )}&color=%23ff5500&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&sharing=false&buying=false`;
   }
 
   // Spotify
@@ -32,7 +32,7 @@ export const getEmbedUrl = (url: string) => {
     if (spotifyMatch) {
       const type = spotifyMatch[1];
       const id = spotifyMatch[2];
-      return `https://open.spotify.com/embed/${type}/${id}`;
+      return `https://open.spotify.com/embed/${type}/${id}?utm_source=oembed`;
     }
   }
 
@@ -66,7 +66,7 @@ export default function UrlPlayer({ url }: UrlPlayerProps) {
     <div className={styles.playerWrapper}>
       <iframe
         width="100%"
-        height={isSoundCloud ? "120" : isSpotify ? "152" : isAppleMusic ? "175" : "200"}
+        height={isSoundCloud ? "80" : isSpotify ? "80" : isAppleMusic ? "52" : "152"}
         scrolling="no"
         frameBorder="no"
         allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

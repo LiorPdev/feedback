@@ -2,7 +2,7 @@ import { getDb } from "@/lib/db";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Music, Coins, Plus } from "lucide-react";
+import { Music, Plus } from "lucide-react";
 import SongCard from "@/components/SongCard";
 import styles from "./dashboard.module.css";
 
@@ -53,10 +53,10 @@ export default async function DashboardPage({
 
         <div className={styles.tokenCard}>
           <div className={styles.tokenIcon}>
-            <Coins size={24} />
+            <Music size={24} />
           </div>
           <div className={styles.tokenInfo}>
-            <span className={styles.tokenLabel}>טוקנים זמינים</span>
+            <span className={styles.tokenLabel}>תווי קרדיט זמינים</span>
             <span className={styles.tokenValue}>{user.tokens}</span>
           </div>
         </div>

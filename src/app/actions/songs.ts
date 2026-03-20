@@ -4,7 +4,7 @@ import { getDb } from '@/lib/db';
 import { nanoid } from 'nanoid';
 import { revalidatePath } from 'next/cache';
 import { currentUser } from '@clerk/nextjs/server';
-import { eq, ne, and, sql } from 'drizzle-orm';
+import { eq, ne, and, sql, not, inArray } from 'drizzle-orm';
 import { users, songs, feedbacks } from '@/lib/schema';
 
 export async function createSong(formData: FormData, userId: string) {
@@ -69,10 +69,16 @@ export async function addFeedback(data: {
     overall: number;
     comment: string;
 }) {
+    const clerkUser = await currentUser();
+    if (!clerkUser) {
+        return { success: false, error: "חובה להתחבר כדי לתת פידבק" };
+    }
+
     const db = await getDb();
     try {
         const [feedback] = await db.insert(feedbacks).values({
             songId: data.songId,
+            authorId: clerkUser.id,
             lyrics: data.lyrics,
             composition: data.composition,
             production: data.production,
@@ -137,12 +143,31 @@ export async function getFeedSongs() {
     const db = await getDb();
     
     try {
+        // Get IDs of songs the user has already rated
+        let ratedSongIds: string[] = [];
+        if (clerkUser?.id) {
+            const userFeedbacks = await db.query.feedbacks.findMany({
+                where: (feedbacks, { eq }) => eq(feedbacks.authorId, clerkUser.id),
+                columns: { songId: true }
+            });
+            ratedSongIds = userFeedbacks.map(f => f.songId);
+        }
+
         const allSongs = await db.query.songs.findMany({
-            where: (songs, { ne }) => {
+            where: (songs, { ne, and, not, inArray }) => {
+                const filters = [];
+                
+                // Don't show user's own songs
                 if (clerkUser?.id) {
-                    return ne(songs.userId, clerkUser.id);
+                    filters.push(ne(songs.userId, clerkUser.id));
                 }
-                return undefined;
+                
+                // Don't show already rated songs
+                if (ratedSongIds.length > 0) {
+                    filters.push(not(inArray(songs.id, ratedSongIds)));
+                }
+
+                return filters.length > 0 ? and(...filters) : undefined;
             },
             with: {
                 user: {

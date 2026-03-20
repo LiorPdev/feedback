@@ -31,6 +31,7 @@ export const songs = sqliteTable('Song', {
 export const feedbacks = sqliteTable('Feedback', {
     id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
     songId: text('songId').notNull().references(() => songs.id, { onDelete: 'cascade' }),
+    authorId: text('authorId'), // Clerk ID of the person giving feedback
     lyrics: integer('lyrics').notNull(),
     composition: integer('composition').notNull(),
     production: integer('production').notNull(),
@@ -40,6 +41,7 @@ export const feedbacks = sqliteTable('Feedback', {
 }, (table) => {
     return {
         songIdIdx: index('Feedback_songId_idx').on(table.songId),
+        authorIdIdx: index('Feedback_authorId_idx').on(table.authorId),
     };
 });
 

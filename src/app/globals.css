@@ -30,8 +30,21 @@
   }
 }
 
+html, body {
+  height: 100%;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-heebo), sans-serif;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.scroll-container {
+  flex: 1;
+  overflow-y: auto;
+  position: relative;
 }

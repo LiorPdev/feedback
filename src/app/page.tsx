@@ -100,7 +100,7 @@ export default function Home() {
           >
             <div className={styles.mockupImage} style={{ position: "relative", width: "100%", aspectRatio: "16/10", overflow: "hidden", borderRadius: "20px" }}>
               <Image
-                src="/feedback_dashboard_mockup_1773818196454.png"
+                src="/mockup.webp"
                 alt="Feedback Flow Dashboard"
                 fill
                 style={{ objectFit: "cover" }}

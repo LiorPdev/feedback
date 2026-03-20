@@ -1,10 +1,10 @@
 .container {
-  min-height: 100vh;
+  min-height: 100%;
   background-color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6rem 2rem;
+  padding: 1.5rem 2rem;
   font-family: var(--font-heebo), sans-serif;
   color: #002D4D;
   position: relative;
@@ -172,4 +172,39 @@
 .homeLink:hover {
   color: #40C0D0;
   transform: translateX(5px);
+}
+
+@media (max-width: 600px) {
+  .container {
+    padding: 4rem 0 2rem;
+    align-items: flex-start;
+  }
+
+  .main {
+    max-width: 100%;
+    padding: 0;
+    gap: 1.5rem;
+  }
+
+  .card {
+    border-radius: 0;
+    padding: 1.5rem 1.25rem;
+    border-left: none;
+    border-right: none;
+    box-shadow: none;
+    border-top: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  .feedbackSection {
+    padding: 0 1rem;
+  }
+
+  .homeLink {
+    padding: 0 1rem;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
 }
