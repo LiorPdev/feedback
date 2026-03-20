@@ -2,8 +2,9 @@ import { getDb } from "@/lib/db";
 import { notFound, redirect } from "next/navigation";
 import styles from "./show-feedback.module.css";
 import Link from "next/link";
-import { ArrowRight, Music, Calendar, Disc } from "lucide-react";
+import { Music, Calendar, Disc } from "lucide-react";
 import { auth } from "@clerk/nextjs/server";
+import DashboardLink from "@/components/DashboardLink";
 
 
 interface ShowFeedbackPageProps {
@@ -94,9 +95,7 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
           )}
         </section>
 
-        <Link href="/dashboard" className={styles.homeLink}>
-          <ArrowRight size={16} /> חזרה למרחב האישי
-        </Link>
+        <DashboardLink />
       </main>
     </div>
   );

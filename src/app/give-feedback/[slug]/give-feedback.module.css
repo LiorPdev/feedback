@@ -157,22 +157,6 @@
   margin: 0;
 }
 
-.homeLink {
-  color: #94A3B8;
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 0.95rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: all 0.2s;
-  align-self: center;
-}
-
-.homeLink:hover {
-  color: #40C0D0;
-  transform: translateX(5px);
-}
 
 @media (max-width: 600px) {
   .container {
@@ -200,9 +184,6 @@
     padding: 0 1rem;
   }
 
-  .homeLink {
-    padding: 0 1rem;
-  }
 
   .title {
     font-size: 2rem;

@@ -45,7 +45,7 @@
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   width: 100%;
 }
 
@@ -104,7 +104,7 @@
 }
 
 .btnSkip {
-  padding: 0.8rem 1.5rem;
+  padding: 0.2rem 1.5rem;
   background: var(--bg-light);
   color: var(--text-light);
   border: none;
@@ -114,7 +114,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  margin: 10px 0;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -127,7 +127,7 @@
 
 .feedbackSection {
   width: 100%;
-  margin-top: 1rem;
+  margin-top: 0.5rem;
 }
 
 .emptyState {
@@ -149,22 +149,6 @@
   color: var(--text-dark);
 }
 
-.homeLink {
-  margin-top: 3rem;
-  color: var(--text-light);
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 0.95rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  transition: all 0.2s;
-}
-
-.homeLink:hover {
-  color: var(--brand-primary);
-}
 
 @media (max-width: 600px) {
   .main {
@@ -208,7 +192,4 @@
     padding: 0;
   }
 
-  .homeLink {
-    margin-top: 1.5rem;
-  }
 }

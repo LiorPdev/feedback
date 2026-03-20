@@ -2,8 +2,9 @@ import { getDb } from "@/lib/db";
 import { notFound, redirect } from "next/navigation";
 import styles from "./give-feedback.module.css";
 import Link from "next/link";
-import { ArrowRight, Music, Calendar, Disc, Star } from "lucide-react";
+import { Music, Calendar, Disc, Star } from "lucide-react";
 import FeedbackForm from "@/components/FeedbackForm";
+import DashboardLink from "@/components/DashboardLink";
 import { auth } from "@clerk/nextjs/server";
 
 
@@ -91,9 +92,7 @@ export default async function GiveFeedbackPage({ params }: GiveFeedbackPageProps
           )}
         </section>
 
-        <Link href="/dashboard" className={styles.homeLink}>
-          <ArrowRight size={16} /> חזרה למרחב האישי
-        </Link>
+        <DashboardLink />
       </main>
     </div>
   );

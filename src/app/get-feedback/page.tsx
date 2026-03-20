@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight } from "lucide-react";
-import Link from "next/link";
+import { Music } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { createSong, getUserSongCount } from "@/app/actions/songs";
 import { useRouter } from "next/navigation";
 import styles from "./get-feedback.module.css";
+import DashboardLink from "@/components/DashboardLink";
 
 import { GENRES } from "@/lib/constants";
 
@@ -125,7 +125,7 @@ export default function GetFeedback() {
             {status === "loading" ? (
               <div className={styles.loadingSpinner} />
             ) : (
-              <>שליחה <span className={styles.tokenLabel}>(10 טוקנים)</span></>
+              <>שליחה <span className={styles.tokenLabel}>(10 תווי קרדיט <Music size={14} style={{ display: 'inline', verticalAlign: 'middle' }} />)</span></>
             )}
           </button>
 
@@ -146,9 +146,7 @@ export default function GetFeedback() {
       </motion.div>
 
       {hasSongs && (
-        <Link href="/dashboard" className={styles.backLink}>
-          <ArrowRight size={18} /> חזרה למרחב האישי
-        </Link>
+        <DashboardLink />
       )}
     </div>
   );

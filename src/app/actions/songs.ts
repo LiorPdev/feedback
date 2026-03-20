@@ -21,7 +21,8 @@ export async function createSong(formData: FormData, userId: string) {
     try {
         const clerkUser = await currentUser();
         if (!clerkUser) {
-            return { success: false, error: "Unauthorized" };
+            console.error("createSong: No clerk user found");
+            return { success: false, error: "חובה להתחבר כדי לשלוח שיר" };
         }
 
         const email = clerkUser.emailAddresses[0]?.emailAddress || "";
@@ -32,14 +33,20 @@ export async function createSong(formData: FormData, userId: string) {
         const providerId = primaryAccount ? primaryAccount.externalId : null;
 
         // Sync user with Clerk to DB
-        const existingUser = await db.query.users.findFirst({
+        let dbUser = await db.query.users.findFirst({
             where: (users, { eq }) => eq(users.id, clerkUser.id)
         });
 
-        if (existingUser) {
+        if (dbUser) {
             await db.update(users).set({ email, name, provider, providerId }).where(eq(users.id, clerkUser.id));
         } else {
-            await db.insert(users).values({ id: clerkUser.id, email, name, provider, providerId });
+            const [newUser] = await db.insert(users).values({ id: clerkUser.id, email, name, provider, providerId }).returning();
+            dbUser = newUser;
+        }
+
+        // Check tokens (COST = 10)
+        if (!dbUser || dbUser.tokens < 10) {
+            return { success: false, error: "אין לך מספיק קרדיט לשליחת שיר. תן פידבק לשירים אחרים כדי לצבור קרדיט!" };
         }
 
         const [newSong] = await db.insert(songs).values({
@@ -50,13 +57,22 @@ export async function createSong(formData: FormData, userId: string) {
             slug,
         }).returning();
 
+        // Deduct tokens
+        await db.update(users)
+            .set({ tokens: dbUser.tokens - 10 })
+            .where(eq(users.id, clerkUser.id));
+
         revalidatePath('/dashboard');
         return { success: true, song: newSong };
     } catch (error: any) {
-        if (error.code === 'P2002') {
-            return { success: false, error: "הקישור הזה כבר נשלח בעבר" };
+        console.error("Failed to create song details:", error);
+        
+        // Handle common SQLite errors
+        const errorStr = String(error);
+        if (errorStr.includes('UNIQUE constraint failed: Song.url') || error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+            return { success: false, error: "הקישור הזה כבר נשלח בעבר על ידי מישהו אחר" };
         }
-        console.error("Failed to create song:", error);
+        
         return { success: false, error: "שגיאה בשליחת השיר, אנא נסו שוב" };
     }
 }
@@ -76,6 +92,30 @@ export async function addFeedback(data: {
 
     const db = await getDb();
     try {
+        // Sync/get user to grant credits
+        let dbUser = await db.query.users.findFirst({
+            where: (users, { eq }) => eq(users.id, clerkUser.id)
+        });
+
+        if (!dbUser) {
+            // If user exists in Clerk but not DB, create them
+            const email = clerkUser.emailAddresses[0]?.emailAddress || "";
+            const name = clerkUser.firstName ? `${clerkUser.firstName} ${clerkUser.lastName || ''}`.trim() : null;
+            const primaryAccount = clerkUser.externalAccounts?.[0];
+            const provider = primaryAccount ? primaryAccount.provider : null;
+            const providerId = primaryAccount ? primaryAccount.externalId : null;
+            
+            const [newUser] = await db.insert(users).values({ 
+                id: clerkUser.id, 
+                email, 
+                name, 
+                provider, 
+                providerId,
+                tokens: 10 // Start with 10 tokens
+            }).returning();
+            dbUser = newUser;
+        }
+
         const [feedback] = await db.insert(feedbacks).values({
             songId: data.songId,
             authorId: clerkUser.id,
@@ -86,12 +126,19 @@ export async function addFeedback(data: {
             comment: data.comment,
         }).returning();
 
-        // Revalidate both views to show the new feedback
+        // Grant credits (+2)
+        await db.update(users)
+            .set({ tokens: (dbUser.tokens || 0) + 2 })
+            .where(eq(users.id, clerkUser.id));
+
+        // Revalidate both views to show the new feedback and updated tokens in dashboard
+        revalidatePath('/dashboard');
         revalidatePath('/give-feedback/[slug]', 'page');
         revalidatePath('/show-feedback/[slug]', 'page');
+        
         return { success: true, feedback };
     } catch (error) {
-        console.error("Failed to add feedback:", error);
+        console.error("Failed to add feedback details:", error);
         return { success: false, error: "שגיאה בשמירת הפידבק, אנא נסו שוב" };
     }
 }

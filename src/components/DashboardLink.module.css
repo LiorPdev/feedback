@@ -1,0 +1,24 @@
+.dashboardLink {
+  color: #334155;
+  text-decoration: none;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+  margin-top: 3rem;
+  align-self: center;
+}
+
+.dashboardLink:hover {
+  color: var(--brand-primary);
+  transform: translateX(5px);
+}
+
+@media (max-width: 600px) {
+  .dashboardLink {
+    margin-top: 1.5rem;
+    padding: 0 1rem;
+  }
+}

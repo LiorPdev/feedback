@@ -2,11 +2,10 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home } from "lucide-react";
-import Link from "next/link";
 import styles from "./feed.module.css";
 import FeedbackForm from "@/components/FeedbackForm";
 import UrlPlayer, { getEmbedUrl } from "@/components/UrlPlayer";
+import DashboardLink from "@/components/DashboardLink";
 
 interface Song {
   id: string;
@@ -47,62 +46,56 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
     return (
       <div className={styles.emptyState}>
         <h2 className={styles.emptyTitle}>אין שירים זמינים בפיד כרגע.</h2>
-        <Link href="/dashboard" className={styles.btnPlay} style={{ maxWidth: '200px', marginTop: '1rem' }}>
-          חזרה למרחב האישי
-        </Link>
+        <DashboardLink />
       </div>
     );
   }
 
   return (
     <div className={styles.feedWrapper}>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentSong.id}
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -50 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-          className={styles.songCard}
-        >
-          <div className={styles.headerRow}>
-            <h1 className={styles.title}>
-              {currentSong.title}
-            </h1>
-          </div>
+      <div className={styles.songCard}>
+        <div className={styles.headerRow}>
+          <h1 className={styles.title}>{currentSong.title}</h1>
+        </div>
 
-          <div className={styles.playerSection}>
-            {showPlayer && <UrlPlayer url={currentSong.url} />}
-          </div>
+        <div className={styles.playerSection}>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentSong.id + "-player"}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+            >
+              {showPlayer && <UrlPlayer url={currentSong.url} />}
+            </motion.div>
+          </AnimatePresence>
+        </div>
 
-          <div className={styles.actions}>
-            {!getEmbedUrl(currentSong.url) && (
-              <button className={styles.btnPlay} onClick={handlePlay}>
-                <span>להקשיב</span>
-              </button>
-            )}
-            <button className={styles.btnSkip} onClick={handleNext}>
-              <span>דלג</span>
+        <div className={styles.actions}>
+          {!getEmbedUrl(currentSong.url) && (
+            <button className={styles.btnPlay} onClick={handlePlay}>
+              <span>להקשיב</span>
             </button>
-          </div>
+          )}
+          <button className={styles.btnSkip} onClick={handleNext}>
+            <span>דלג</span>
+          </button>
+        </div>
 
-          <div className={styles.feedbackSection}>
-            <FeedbackForm
-              songId={currentSong.id}
-              onSuccess={() => {
-                // We'll wait a bit before moving to the next song to show the success state
-                setTimeout(() => {
-                  handleNext();
-                }, 3000);
-              }}
-            />
-          </div>
-        </motion.div>
-      </AnimatePresence>
+        <div className={styles.feedbackSection}>
+          <FeedbackForm
+            songId={currentSong.id}
+            onSuccess={() => {
+              setTimeout(() => {
+                handleNext();
+              }, 3000);
+            }}
+          />
+        </div>
+      </div>
 
-      <Link href="/dashboard" className={styles.homeLink}>
-        <span>חזרה למרחב האישי</span>
-      </Link>
+      <DashboardLink />
     </div>
   );
 }

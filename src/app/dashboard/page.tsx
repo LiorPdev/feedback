@@ -7,10 +7,10 @@ import SongCard from "@/components/SongCard";
 import styles from "./dashboard.module.css";
 
 
-export default async function DashboardPage({ 
-  searchParams 
-}: { 
-  searchParams: Promise<{ new?: string }> 
+export default async function DashboardPage({
+  searchParams
+}: {
+  searchParams: Promise<{ new?: string }>
 }) {
   const clerkUser = await currentUser();
   if (!clerkUser) {
@@ -66,7 +66,7 @@ export default async function DashboardPage({
         <div className={styles.sectionHeader}>
           <h2>השירים ששלחתי לקבלת פידבק</h2>
           <Link href="/get-feedback" className={styles.submitNewBtn}>
-            <Plus size={18} /> שליחת שיר חדש
+            שליחת שיר חדש
           </Link>
         </div>
 

@@ -121,12 +121,17 @@ export default function Home() {
             const featuresSection = document.querySelector(`.${styles.features}`);
             featuresSection?.scrollIntoView({ behavior: 'smooth' });
           }}
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: [0, 15, 0], scale: [1, 1.1, 1] }}
+          initial={{ opacity: 0, y: -20, x: "-50%" }}
+          animate={{ 
+            opacity: 1, 
+            y: [0, 15, 0], 
+            scale: [1, 1.1, 1],
+            x: "-50%" 
+          }}
           transition={{
             opacity: { duration: 0.5, delay: 1 },
-            y: { repeat: Infinity, duration: 1, ease: "easeInOut" },
-            scale: { repeat: Infinity, duration: 1, ease: "easeInOut" }
+            y: { repeat: Infinity, duration: 2, ease: "easeInOut" },
+            scale: { repeat: Infinity, duration: 2, ease: "easeInOut" }
           }}
           aria-label="גלול למטה"
         >
