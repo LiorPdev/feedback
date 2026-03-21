@@ -1,4 +1,5 @@
 'use server'
+export const runtime = 'edge';
 
 import { getDb } from '@/lib/db';
 import { nanoid } from 'nanoid';
