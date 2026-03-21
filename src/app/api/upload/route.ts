@@ -1,18 +1,65 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { nanoid } from 'nanoid';
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-export const runtime = 'edge';
+// Manual AWS V4 Signer for R2 PUT requests (avoids bulky S3 SDK and fs.readFile issues)
+async function getSignedUrl({
+    bucket,
+    key,
+    contentType,
+    accessKeyId,
+    secretAccessKey,
+    endpoint,
+}: {
+    bucket: string;
+    key: string;
+    contentType: string;
+    accessKeyId: string;
+    secretAccessKey: string;
+    endpoint: string;
+}) {
+    const region = "auto";
+    const service = "s3";
+    const method = "PUT";
+    const expires = 3600;
 
-const r2 = new S3Client({
-  region: "auto",
-  endpoint: process.env.R2_ENDPOINT!,
-  credentials: {
-    accessKeyId: process.env.R2_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
-  },
-});
+    const host = new URL(endpoint).host;
+    const datetime = new Date().toISOString().replace(/[:-]|\.\d{3}/g, "");
+    const date = datetime.slice(0, 8);
+    
+    // Cloudflare R2 endpoint usually looks like: https://<account_id>.r2.cloudflarestorage.com
+    // The bucket is often part of the path: /<bucket>/<key>
+    const canonicalUri = `/${bucket}/${key}`;
+    const canonicalQuerystring = `X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=${encodeURIComponent(
+        `${accessKeyId}/${date}/${region}/${service}/aws4_request`
+    )}&X-Amz-Date=${datetime}&X-Amz-Expires=${expires}&X-Amz-SignedHeaders=content-type%3Bhost`;
+
+    const canonicalHeaders = `content-type:${contentType}\nhost:${host}\n`;
+    const signedHeaders = "content-type;host";
+    const payloadHash = "UNSIGNED-PAYLOAD";
+
+    const canonicalRequest = `${method}\n${canonicalUri}\n${canonicalQuerystring}\n${canonicalHeaders}\n${signedHeaders}\n${payloadHash}`;
+    
+    const encode = (s: string) => new TextEncoder().encode(s);
+    const hmac = async (key: CryptoKey | ArrayBuffer, data: string) => {
+        const k = key instanceof ArrayBuffer 
+            ? await crypto.subtle.importKey("raw", key, { name: "HMAC", hash: "SHA-256" }, false, ["sign"])
+            : key;
+        return crypto.subtle.sign("HMAC", k, encode(data));
+    };
+
+    const kDate = await hmac(encode(`AWS4${secretAccessKey}`).buffer, date);
+    const kRegion = await hmac(kDate, region);
+    const kService = await hmac(kRegion, service);
+    const kSigning = await hmac(kService, "aws4_request");
+
+    const hash = await crypto.subtle.digest("SHA-256", encode(canonicalRequest));
+    const stringToSign = `AWS4-HMAC-SHA256\n${datetime}\n${date}/${region}/${service}/aws4_request\n${Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, "0")).join("")}`;
+    
+    const signature = await hmac(kSigning, stringToSign);
+    const signatureHex = Array.from(new Uint8Array(signature)).map(b => b.toString(16).padStart(2, "0")).join("");
+
+    return `${endpoint}/${bucket}/${key}?${canonicalQuerystring}&X-Amz-Signature=${signatureHex}`;
+}
 
 export async function POST(request: NextRequest) {
     try {
@@ -23,16 +70,18 @@ export async function POST(request: NextRequest) {
         }
 
         const fileKey = `${nanoid()}-${fileName}`;
-        const command = new PutObjectCommand({
-            Bucket: process.env.R2_BUCKET_NAME,
-            Key: fileKey,
-            ContentType: contentType,
+        const url = await getSignedUrl({
+            bucket: process.env.R2_BUCKET_NAME!,
+            key: fileKey,
+            contentType,
+            accessKeyId: process.env.R2_ACCESS_KEY_ID!,
+            secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+            endpoint: process.env.R2_ENDPOINT!,
         });
 
-        const url = await getSignedUrl(r2, command, { expiresIn: 3600 });
         return NextResponse.json({ url, fileKey });
     } catch (error) {
         console.error('API Upload error:', error);
-        return NextResponse.json({ error: 'Failed to generate upload URL' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed' }, { status: 500 });
     }
 }
