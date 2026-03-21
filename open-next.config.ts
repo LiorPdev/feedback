@@ -24,18 +24,6 @@ const config: OpenNextConfig = {
         },
     },
     functions: {
-        upload: {
-            patterns: ["api/upload"],
-            routes: ["app/api/upload/route"],
-            override: {
-                wrapper: "cloudflare-edge",
-                converter: "edge",
-                proxyExternalRequest: "fetch",
-                incrementalCache: "dummy",
-                tagCache: "dummy",
-                queue: "dummy",
-            },
-        },
     },
 };
 
