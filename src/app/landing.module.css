@@ -92,7 +92,7 @@
   font-size: 1.25rem;
   color: var(--text-muted);
   max-width: 500px;
-  line-height: 1.6;
+  line-height: 1.7;
 }
 
 .howItWorks {
@@ -113,7 +113,7 @@
 .howItWorks p {
   font-size: 1rem;
   color: var(--text-muted);
-  line-height: 1.5;
+  line-height: 1.7;
 }
 
 .heroButtons {
@@ -241,7 +241,7 @@
 
 .featureCard p {
   color: var(--text-muted);
-  line-height: 1.6;
+  line-height: 1.8;
 }
 
 /* Footer */

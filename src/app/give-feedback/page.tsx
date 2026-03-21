@@ -2,11 +2,10 @@ import { getFeedSongs } from "@/app/actions/songs";
 import FeedContainer from "./FeedContainer";
 import styles from "./feed.module.css";
 import { auth } from "@clerk/nextjs/server";
-import Navbar from "@/components/Navbar";
 
 export default async function GiveFeedbackFeedPage() {
   const result = await getFeedSongs();
-  const { userId } = await auth();
+  await auth();
 
   if (!result.success || !result.songs) {
     return (

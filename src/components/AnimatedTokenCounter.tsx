@@ -12,9 +12,8 @@ export default function AnimatedTokenCounter({ value }: AnimatedTokenCounterProp
   const prevValue = useRef(value);
 
   useEffect(() => {
-    // If it's the first render (or prevValue is the same as value), just set it
+    // If it's the first render (or prevValue is the same as value), do nothing
     if (prevValue.current === value) {
-      setDisplayValue(value);
       return;
     }
 

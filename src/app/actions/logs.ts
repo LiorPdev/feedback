@@ -7,7 +7,7 @@ import { logToDb } from "@/lib/logger";
  */
 export async function logAction(params: {
     message: string;
-    data?: any;
+    data?: unknown;
     source?: string;
     userId?: string;
 }) {

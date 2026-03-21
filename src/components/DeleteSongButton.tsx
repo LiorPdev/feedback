@@ -31,7 +31,7 @@ export default function DeleteSongButton({ songId, songTitle }: DeleteSongButton
       } else {
         alert(result.error);
       }
-    } catch (error) {
+    } catch {
       alert("שגיאה במחיקת השיר");
     } finally {
       setIsDeleting(false);
@@ -41,13 +41,13 @@ export default function DeleteSongButton({ songId, songTitle }: DeleteSongButton
   const modalContent = (
     <AnimatePresence>
       {showConfirm && (
-        <div 
+        <div
           className={styles.overlay}
           onClick={(e) => {
             if (e.target === e.currentTarget) setShowConfirm(false);
           }}
         >
-          <motion.div 
+          <motion.div
             className={styles.modal}
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -57,19 +57,19 @@ export default function DeleteSongButton({ songId, songTitle }: DeleteSongButton
             <div className={styles.iconCircle}>
               <AlertCircle size={32} color="#ef4444" />
             </div>
-            <h3>מחיקת שיר</h3>
-            <p>האם אתם בטוחים שברצונכם למחוק את השיר <strong>"{songTitle}"</strong>? פעולה זו היא סופית ותמחק גם את כל הדירוגים שהתקבלו.</p>
-            
+            <h3>מחיקת השיר</h3>
+            <p>האם אתם בטוחים שברצונכם למחוק את השיר <strong>&quot;{songTitle}&quot;</strong>? פעולה זו היא סופית ותמחק גם את כל הדירוגים שהתקבלו.</p>
+
             <div className={styles.actions}>
-              <button 
-                className={styles.cancelBtn} 
+              <button
+                className={styles.cancelBtn}
                 onClick={() => setShowConfirm(false)}
                 disabled={isDeleting}
               >
                 ביטול
               </button>
-              <button 
-                className={styles.confirmBtn} 
+              <button
+                className={styles.confirmBtn}
                 onClick={handleDelete}
                 disabled={isDeleting}
               >
@@ -90,10 +90,10 @@ export default function DeleteSongButton({ songId, songTitle }: DeleteSongButton
 
   return (
     <>
-      <button 
-        className={styles.deleteBtn} 
+      <button
+        className={styles.deleteBtn}
         onClick={() => setShowConfirm(true)}
-        title="מחיקת שיר"
+        title="מחיקת השיר"
       >
         <Trash2 size={16} />
       </button>

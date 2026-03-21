@@ -19,7 +19,7 @@ export default function ShareSongButton({ slug }: ShareSongButtonProps) {
     const url = `${origin}/give-feedback/${slug}`;
     navigator.clipboard.writeText(url);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setTimeout(() => setCopied(false), 4000);
   };
 
   return (
@@ -27,7 +27,7 @@ export default function ShareSongButton({ slug }: ShareSongButtonProps) {
       <button
         className={styles.shareBtn}
         onClick={handleCopy}
-        title="שיתוף קישור לחברים"
+        title="שיתוף קישור לקבלת פידבק"
         type="button"
       >
         <AnimatePresence mode="wait">
@@ -60,7 +60,7 @@ export default function ShareSongButton({ slug }: ShareSongButtonProps) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 5 }}
             >
-              הועתק!
+              שילחו לחברים או משפחה ובקשו מהם לתת לכם פידבק אנונימי על השיר
             </motion.div>
           )}
         </AnimatePresence>

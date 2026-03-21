@@ -11,6 +11,7 @@ import { sendFeedbackNotification } from '@/lib/mail';
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { r2 } from "@/lib/r2";
+import { resolveSoundCloudUrl } from "@/lib/soundcloud";
 import { logToDb } from "@/lib/logger";
 
 export async function getPresignedUploadUrl(fileName: string, contentType: string) {
@@ -25,7 +26,7 @@ export async function getPresignedUploadUrl(fileName: string, contentType: strin
     return { url, fileKey };
 }
 
-export async function createSong(formData: FormData, userId: string) {
+export async function createSong(formData: FormData) {
     // Extract data from form
     const url = formData.get('url') as string;
     const title = formData.get('title') as string;
@@ -86,12 +87,12 @@ export async function createSong(formData: FormData, userId: string) {
 
         revalidatePath('/dashboard');
         return { success: true, song: newSong };
-    } catch (error: any) {
+    } catch (error: unknown) {
         await logToDb({ message: "Failed to create song details", data: error, source: "songs.ts:createSong" });
 
         // Handle common SQLite errors
         const errorStr = String(error);
-        if (errorStr.includes('UNIQUE constraint failed: Song.url') || error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+        if (errorStr.includes('UNIQUE constraint failed: Song.url') || (error as { code?: string }).code === 'SQLITE_CONSTRAINT_UNIQUE') {
             return { success: false, error: "השיר הזה כבר נשלח בעבר על ידי מישהו אחר" };
         }
 
@@ -405,11 +406,16 @@ export async function getURLMetadata(url: string) {
 
         // Support SoundCloud OEmbed
         if (url.includes('soundcloud.com')) {
+            const resolvedUrl = await resolveSoundCloudUrl(url);
             const oembedUrl = `https://soundcloud.com/oembed?url=${encodeURIComponent(url)}&format=json`;
             const res = await fetch(oembedUrl);
             if (res.ok) {
-                const data = await res.json();
-                return { success: true, title: cleanTitle(decodeHtmlEntities(data.title)) };
+                const data = await res.json() as { title: string };
+                return { 
+                    success: true, 
+                    title: cleanTitle(decodeHtmlEntities(data.title)),
+                    resolvedUrl: resolvedUrl || url 
+                };
             }
         }
 

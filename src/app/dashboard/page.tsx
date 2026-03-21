@@ -2,7 +2,7 @@ import { getDb } from "@/lib/db";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Music, Plus } from "lucide-react";
+import { Music } from "lucide-react";
 import SongCard from "@/components/SongCard";
 import styles from "./dashboard.module.css";
 
@@ -33,11 +33,12 @@ export default async function DashboardPage({
         },
       },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const error = err as Error;
     return (
       <div style={{ padding: '2rem', color: 'red', direction: 'ltr' }}>
         <h2>Database Error Detected</h2>
-        <pre>{err.stack || err.message || String(err)}</pre>
+        <pre>{error.stack || error.message || String(err)}</pre>
       </div>
     );
   }
@@ -73,7 +74,7 @@ export default async function DashboardPage({
           </div>
         ) : (
           <div className={styles.songGrid}>
-            {user.songs.map((song: any) => (
+            {user.songs.map((song) => (
               <SongCard key={song.id} song={song} isNew={song.slug === newSlug} />
             ))}
           </div>

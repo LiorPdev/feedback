@@ -4,7 +4,9 @@ import { SignInButton, SignedIn, SignedOut, UserButton, useUser } from "@clerk/n
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
-import { Music, Home } from "lucide-react";
+import { Music, Home, HelpCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import { getUserTokens } from "@/app/actions/songs";
 import styles from "./Navbar.module.css";
 import AnimatedTokenCounter from "./AnimatedTokenCounter";
@@ -14,7 +16,9 @@ export default function Navbar() {
   const { user } = useUser();
   const [tokens, setTokens] = useState<number | null>(null);
   const [isGlowing, setIsGlowing] = useState(false);
+  const [showTokensInfo, setShowTokensInfo] = useState(false);
   const prevTokens = useRef<number | null>(null);
+  const infoRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchTokens = async () => {
@@ -38,10 +42,25 @@ export default function Navbar() {
   }, [user, pathname]);
 
   useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (infoRef.current && !infoRef.current.contains(event.target as Node)) {
+        setShowTokensInfo(false);
+      }
+    };
+    if (showTokensInfo) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showTokensInfo]);
+
+  useEffect(() => {
     if (prevTokens.current !== null && tokens !== null && prevTokens.current !== tokens) {
-      setIsGlowing(true);
+      const frame = requestAnimationFrame(() => setIsGlowing(true));
       const timer = setTimeout(() => setIsGlowing(false), 3000);
-      return () => clearTimeout(timer);
+      return () => {
+        cancelAnimationFrame(frame);
+        clearTimeout(timer);
+      };
     }
     if (tokens !== null) {
       prevTokens.current = tokens;
@@ -52,8 +71,8 @@ export default function Navbar() {
     <nav className={styles.navbar}>
       <div className={styles.navContent}>
         <Link href="/" className={styles.logo}>
-          <img
-            src="/Logo.png?v=2"
+          <Image
+            src="/Logo.png"
             alt="פידבק ספייס"
             width={30}
             height={30}
@@ -64,7 +83,7 @@ export default function Navbar() {
         <div className={styles.navLinks}>
           {pathname !== "/" && (
             <Link href="/" className={styles.navLink} title="דף הבית">
-              <Home size={20} />
+              <Home size={24} />
             </Link>
           )}
           <SignedOut>
@@ -76,11 +95,36 @@ export default function Navbar() {
           </SignedOut>
           <SignedIn>
             {tokens !== null && (
-              <div className={`${styles.tokenDisplay} ${isGlowing ? styles.glowing : ""}`} title="יתרת תווי קרדיט">
-                <div className={styles.tokenIcon}>
-                  <Music size={14} />
+              <div className={styles.tokenWrapper}>
+                <div 
+                  className={`${styles.tokenDisplay} ${isGlowing ? styles.glowing : ""}`} 
+                  title="לחצו להסבר על הקרדיטים"
+                  onClick={() => setShowTokensInfo(!showTokensInfo)}
+                >
+                  <div className={styles.tokenIcon}>
+                    <Music size={14} />
+                  </div>
+                  <AnimatedTokenCounter value={tokens} />
                 </div>
-                <AnimatedTokenCounter value={tokens} />
+
+                <AnimatePresence>
+                  {showTokensInfo && (
+                    <motion.div 
+                      ref={infoRef}
+                      initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                      className={styles.tokenInfoPopup}
+                    >
+                      <div className={styles.popupHeader}>
+                        <HelpCircle size={18} className={styles.helpIcon} />
+                        <h3>איך עובד מנגנון הקרדיטים?</h3>
+                      </div>
+                      <p>העלאת שיר חדש עושה שימוש בקרדיטים שצברת. כדי לקבל קרדיטים נוספים, פשוט תנו פידבק כנה ובונה לשירים של יוצרים אחרים בקהילה.</p>
+                      <div className={styles.popupArrow} />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             )}
             <UserButton afterSignOutUrl="/" />

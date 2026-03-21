@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Pencil, Loader2 } from "lucide-react";
-import { updateSong } from "@/app/actions/songs";
+import { updateSong, getURLMetadata } from "@/app/actions/songs";
+import { logAction } from "@/app/actions/logs";
 import styles from "./EditSongButton.module.css";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -22,7 +23,7 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
   const [showModal, setShowModal] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [mounted, setMounted] = useState(false);
-  
+
   const [title, setTitle] = useState(song.title);
   const [url, setUrl] = useState(song.url);
   const [genre, setGenre] = useState(song.genre);
@@ -32,17 +33,47 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
     return () => setMounted(false);
   }, []);
 
+  useEffect(() => {
+    const fetchMetadata = async () => {
+      // Always attempt resolution if it's a valid-looking URL
+      if (!url || !url.includes("://") || url.length < 10) return;
+
+      try {
+        const result = await getURLMetadata(url) as { success: boolean, title?: string, resolvedUrl?: string };
+        if (result.success) {
+          if (result.resolvedUrl && result.resolvedUrl !== url) {
+            setUrl(result.resolvedUrl);
+          }
+        }
+      } catch (error) {
+        await logAction({ message: "Metadata fetch error (Edit)", data: error, source: "EditSongButton.tsx:useEffect" });
+      }
+    };
+
+    const timer = setTimeout(fetchMetadata, 1000);
+    return () => clearTimeout(timer);
+  }, [url, song.url]);
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsUpdating(true);
+    let finalUrl = url;
     try {
-      const result = await updateSong(song.id, { title, url, genre });
+      // Final check: resolve SoundCloud if it's still shortened
+      if (finalUrl.includes("on.soundcloud.com")) {
+        const resolved = await getURLMetadata(finalUrl) as { success: boolean, resolvedUrl?: string };
+        if (resolved.success && resolved.resolvedUrl) {
+          finalUrl = resolved.resolvedUrl;
+        }
+      }
+
+      const result = await updateSong(song.id, { title, url: finalUrl, genre });
       if (result.success) {
         setShowModal(false);
       } else {
         alert(result.error);
       }
-    } catch (error) {
+    } catch {
       alert("שגיאה בעדכון השיר");
     } finally {
       setIsUpdating(false);
@@ -52,26 +83,26 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
   const modalContent = (
     <AnimatePresence>
       {showModal && (
-        <div 
+        <div
           className={styles.overlay}
           onClick={(e) => {
             if (e.target === e.currentTarget) setShowModal(false);
           }}
         >
-          <motion.div 
+          <motion.div
             className={styles.modal}
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h3>עריכת פרטי שיר</h3>
-            
+            <h3>עריכת פרטי השיר</h3>
+
             <form onSubmit={handleSave} className={styles.form}>
               <div className={styles.field}>
                 <label>שם השיר</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   className={styles.input}
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
@@ -82,8 +113,8 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
 
               <div className={styles.field}>
                 <label>קישור לשמיעה</label>
-                <input 
-                  type="url" 
+                <input
+                  type="url"
                   className={styles.input}
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
@@ -94,7 +125,7 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
 
               <div className={styles.field}>
                 <label>סגנון מוזיקלי</label>
-                <select 
+                <select
                   className={styles.select}
                   value={genre}
                   onChange={(e) => setGenre(e.target.value)}
@@ -107,17 +138,17 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
               </div>
 
               <div className={styles.actions}>
-                <button 
+                <button
                   type="button"
-                  className={styles.cancelBtn} 
+                  className={styles.cancelBtn}
                   onClick={() => setShowModal(false)}
                   disabled={isUpdating}
                 >
                   ביטול
                 </button>
-                <button 
+                <button
                   type="submit"
-                  className={styles.saveBtn} 
+                  className={styles.saveBtn}
                   disabled={isUpdating}
                 >
                   {isUpdating ? (
@@ -138,10 +169,10 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
 
   return (
     <>
-      <button 
-        className={styles.editBtn} 
+      <button
+        className={styles.editBtn}
         onClick={() => setShowModal(true)}
-        title="עריכת שיר"
+        title="עריכת פרטי השיר"
       >
         <Pencil size={18} />
       </button>

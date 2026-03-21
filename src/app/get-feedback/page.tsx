@@ -49,9 +49,14 @@ export default function GetFeedback() {
 
       setIsFetchingMetadata(true);
       try {
-        const result = await getURLMetadata(songLink);
+        const result = await getURLMetadata(songLink) as { success: boolean, title?: string, resolvedUrl?: string };
         if (result.success && result.title) {
           setSongTitle(result.title);
+          
+          // SoundCloud resolution: if we got a better URL, use it
+          if (result.resolvedUrl && result.resolvedUrl !== songLink) {
+            setSongLink(result.resolvedUrl);
+          }
         }
       } catch (error) {
         await logAction({ message: "Metadata fetch error", data: error, source: "get-feedback/page.tsx:fetchMetadata" });
@@ -62,7 +67,7 @@ export default function GetFeedback() {
 
     const timer = setTimeout(fetchMetadata, 1000);
     return () => clearTimeout(timer);
-  }, [songLink, songTitle]);
+  }, [songLink, songTitle, submissionType]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,6 +86,18 @@ export default function GetFeedback() {
     setShowTokenLink(false);
 
     let finalUrl = songLink;
+
+    // Final check: resolve SoundCloud if it's still shortened
+    if (submissionType === "link" && finalUrl.includes("on.soundcloud.com")) {
+      try {
+        const resolved = await getURLMetadata(finalUrl) as { success: boolean, resolvedUrl?: string };
+        if (resolved.success && resolved.resolvedUrl) {
+          finalUrl = resolved.resolvedUrl;
+        }
+      } catch {
+        // Fallback to original link if resolution fails during submit
+      }
+    }
 
     if (submissionType === "upload" && songFile) {
       if (fileError) return;
@@ -114,13 +131,13 @@ export default function GetFeedback() {
     formData.append("genre", selectedGenre);
 
     try {
-      const result = await createSong(formData, user.id);
+      const result = await createSong(formData);
       if (result.success && result.song) {
         // Immediate redirect with the new slug for highlighting
         router.push(`/dashboard?new=${result.song.slug}`);
       } else {
         setErrorMessage(result.error || "שגיאה בביצוע הפעולה");
-        if ((result as any).type === 'insufficient_tokens') {
+        if ((result as { type?: string }).type === 'insufficient_tokens') {
           setShowTokenLink(true);
         }
         setStatus("idle");

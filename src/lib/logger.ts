@@ -12,7 +12,7 @@ export async function logToDb({
     userId,
 }: {
     message: string;
-    data?: any;
+    data?: unknown;
     source?: string;
     userId?: string;
 }) {

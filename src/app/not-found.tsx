@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { MoveLeft, HelpCircle } from "lucide-react";
-import styles from "./landing.module.css";
 
 export default function NotFound() {
   return (

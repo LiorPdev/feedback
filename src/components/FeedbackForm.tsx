@@ -11,13 +11,12 @@ import styles from "./FeedbackForm.module.css";
 interface FeedbackFormProps {
   songId: string;
   onSuccess?: () => void;
-  onSkip?: () => void;
   getPlayedSeconds?: () => Promise<number>;
   isDisabled?: boolean;
   disabledMessage?: string;
 }
 
-export default function FeedbackForm({ songId, onSuccess, onSkip, getPlayedSeconds, isDisabled, disabledMessage }: FeedbackFormProps) {
+export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDisabled, disabledMessage }: FeedbackFormProps) {
   const { isLoaded, isSignedIn } = useUser();
   const [ratings, setRatings] = useState({
     lyrics: 0,
@@ -29,18 +28,7 @@ export default function FeedbackForm({ songId, onSuccess, onSkip, getPlayedSecon
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
-  // Reset form when song changes
-  useEffect(() => {
-    setRatings({
-      lyrics: 0,
-      composition: 0,
-      production: 0,
-      overall: 0,
-    });
-    setComment("");
-    setStatus("idle");
-    setErrorMsg("");
-  }, [songId]);
+  // Form resets automatically when song changes because key={songId} is used in parent
 
   // Handle success auto-hide
   useEffect(() => {
@@ -55,7 +43,7 @@ export default function FeedbackForm({ songId, onSuccess, onSkip, getPlayedSecon
   const categories = [
     { key: "lyrics" as const, label: "מילים" },
     { key: "composition" as const, label: "לחן" },
-    { key: "production" as const, label: "עיבוד / הפקה" },
+    { key: "production" as const, label: "הפקה" },
     { key: "overall" as const, label: "ציון כללי" },
   ];
 
@@ -68,16 +56,16 @@ export default function FeedbackForm({ songId, onSuccess, onSkip, getPlayedSecon
     const touch = e.touches[0];
     const target = e.currentTarget as HTMLElement;
     const rect = target.getBoundingClientRect();
-    
+
     // In RTL, the first star (1) is on the right. 
     // We calculate the distance from the RIGHT edge of the container.
     const distanceFromRight = rect.right - touch.clientX;
     const percentage = distanceFromRight / rect.width;
     let rating = Math.ceil(percentage * 5);
-    
+
     // Clamp rating between 1 and 5
     rating = Math.max(1, Math.min(5, rating));
-    
+
     // Only update if it's a new value to avoid unnecessary re-renders
     if (ratings[key] !== rating) {
       handleRating(key, rating);
@@ -94,7 +82,7 @@ export default function FeedbackForm({ songId, onSuccess, onSkip, getPlayedSecon
     // Validation logic
     if (!hasRating && !hasComment) {
       setStatus("error");
-      setErrorMsg("אנא דרגו לפחות קטגוריה אחת או כתבו תגובה כדי לשלוח פידבק.");
+      setErrorMsg("אנא דרגו לפחות קטגוריה אחת ו/או כתבו תגובה כדי לשלוח פידבק.");
       return;
     }
 
@@ -140,7 +128,7 @@ export default function FeedbackForm({ songId, onSuccess, onSkip, getPlayedSecon
         setStatus("error");
         setErrorMsg(result.error || "משהו השתבש בשליחת הפידבק.");
       }
-    } catch (err) {
+    } catch {
       setStatus("error");
       setErrorMsg("שגיאת תקשורת. אנא נסו שוב.");
     }
@@ -191,10 +179,6 @@ export default function FeedbackForm({ songId, onSuccess, onSkip, getPlayedSecon
       </AnimatePresence>
 
       <form onSubmit={handleSubmit}>
-        <div className={styles.formHeader}>
-          <h2 className={styles.heading}>פידבק ודירוג</h2>
-        </div>
-
         <div className={styles.ratingGrid}>
           {categories.map((cat) => (
             <div key={cat.key} className={styles.ratingGroup}>
@@ -215,7 +199,7 @@ export default function FeedbackForm({ songId, onSuccess, onSkip, getPlayedSecon
                         REWARD_OVERALL} <Music size={12} />)
                 </motion.span>
               </label>
-              <div 
+              <div
                 className={styles.stars}
                 onTouchStart={(e) => handleTouch(e, cat.key)}
                 onTouchMove={(e) => handleTouch(e, cat.key)}
@@ -250,7 +234,7 @@ export default function FeedbackForm({ songId, onSuccess, onSkip, getPlayedSecon
             }}
           />
           <div className={styles.commentFooterRow}>
-            <div className={styles.commentFooter}>({REWARD_COMMENT} קרדיט <Music size={12} style={{ display: 'inline', verticalAlign: 'middle', marginBottom: '2px' }} />)</div>
+            <div className={styles.commentFooter}>({REWARD_COMMENT} קרדיט <Music size={12} />)</div>
             <div className={`${styles.charCounter} ${comment.length === 0 ? "" : (comment.length < MIN_COMMENT_LENGTH ? styles.charCounterLow : styles.charCounterValid)}`}>
               ({comment.length}/{MIN_COMMENT_LENGTH})
             </div>

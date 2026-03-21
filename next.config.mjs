@@ -8,6 +8,8 @@ const nextConfig = {
   /* config options here */
 };
 
-export default () => {
+const nextConfigWithCloudflare = () => {
   return nextConfig;
 };
+
+export default nextConfigWithCloudflare;

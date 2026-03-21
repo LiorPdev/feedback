@@ -9,16 +9,25 @@ import ShareSongButton from "@/components/ShareSongButton";
 import styles from "@/app/dashboard/dashboard.module.css";
 
 interface SongCardProps {
-  song: any;
+  song: {
+    id: string;
+    userId: string;
+    url: string;
+    title: string;
+    genre: string;
+    slug: string;
+    createdAt: string | number | Date;
+    updatedAt: string | number | Date;
+    feedbacks?: unknown[];
+  };
   isNew?: boolean;
 }
 
 export default function SongCard({ song, isNew: propIsNew }: SongCardProps) {
-  const [isHighlighted, setIsHighlighted] = useState(false);
+  const [isHighlighted, setIsHighlighted] = useState(propIsNew || false);
 
   useEffect(() => {
     if (propIsNew) {
-      setIsHighlighted(true);
       const timer = setTimeout(() => {
         setIsHighlighted(false);
         // Clear the new slug from URL without refresh

@@ -1,5 +1,5 @@
 .navbar {
-  height: 70px;
+  height: 55px;
   background: color-mix(in srgb, var(--card-bg), transparent 15%);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -78,6 +78,12 @@
   color: var(--brand-primary);
 }
 
+.tokenWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
 .tokenDisplay {
   display: flex;
   align-items: center;
@@ -92,6 +98,13 @@
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
+  cursor: pointer;
+  user-select: none;
+}
+
+.tokenDisplay:hover {
+  background: color-mix(in srgb, var(--brand-primary), transparent 85%);
+  transform: translateY(-1px);
 }
 
 .tokenDisplay.glowing {
@@ -108,7 +121,70 @@
   align-items: center;
 }
 
+.tokenInfoPopup {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 0;
+  width: 280px;
+  background: color-mix(in srgb, var(--card-bg), transparent 2%);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 1.25rem;
+  box-shadow: var(--shadow-lg), 0 10px 40px rgba(0, 0, 0, 0.3);
+  z-index: 1001;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  direction: rtl;
+}
+
+.popupHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 0.75rem;
+  color: var(--brand-primary);
+}
+
+.popupHeader h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.helpIcon {
+  flex-shrink: 0;
+}
+
+.tokenInfoPopup p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.8;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.popupArrow {
+  position: absolute;
+  top: -6px;
+  left: 24px;
+  width: 12px;
+  height: 12px;
+  background: var(--card-bg);
+  border-top: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+  transform: rotate(-45deg);
+}
+
 @media (max-width: 640px) {
+  .tokenInfoPopup {
+    left: -10px;
+    width: 260px;
+  }
+
+  .popupArrow {
+    left: 34px;
+  }
+
   .navContent {
     padding: 0 1.25rem;
   }

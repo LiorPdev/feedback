@@ -19,7 +19,7 @@ const drizzleSchema = {
  *   initialized by initOpenNextCloudflareForDev() in next.config.ts
  */
 export const getDb = async () => {
-    const context = await getCloudflareContext({ async: true }) as any;
+    const context = await getCloudflareContext({ async: true }) as unknown as { env: Record<string, unknown> };
     const env = context?.env;
     
     if (!env?.DB) {

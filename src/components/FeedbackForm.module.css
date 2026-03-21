@@ -12,15 +12,6 @@
   position: relative;
 }
 
-.formHeader {
-  position: relative;
-  width: 100%;
-  margin-bottom: 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .heading {
   font-size: 1.25rem;
   font-weight: 800;
@@ -159,8 +150,12 @@
 
 .commentFooter {
   font-size: 0.85rem;
-  color: var(--text-muted);
-  font-weight: 400;
+  color: var(--brand-primary);
+  font-weight: 600;
+  opacity: 0.9;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
 }
 
 .charCounter {

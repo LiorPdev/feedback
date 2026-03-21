@@ -1,7 +1,6 @@
 import { getDb } from "@/lib/db";
 import { notFound, redirect } from "next/navigation";
 import styles from "./show-feedback.module.css";
-import Link from "next/link";
 import { Music, Calendar, Disc } from "lucide-react";
 import { auth } from "@clerk/nextjs/server";
 import DashboardLink from "@/components/DashboardLink";

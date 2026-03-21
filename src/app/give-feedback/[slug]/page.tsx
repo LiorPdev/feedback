@@ -2,8 +2,10 @@ import { getFeedSongs } from "@/app/actions/songs";
 import { getDb } from "@/lib/db";
 import FeedContainer from "../FeedContainer";
 import styles from "../feed.module.css";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
+import DashboardLink from "@/components/DashboardLink";
+import { UserCheck } from "lucide-react";
 
 interface GiveFeedbackPageProps {
   params: Promise<{
@@ -27,7 +29,22 @@ export default async function GiveFeedbackPage({ params }: GiveFeedbackPageProps
   }
 
   if (userId === song.userId) {
-    redirect(`/show-feedback/${slug}`);
+    return (
+      <div className={styles.container}>
+        <div className={styles.main}>
+          <div className={styles.emptyState}>
+            <div className={styles.iconSmall} style={{ transform: 'scale(2)', marginBottom: '1rem' }}>
+              <UserCheck size={24} />
+            </div>
+            <h2 className={styles.emptyTitle}>לא ניתן לתת פידבק לעצמך</h2>
+            <p>שלחת קישור לשיר שבבעלותך. כדי לראות את הפידבקים שקיבלת עבורו, עברו למרחב האישי.</p>
+            <div className={styles.dashboardLinkMargin}>
+              <DashboardLink />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const result = await getFeedSongs(slug);

@@ -7,6 +7,7 @@ import UrlPlayer, { getEmbedUrl, type UrlPlayerHandle } from "@/components/UrlPl
 import DashboardLink from "@/components/DashboardLink";
 import { Play, Pause } from "lucide-react";
 import { MIN_LISTEN_TIME, SUCCESS_MESSAGE_DURATION } from "@/lib/constants";
+import { logAction } from "@/app/actions/logs";
 
 interface Song {
   id: string;
@@ -30,21 +31,16 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isBuffering, setIsBuffering] = useState(false);
-  const [hasPlayedCurrent, setHasPlayedCurrent] = useState(false);
   const playerRef = useRef<UrlPlayerHandle>(null);
 
   const currentSong = songs[currentIndex];
   const embedUrl = currentSong ? getEmbedUrl(currentSong.url) : null;
   const showPlayer = !!embedUrl;
 
-  useEffect(() => {
-    // Reset timer and state when song changes
-    setSecondsRemaining(MIN_LISTEN_TIME);
-    setIsTimerActive(false);
-    setIsPlaying(false);
-    setIsBuffering(false);
-    setHasPlayedCurrent(false);
-  }, [currentIndex, songs]);
+  // Reset state when song changes can also be done via key, but we handle it here
+  // or by reset function called by event handlers.
+  // We'll keep the effect but move it to a more standard pattern if possible,
+  // or just move the resets to the events.
 
   useEffect(() => {
     if (!isTimerActive) return;
@@ -65,6 +61,7 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
   const onPlayerPlay = useCallback(() => {
     setIsTimerActive(true);
     setIsPlaying(true);
+    setIsBuffering(false);
   }, []);
 
   const onPlayerPause = useCallback(() => {
@@ -72,9 +69,39 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
     setIsPlaying(false);
   }, []);
 
+  const resetSongState = useCallback(() => {
+    setSecondsRemaining(MIN_LISTEN_TIME);
+    setIsTimerActive(false);
+    setIsPlaying(false);
+    setIsBuffering(false);
+  }, []);
+
+  const onPlayerError = useCallback((error: unknown) => {
+    logAction({
+      message: "Player Error (FeedContainer)",
+      data: {
+        error: (error as Error)?.message || String(error),
+        url: currentSong?.url,
+        timestamp: new Date().toISOString(),
+      },
+      source: "FeedContainer.tsx:onPlayerError"
+    });
+    setIsBuffering(false);
+    setIsPlaying(false);
+  }, [currentSong?.url]);
+
   const handleSkip = () => {
     if (songs.length <= 1) return;
-    setCurrentIndex((prev) => (prev + 1) % songs.length);
+    try {
+      playerRef.current?.pause();
+    } catch {
+      console.warn("Failed to pause before skip");
+    }
+    resetSongState();
+    setCurrentIndex((prev) => {
+       const nextIndex = (prev + 1) % songs.length;
+       return nextIndex;
+    });
   };
 
   const handleRemoveCurrent = () => {
@@ -84,6 +111,7 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
 
       // Update index if needed
       setCurrentIndex((prevIndex) => (prevIndex >= updatedSongs.length ? 0 : prevIndex));
+      resetSongState();
       return updatedSongs;
     });
   };
@@ -96,22 +124,17 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
 
   const togglePlayback = () => {
     if (!playerRef.current) return;
-    if (isBuffering) return; // Prevent multiple clicks during buffering
 
     if (isPlaying) {
       playerRef.current.pause();
     } else {
-      // If it's the first time playing this song, show preloader
-      if (!hasPlayedCurrent) {
-        setIsBuffering(true);
-        playerRef.current.play();
-        setTimeout(() => {
-          setIsBuffering(false);
-          setHasPlayedCurrent(true);
-        }, 2000);
-      } else {
-        playerRef.current.play();
-      }
+      setIsBuffering(true);
+      playerRef.current.play();
+
+      // Fallback: clear buffering state after 3 seconds if play doesn't start
+      setTimeout(() => {
+        setIsBuffering(false);
+      }, 3000);
     }
   };
 
@@ -167,6 +190,8 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
                   url={currentSong.url}
                   onPlay={onPlayerPlay}
                   onPause={onPlayerPause}
+                  onReady={() => setIsBuffering(false)}
+                  onError={onPlayerError}
                   isHidden={isHiddenPlayer}
                 />
               )}
@@ -179,7 +204,6 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
             <button
               className={isPlaying ? styles.btnPause : styles.btnPlay}
               onClick={togglePlayback}
-              disabled={isBuffering}
             >
               {isBuffering ? (
                 <>
@@ -213,7 +237,6 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
           <FeedbackForm
             songId={currentSong.id}
             key={currentSong.id}
-            onSkip={handleSkip}
             getPlayedSeconds={getPlayedSeconds}
             isDisabled={!isBypassTimer && secondsRemaining > 0}
             disabledMessage={
