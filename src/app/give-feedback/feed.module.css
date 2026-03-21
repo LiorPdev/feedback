@@ -189,6 +189,10 @@
   }
 }
 
+.dashboardLinkMargin {
+  margin-top: 0.5rem;
+}
+
 @media (max-width: 600px) {
   .main {
     max-width: 100%;

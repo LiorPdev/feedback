@@ -140,9 +140,13 @@
 }
 
 .pointLabel {
-  font-weight: 400;
-  opacity: 0.8;
-  margin-right: 4px;
+  font-weight: 600;
+  opacity: 0.9;
+  margin-right: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--brand-primary);
 }
 
 .commentFooterRow {

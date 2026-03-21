@@ -53,3 +53,7 @@
 .fallbackLink:hover {
   color: #2563eb;
 }
+
+.audio {
+  width: 100%;
+}

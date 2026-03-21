@@ -5,11 +5,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Music } from "lucide-react";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
-import { createSong, getUserSongCount, getURLMetadata } from "@/app/actions/songs";
+import { createSong, getUserSongCount, getURLMetadata, getPresignedUploadUrl } from "@/app/actions/songs";
 import { useRouter } from "next/navigation";
 import styles from "./get-feedback.module.css";
 import DashboardLink from "@/components/DashboardLink";
-import { GENRES, SONG_SUBMISSION_COST } from "@/lib/constants";
+import { GENRES, SONG_SUBMISSION_COST, MAX_FILE_SIZE, MAX_FILE_SIZE_MB } from "@/lib/constants";
 
 export default function GetFeedback() {
   const [songLink, setSongLink] = useState("");
@@ -20,6 +20,9 @@ export default function GetFeedback() {
   const [showTokenLink, setShowTokenLink] = useState(false);
   const [hasSongs, setHasSongs] = useState(false);
   const [isFetchingMetadata, setIsFetchingMetadata] = useState(false);
+  const [submissionType, setSubmissionType] = useState<"link" | "upload">("link");
+  const [songFile, setSongFile] = useState<File | null>(null);
+  const [fileError, setFileError] = useState("");
   const { user } = useUser();
   const router = useRouter();
 
@@ -41,7 +44,7 @@ export default function GetFeedback() {
       if (!songLink || !songLink.includes("://") || songLink.length < 10) return;
 
       // Only auto-fill if the title is currently empty
-      if (songTitle) return;
+      if (songTitle || submissionType !== "link") return;
 
       setIsFetchingMetadata(true);
       try {
@@ -62,14 +65,50 @@ export default function GetFeedback() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!songLink || !songTitle || !selectedGenre || !user?.id) return;
+    
+    if (!user?.id) {
+      setErrorMessage("עליך להיות מחובר כדי לשלוח שיר");
+      return;
+    }
+
+    if (!songTitle || !selectedGenre) return;
+    if (submissionType === "link" && !songLink) return;
+    if (submissionType === "upload" && !songFile) return;
 
     setStatus("loading");
     setErrorMessage("");
     setShowTokenLink(false);
 
+    let finalUrl = songLink;
+
+    if (submissionType === "upload" && songFile) {
+      if (fileError) return;
+      
+      try {
+        const { url, fileKey } = await getPresignedUploadUrl(songFile.name, songFile.type);
+        
+        const uploadRes = await fetch(url, {
+          method: "PUT",
+          body: songFile,
+          headers: {
+            "Content-Type": songFile.type,
+          },
+        });
+
+        if (!uploadRes.ok) throw new Error("Upload failed");
+        
+        const publicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
+        finalUrl = `${publicUrl}/${fileKey}`;
+      } catch (err) {
+        console.error("Upload error:", err);
+        setErrorMessage("חלה שגיאה בהעלאת הקובץ. נסו שוב.");
+        setStatus("idle");
+        return;
+      }
+    }
+
     const formData = new FormData();
-    formData.append("url", songLink);
+    formData.append("url", finalUrl);
     formData.append("title", songTitle);
     formData.append("genre", selectedGenre);
 
@@ -106,45 +145,89 @@ export default function GetFeedback() {
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.formGroup}>
-            <label className={styles.label}>קישור לשיר</label>
-            <input
-              type="url"
-              className={styles.input}
-              placeholder="הדביקו קישור מיוטיוב, ספוטיפי או סאונדקלאוד"
-              value={songLink}
-              onChange={(e) => setSongLink(e.target.value)}
-              required
-            />
-            <AnimatePresence>
-              {songLink.includes("music.apple.com") && (
-                <motion.p
-                  className={styles.errorMsg}
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  style={{ marginTop: '-0.25rem', fontSize: '0.875rem' }}
-                >
-                  Apple Music לא נתמך. אנא השתמשו בנגנים אחרים.
-                </motion.p>
-              )}
-            </AnimatePresence>
-          </div>
+            <div className={styles.radioGroup}>
+              <label className={styles.radioLabel}>
+                <input
+                  type="radio"
+                  name="submissionType"
+                  className={styles.radioInput}
+                  checked={submissionType === "link"}
+                  onChange={() => setSubmissionType("link")}
+                />
+                קישור לשיר
+              </label>
+              <label className={styles.radioLabel}>
+                <input
+                  type="radio"
+                  name="submissionType"
+                  className={styles.radioInput}
+                  checked={submissionType === "upload"}
+                  onChange={() => setSubmissionType("upload")}
+                />
+                העלאת שיר
+              </label>
+            </div>
 
-          <div className={styles.formGroup}>
-            <label className={styles.label}>
-              שם השיר
-              {isFetchingMetadata && (
-                <span className={styles.fetchingIndicator}> (מחפש כותרת...)</span>
-              )}
-            </label>
-            <input
-              type="text"
-              className={styles.input}
-              placeholder="לדוגמא: איך שיר נולד"
-              value={songTitle}
-              onChange={(e) => setSongTitle(e.target.value)}
-              required
-            />
+            {submissionType === "link" ? (
+              <>
+                <input
+                  type="url"
+                  className={styles.input}
+                  placeholder="הדביקו קישור מיוטיוב, ספוטיפי, סאונדקלאוד..."
+                  value={songLink}
+                  onChange={(e) => setSongLink(e.target.value)}
+                  required={submissionType === "link"}
+                />
+                <AnimatePresence>
+                  {songLink.includes("music.apple.com") && (
+                    <motion.p
+                      className={styles.errorMsg}
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      style={{ marginTop: '-0.25rem', fontSize: '0.875rem' }}
+                    >
+                      Apple Music לא נתמך. אנא השתמשו בנגנים אחרים.
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+              </>
+            ) : (
+              <>
+                <div className={styles.fileInputContainer}>
+                  <div className={`${styles.fileInput} ${songFile ? styles.fileSelected : ""}`}>
+                    {songFile ? songFile.name : "בחרו קובץ MP3 או גררו לכאן"}
+                  </div>
+                  <input
+                    type="file"
+                    accept="audio/mpeg,audio/mp3"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      setSongFile(file);
+                      if (file && file.size > MAX_FILE_SIZE) {
+                        setFileError(`קובץ גדול מדי (מקסימום ${MAX_FILE_SIZE_MB}MB)`);
+                      } else {
+                        setFileError("");
+                      }
+                    }}
+                    required={submissionType === "upload"}
+                  />
+                </div>
+                <AnimatePresence>
+                  {fileError && (
+                    <motion.p
+                      className={styles.errorMsg}
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      style={{ marginTop: '0.25rem', fontSize: '0.875rem' }}
+                    >
+                      {fileError}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+              </>
+            )}
           </div>
 
           <div className={`${styles.formGroup} ${styles.genreGroup}`}>
@@ -166,10 +249,34 @@ export default function GetFeedback() {
             </div>
           </div>
 
+          <div className={styles.formGroup}>
+            <label className={styles.label}>
+              שם השיר
+              {isFetchingMetadata && (
+                <span className={styles.fetchingIndicator}> (מחפש כותרת...)</span>
+              )}
+            </label>
+            <input
+              type="text"
+              className={styles.input}
+              placeholder="לדוגמא: איך שיר נולד"
+              value={songTitle}
+              onChange={(e) => setSongTitle(e.target.value)}
+              required
+            />
+          </div>
+
           <button
             type="submit"
             className={styles.submitBtn}
-            disabled={status === "loading" || !songLink || !songTitle || !selectedGenre || !user || songLink.includes("music.apple.com")}
+            disabled={
+              status === "loading" || 
+              (submissionType === "link" ? !songLink : (!songFile || !!fileError)) || 
+              !songTitle || 
+              !selectedGenre || 
+              !user || 
+              (submissionType === "link" && songLink.includes("music.apple.com"))
+            }
           >
             {status === "loading" ? (
               <div className={styles.loadingSpinner} />
@@ -207,7 +314,7 @@ export default function GetFeedback() {
       </motion.div>
 
       {hasSongs && (
-        <DashboardLink />
+        <DashboardLink className={styles.dashboardLinkMargin} />
       )}
     </div>
   );

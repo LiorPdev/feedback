@@ -5,7 +5,7 @@ import { Star, Music, LogIn, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUser, SignInButton } from "@clerk/nextjs";
 import { addFeedback } from "@/app/actions/songs";
-import { REWARD_LYRICS, REWARD_COMPOSITION, REWARD_PRODUCTION, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH } from "@/lib/constants";
+import { REWARD_LYRICS, REWARD_COMPOSITION, REWARD_PRODUCTION, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH, SUCCESS_MESSAGE_DURATION } from "@/lib/constants";
 import styles from "./FeedbackForm.module.css";
 
 interface FeedbackFormProps {
@@ -47,7 +47,7 @@ export default function FeedbackForm({ songId, onSuccess, onSkip, getPlayedSecon
     if (status === "success") {
       const timer = setTimeout(() => {
         setStatus("idle");
-      }, 3000);
+      }, SUCCESS_MESSAGE_DURATION);
       return () => clearTimeout(timer);
     }
   }, [status]);
@@ -62,6 +62,26 @@ export default function FeedbackForm({ songId, onSuccess, onSkip, getPlayedSecon
   const handleRating = (key: keyof typeof ratings, value: number) => {
     setRatings((prev) => ({ ...prev, [key]: value }));
     if (status === "error") setStatus("idle");
+  };
+
+  const handleTouch = (e: React.TouchEvent, key: keyof typeof ratings) => {
+    const touch = e.touches[0];
+    const target = e.currentTarget as HTMLElement;
+    const rect = target.getBoundingClientRect();
+    
+    // In RTL, the first star (1) is on the right. 
+    // We calculate the distance from the RIGHT edge of the container.
+    const distanceFromRight = rect.right - touch.clientX;
+    const percentage = distanceFromRight / rect.width;
+    let rating = Math.ceil(percentage * 5);
+    
+    // Clamp rating between 1 and 5
+    rating = Math.max(1, Math.min(5, rating));
+    
+    // Only update if it's a new value to avoid unnecessary re-renders
+    if (ratings[key] !== rating) {
+      handleRating(key, rating);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -180,14 +200,26 @@ export default function FeedbackForm({ songId, onSuccess, onSkip, getPlayedSecon
             <div key={cat.key} className={styles.ratingGroup}>
               <label className={styles.ratingLabel}>
                 {cat.label}
-                <span className={styles.pointLabel}>
+                <motion.span
+                  key={ratings[cat.key]}
+                  className={styles.pointLabel}
+                  animate={ratings[cat.key] > 0 ? {
+                    x: [0, -2, 2, -1, 1, 0],
+                    scale: [1, 1.1, 1]
+                  } : {}}
+                  transition={{ duration: 0.3 }}
+                >
                   ({cat.key === "lyrics" ? REWARD_LYRICS :
                     cat.key === "composition" ? REWARD_COMPOSITION :
                       cat.key === "production" ? REWARD_PRODUCTION :
-                        REWARD_OVERALL}+)
-                </span>
+                        REWARD_OVERALL} <Music size={12} />)
+                </motion.span>
               </label>
-              <div className={styles.stars}>
+              <div 
+                className={styles.stars}
+                onTouchStart={(e) => handleTouch(e, cat.key)}
+                onTouchMove={(e) => handleTouch(e, cat.key)}
+              >
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button
                     key={star}
@@ -196,7 +228,7 @@ export default function FeedbackForm({ songId, onSuccess, onSkip, getPlayedSecon
                     onClick={() => handleRating(cat.key, star)}
                   >
                     <Star
-                      size={20}
+                      size={18 + (star - 1) * 1.5}
                       fill={ratings[cat.key] >= star ? "currentColor" : "none"}
                       strokeWidth={1.5}
                     />
@@ -218,7 +250,7 @@ export default function FeedbackForm({ songId, onSuccess, onSkip, getPlayedSecon
             }}
           />
           <div className={styles.commentFooterRow}>
-            <div className={styles.commentFooter}>({REWARD_COMMENT}+) קרדיט <Music size={12} style={{ display: 'inline', verticalAlign: 'middle', marginBottom: '2px' }} /></div>
+            <div className={styles.commentFooter}>({REWARD_COMMENT} קרדיט <Music size={12} style={{ display: 'inline', verticalAlign: 'middle', marginBottom: '2px' }} />)</div>
             <div className={`${styles.charCounter} ${comment.length === 0 ? "" : (comment.length < MIN_COMMENT_LENGTH ? styles.charCounterLow : styles.charCounterValid)}`}>
               ({comment.length}/{MIN_COMMENT_LENGTH})
             </div>

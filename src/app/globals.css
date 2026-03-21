@@ -26,22 +26,6 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f172a;
-    --foreground: #f8fafc;
-    --card-bg: #1e293b;
-    --text-main: #f1f5f9;
-    --text-muted: #94a3b8;
-    --bg-section: #020617;
-    --border-color: rgba(255, 255, 255, 0.1);
-    --brand-primary: #3b82f6;
-    --brand-contrast: #60a5fa;
-    --brand-light: rgba(59, 130, 246, 0.2);
-    --brand-bg: rgba(59, 130, 246, 0.1);
-  }
-}
-
 html,
 body {
   height: 100%;

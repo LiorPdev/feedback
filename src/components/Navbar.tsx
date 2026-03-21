@@ -3,15 +3,18 @@
 import { SignInButton, SignedIn, SignedOut, UserButton, useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Music, Home } from "lucide-react";
 import { getUserTokens } from "@/app/actions/songs";
 import styles from "./Navbar.module.css";
+import AnimatedTokenCounter from "./AnimatedTokenCounter";
 
 export default function Navbar() {
   const pathname = usePathname();
   const { user } = useUser();
   const [tokens, setTokens] = useState<number | null>(null);
+  const [isGlowing, setIsGlowing] = useState(false);
+  const prevTokens = useRef<number | null>(null);
 
   useEffect(() => {
     const fetchTokens = async () => {
@@ -33,6 +36,17 @@ export default function Navbar() {
       window.removeEventListener("tokens-updated", handleUpdate);
     };
   }, [user, pathname]);
+
+  useEffect(() => {
+    if (prevTokens.current !== null && tokens !== null && prevTokens.current !== tokens) {
+      setIsGlowing(true);
+      const timer = setTimeout(() => setIsGlowing(false), 3000);
+      return () => clearTimeout(timer);
+    }
+    if (tokens !== null) {
+      prevTokens.current = tokens;
+    }
+  }, [tokens]);
 
   return (
     <nav className={styles.navbar}>
@@ -62,8 +76,8 @@ export default function Navbar() {
           </SignedOut>
           <SignedIn>
             {tokens !== null && (
-              <div className={styles.tokenDisplay} title="יתרת תווי קרדיט">
-                <span>{tokens}</span>
+              <div className={`${styles.tokenDisplay} ${isGlowing ? styles.glowing : ""}`} title="יתרת תווי קרדיט">
+                <AnimatedTokenCounter value={tokens} />
                 <div className={styles.tokenIcon}>
                   <Music size={14} />
                 </div>

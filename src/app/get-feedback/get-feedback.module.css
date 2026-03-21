@@ -272,3 +272,71 @@
     opacity: 0.6;
   }
 }
+
+.dashboardLinkMargin {
+  margin-top: 2.5rem;
+}
+
+.radioGroup {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 0.5rem;
+  direction: rtl;
+}
+
+.radioLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text-main);
+}
+
+.radioInput {
+  width: 1.2rem;
+  height: 1.2rem;
+  cursor: pointer;
+  accent-color: var(--brand-primary);
+}
+
+.fileInputContainer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.fileInput {
+  width: 100%;
+  padding: 1.25rem;
+  border: 1.5px dashed var(--border-color);
+  border-radius: 12px;
+  background: var(--bg-section);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.fileInputContainer input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.fileInput:hover {
+  border-color: var(--brand-primary);
+  background: var(--brand-light);
+  color: var(--brand-primary);
+}
+
+.fileSelected {
+  border-color: #16A34A;
+  background: #F0FDF4;
+  color: #16A34A;
+}

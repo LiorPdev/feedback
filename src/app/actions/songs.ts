@@ -7,6 +7,22 @@ import { currentUser, auth } from '@clerk/nextjs/server';
 import { eq } from 'drizzle-orm';
 import { users, songs, feedbacks } from '@/lib/schema';
 import { SONG_SUBMISSION_COST, INITIAL_TOKENS, REWARD_LYRICS, REWARD_COMPOSITION, REWARD_PRODUCTION, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH } from '@/lib/constants';
+import { sendFeedbackNotification } from '@/lib/mail';
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { r2 } from "@/lib/r2";
+
+export async function getPresignedUploadUrl(fileName: string, contentType: string) {
+    const fileKey = `${nanoid()}-${fileName}`;
+    const command = new PutObjectCommand({
+        Bucket: process.env.R2_BUCKET_NAME,
+        Key: fileKey,
+        ContentType: contentType,
+    });
+
+    const url = await getSignedUrl(r2, command, { expiresIn: 3600 });
+    return { url, fileKey };
+}
 
 export async function createSong(formData: FormData, userId: string) {
     // Extract data from form
@@ -150,6 +166,24 @@ export async function addFeedback(data: {
         revalidatePath('/dashboard');
         revalidatePath('/give-feedback/[slug]', 'page');
         revalidatePath('/show-feedback/[slug]', 'page');
+        
+        // Send email notification to uploader
+        try {
+            const song = await db.query.songs.findFirst({
+                where: (songs, { eq }) => eq(songs.id, data.songId),
+                with: { user: true }
+            });
+
+            if (song?.user?.email) {
+                await sendFeedbackNotification({
+                    to: song.user.email,
+                    songTitle: song.title,
+                    songSlug: song.slug
+                });
+            }
+        } catch (emailError) {
+            console.error("Email notification failed:", emailError);
+        }
 
         return { success: true, feedback };
     } catch (error) {

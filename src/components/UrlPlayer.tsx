@@ -50,6 +50,11 @@ export const getEmbedUrl = (url: string) => {
     }
   }
 
+  // Audio files
+  if (url.match(/\.(mp3|wav|ogg|m4a|aac)(\?.*)?$/i) || url.includes("r2.dev")) {
+    return url;
+  }
+
   return null;
 };
 
@@ -80,9 +85,11 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
   const isYouTube = url.includes("youtube.com") || url.includes("youtu.be");
   const isSoundCloud = url.includes("soundcloud.com");
   const isSpotify = url.includes("spotify.com");
+  const isAudio = url.match(/\.(mp3|wav|ogg|m4a|aac)(\?.*)?$/i) || url.includes("r2.dev");
 
   const embedUrl = getEmbedUrl(url);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
   const playerRef = useRef<any>(null);
   const spotifyPositionRef = useRef(0);
   const onPlayRef = useRef(onPlay);
@@ -117,6 +124,8 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
         });
       } else if (isSpotify) {
         return Math.floor(spotifyPositionRef.current / 1000);
+      } else if (isAudio && audioRef.current) {
+        return Math.floor(audioRef.current.currentTime);
       }
       return 0;
     },
@@ -130,6 +139,8 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
           if (isPausedRef.current) {
             playerRef.current.togglePlay();
           }
+        } else if (isAudio && audioRef.current) {
+          audioRef.current.play();
         }
       } catch (e) {
         console.warn("Play error:", e);
@@ -145,6 +156,8 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
           if (!isPausedRef.current) {
             playerRef.current.togglePlay();
           }
+        } else if (isAudio && audioRef.current) {
+          audioRef.current.pause();
         }
       } catch (e) {
         console.warn("Pause error:", e);
@@ -340,6 +353,16 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
     <div className={`${styles.playerWrapper} ${isHidden ? styles.hidden : ""}`}>
       {isSpotify ? (
         <div ref={iframeRef as any} id="spotify-player-container" />
+      ) : isAudio ? (
+        <audio
+          ref={audioRef}
+          src={url}
+          onPlay={() => onPlayRef.current?.()}
+          onPause={() => onPauseRef.current?.()}
+          onEnded={() => onPauseRef.current?.()}
+          className={styles.audio}
+          controls={!isHidden}
+        />
       ) : (
         <iframe
           ref={iframeRef}

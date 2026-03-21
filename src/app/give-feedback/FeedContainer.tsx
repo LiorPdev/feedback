@@ -6,6 +6,7 @@ import FeedbackForm from "@/components/FeedbackForm";
 import UrlPlayer, { getEmbedUrl, type UrlPlayerHandle } from "@/components/UrlPlayer";
 import DashboardLink from "@/components/DashboardLink";
 import { Play, Pause } from "lucide-react";
+import { MIN_LISTEN_TIME, SUCCESS_MESSAGE_DURATION } from "@/lib/constants";
 
 interface Song {
   id: string;
@@ -25,7 +26,7 @@ interface FeedContainerProps {
 export default function FeedContainer({ initialSongs }: FeedContainerProps) {
   const [songs, setSongs] = useState(initialSongs);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [secondsRemaining, setSecondsRemaining] = useState(30);
+  const [secondsRemaining, setSecondsRemaining] = useState(MIN_LISTEN_TIME);
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isBuffering, setIsBuffering] = useState(false);
@@ -38,7 +39,7 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
 
   useEffect(() => {
     // Reset timer and state when song changes
-    setSecondsRemaining(30);
+    setSecondsRemaining(MIN_LISTEN_TIME);
     setIsTimerActive(false);
     setIsPlaying(false);
     setIsBuffering(false);
@@ -133,8 +134,9 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
   const isYouTube = currentSong.url.includes("youtube.com") || currentSong.url.includes("youtu.be");
   const isSoundCloud = currentSong.url.includes("soundcloud.com");
   const isSpotify = currentSong.url.includes("spotify.com");
+  const isAudio = !!currentSong.url.match(/\.(mp3|wav|ogg|m4a|aac)(\?.*)?$/i) || currentSong.url.includes("r2.dev");
   const isBypassTimer = false;
-  const isHiddenPlayer = isYouTube || isSoundCloud || isSpotify;
+  const isHiddenPlayer = isYouTube || isSoundCloud || isSpotify || isAudio;
 
   return (
     <div className={styles.feedWrapper}>
@@ -217,20 +219,20 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
             disabledMessage={
               isBypassTimer ? "" : (
                 !isTimerActive
-                  ? "בבקשה הקשיבו לשיר לפחות 30 שניות לפני שליחת פידבק"
+                  ? `בבקשה הקשיבו לשיר לפחות ${MIN_LISTEN_TIME} שניות לפני שליחת פידבק`
                   : `ניתן לשלוח דירוג בעוד ${secondsRemaining} שניות...`
               )
             }
             onSuccess={() => {
               setTimeout(() => {
                 handleRemoveCurrent();
-              }, 3000);
+              }, SUCCESS_MESSAGE_DURATION);
             }}
           />
         </div>
       </div>
 
-      <DashboardLink href="/" text="חזרה לדף הבית" />
+      <DashboardLink href="/" text="חזרה לדף הבית" className={styles.dashboardLinkMargin} />
     </div>
   );
 }

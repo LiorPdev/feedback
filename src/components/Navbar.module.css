@@ -89,7 +89,14 @@
   font-size: 0.9rem;
   font-weight: 800;
   border: 1px solid var(--border-color);
-  transition: all 0.2s ease;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tokenDisplay.glowing {
+  box-shadow: 0 0 20px color-mix(in srgb, #ff4d4d, transparent 30%);
+  border-color: #ff4d4d;
+  background: color-mix(in srgb, var(--brand-light), #fff5f5 10%);
+  transform: scale(1.02);
 }
 
 .tokenIcon {
