@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Music } from "lucide-react";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
-import { createSong, getUserSongCount, getURLMetadata } from "@/app/actions/songs";
+import { createSong, getUserSongCount, getURLMetadata, getPresignedUploadUrl } from "@/app/actions/songs";
 import { logAction } from "@/app/actions/logs";
 import { useRouter } from "next/navigation";
 import styles from "./get-feedback.module.css";
@@ -103,19 +103,7 @@ export default function GetFeedback() {
       if (fileError) return;
       
       try {
-        const urlRes = await fetch("/api/upload", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            fileName: songFile.name,
-            contentType: songFile.type,
-          }),
-        });
-
-        if (!urlRes.ok) throw new Error("Could not get upload URL");
-        const { url, fileKey } = await urlRes.json();
+        const { url, fileKey } = await getPresignedUploadUrl(songFile.name, songFile.type);
         
         const uploadRes = await fetch(url, {
           method: "PUT",
