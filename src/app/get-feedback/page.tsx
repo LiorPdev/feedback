@@ -113,7 +113,10 @@ export default function GetFeedback() {
           },
         });
 
-        if (!uploadRes.ok) throw new Error("Upload failed");
+        if (!uploadRes.ok) {
+          const errorText = await uploadRes.text();
+          throw new Error(`Upload failed: ${uploadRes.status} ${uploadRes.statusText} - ${errorText}`);
+        }
         
         const publicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
         finalUrl = `${publicUrl}/${fileKey}`;
