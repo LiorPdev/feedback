@@ -15,6 +15,13 @@
       "when": 1774041440914,
       "tag": "0001_isActiveRemove",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1774088602145,
+      "tag": "0002_logTable",
+      "breakpoints": true
     }
   ]
 }

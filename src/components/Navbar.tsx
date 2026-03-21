@@ -77,10 +77,10 @@ export default function Navbar() {
           <SignedIn>
             {tokens !== null && (
               <div className={`${styles.tokenDisplay} ${isGlowing ? styles.glowing : ""}`} title="יתרת תווי קרדיט">
-                <AnimatedTokenCounter value={tokens} />
                 <div className={styles.tokenIcon}>
                   <Music size={14} />
                 </div>
+                <AnimatedTokenCounter value={tokens} />
               </div>
             )}
             <UserButton afterSignOutUrl="/" />

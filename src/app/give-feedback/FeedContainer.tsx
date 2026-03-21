@@ -203,7 +203,7 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
               <span>להקשיב</span>
             </button>
           )}
-          
+
           <button className={styles.btnSkip} onClick={handleSkip}>
             דלג
           </button>
@@ -220,7 +220,7 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
               isBypassTimer ? "" : (
                 !isTimerActive
                   ? `בבקשה הקשיבו לשיר לפחות ${MIN_LISTEN_TIME} שניות לפני שליחת פידבק`
-                  : `ניתן לשלוח דירוג בעוד ${secondsRemaining} שניות...`
+                  : `ניתן לשלוח פידבק בעוד ${secondsRemaining} שניות...`
               )
             }
             onSuccess={() => {

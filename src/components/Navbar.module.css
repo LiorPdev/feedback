@@ -81,26 +81,29 @@
 .tokenDisplay {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: var(--brand-light);
-  color: var(--brand-contrast);
-  padding: 0.4rem 0.8rem;
-  border-radius: 100px;
-  font-size: 0.9rem;
-  font-weight: 800;
-  border: 1px solid var(--border-color);
+  gap: 6px;
+  background: color-mix(in srgb, var(--brand-primary), transparent 92%);
+  color: var(--brand-primary);
+  padding: 0.35rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border: 1px solid color-mix(in srgb, var(--brand-primary), transparent 85%);
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 .tokenDisplay.glowing {
   box-shadow: 0 0 20px color-mix(in srgb, #ff4d4d, transparent 30%);
   border-color: #ff4d4d;
-  background: color-mix(in srgb, var(--brand-light), #fff5f5 10%);
-  transform: scale(1.02);
+  background: color-mix(in srgb, #ff4d4d, transparent 85%);
+  color: #ff4d4d;
+  transform: scale(1.05);
 }
 
 .tokenIcon {
-  color: var(--brand-contrast);
+  color: inherit;
   display: flex;
   align-items: center;
 }

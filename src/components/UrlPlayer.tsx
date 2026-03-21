@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, forwardRef, useImperativeHandle, useState } from "react";
+import { logAction } from "@/app/actions/logs";
 import styles from "./UrlPlayer.module.css";
 
 // Declare global types for APIs
@@ -143,7 +144,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
           audioRef.current.play();
         }
       } catch (e) {
-        console.warn("Play error:", e);
+        logAction({ message: "Play error", data: e, source: "UrlPlayer.tsx:play" });
       }
     },
     pause: () => {
@@ -160,7 +161,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
           audioRef.current.pause();
         }
       } catch (e) {
-        console.warn("Pause error:", e);
+        logAction({ message: "Pause error", data: e, source: "UrlPlayer.tsx:pause" });
       }
     }
   }));
@@ -196,7 +197,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
             },
           });
         } catch (e) {
-          console.error("YouTube Player Init Error:", e);
+          logAction({ message: "YouTube Player Init Error", data: e, source: "UrlPlayer.tsx:initYT" });
         }
       };
 
@@ -231,7 +232,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
           widget.bind(window.SC.Widget.Events.PAUSE, () => onPauseRef.current?.());
           widget.bind(window.SC.Widget.Events.FINISH, () => onPauseRef.current?.());
         } catch (e) {
-          console.error("SoundCloud Widget Init Error:", e);
+          logAction({ message: "SoundCloud Widget Init Error", data: e, source: "UrlPlayer.tsx:initSC" });
         }
       };
 
@@ -279,7 +280,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
             }
           );
         } catch (e) {
-          console.error("Spotify Embed Init Error:", e);
+          logAction({ message: "Spotify Embed Init Error", data: e, source: "UrlPlayer.tsx:initSpotify" });
         }
       };
 
@@ -319,8 +320,8 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
             player.unbind(window.SC.Widget.Events.FINISH);
           }
         } catch (e) {
-          // Swallow errors during cleanup to prevent client-side crashes
-          console.warn("Player cleanup error:", e);
+          // Swallow errors during cleanup but log to DB
+          logAction({ message: "Player cleanup error", data: e, source: "UrlPlayer.tsx:cleanup" });
         }
       }
       playerRef.current = null;

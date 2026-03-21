@@ -6,6 +6,7 @@ import { Music } from "lucide-react";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 import { createSong, getUserSongCount, getURLMetadata, getPresignedUploadUrl } from "@/app/actions/songs";
+import { logAction } from "@/app/actions/logs";
 import { useRouter } from "next/navigation";
 import styles from "./get-feedback.module.css";
 import DashboardLink from "@/components/DashboardLink";
@@ -53,7 +54,7 @@ export default function GetFeedback() {
           setSongTitle(result.title);
         }
       } catch (error) {
-        console.error("Metadata fetch error:", error);
+        await logAction({ message: "Metadata fetch error", data: error, source: "get-feedback/page.tsx:fetchMetadata" });
       } finally {
         setIsFetchingMetadata(false);
       }
@@ -100,7 +101,7 @@ export default function GetFeedback() {
         const publicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
         finalUrl = `${publicUrl}/${fileKey}`;
       } catch (err) {
-        console.error("Upload error:", err);
+        await logAction({ message: "Upload error", data: err, source: "get-feedback/page.tsx:handleSubmit" });
         setErrorMessage("חלה שגיאה בהעלאת הקובץ. נסו שוב.");
         setStatus("idle");
         return;
@@ -125,7 +126,7 @@ export default function GetFeedback() {
         setStatus("idle");
       }
     } catch (error) {
-      console.error(error);
+      await logAction({ message: "Unexpected submission error", data: error, source: "get-feedback/page.tsx:handleSubmit" });
       setErrorMessage("חלה שגיאה לא צפויה");
       setStatus("idle");
     }

@@ -11,6 +11,7 @@ import { sendFeedbackNotification } from '@/lib/mail';
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { r2 } from "@/lib/r2";
+import { logToDb } from "@/lib/logger";
 
 export async function getPresignedUploadUrl(fileName: string, contentType: string) {
     const fileKey = `${nanoid()}-${fileName}`;
@@ -38,7 +39,7 @@ export async function createSong(formData: FormData, userId: string) {
     try {
         const clerkUser = await currentUser();
         if (!clerkUser) {
-            console.error("createSong: No clerk user found");
+            await logToDb({ message: "createSong: No clerk user found", source: "songs.ts:createSong" });
             return { success: false, error: "חובה להתחבר כדי לשלוח שיר" };
         }
 
@@ -86,7 +87,7 @@ export async function createSong(formData: FormData, userId: string) {
         revalidatePath('/dashboard');
         return { success: true, song: newSong };
     } catch (error: any) {
-        console.error("Failed to create song details:", error);
+        await logToDb({ message: "Failed to create song details", data: error, source: "songs.ts:createSong" });
 
         // Handle common SQLite errors
         const errorStr = String(error);
@@ -166,7 +167,7 @@ export async function addFeedback(data: {
         revalidatePath('/dashboard');
         revalidatePath('/give-feedback/[slug]', 'page');
         revalidatePath('/show-feedback/[slug]', 'page');
-        
+
         // Send email notification to uploader
         try {
             const song = await db.query.songs.findFirst({
@@ -182,12 +183,12 @@ export async function addFeedback(data: {
                 });
             }
         } catch (emailError) {
-            console.error("Email notification failed:", emailError);
+            await logToDb({ message: "Email notification failed", data: emailError, source: "songs.ts:addFeedback" });
         }
 
         return { success: true, feedback };
     } catch (error) {
-        console.error("Failed to add feedback details:", error);
+        await logToDb({ message: "Failed to add feedback details", data: error, source: "songs.ts:addFeedback" });
         return { success: false, error: "שגיאה בשמירת הפידבק, אנא נסו שוב" };
     }
 }
@@ -215,7 +216,7 @@ export async function deleteSong(songId: string) {
         revalidatePath('/dashboard');
         return { success: true };
     } catch (error) {
-        console.error("Failed to delete song:", error);
+        await logToDb({ message: "Failed to delete song", data: error, source: "songs.ts:deleteSong" });
         return { success: false, error: "שגיאה במחיקת השיר" };
     }
 }
@@ -229,8 +230,8 @@ export async function getUserTokens(userId: string) {
         });
         return { success: true, tokens: user?.tokens ?? 0 };
     } catch (error) {
-        console.error("Failed to get user tokens:", error);
-        return { success: false, tokens: 0 };
+        await logToDb({ message: "Failed to get user tokens", data: error, source: "songs.ts:getUserTokens" });
+        return { success: true, tokens: 0 };
     }
 }
 
@@ -243,7 +244,7 @@ export async function getUserSongCount(userId: string) {
         });
         return { success: true, count: userSongs.length };
     } catch (error) {
-        console.error("Failed to get song count:", error);
+        await logToDb({ message: "Failed to get song count", data: error, source: "songs.ts:getUserSongCount" });
         return { success: true, count: 0 };
     }
 }
@@ -313,7 +314,7 @@ export async function getFeedSongs(firstSongSlug?: string) {
 
         return { success: true, songs: finalSongs };
     } catch (error) {
-        console.error("Failed to fetch feed songs:", error);
+        await logToDb({ message: "Failed to fetch feed songs", data: error, source: "songs.ts:getFeedSongs" });
         return { success: false, error: "שגיאה בטעינת השירים" };
     }
 }
@@ -347,7 +348,7 @@ export async function updateSong(songId: string, data: { title: string, url: str
         revalidatePath('/dashboard');
         return { success: true };
     } catch (error) {
-        console.error("Failed to update song:", error);
+        await logToDb({ message: "Failed to update song", data: error, source: "songs.ts:updateSong" });
         return { success: false, error: "שגיאה בעדכון השיר" };
     }
 }
@@ -365,7 +366,7 @@ function decodeHtmlEntities(str: string) {
 
 function cleanTitle(title: string) {
     if (!title) return '';
-    
+
     return title
         .replace(/ - song and lyrics by .*\| Spotify/gi, '')
         .replace(/ \| Spotify/gi, '')
@@ -420,11 +421,11 @@ export async function getURLMetadata(url: string) {
         });
         if (res.ok) {
             const html = await res.text();
-            
+
             // Try Open Graph title first
             const ogMatch = html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i) ||
-                            html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:title["']/i);
-            
+                html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:title["']/i);
+
             if (ogMatch && ogMatch[1]) {
                 const title = cleanTitle(decodeHtmlEntities(ogMatch[1]));
                 if (title) return { success: true, title };
@@ -440,7 +441,7 @@ export async function getURLMetadata(url: string) {
 
         return { success: false, error: "לא ניתן היה למצוא כותרת באופן אוטומטי" };
     } catch (error) {
-        console.error("Failed to fetch metadata:", error);
+        await logToDb({ message: "Failed to fetch metadata", data: error, source: "songs.ts:getURLMetadata" });
         return { success: false, error: "שגיאה בגישה לקישור" };
     }
 }

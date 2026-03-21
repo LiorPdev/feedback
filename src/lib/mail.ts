@@ -1,3 +1,5 @@
+import { logToDb } from "./logger";
+
 export async function sendFeedbackNotification({
   to,
   songTitle,
@@ -9,7 +11,10 @@ export async function sendFeedbackNotification({
 }) {
   const BREVO_API_KEY = process.env.BREVO_API_KEY;
   if (!BREVO_API_KEY) {
-    console.warn("BREVO_API_KEY is missing, skipping email notification");
+    await logToDb({
+      message: "BREVO_API_KEY is missing, skipping email notification",
+      source: "mail.ts:sendFeedbackNotification",
+    });
     return { success: false, error: "Email service not configured" };
   }
 
@@ -48,13 +53,21 @@ export async function sendFeedbackNotification({
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error("Brevo API error:", errorData);
+      await logToDb({
+        message: "Brevo API error",
+        data: errorData,
+        source: "mail.ts:sendFeedbackNotification",
+      });
       return { success: false, error: "Failed to send email" };
     }
 
     return { success: true };
   } catch (error) {
-    console.error("Error sending email:", error);
+    await logToDb({
+      message: "Error sending email",
+      data: error,
+      source: "mail.ts:sendFeedbackNotification",
+    });
     return { success: false, error: "Email sending error" };
   }
 }

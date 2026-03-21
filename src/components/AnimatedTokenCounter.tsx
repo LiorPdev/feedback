@@ -19,7 +19,7 @@ export default function AnimatedTokenCounter({ value }: AnimatedTokenCounterProp
     }
 
     const controls = animate(prevValue.current, value, {
-      duration: 1.8,
+      duration: 2,
       ease: "easeOut",
       onUpdate(latest) {
         setDisplayValue(Math.round(latest));

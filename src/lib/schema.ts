@@ -63,3 +63,17 @@ export const feedbacksRelations = relations(feedbacks, ({ one }) => ({
         references: [songs.id],
     }),
 }));
+
+export const logs = sqliteTable('Log', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    message: text('message').notNull(),
+    data: text('data'), // JSON string
+    source: text('source'), // e.g., "server-action:uploadSong"
+    userId: text('userId'), // Optional Clerk ID
+    createdAt: text('createdAt').notNull().$defaultFn(() => new Date().toISOString()),
+}, (table) => {
+    return {
+        createdAtIdx: index('Log_createdAt_idx').on(table.createdAt),
+    };
+});
+

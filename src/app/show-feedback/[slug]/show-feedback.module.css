@@ -36,7 +36,7 @@
 .card {
   width: 100%;
   background: var(--card-bg);
-  padding: 3rem 2.5rem;
+  padding: 2rem 2rem;
   border-radius: 32px;
   box-shadow: var(--shadow-xl);
   border: 1px solid var(--border-color);
