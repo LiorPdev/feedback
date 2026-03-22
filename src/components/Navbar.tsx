@@ -27,6 +27,9 @@ export default function Navbar() {
       if (user) {
         const result = await getUserTokens(user.id);
         if (result.success) {
+          if (tokens !== null && result.tokens !== tokens) {
+            setIsGlowing(true);
+          }
           setTokens(result.tokens);
           if (displayedTokens === null) {
             setDisplayedTokens(result.tokens);
@@ -44,7 +47,7 @@ export default function Navbar() {
     return () => {
       window.removeEventListener("tokens-updated", handleUpdate);
     };
-  }, [user, pathname, displayedTokens]);
+  }, [user, pathname, displayedTokens, tokens]); // Added tokens to dependencies for fetchTokens to compare correctly
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -60,9 +63,6 @@ export default function Navbar() {
 
   useEffect(() => {
     if (tokens !== null && displayedTokens !== null && tokens !== displayedTokens) {
-      // Step 1: Glow immediately
-      setIsGlowing(true);
-
       // Step 2: Update counter after 1 second
       const updateTimer = setTimeout(() => {
         setDisplayedTokens(tokens);

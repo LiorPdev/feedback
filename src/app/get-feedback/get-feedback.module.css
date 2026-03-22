@@ -189,12 +189,104 @@
   margin-top: 0.1rem;
 }
 
-.hint {
+.spotifyWarning {
+  background: rgba(29, 185, 84, 0.08);
+  border: 1px solid rgba(29, 185, 84, 0.2);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.infoMsg {
+  font-size: 0.875rem;
+  color: #166534;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.youtubeAlternative {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border-top: 1px solid rgba(29, 185, 84, 0.2);
+  padding-top: 0.75rem;
+}
+
+.youtubeAlternative p {
   font-size: 0.85rem;
-  color: #ef4444;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-main);
+}
+
+.suggestionActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.previewLink {
+  background: white;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
   font-weight: 500;
-  line-height: 1.4;
-  text-align: right;
+  font-size: 0.8rem;
+  text-decoration: none;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.previewLink:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+  color: #111827;
+}
+
+.alternativeCard {
+  background: white;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.alternativeTitle {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+.swapBtn {
+  background: #ff0000;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.swapBtn:hover {
+  background: #cc0000;
+  transform: translateY(-1px);
 }
 
 @keyframes spin {
@@ -203,100 +295,41 @@
   }
 }
 
-.toast {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: var(--brand-primary);
-  color: white;
-  padding: 2.5rem 3rem;
-  border-radius: 24px;
-  font-weight: 700;
-  box-shadow: var(--shadow-xl);
-  z-index: 1000;
-  display: flex;
-  min-width: 380px;
-  align-items: stretch;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.toastHeader {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  justify-content: center;
-}
-
-.copyContainer {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 10px 20px;
-  border-radius: 12px;
-  direction: rtl;
-  justify-content: space-between;
-}
-
-.copyLabel {
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.copyBtn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  padding: 4px;
+.inputWrapper {
   position: relative;
+  width: 100%;
 }
 
-.closeToastBtn {
+.inputSpinner {
   position: absolute;
-  top: 12px;
-  left: 12px;
-  right: auto;
-  background: transparent;
-  border: none;
-  color: rgba(255, 255, 255, 0.5);
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 5;
 }
 
-.closeToastBtn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+.spinnerSmall {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(29, 79, 216, 0.1);
+  border-radius: 50%;
+  border-top-color: #1d4fd8;
+  animation: spin 0.8s linear infinite;
 }
 
 .fetchingIndicator {
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--brand-contrast);
+  color: #1d4fd8;
   margin-right: 8px;
   animation: pulse 1.5s infinite;
 }
 
 @keyframes pulse {
-  0% {
-    opacity: 0.6;
-  }
-
-  50% {
-    opacity: 1;
-  }
-
-  100% {
-    opacity: 0.6;
-  }
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
 }
 
 .dashboardLinkMargin {

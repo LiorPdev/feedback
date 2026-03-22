@@ -192,6 +192,22 @@
   margin-top: 1rem;
 }
 
+.successMessageInline {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  color: #166534;
+  padding: 1rem;
+  border-radius: 12px;
+  font-weight: 600;
+  margin-top: 1rem;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .emptyState {
   display: flex;
   flex-direction: column;

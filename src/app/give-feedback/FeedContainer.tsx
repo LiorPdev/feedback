@@ -41,6 +41,7 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isBuffering, setIsBuffering] = useState(false);
+  const [hasRatedCurrent, setHasRatedCurrent] = useState(false);
   const playerRef = useRef<UrlPlayerHandle>(null);
 
   const embedUrl = currentSong ? getEmbedUrl(currentSong.url) : null;
@@ -67,12 +68,7 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
     return () => clearInterval(interval);
   }, [isTimerActive]);
 
-  // Sync secondsRemaining when song/requirement changes
-  useEffect(() => {
-    if (!isTimerActive) {
-      setSecondsRemaining(getRequiredTime());
-    }
-  }, [getRequiredTime, isTimerActive]);
+
 
   const onPlayerPlay = useCallback(() => {
     setIsTimerActive(true);
@@ -83,13 +79,15 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
   const onPlayerPause = useCallback(() => {
     setIsTimerActive(false);
     setIsPlaying(false);
-  }, []);
+    setSecondsRemaining(getRequiredTime());
+  }, [getRequiredTime]);
 
   const resetSongState = useCallback(() => {
     setSecondsRemaining(getRequiredTime());
     setIsTimerActive(false);
     setIsPlaying(false);
     setIsBuffering(false);
+    setHasRatedCurrent(false);
   }, [getRequiredTime]);
 
   const onPlayerError = useCallback((error: unknown) => {
@@ -246,30 +244,46 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
             </button>
           )}
 
-          <button className={styles.btnSkip} onClick={handleSkip}>
-            דלג
-          </button>
+          {(songs.length > 1 || hasRatedCurrent) && (
+            <button 
+              className={styles.btnSkip} 
+              onClick={hasRatedCurrent ? handleRemoveCurrent : handleSkip}
+            >
+              {hasRatedCurrent ? "שיר הבא" : "דלג"}
+            </button>
+          )}
         </div>
 
         <div className={styles.feedbackSection}>
-          <FeedbackForm
-            songId={currentSong.id}
-            key={currentSong.id}
-            getPlayedSeconds={getPlayedSeconds}
-            isDisabled={!isBypassTimer && secondsRemaining > 0}
-            disabledMessage={
-              isBypassTimer ? "" : (
-                !isTimerActive
-                  ? `אנא הקשיבו לשיר לפחות ${getRequiredTime()} שניות לפני שליחת פידבק`
-                  : `ניתן לשלוח פידבק בעוד ${secondsRemaining} שניות...`
-              )
-            }
-            onSuccess={() => {
-              setTimeout(() => {
-                handleRemoveCurrent();
-              }, SUCCESS_MESSAGE_DURATION);
-            }}
-          />
+          {!hasRatedCurrent && (
+            <FeedbackForm
+              songId={currentSong.id}
+              key={currentSong.id}
+              getPlayedSeconds={getPlayedSeconds}
+              isDisabled={!isBypassTimer && secondsRemaining > 0}
+              disabledMessage={
+                isBypassTimer ? "" : (
+                  !isTimerActive
+                    ? `אנא הקשיבו לשיר לפחות ${getRequiredTime()} שניות לפני שליחת פידבק`
+                    : `ניתן לשלוח פידבק בעוד ${secondsRemaining} שניות...`
+                )
+              }
+              onSuccess={() => {
+                if (isPlaying) {
+                  setHasRatedCurrent(true);
+                } else {
+                  setTimeout(() => {
+                    handleRemoveCurrent();
+                  }, SUCCESS_MESSAGE_DURATION);
+                }
+              }}
+            />
+          )}
+          {hasRatedCurrent && (
+            <div className={styles.successMessageInline}>
+              <p>הפידבק נשלח בהצלחה! ניתן להמשיך להאזין או לעבור לשיר הבא.</p>
+            </div>
+          )}
         </div>
       </div>
 

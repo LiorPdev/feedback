@@ -312,8 +312,6 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
       } else {
         initSpotify();
       }
-    } else {
-      guard(onPlayRef.current)();
     }
 
     return () => {

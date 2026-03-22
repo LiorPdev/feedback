@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { SignInButton, SignedIn, SignedOut, useUser } from "@clerk/nextjs";
 import { motion } from "framer-motion";
-import { CheckCircle, BarChart3 } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 import Image from "next/image";
 import styles from "@/app/landing.module.css";
 import { useState, useEffect } from "react";

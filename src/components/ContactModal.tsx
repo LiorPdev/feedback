@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Send, Loader2 } from "lucide-react";
+import { X, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { submitContactMessage } from "@/app/actions/contact";
 import styles from "./ContactModal.module.css";
@@ -37,7 +37,7 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
         setStatus("error");
         setErrorMessage(result.error || "משהו השתבש. נסו שוב מאוחר יותר.");
       }
-    } catch (error) {
+    } catch {
       setStatus("error");
       setErrorMessage("שגיאת תקשורת. נסו שוב מאוחר יותר.");
     } finally {

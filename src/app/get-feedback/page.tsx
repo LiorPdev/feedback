@@ -25,6 +25,8 @@ export default function GetFeedback() {
   const [submissionType, setSubmissionType] = useState<"link" | "upload">("link");
   const [songFile, setSongFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState("");
+  const [lastFetchedLink, setLastFetchedLink] = useState("");
+  const [youtubeAlternative, setYoutubeAlternative] = useState<{ url: string, title: string } | null>(null);
   const { user } = useUser();
   const router = useRouter();
 
@@ -44,19 +46,27 @@ export default function GetFeedback() {
     const fetchMetadata = async () => {
       // Basic URL validation
       if (!songLink || !songLink.includes("://") || songLink.length < 10) return;
-
-      // Only auto-fill if the title is currently empty
-      if (songTitle || submissionType !== "link") return;
+      if (submissionType !== "link") return;
+      if (songLink === lastFetchedLink) return;
 
       setIsFetchingMetadata(true);
       try {
         const result = await getURLMetadata(songLink) as { success: boolean, title?: string, resolvedUrl?: string };
         if (result.success && result.title) {
           setSongTitle(result.title);
+          setLastFetchedLink(songLink);
 
           // SoundCloud resolution: if we got a better URL, use it
           if (result.resolvedUrl && result.resolvedUrl !== songLink) {
             setSongLink(result.resolvedUrl);
+            setLastFetchedLink(result.resolvedUrl);
+          }
+
+          // Handle YouTube alternative (from Spotify)
+          if ((result as any).youtubeAlternative) {
+            setYoutubeAlternative((result as any).youtubeAlternative);
+          } else {
+            setYoutubeAlternative(null);
           }
         }
       } catch (error) {
@@ -68,7 +78,7 @@ export default function GetFeedback() {
 
     const timer = setTimeout(fetchMetadata, 1000);
     return () => clearTimeout(timer);
-  }, [songLink, songTitle, submissionType]);
+  }, [songLink, submissionType, lastFetchedLink]);
 
   const isSupportedLink = songLink.trim() !== "" && (
     songLink.includes("youtube.com") ||
@@ -201,25 +211,74 @@ export default function GetFeedback() {
 
             {submissionType === "link" ? (
               <>
-                <input
-                  type="url"
-                  className={styles.input}
-                  placeholder="הדביקו קישור לשיר..."
-                  value={songLink}
-                  onChange={(e) => setSongLink(e.target.value)}
-                  required={submissionType === "link"}
-                />
+                <div className={styles.inputWrapper}>
+                  <input
+                    type="url"
+                    className={styles.input}
+                    placeholder="הדביקו קישור לשיר..."
+                    value={songLink}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      const val = e.target.value;
+                      setSongLink(val);
+                      if (!val) {
+                        setSongTitle("");
+                        setYoutubeAlternative(null);
+                      } else {
+                        // If link changed and we have a previous YouTube alternative, clear it
+                        setYoutubeAlternative(null);
+                      }
+                    }}
+                    required={submissionType === "link"}
+                    style={{ paddingLeft: isFetchingMetadata ? '2.5rem' : '1.25rem' }}
+                  />
+                  {isFetchingMetadata && (
+                    <div className={styles.inputSpinner}>
+                      <div className={styles.spinnerSmall} />
+                    </div>
+                  )}
+                </div>
                 <AnimatePresence>
                   {songLink.trim() !== "" && songLink.includes("spotify.com") && (
-                    <motion.p
-                      className={styles.infoMsg}
+                    <motion.div
+                      className={styles.spotifyWarning}
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
-                      style={{ marginTop: '-0.25rem', fontSize: '0.875rem', color: '#1DB954' }}
                     >
-                      לתשומת לבכם: ספוטיפי מגבילה האזנה בנגנים חיצוניים ל-25 שניות בלבד בנייד. להבטחת חוויית האזנה מלאה, העדיפו יוטיוב או העלאת קובץ.
-                    </motion.p>
+                      <p className={styles.infoMsg}>
+                        לתשומת לבכם: ספוטיפי מגבילה האזנה בנגנים חיצוניים ל-25 שניות בלבד בנייד. להבטחת חוויית האזנה מלאה, העדיפו יוטיוב או העלאת קובץ.
+                      </p>
+
+                      {youtubeAlternative && (
+                        <div className={styles.youtubeAlternative}>
+                          <p>מצאנו גרסה אפשרית של השיר ביוטיוב:</p>
+                          <div className={styles.alternativeCard}>
+                            <span className={styles.alternativeTitle}>{youtubeAlternative.title}</span>
+                            <div className={styles.suggestionActions}>
+                              <button
+                                type="button"
+                                className={styles.swapBtn}
+                                onClick={() => {
+                                  setSongLink(youtubeAlternative.url);
+                                  if (!songTitle) setSongTitle(youtubeAlternative.title);
+                                  setYoutubeAlternative(null);
+                                }}
+                              >
+                                החלף ליוטיוב
+                              </button>
+                              <a
+                                href={youtubeAlternative.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={styles.previewLink}
+                              >
+                                פתיחה ביוטיוב
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </motion.div>
                   )}
                   {songLink.trim() !== "" &&
                     !songLink.includes("youtube.com") &&
@@ -230,7 +289,7 @@ export default function GetFeedback() {
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
-                        style={{ marginTop: '-0.25rem', fontSize: '0.875rem' }}
+                        style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}
                       >
                         כדי להבטיח זמינות לכל המאזינים, מומלץ לשתף קישורים מיוטיוב בלבד (או להעלות קובץ).
                       </motion.p>
@@ -275,6 +334,23 @@ export default function GetFeedback() {
             )}
           </div>
 
+          <div className={styles.formGroup}>
+            <label className={styles.label}>
+              שם השיר
+              {isFetchingMetadata && (
+                <span className={styles.fetchingIndicator}> (מחפש כותרת...)</span>
+              )}
+            </label>
+            <input
+              type="text"
+              className={styles.input}
+              placeholder="לדוגמא: איך שיר נולד"
+              value={songTitle}
+              onChange={(e) => setSongTitle(e.target.value)}
+              required
+            />
+          </div>
+
           <div className={`${styles.formGroup} ${styles.genreGroup}`}>
             <label className={styles.label}>סגנון</label>
             <div className={styles.selectWrapper}>
@@ -292,23 +368,6 @@ export default function GetFeedback() {
                 ))}
               </select>
             </div>
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.label}>
-              שם השיר
-              {isFetchingMetadata && (
-                <span className={styles.fetchingIndicator}> (מחפש כותרת...)</span>
-              )}
-            </label>
-            <input
-              type="text"
-              className={styles.input}
-              placeholder="לדוגמא: איך שיר נולד"
-              value={songTitle}
-              onChange={(e) => setSongTitle(e.target.value)}
-              required
-            />
           </div>
 
           <button
@@ -357,10 +416,10 @@ export default function GetFeedback() {
         </form>
       </motion.div>
 
-      <DashboardLink 
-        href={hasSongs ? "/dashboard" : "/"} 
-        text={hasSongs ? "חזרה לאיזור האישי" : "חזרה לדף הבית"} 
-        className={styles.dashboardLinkMargin} 
+      <DashboardLink
+        href={hasSongs ? "/dashboard" : "/"}
+        text={hasSongs ? "חזרה לאיזור האישי" : "חזרה לדף הבית"}
+        className={styles.dashboardLinkMargin}
       />
     </div>
   );

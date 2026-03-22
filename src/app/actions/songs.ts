@@ -371,6 +371,15 @@ function decodeHtmlEntities(str: string) {
         .trim();
 }
 
+function parseISO8601Duration(duration: string): number {
+    const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+    if (!match) return 0;
+    const hours = parseInt(match[1] || '0');
+    const minutes = parseInt(match[2] || '0');
+    const seconds = parseInt(match[3] || '0');
+    return hours * 3600 + minutes * 60 + seconds;
+}
+
 function cleanTitle(title: string) {
     if (!title) return '';
 
@@ -387,7 +396,81 @@ function cleanTitle(title: string) {
         .trim();
 }
 
+async function searchYouTube(query: string, targetDuration?: number) {
+    const apiKey = process.env.YOUTUBE_API_KEY;
+    if (!apiKey) return null;
+
+    console.log(`[YouTube Search] Query: "${query}", Target Duration: ${targetDuration}s`);
+
+    try {
+        // Step 1: Search for candidates
+        const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=10&key=${apiKey}`;
+        const searchRes = await fetch(searchUrl);
+        if (!searchRes.ok) return null;
+
+        const searchData = await searchRes.json();
+        if (!searchData.items || searchData.items.length === 0) {
+            console.log(`[YouTube Search] No results found for query.`);
+            return null;
+        }
+
+        // Step 2: Get durations and details for candidates
+        const videoIds = searchData.items.map((item: any) => item.id.videoId).join(',');
+        const detailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet&id=${videoIds}&key=${apiKey}`;
+        const detailsRes = await fetch(detailsUrl);
+        if (!detailsRes.ok) return null;
+
+        const detailsData = await detailsRes.json();
+        let bestMatch = null;
+        let minScore = Infinity;
+
+        for (const item of detailsData.items) {
+            const duration = parseISO8601Duration(item.contentDetails.duration);
+            const diff = targetDuration ? Math.abs(duration - targetDuration) : 0;
+            const title = item.snippet.title.toLowerCase();
+            const channelTitle = item.snippet.channelTitle.toLowerCase();
+            
+            // Scoring system: lower score is better
+            let score = targetDuration ? diff * 5 : 0; 
+
+            // Topic channels are the "Holy Grail" for matching Spotify
+            if (channelTitle.includes('topic')) score -= 50;
+            
+            // Bonus for exact title matches (ignoring case)
+            if (title.includes(query.toLowerCase())) score -= 20;
+
+            // Penalties for common "noise" that adds duration
+            if (title.includes('video') || title.includes('clip') || title.includes('קליפ')) score += 30;
+            if (title.includes('live') || title.includes('הופעה')) score += 50;
+
+            if (score < minScore) {
+                minScore = score;
+                bestMatch = item;
+            }
+        }
+
+        if (bestMatch) {
+            const finalDuration = parseISO8601Duration(bestMatch.contentDetails.duration);
+            // If we have a target, check reasonable threshold (30s if artist matches well)
+            if (!targetDuration || Math.abs(finalDuration - targetDuration) < 30 || minScore < 0) {
+                console.log(`[YouTube Search] Selected: "${bestMatch.snippet.title}" (Score: ${minScore})`);
+                return {
+                    url: `https://www.youtube.com/watch?v=${bestMatch.id}`,
+                    title: decodeHtmlEntities(bestMatch.snippet.title)
+                };
+            }
+        }
+
+        console.log(`[YouTube Search] No satisfying match found (Best Score: ${minScore}).`);
+        return null;
+    } catch (error) {
+        console.error(`[YouTube Search] Error:`, error);
+        return null;
+    }
+}
+
 export async function getURLMetadata(url: string) {
+    console.log(`[Server Action] getURLMetadata called with: ${url}`);
     try {
         // Support Spotify OEmbed
         if (url.includes('spotify.com')) {
@@ -395,7 +478,100 @@ export async function getURLMetadata(url: string) {
             const res = await fetch(oembedUrl);
             if (res.ok) {
                 const data = await res.json();
-                return { success: true, title: cleanTitle(decodeHtmlEntities(data.title)) };
+
+                let title = cleanTitle(decodeHtmlEntities(data.title));
+                let artist = decodeHtmlEntities(data.author_name || "");
+                
+                // Get duration and extra metadata from Spotify page
+                let spotifyDuration: number | undefined;
+                try {
+                    const pageRes = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36' } });
+                    if (pageRes.ok) {
+                        const html = await pageRes.text();
+                        
+                        // Strategy 1: JSON-LD (Most reliable if present)
+                        try {
+                            const scriptTags = html.match(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi);
+                            if (scriptTags) {
+                                for (const tag of scriptTags) {
+                                    const jsonStr = tag.replace(/<script[^>]*>|<\/script>/gi, '');
+                                    const ldData = JSON.parse(jsonStr);
+                                    
+                                    if (ldData.name && !title) title = cleanTitle(decodeHtmlEntities(ldData.name));
+                                    if (ldData.duration && !spotifyDuration) spotifyDuration = parseISO8601Duration(ldData.duration);
+                                    
+                                    // Extract artist from byArtist or description
+                                    if (!artist) {
+                                        if (ldData.byArtist && ldData.byArtist.name) {
+                                            artist = decodeHtmlEntities(ldData.byArtist.name);
+                                        } else if (ldData.byArtist && Array.isArray(ldData.byArtist) && ldData.byArtist[0].name) {
+                                            artist = decodeHtmlEntities(ldData.byArtist[0].name);
+                                        } else if (ldData.description) {
+                                            // Pattern: "Song · Artist Name · Year"
+                                            const desc = decodeHtmlEntities(ldData.description);
+                                            const match = desc.match(/Song · (.*?) ·/i);
+                                            if (match) artist = match[1];
+                                        }
+                                    }
+                                }
+                            }
+                        } catch (ldError) {
+                            // Silently ignore LD errors in production
+                        }
+
+                        // Strategy 2: Global Duration Search (more aggressive)
+                        if (!spotifyDuration) {
+                            const globalDurationMatch = html.match(/["']duration_ms["']\s*:\s*(\d+)/i) || 
+                                                       html.match(/["']durationMS["']\s*:\s*(\d+)/i);
+                            if (globalDurationMatch) {
+                                const ms = parseInt(globalDurationMatch[1]);
+                                if (ms > 1000) spotifyDuration = Math.floor(ms / 1000);
+                            }
+                        }
+
+                        // Strategy 3: Meta Tags (Fallback)
+                        if (!spotifyDuration || !artist) {
+                            const durationMatch = 
+                                html.match(/property=["']music:duration["'][^>]*content=["'](\d+)["']/i) ||
+                                html.match(/content=["'](\d+)["'][^>]*property=["']music:duration["']/i);
+
+                            if (durationMatch && !spotifyDuration) {
+                                spotifyDuration = parseInt(durationMatch[1]);
+                            }
+
+                            if (!artist) {
+                                const ogDescMatch = html.match(/property=["']og:description["'][^>]*content=["']([^"']+)· Song · ([^"']+)["']/i);
+                                if (ogDescMatch) artist = decodeHtmlEntities(ogDescMatch[1]);
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error(`[Spotify Page Fetch] Error:`, e);
+                }
+
+                // Final Cleanups
+                if (artist && title && artist.includes(title)) {
+                    // Avoid "Artist - Title Title" if artist contains title
+                    artist = artist.replace(title, '').replace(/[\s·|-]+$/, '').trim();
+                }
+
+                console.log(`[Spotify Final Meta] Title: "${title}", Artist: "${artist}", Duration: ${spotifyDuration}s`);
+
+                // Search with Artist + Title for much better accuracy
+                const searchQuery = artist ? `${artist} ${title}` : title;
+                const youtubeAlternative = await searchYouTube(searchQuery, spotifyDuration);
+                
+                await logToDb({ 
+                    message: "Spotify to YouTube Mapping", 
+                    data: { title, spotifyDuration, youtubeResult: youtubeAlternative }, 
+                    source: "songs.ts:getURLMetadata" 
+                });
+
+                return { 
+                    success: true, 
+                    title, 
+                    youtubeAlternative 
+                };
             }
         }
 

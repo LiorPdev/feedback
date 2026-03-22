@@ -26,3 +26,6 @@ Using https://www.brevo.com/ as mail service
 ## File Storage Service
 https://dash.cloudflare.com/9c530885ad264c96d05babc5c7dc69a3/r2/default/buckets/feedback-space
 Token value (ffu): cfat_ywHZVFDl0YYXHpA9aZ4lQXyOX7gknw2Z1dyc8ntJ11001334
+
+## Google YouTube API Key (under feedback.space.app@gmail.com)
+https://console.cloud.google.com/apis/credentials
