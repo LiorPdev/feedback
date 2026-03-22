@@ -7,6 +7,7 @@ pages_build_output_dir = ".open-next"
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "pk_live_Y2xlcmsuZmVlZGJhY2suYWN0aXZpdHl3aXouY29tJA"
 NEXT_PUBLIC_CLERK_SIGN_IN_URL = "/sign-in"
 NEXT_PUBLIC_CLERK_SIGN_UP_URL = "/sign-up"
+NEXT_PUBLIC_APP_URL = "https://feedback.activitywiz.com"
 
 [[d1_databases]]
 binding = "DB"
