@@ -23,6 +23,52 @@
   background: var(--brand-bg);
 }
 
+.large {
+  background: var(--brand-primary);
+  color: white !important;
+  padding: 12px 24px;
+  border-radius: 100px;
+  gap: 12px;
+  font-weight: 800;
+  font-size: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 102, 255, 0.2);
+}
+
+.large:hover {
+  background: #0056e0;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 102, 255, 0.3);
+}
+
+.iconBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btnText {
+  white-space: nowrap;
+  display: flex;
+}
+
+.shortText {
+  display: none;
+}
+
+@media (max-width: 540px) {
+  .fullText {
+    display: none;
+  }
+  .shortText {
+    display: block;
+  }
+  .large {
+    padding: 10px 18px;
+    font-size: 0.9rem;
+    gap: 8px;
+  }
+}
+
 .tooltip {
   position: absolute;
   bottom: 100%;

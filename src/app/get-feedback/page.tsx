@@ -63,8 +63,8 @@ export default function GetFeedback() {
           }
 
           // Handle YouTube alternative (from Spotify)
-          if ((result as any).youtubeAlternative) {
-            setYoutubeAlternative((result as any).youtubeAlternative);
+          if ((result as { youtubeAlternative?: { url: string, title: string } }).youtubeAlternative) {
+            setYoutubeAlternative((result as { youtubeAlternative?: { url: string, title: string } }).youtubeAlternative!);
           } else {
             setYoutubeAlternative(null);
           }

@@ -8,9 +8,10 @@ import { motion, AnimatePresence } from "framer-motion";
 interface ShareSongButtonProps {
   slug: string;
   isNew?: boolean;
+  variant?: "standard" | "large";
 }
 
-export default function ShareSongButton({ slug, isNew }: ShareSongButtonProps) {
+export default function ShareSongButton({ slug, isNew, variant = "standard" }: ShareSongButtonProps) {
   const [copied, setCopied] = useState(false);
   const [showAutoTooltip, setShowAutoTooltip] = useState(false);
 
@@ -39,7 +40,7 @@ export default function ShareSongButton({ slug, isNew }: ShareSongButtonProps) {
   return (
     <div className={styles.shareBtnContainer}>
       <button
-        className={styles.shareBtn}
+        className={`${styles.shareBtn} ${variant === "large" ? styles.large : ""}`}
         onClick={handleCopy}
         title="שיתוף קישור לקבלת פידבק"
         type="button"
@@ -51,8 +52,9 @@ export default function ShareSongButton({ slug, isNew }: ShareSongButtonProps) {
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.5, opacity: 0 }}
+              className={styles.iconBox}
             >
-              <Check size={18} />
+              <Check size={variant === "large" ? 20 : 18} />
             </motion.div>
           ) : (
             <motion.div
@@ -60,11 +62,19 @@ export default function ShareSongButton({ slug, isNew }: ShareSongButtonProps) {
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.5, opacity: 0 }}
+              className={styles.iconBox}
             >
-              <Share2 size={18} />
+              <Share2 size={variant === "large" ? 20 : 18} />
             </motion.div>
           )}
         </AnimatePresence>
+
+        {variant === "large" && (
+          <span className={styles.btnText}>
+            <span className={styles.fullText}>שיתוף עם חברים לקבלת פידבק נוסף</span>
+            <span className={styles.shortText}>שיתוף עם חברים</span>
+          </span>
+        )}
 
         <AnimatePresence>
           {(copied || showAutoTooltip) && (

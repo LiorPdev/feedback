@@ -36,7 +36,7 @@
 .card {
   width: 100%;
   background: var(--card-bg);
-  padding: 2rem 2rem;
+  padding: 1.5rem;
   border-radius: 32px;
   box-shadow: var(--shadow-xl);
   border: 1px solid var(--border-color);
@@ -44,26 +44,107 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
+  position: relative;
 }
 
-.iconWrapper {
-  width: 70px;
-  height: 70px;
-  background: var(--brand-light);
-  color: var(--brand-contrast);
-  border-radius: 20px;
+.backButton {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 50%;
+  background-color: transparent;
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+  text-decoration: none;
+  z-index: 10;
+}
+
+.backButton:hover {
+  background-color: var(--brand-light);
+  color: var(--brand-primary);
+  transform: scale(1.1);
+}
+
+.playerContainer {
+  margin-bottom: 1rem;
+}
+
+.playButton {
+  width: 54px;
+  height: 54px;
+  background: var(--brand-light);
+  color: var(--brand-contrast);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.playButton:hover:not(:disabled) {
+  transform: scale(1.05);
+  background: var(--brand-bg);
+  color: var(--brand-primary);
+}
+
+.playButton:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.loadingSpinnerBasic {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinningIcon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.playButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.isPlaying {
+  background: var(--brand-bg);
+  color: var(--brand-primary);
+  box-shadow: 0 0 0 2px var(--brand-light);
+}
+
+.titleRow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
   margin-bottom: 1.5rem;
 }
 
 .title {
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 900;
-  margin: 0 0 1rem 0;
+  margin: 0;
   line-height: 1.1;
   color: var(--text-main);
+}
+
+.subDate {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-muted);
 }
 
 .stats {
@@ -185,7 +266,71 @@
 }
 
 .shareWrapper {
-  margin-top: 0rem;
+  margin-top: 1rem;
   display: flex;
   justify-content: center;
+  width: 100%;
+}
+
+.averagesSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  margin-bottom: 2rem;
+}
+
+.averagesGrid {
+  display: flex;
+  gap: 1.5rem;
+  padding: 1.25rem 2rem;
+  background: var(--bg-section);
+  border-radius: 24px;
+  border: 1px solid var(--border-color);
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+}
+
+.weightedNote {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  opacity: 0.8;
+  margin: 0;
+}
+
+.averageItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.avgLabel {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--text-muted);
+}
+
+.avgValue {
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: var(--text-main);
+}
+
+.avgOverall {
+  color: var(--brand-primary);
+}
+
+@media (max-width: 600px) {
+  .averagesGrid {
+    gap: 1rem;
+    padding: 1.25rem 1rem;
+  }
+  
+  .avgValue {
+    font-size: 1.2rem;
+  }
 }

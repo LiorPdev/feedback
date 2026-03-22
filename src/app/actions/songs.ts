@@ -375,8 +375,6 @@ async function searchYouTube(query: string, targetDuration?: number) {
     const apiKey = process.env.YOUTUBE_API_KEY;
     if (!apiKey) return null;
 
-    console.log(`[YouTube Search] Query: "${query}", Target Duration: ${targetDuration}s`);
-
     try {
         // Step 1: Search for candidates
         const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=10&key=${apiKey}`;
@@ -385,12 +383,11 @@ async function searchYouTube(query: string, targetDuration?: number) {
 
         const searchData = await searchRes.json();
         if (!searchData.items || searchData.items.length === 0) {
-            console.log(`[YouTube Search] No results found for query.`);
             return null;
         }
 
         // Step 2: Get durations and details for candidates
-        const videoIds = searchData.items.map((item: any) => item.id.videoId).join(',');
+        const videoIds = searchData.items.map((item: { id: { videoId: string } }) => item.id.videoId).join(',');
         const detailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet&id=${videoIds}&key=${apiKey}`;
         const detailsRes = await fetch(detailsUrl);
         if (!detailsRes.ok) return null;
@@ -428,7 +425,6 @@ async function searchYouTube(query: string, targetDuration?: number) {
             const finalDuration = parseISO8601Duration(bestMatch.contentDetails.duration);
             // If we have a target, check reasonable threshold (30s if artist matches well)
             if (!targetDuration || Math.abs(finalDuration - targetDuration) < 30 || minScore < 0) {
-                console.log(`[YouTube Search] Selected: "${bestMatch.snippet.title}" (Score: ${minScore})`);
                 return {
                     url: `https://www.youtube.com/watch?v=${bestMatch.id}`,
                     title: decodeHtmlEntities(bestMatch.snippet.title)
@@ -436,16 +432,13 @@ async function searchYouTube(query: string, targetDuration?: number) {
             }
         }
 
-        console.log(`[YouTube Search] No satisfying match found (Best Score: ${minScore}).`);
         return null;
-    } catch (error) {
-        console.error(`[YouTube Search] Error:`, error);
+    } catch {
         return null;
     }
 }
 
 export async function getURLMetadata(url: string) {
-    console.log(`[Server Action] getURLMetadata called with: ${url}`);
     try {
         // Support Spotify OEmbed
         if (url.includes('spotify.com')) {
@@ -490,7 +483,7 @@ export async function getURLMetadata(url: string) {
                                     }
                                 }
                             }
-                        } catch (ldError) {
+                        } catch {
                             // Silently ignore LD errors in production
                         }
 

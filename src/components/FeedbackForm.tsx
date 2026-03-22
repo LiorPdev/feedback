@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Star, Music, LogIn, CheckCircle2 } from "lucide-react";
+import { Star, LogIn, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUser, SignInButton } from "@clerk/nextjs";
 import { addFeedback } from "@/app/actions/songs";
@@ -60,7 +60,7 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
     // Cleanup after animation finishes (safety timeout)
     setTimeout(() => {
       setFlyers(prev => prev.filter(f => f.id !== id));
-    }, 2000);
+    }, 2500);
   }, []);
 
   // Form resets automatically when song changes because key={songId} is used in parent
@@ -302,7 +302,7 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
           <div className={styles.commentFooterRow}>
             <div className={styles.commentFooter}>
               <span className={styles.rewardText}>
-                קבלו קרדיט עבור דירוג ו-{REWARD_COMMENT} נק' להסבר
+                קבלו קרדיט עבור דירוג ו-{REWARD_COMMENT} נק&apos; להסבר
               </span>
               <div ref={bucketRef} style={{ display: 'inline-flex', position: 'relative' }}>
                 <AnimatePresence mode="popLayout">
@@ -372,14 +372,14 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
             animate={{
               x: flyer.tx,
               y: flyer.ty,
-              opacity: [1, 1, 0.4],
-              scale: [0.5, 1.2, 0.5],
+              opacity: [0, 1, 1, 0.8],
+              scale: [0.5, 1.5, 1],
             }}
             transition={{
-              duration: 0.8,
+              duration: 1.1,
               ease: "circOut",
-              x: { duration: 0.8, ease: "linear" },
-              y: { duration: 0.8, ease: "circIn" } /* Create an arc effect */
+              x: { duration: 1.1, ease: "linear" },
+              y: { duration: 1.1, ease: "circIn" } /* Create an arc effect */
             }}
             onAnimationComplete={() => {
               // Immediately remove flyer when animation completes to avoid DOM buildup

@@ -1,10 +1,12 @@
 import { getDb } from "@/lib/db";
 import { notFound, redirect } from "next/navigation";
 import styles from "./show-feedback.module.css";
-import { Music, Calendar, Disc } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import DashboardLink from "@/components/DashboardLink";
 import ShareSongButton from "@/components/ShareSongButton";
+import SongPlayer from "./SongPlayer";
 
 interface ShowFeedbackPageProps {
   params: Promise<{
@@ -50,31 +52,76 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
     redirect(`/give-feedback/${slug}`);
   }
 
+  const getAverage = (key: 'lyrics' | 'composition' | 'production' | 'overall') => {
+    const ratings = song.feedbacks.map(f => f[key] as number).filter(r => r > 0);
+    if (ratings.length === 0) return null;
+    return (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1);
+  };
+
+  const averages = {
+    lyrics: getAverage('lyrics'),
+    composition: getAverage('composition'),
+    production: getAverage('production'),
+    overall: getAverage('overall'),
+  };
+
+  const hasAnyAverage = Object.values(averages).some(v => v !== null);
+
   return (
     <div className={styles.container}>
       <div className={styles.blob} />
 
       <main className={styles.main}>
         <div className={styles.card}>
-          <div className={styles.iconWrapper}>
-            <Music size={40} strokeWidth={1.5} />
+          <Link href="/dashboard" className={styles.backButton} title="חזרה לאיזור האישי">
+            <ArrowRight size={20} />
+          </Link>
+          <SongPlayer url={song.url} />
+
+          <div className={styles.titleRow}>
+            <h1 className={styles.title}>{song.title}</h1>
+            <span className={styles.subDate}>
+              {new Date(song.createdAt).toLocaleDateString('he-IL')}
+            </span>
           </div>
 
-          <h1 className={styles.title}>{song.title}</h1>
 
-          <div className={styles.stats}>
-            <div className={styles.statItem}>
-              <Disc size={18} />
-              <span>{song.genre}</span>
+          {hasAnyAverage && (
+            <div className={styles.averagesSection}>
+              <div className={styles.averagesGrid}>
+                {averages.lyrics && (
+                  <div className={styles.averageItem}>
+                    <span className={styles.avgLabel}>מילים</span>
+                    <span className={styles.avgValue}>{averages.lyrics}</span>
+                  </div>
+                )}
+                {averages.composition && (
+                  <div className={styles.averageItem}>
+                    <span className={styles.avgLabel}>לחן</span>
+                    <span className={styles.avgValue}>{averages.composition}</span>
+                  </div>
+                )}
+                {averages.production && (
+                  <div className={styles.averageItem}>
+                    <span className={styles.avgLabel}>הפקה</span>
+                    <span className={styles.avgValue}>{averages.production}</span>
+                  </div>
+                )}
+                {averages.overall && (
+                  <div className={styles.averageItem}>
+                    <span className={styles.avgLabel}>כללי</span>
+                    <span className={`${styles.avgValue} ${styles.avgOverall}`}>
+                      {averages.overall}
+                    </span>
+                  </div>
+                )}
+              </div>
+              <p className={styles.weightedNote}>* ממוצע משוקלל של הדירוגים</p>
             </div>
-            <div className={styles.statItem}>
-              <Calendar size={18} />
-              <span>{new Date(song.createdAt).toLocaleDateString('he-IL')}</span>
-            </div>
-          </div>
+          )}
 
           <div className={styles.shareWrapper}>
-            <ShareSongButton slug={song.slug} />
+            <ShareSongButton slug={song.slug} variant="large" />
           </div>
         </div>
 

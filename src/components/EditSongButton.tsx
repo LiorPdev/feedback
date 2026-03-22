@@ -35,8 +35,8 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
 
   useEffect(() => {
     const fetchMetadata = async () => {
-      // Always attempt resolution if it's a valid-looking URL
-      if (!url || !url.includes("://") || url.length < 10) return;
+      // Only attempt resolution if modal is open and it's a valid URL
+      if (!showModal || !url || !url.includes("://") || url.length < 10) return;
 
       try {
         const result = await getURLMetadata(url) as { success: boolean, title?: string, resolvedUrl?: string };
@@ -52,7 +52,7 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
 
     const timer = setTimeout(fetchMetadata, 1000);
     return () => clearTimeout(timer);
-  }, [url, song.url]);
+  }, [url, song.url, showModal]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
