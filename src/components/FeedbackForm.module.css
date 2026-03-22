@@ -151,7 +151,7 @@
 .commentFooter {
   font-size: 0.85rem;
   color: var(--brand-primary);
-  font-weight: 600;
+  font-weight: 500;
   opacity: 0.9;
   display: inline-flex;
   align-items: center;

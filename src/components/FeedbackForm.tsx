@@ -184,20 +184,6 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
             <div key={cat.key} className={styles.ratingGroup}>
               <label className={styles.ratingLabel}>
                 {cat.label}
-                <motion.span
-                  key={ratings[cat.key]}
-                  className={styles.pointLabel}
-                  animate={ratings[cat.key] > 0 ? {
-                    x: [0, -2, 2, -1, 1, 0],
-                    scale: [1, 1.1, 1]
-                  } : {}}
-                  transition={{ duration: 0.3 }}
-                >
-                  ({cat.key === "lyrics" ? REWARD_LYRICS :
-                    cat.key === "composition" ? REWARD_COMPOSITION :
-                      cat.key === "production" ? REWARD_PRODUCTION :
-                        REWARD_OVERALL} <Music size={12} />)
-                </motion.span>
               </label>
               <div
                 className={styles.stars}
@@ -234,7 +220,9 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
             }}
           />
           <div className={styles.commentFooterRow}>
-            <div className={styles.commentFooter}>({REWARD_COMMENT} קרדיט <Music size={12} />)</div>
+            <div className={styles.commentFooter}>
+              קבלו {REWARD_LYRICS} <Music size={12} /> קרדיט עבור כל דירוג ו-{REWARD_COMMENT} <Music size={12} /> קרדיט עבור טקסט הסבר
+            </div>
             <div className={`${styles.charCounter} ${comment.length === 0 ? "" : (comment.length < MIN_COMMENT_LENGTH ? styles.charCounterLow : styles.charCounterValid)}`}>
               ({comment.length}/{MIN_COMMENT_LENGTH})
             </div>

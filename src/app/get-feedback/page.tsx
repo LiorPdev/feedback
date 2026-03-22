@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Fragment } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Music } from "lucide-react";
+import { Music, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 import { createSong, getUserSongCount, getURLMetadata } from "@/app/actions/songs";
@@ -53,7 +53,7 @@ export default function GetFeedback() {
         const result = await getURLMetadata(songLink) as { success: boolean, title?: string, resolvedUrl?: string };
         if (result.success && result.title) {
           setSongTitle(result.title);
-          
+
           // SoundCloud resolution: if we got a better URL, use it
           if (result.resolvedUrl && result.resolvedUrl !== songLink) {
             setSongLink(result.resolvedUrl);
@@ -72,7 +72,7 @@ export default function GetFeedback() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!user?.id) {
       setErrorMessage("עליך להיות מחובר כדי לשלוח שיר");
       return;
@@ -102,10 +102,10 @@ export default function GetFeedback() {
 
     if (submissionType === "upload" && songFile) {
       if (fileError) return;
-      
+
       try {
         const { url, fileKey } = await getPresignedUploadUrl(songFile.name, songFile.type);
-        
+
         const uploadRes = await fetch(url, {
           method: "PUT",
           body: songFile,
@@ -118,7 +118,7 @@ export default function GetFeedback() {
           const errorText = await uploadRes.text();
           throw new Error(`Upload failed: ${uploadRes.status} ${uploadRes.statusText} - ${errorText}`);
         }
-        
+
         const publicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
         finalUrl = `${publicUrl}/${fileKey}`;
       } catch (err) {
@@ -161,8 +161,11 @@ export default function GetFeedback() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
+        <Link href="/dashboard" className={styles.backButton} title="חזרה למרחב האישי">
+          <ArrowRight size={20} />
+        </Link>
         <div className={styles.header}>
-          <h1>שליחת שיר לקבלת פידבק</h1>
+          <h1>שליחת שיר</h1>
         </div>
 
         <form onSubmit={handleSubmit} className={styles.form}>
@@ -292,11 +295,11 @@ export default function GetFeedback() {
             type="submit"
             className={styles.submitBtn}
             disabled={
-              status === "loading" || 
-              (submissionType === "link" ? !songLink : (!songFile || !!fileError)) || 
-              !songTitle || 
-              !selectedGenre || 
-              !user || 
+              status === "loading" ||
+              (submissionType === "link" ? !songLink : (!songFile || !!fileError)) ||
+              !songTitle ||
+              !selectedGenre ||
+              !user ||
               (submissionType === "link" && songLink.includes("music.apple.com"))
             }
           >

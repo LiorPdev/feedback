@@ -25,7 +25,7 @@ const heebo = Heebo({
 export const metadata: Metadata = {
   metadataBase: new URL("https://feedback.activitywiz.com"),
   title: {
-    default: "פידבק-ספייס | קהילה לקבלת פידבקים אמיתיים",
+    default: "פידבק-ספייס",
     template: "%s | פידבק-ספייס",
   },
   description: "קהילה לקבלת פידבקים קלה ומהירה, מותאמת לאמנים ויוצרים. בואו לקבל חוות דעת כנה על היצירות שלכם.",
@@ -36,31 +36,12 @@ export const metadata: Metadata = {
     ],
     apple: "/Logo192.png",
   },
-  openGraph: {
-    title: "פידבק-ספייס | קהילה לקבלת פידבקים אמיתיים",
-    description: "קהילה לקבלת פידבקים קלה ומהירה, מותאמת לאמנים ויוצרים. בואו לקבל חוות דעת כנה על היצירות שלכם.",
-    url: "https://feedback.activitywiz.com",
-    siteName: "פידבק-ספייס",
-    images: [
-      {
-        url: "/og_image.png",
-        width: 1200,
-        height: 630,
-        alt: "פידבק-ספייס | קהילה לקבלת פידבקים",
-      },
-    ],
-    locale: "he_IL",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "פידבק-ספייס | קהילה לקבלת פידבקים",
-    description: "קהילה לקבלת פידבקים קלה ומהירה, מותאמת לאמנים ויוצרים.",
-    images: ["/og_image.png"],
+  alternates: {
+    canonical: "/",
   },
   robots: {
-    index: true,
-    follow: true,
+    index: false,
+    follow: false,
   },
   manifest: "/manifest.json",
 };

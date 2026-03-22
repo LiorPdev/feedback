@@ -5,7 +5,8 @@ import styles from "./feed.module.css";
 import FeedbackForm from "@/components/FeedbackForm";
 import UrlPlayer, { getEmbedUrl, type UrlPlayerHandle } from "@/components/UrlPlayer";
 import DashboardLink from "@/components/DashboardLink";
-import { Play, Pause } from "lucide-react";
+import { Play, Pause, ArrowRight } from "lucide-react";
+import Link from "next/link";
 import { MIN_LISTEN_TIME, SUCCESS_MESSAGE_DURATION } from "@/lib/constants";
 import { logAction } from "@/app/actions/logs";
 
@@ -99,8 +100,8 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
     }
     resetSongState();
     setCurrentIndex((prev) => {
-       const nextIndex = (prev + 1) % songs.length;
-       return nextIndex;
+      const nextIndex = (prev + 1) % songs.length;
+      return nextIndex;
     });
   };
 
@@ -164,6 +165,9 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
   return (
     <div className={styles.feedWrapper}>
       <div className={styles.songCard}>
+        <Link href="/" className={styles.backButton} title="חזרה לדף הבית">
+          <ArrowRight size={20} />
+        </Link>
         <div className={styles.headerRow}>
           <h2 className={styles.title}>
             {currentSong.title}

@@ -71,3 +71,72 @@ export async function sendFeedbackNotification({
     return { success: false, error: "Email sending error" };
   }
 }
+
+export async function sendContactEmail({
+  fromEmail,
+  fromName,
+  message,
+}: {
+  fromEmail: string;
+  fromName: string;
+  message: string;
+}) {
+  const BREVO_API_KEY = process.env.BREVO_API_KEY;
+  if (!BREVO_API_KEY) {
+    await logToDb({
+      message: "BREVO_API_KEY is missing, skipping contact email",
+      source: "mail.ts:sendContactEmail",
+    });
+    return { success: false, error: "Email service not configured" };
+  }
+
+  const url = "https://api.brevo.com/v3/smtp/email";
+
+  const body = {
+    sender: { name: fromName, email: "contact@feedback.activitywiz.com" },
+    to: [{ email: "contact@feedback.activitywiz.com" }],
+    replyTo: { email: fromEmail, name: fromName },
+    subject: `הודעה חדשה מ-${fromName} (Feedback Space)`,
+    htmlContent: `
+      <div dir="rtl" style="font-family: sans-serif; line-height: 1.6; text-align: right;">
+        <h2>הודעה חדשה מהאתר:</h2>
+        <p><strong>מאת:</strong> ${fromName} (${fromEmail})</p>
+        <p><strong>הודעה:</strong></p>
+        <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; white-space: pre-wrap;">
+          ${message}
+        </div>
+      </div>
+    `,
+  };
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "api-key": BREVO_API_KEY,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      await logToDb({
+        message: "Brevo API error (contact email)",
+        data: errorData,
+        source: "mail.ts:sendContactEmail",
+      });
+      return { success: false, error: "Failed to send contact email" };
+    }
+
+    return { success: true };
+  } catch (error) {
+    await logToDb({
+      message: "Error sending contact email",
+      data: error,
+      source: "mail.ts:sendContactEmail",
+    });
+    return { success: false, error: "Contact email sending error" };
+  }
+}

@@ -4,7 +4,8 @@ import { SignInButton, SignedIn, SignedOut, UserButton, useUser } from "@clerk/n
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
-import { Music, Home, HelpCircle } from "lucide-react";
+import { Music, Home, HelpCircle, Share2, MessageCircle } from "lucide-react";
+import ContactModal from "./ContactModal";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { getUserTokens } from "@/app/actions/songs";
@@ -15,9 +16,10 @@ export default function Navbar() {
   const pathname = usePathname();
   const { user } = useUser();
   const [tokens, setTokens] = useState<number | null>(null);
+  const [displayedTokens, setDisplayedTokens] = useState<number | null>(null);
   const [isGlowing, setIsGlowing] = useState(false);
   const [showTokensInfo, setShowTokensInfo] = useState(false);
-  const prevTokens = useRef<number | null>(null);
+  const [showContactModal, setShowContactModal] = useState(false);
   const infoRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -26,6 +28,9 @@ export default function Navbar() {
         const result = await getUserTokens(user.id);
         if (result.success) {
           setTokens(result.tokens);
+          if (displayedTokens === null) {
+            setDisplayedTokens(result.tokens);
+          }
         }
       }
     };
@@ -39,7 +44,7 @@ export default function Navbar() {
     return () => {
       window.removeEventListener("tokens-updated", handleUpdate);
     };
-  }, [user, pathname]);
+  }, [user, pathname, displayedTokens]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -54,18 +59,42 @@ export default function Navbar() {
   }, [showTokensInfo]);
 
   useEffect(() => {
-    if (prevTokens.current !== null && tokens !== null && prevTokens.current !== tokens) {
-      const frame = requestAnimationFrame(() => setIsGlowing(true));
-      const timer = setTimeout(() => setIsGlowing(false), 3000);
-      return () => {
-        cancelAnimationFrame(frame);
-        clearTimeout(timer);
-      };
+    if (tokens !== null && displayedTokens !== null && tokens !== displayedTokens) {
+      // Step 1: Glow immediately
+      setIsGlowing(true);
+
+      // Step 2: Update counter after 1 second
+      const updateTimer = setTimeout(() => {
+        setDisplayedTokens(tokens);
+      }, 1000);
+
+      return () => clearTimeout(updateTimer);
     }
-    if (tokens !== null) {
-      prevTokens.current = tokens;
+  }, [tokens, displayedTokens]);
+
+  useEffect(() => {
+    if (isGlowing) {
+      // Step 3: Stop glow after total 1.5 seconds (gives a bit of time after update)
+      const stopGlowTimer = setTimeout(() => {
+        setIsGlowing(false);
+      }, 2500);
+
+      return () => clearTimeout(stopGlowTimer);
     }
-  }, [tokens]);
+  }, [isGlowing]);
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: 'פידבק ספייס',
+        text: 'בואו לקבל ולתת פידבק על שירים בקהילת פידבק ספייס!',
+        url: window.location.origin,
+      });
+    } else {
+      navigator.clipboard.writeText(window.location.origin);
+      alert('הקישור הועתק ללוח!');
+    }
+  };
 
   return (
     <nav className={styles.navbar}>
@@ -96,20 +125,20 @@ export default function Navbar() {
           <SignedIn>
             {tokens !== null && (
               <div className={styles.tokenWrapper}>
-                <div 
-                  className={`${styles.tokenDisplay} ${isGlowing ? styles.glowing : ""}`} 
+                <div
+                  className={`${styles.tokenDisplay} ${isGlowing ? styles.glowing : ""}`}
                   title="לחצו להסבר על הקרדיטים"
                   onClick={() => setShowTokensInfo(!showTokensInfo)}
                 >
                   <div className={styles.tokenIcon}>
                     <Music size={14} />
                   </div>
-                  <AnimatedTokenCounter value={tokens} />
+                  <AnimatedTokenCounter value={displayedTokens ?? 0} />
                 </div>
 
                 <AnimatePresence>
                   {showTokensInfo && (
-                    <motion.div 
+                    <motion.div
                       ref={infoRef}
                       initial={{ opacity: 0, scale: 0.9, y: 10 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -127,10 +156,27 @@ export default function Navbar() {
                 </AnimatePresence>
               </div>
             )}
-            <UserButton afterSignOutUrl="/" />
+            <UserButton afterSignOutUrl="/">
+              <UserButton.MenuItems>
+                <UserButton.Action
+                  label="שתפו עם חברים"
+                  labelIcon={<Share2 size={16} />}
+                  onClick={handleShare}
+                />
+                <UserButton.Action
+                  label="צרו איתנו קשר"
+                  labelIcon={<MessageCircle size={16} />}
+                  onClick={() => setShowContactModal(true)}
+                />
+              </UserButton.MenuItems>
+            </UserButton>
           </SignedIn>
         </div>
       </div>
+      <ContactModal
+        isOpen={showContactModal}
+        onClose={() => setShowContactModal(false)}
+      />
     </nav>
   );
 }
