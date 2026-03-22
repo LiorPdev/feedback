@@ -8,6 +8,7 @@ NEXT_PUBLIC_APP_URL = "https://feedback.activitywiz.com"
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "pk_live_Y2xlcmsuZmVlZGJhY2suYWN0aXZpdHl3aXouY29tJA"
 NEXT_PUBLIC_CLERK_SIGN_IN_URL = "/sign-in"
 NEXT_PUBLIC_CLERK_SIGN_UP_URL = "/sign-up"
+NEXT_PUBLIC_R2_PUBLIC_URL = "https://pub-6b60981c500a400488efadd224143240.r2.dev"
 
 [[d1_databases]]
 binding = "DB"

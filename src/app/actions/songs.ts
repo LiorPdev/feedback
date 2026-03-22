@@ -16,6 +16,15 @@ export async function createSong(formData: FormData) {
     const title = formData.get('title') as string;
     const genre = formData.get('genre') as string;
 
+    // Strict URL validation: Only YouTube, Spotify, or internal R2 uploads
+    const isYouTube = url.includes("youtube.com") || url.includes("youtu.be");
+    const isSpotify = url.includes("spotify.com");
+    const isR2 = url.includes("r2.dev");
+    
+    if (url && !isYouTube && !isSpotify && !isR2) {
+        return { success: false, error: "ניתן לשתף קישורים מיוטיוב או ספוטיפיי בלבד" };
+    }
+
     // Create random slug
     const slug = nanoid(6);
 

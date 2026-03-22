@@ -70,6 +70,12 @@ export default function GetFeedback() {
     return () => clearTimeout(timer);
   }, [songLink, songTitle, submissionType]);
 
+  const isSupportedLink = songLink.trim() !== "" && (
+    songLink.includes("youtube.com") ||
+    songLink.includes("youtu.be") ||
+    songLink.includes("spotify.com")
+  );
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -215,7 +221,7 @@ export default function GetFeedback() {
                         exit={{ opacity: 0, height: 0 }}
                         style={{ marginTop: '-0.25rem', fontSize: '0.875rem' }}
                       >
-                        כדי להבטיח זמינות לכל המאזינים, מומלץ לשתף קישורים מיוטיוב או ספוטיפיי בלבד.
+                        כדי להבטיח זמינות לכל המאזינים, ניתן לשתף קישורים מיוטיוב או ספוטיפיי בלבד (או להעלות קובץ).
                       </motion.p>
                     )}
                 </AnimatePresence>
@@ -299,11 +305,10 @@ export default function GetFeedback() {
             className={styles.submitBtn}
             disabled={
               status === "loading" ||
-              (submissionType === "link" ? !songLink : (!songFile || !!fileError)) ||
+              (submissionType === "link" ? (!songLink || !isSupportedLink) : (!songFile || !!fileError)) ||
               !songTitle ||
               !selectedGenre ||
-              !user ||
-              (submissionType === "link" && songLink.includes("music.apple.com"))
+              !user
             }
           >
             {status === "loading" ? (
