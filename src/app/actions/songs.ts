@@ -10,6 +10,7 @@ import { SONG_SUBMISSION_COST, INITIAL_TOKENS, REWARD_LYRICS, REWARD_COMPOSITION
 import { sendFeedbackNotification } from '@/lib/mail';
 import { logToDb } from "@/lib/logger";
 import { deleteFileFromR2 } from '@/app/actions/upload';
+import { syncUser } from '@/lib/user-auth';
 
 export async function createSong(formData: FormData) {
     // Extract data from form
@@ -38,23 +39,11 @@ export async function createSong(formData: FormData) {
             return { success: false, error: "חובה להתחבר כדי לשלוח שיר" };
         }
 
-        const email = clerkUser.emailAddresses[0]?.emailAddress || "";
-        const name = clerkUser.firstName ? `${clerkUser.firstName} ${clerkUser.lastName || ''}`.trim() : null;
+        // Sync user with Clerk to DB using shared utility
+        const dbUser = await syncUser();
 
-        const primaryAccount = clerkUser.externalAccounts?.[0];
-        const provider = primaryAccount ? primaryAccount.provider : null;
-        const providerId = primaryAccount ? primaryAccount.externalId : null;
-
-        // Sync user with Clerk to DB
-        let dbUser = await db.query.users.findFirst({
-            where: (users, { eq }) => eq(users.id, clerkUser.id)
-        });
-
-        if (dbUser) {
-            await db.update(users).set({ email, name, provider, providerId }).where(eq(users.id, clerkUser.id));
-        } else {
-            const [newUser] = await db.insert(users).values({ id: clerkUser.id, email, name, provider, providerId }).returning();
-            dbUser = newUser;
+        if (!dbUser) {
+            return { success: false, error: "משתמש לא נמצא" };
         }
 
         // Check tokens
@@ -110,28 +99,11 @@ export async function addFeedback(data: {
 
     const db = await getDb();
     try {
-        // Sync/get user to grant credits
-        let dbUser = await db.query.users.findFirst({
-            where: (users, { eq }) => eq(users.id, clerkUser.id)
-        });
+        // Sync/get user to grant credits using shared utility
+        const dbUser = await syncUser();
 
         if (!dbUser) {
-            // If user exists in Clerk but not DB, create them
-            const email = clerkUser.emailAddresses[0]?.emailAddress || "";
-            const name = clerkUser.firstName ? `${clerkUser.firstName} ${clerkUser.lastName || ''}`.trim() : null;
-            const primaryAccount = clerkUser.externalAccounts?.[0];
-            const provider = primaryAccount ? primaryAccount.provider : null;
-            const providerId = primaryAccount ? primaryAccount.externalId : null;
-
-            const [newUser] = await db.insert(users).values({
-                id: clerkUser.id,
-                email,
-                name,
-                provider,
-                providerId,
-                tokens: INITIAL_TOKENS
-            }).returning();
-            dbUser = newUser;
+            return { success: false, error: "משתמש לא נמצא" };
         }
 
         const [feedback] = await db.insert(feedbacks).values({

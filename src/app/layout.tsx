@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Heebo } from "next/font/google";
 import { ClerkProvider } from '@clerk/nextjs'
 import { heIL } from '@clerk/localizations'
 import Navbar from "@/components/Navbar";
+import { syncUser } from "@/lib/user-auth";
 import "./globals.css";
 import Script from "next/script";
 
@@ -57,11 +58,14 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Sync user with DB on every request (server-side)
+  await syncUser();
+
   return (
     <ClerkProvider
       publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
