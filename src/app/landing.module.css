@@ -130,6 +130,8 @@
   border: none;
   cursor: pointer;
   box-shadow: var(--shadow-lg);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .btnPrimary:hover {
@@ -148,6 +150,8 @@
   border: 2px solid var(--primary);
   cursor: pointer;
   box-shadow: var(--shadow);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .btnSecondary:hover {

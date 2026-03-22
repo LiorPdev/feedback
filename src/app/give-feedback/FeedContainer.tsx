@@ -7,7 +7,7 @@ import UrlPlayer, { getEmbedUrl, type UrlPlayerHandle } from "@/components/UrlPl
 import DashboardLink from "@/components/DashboardLink";
 import { Play, Pause, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { MIN_LISTEN_TIME, SUCCESS_MESSAGE_DURATION } from "@/lib/constants";
+import { MIN_LISTEN_TIME, MIN_LISTEN_TIME_SPOTIFY_MOBILE, SUCCESS_MESSAGE_DURATION } from "@/lib/constants";
 import { logAction } from "@/app/actions/logs";
 
 interface Song {
@@ -28,13 +28,21 @@ interface FeedContainerProps {
 export default function FeedContainer({ initialSongs }: FeedContainerProps) {
   const [songs, setSongs] = useState(initialSongs);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [secondsRemaining, setSecondsRemaining] = useState(MIN_LISTEN_TIME);
+  const currentSong = songs[currentIndex];
+
+  const getRequiredTime = useCallback(() => {
+    if (typeof window === 'undefined') return MIN_LISTEN_TIME;
+    const isMobile = window.innerWidth < 600;
+    const isSpotify = currentSong?.url.includes("spotify.com");
+    return (isSpotify && isMobile) ? MIN_LISTEN_TIME_SPOTIFY_MOBILE : MIN_LISTEN_TIME;
+  }, [currentSong?.url]);
+
+  const [secondsRemaining, setSecondsRemaining] = useState(getRequiredTime());
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isBuffering, setIsBuffering] = useState(false);
   const playerRef = useRef<UrlPlayerHandle>(null);
 
-  const currentSong = songs[currentIndex];
   const embedUrl = currentSong ? getEmbedUrl(currentSong.url) : null;
   const showPlayer = !!embedUrl;
 
@@ -59,6 +67,13 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
     return () => clearInterval(interval);
   }, [isTimerActive]);
 
+  // Sync secondsRemaining when song/requirement changes
+  useEffect(() => {
+    if (!isTimerActive) {
+      setSecondsRemaining(getRequiredTime());
+    }
+  }, [getRequiredTime, isTimerActive]);
+
   const onPlayerPlay = useCallback(() => {
     setIsTimerActive(true);
     setIsPlaying(true);
@@ -71,11 +86,11 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
   }, []);
 
   const resetSongState = useCallback(() => {
-    setSecondsRemaining(MIN_LISTEN_TIME);
+    setSecondsRemaining(getRequiredTime());
     setIsTimerActive(false);
     setIsPlaying(false);
     setIsBuffering(false);
-  }, []);
+  }, [getRequiredTime]);
 
   const onPlayerError = useCallback((error: unknown) => {
     logAction({
@@ -245,7 +260,7 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
             disabledMessage={
               isBypassTimer ? "" : (
                 !isTimerActive
-                  ? `אנא הקשיבו לשיר לפחות ${MIN_LISTEN_TIME} שניות לפני שליחת פידבק`
+                  ? `אנא הקשיבו לשיר לפחות ${getRequiredTime()} שניות לפני שליחת פידבק`
                   : `ניתן לשלוח פידבק בעוד ${secondsRemaining} שניות...`
               )
             }

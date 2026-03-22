@@ -111,6 +111,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const playerRef = useRef<any>(null);
   const spotifyPositionRef = useRef(0);
+  const hasAutoPausedAtCutoffRef = useRef(false);
   const onPlayRef = useRef(onPlay);
   const onPauseRef = useRef(onPause);
   const onReadyRef = useRef(onReady);
@@ -118,6 +119,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
 
   useEffect(() => {
     spotifyPositionRef.current = 0;
+    hasAutoPausedAtCutoffRef.current = false;
   }, [url]);
 
   useEffect(() => {
@@ -268,12 +270,14 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
                 
                 const isMobile = typeof window !== 'undefined' && window.innerWidth < 600;
                 const isAtCutoff = isMobile && position >= 23000 && position < (duration - 1000);
+                const shouldAutoPause = isAtCutoff && !hasAutoPausedAtCutoffRef.current;
 
-                if (!isPaused && position > 0 && !isAtCutoff) {
+                if (!isPaused && position > 0 && !shouldAutoPause) {
                   guard(onPlayRef.current)();
-                } else if (isPaused || position === duration || isAtCutoff) {
+                } else if (isPaused || position === duration || shouldAutoPause) {
                   guard(onPauseRef.current)();
-                  if (isAtCutoff && !isPaused) {
+                  if (shouldAutoPause && !isPaused) {
+                    hasAutoPausedAtCutoffRef.current = true;
                     EmbedController.pause();
                   }
                 }

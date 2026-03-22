@@ -357,9 +357,11 @@ export default function GetFeedback() {
         </form>
       </motion.div>
 
-      {hasSongs && (
-        <DashboardLink className={styles.dashboardLinkMargin} />
-      )}
+      <DashboardLink 
+        href={hasSongs ? "/dashboard" : "/"} 
+        text={hasSongs ? "חזרה לאיזור האישי" : "חזרה לדף הבית"} 
+        className={styles.dashboardLinkMargin} 
+      />
     </div>
   );
 }

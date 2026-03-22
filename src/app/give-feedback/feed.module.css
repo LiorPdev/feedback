@@ -129,6 +129,8 @@
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   box-shadow: 0 5px 15px -3px var(--brand-light);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .btnPlay:hover {
@@ -151,6 +153,8 @@
   gap: 0.5rem;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .btnPause:hover {
@@ -172,6 +176,8 @@
   justify-content: center;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .btnSkip:hover {
