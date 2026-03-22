@@ -1,0 +1,1 @@
+ALTER TABLE `User` ADD `userRank` integer DEFAULT 1 NOT NULL;

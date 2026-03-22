@@ -17,7 +17,7 @@ export default function Navbar() {
   const { user } = useUser();
   const [tokens, setTokens] = useState<number | null>(null);
   const [displayedTokens, setDisplayedTokens] = useState<number | null>(null);
-  const [isGlowing, setIsGlowing] = useState(false);
+  const [glowMode, setGlowMode] = useState<"positive" | "negative" | null>(null);
   const [showTokensInfo, setShowTokensInfo] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
   const infoRef = useRef<HTMLDivElement>(null);
@@ -28,7 +28,7 @@ export default function Navbar() {
         const result = await getUserTokens(user.id);
         if (result.success) {
           if (tokens !== null && result.tokens !== tokens) {
-            setIsGlowing(true);
+            setGlowMode(result.tokens > tokens ? "positive" : "negative");
           }
           setTokens(result.tokens);
           if (displayedTokens === null) {
@@ -73,15 +73,15 @@ export default function Navbar() {
   }, [tokens, displayedTokens]);
 
   useEffect(() => {
-    if (isGlowing) {
+    if (glowMode) {
       // Step 3: Stop glow after total 1.5 seconds (gives a bit of time after update)
       const stopGlowTimer = setTimeout(() => {
-        setIsGlowing(false);
+        setGlowMode(null);
       }, 2500);
 
       return () => clearTimeout(stopGlowTimer);
     }
-  }, [isGlowing]);
+  }, [glowMode]);
 
   const handleShare = () => {
     if (navigator.share) {
@@ -126,7 +126,7 @@ export default function Navbar() {
             {tokens !== null && (
               <div className={styles.tokenWrapper}>
                 <div
-                  className={`${styles.tokenDisplay} ${isGlowing ? styles.glowing : ""}`}
+                  className={`${styles.tokenDisplay} ${glowMode === "positive" ? styles.glowingPositive : glowMode === "negative" ? styles.glowingNegative : ""}`}
                   title="לחצו להסבר על הקרדיטים"
                   onClick={() => setShowTokensInfo(!showTokensInfo)}
                 >
@@ -149,7 +149,7 @@ export default function Navbar() {
                         <HelpCircle size={18} className={styles.helpIcon} />
                         <h3>איך עובד מנגנון הקרדיטים?</h3>
                       </div>
-                      <p>העלאת שיר חדש עושה שימוש בקרדיטים שצברת. כדי לקבל קרדיטים נוספים, פשוט תנו פידבק כנה ובונה לשירים של יוצרים אחרים בקהילה.</p>
+                      <p>העלאת שיר חדש עושה שימוש בקרדיטים. כדי לקבל קרדיטים נוספים, פשוט תנו פידבק אמיתי ובונה לשירים של יוצרים אחרים בקהילה.</p>
                       <div className={styles.popupArrow} />
                     </motion.div>
                   )}

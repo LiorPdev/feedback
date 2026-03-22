@@ -4,9 +4,9 @@ import { getDb } from '@/lib/db';
 import { nanoid } from 'nanoid';
 import { revalidatePath } from 'next/cache';
 import { currentUser, auth } from '@clerk/nextjs/server';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { users, songs, feedbacks } from '@/lib/schema';
-import { SONG_SUBMISSION_COST, INITIAL_TOKENS, REWARD_LYRICS, REWARD_COMPOSITION, REWARD_PRODUCTION, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH } from '@/lib/constants';
+import { SONG_SUBMISSION_COST, REWARD_LYRICS, REWARD_COMPOSITION, REWARD_PRODUCTION, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH } from '@/lib/constants';
 import { sendFeedbackNotification } from '@/lib/mail';
 import { logToDb } from "@/lib/logger";
 import { deleteFileFromR2 } from '@/app/actions/upload';
@@ -22,7 +22,7 @@ export async function createSong(formData: FormData) {
     const isYouTube = url.includes("youtube.com") || url.includes("youtu.be");
     const isSpotify = url.includes("spotify.com");
     const isR2 = url.includes("r2.dev");
-    
+
     if (url && !isYouTube && !isSpotify && !isR2) {
         return { success: false, error: "ניתן לשתף קישורים מיוטיוב או ספוטיפיי בלבד" };
     }
@@ -286,10 +286,13 @@ export async function getFeedSongs(firstSongSlug?: string) {
                     }
                 }
             },
-            orderBy: (songs, { sql }) => [sql`RANDOM()`]
+            orderBy: [sql`RANDOM()`]
         });
 
-        const finalSongs = firstSong ? [firstSong, ...remainingSongs] : remainingSongs;
+        // Guaranteed randomization in JS as a fallback for DB/caching issues
+        const shuffledRemaining = [...remainingSongs].sort(() => Math.random() - 0.5);
+
+        const finalSongs = firstSong ? [firstSong, ...shuffledRemaining] : shuffledRemaining;
 
         return { success: true, songs: finalSongs };
     } catch (error) {
@@ -401,13 +404,13 @@ async function searchYouTube(query: string, targetDuration?: number) {
             const diff = targetDuration ? Math.abs(duration - targetDuration) : 0;
             const title = item.snippet.title.toLowerCase();
             const channelTitle = item.snippet.channelTitle.toLowerCase();
-            
+
             // Scoring system: lower score is better
-            let score = targetDuration ? diff * 5 : 0; 
+            let score = targetDuration ? diff * 5 : 0;
 
             // Topic channels are the "Holy Grail" for matching Spotify
             if (channelTitle.includes('topic')) score -= 50;
-            
+
             // Bonus for exact title matches (ignoring case)
             if (title.includes(query.toLowerCase())) score -= 20;
 
@@ -453,14 +456,14 @@ export async function getURLMetadata(url: string) {
 
                 let title = cleanTitle(decodeHtmlEntities(data.title));
                 let artist = decodeHtmlEntities(data.author_name || "");
-                
+
                 // Get duration and extra metadata from Spotify page
                 let spotifyDuration: number | undefined;
                 try {
                     const pageRes = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36' } });
                     if (pageRes.ok) {
                         const html = await pageRes.text();
-                        
+
                         // Strategy 1: JSON-LD (Most reliable if present)
                         try {
                             const scriptTags = html.match(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi);
@@ -468,10 +471,10 @@ export async function getURLMetadata(url: string) {
                                 for (const tag of scriptTags) {
                                     const jsonStr = tag.replace(/<script[^>]*>|<\/script>/gi, '');
                                     const ldData = JSON.parse(jsonStr);
-                                    
+
                                     if (ldData.name && !title) title = cleanTitle(decodeHtmlEntities(ldData.name));
                                     if (ldData.duration && !spotifyDuration) spotifyDuration = parseISO8601Duration(ldData.duration);
-                                    
+
                                     // Extract artist from byArtist or description
                                     if (!artist) {
                                         if (ldData.byArtist && ldData.byArtist.name) {
@@ -493,8 +496,8 @@ export async function getURLMetadata(url: string) {
 
                         // Strategy 2: Global Duration Search (more aggressive)
                         if (!spotifyDuration) {
-                            const globalDurationMatch = html.match(/["']duration_ms["']\s*:\s*(\d+)/i) || 
-                                                       html.match(/["']durationMS["']\s*:\s*(\d+)/i);
+                            const globalDurationMatch = html.match(/["']duration_ms["']\s*:\s*(\d+)/i) ||
+                                html.match(/["']durationMS["']\s*:\s*(\d+)/i);
                             if (globalDurationMatch) {
                                 const ms = parseInt(globalDurationMatch[1]);
                                 if (ms > 1000) spotifyDuration = Math.floor(ms / 1000);
@@ -503,7 +506,7 @@ export async function getURLMetadata(url: string) {
 
                         // Strategy 3: Meta Tags (Fallback)
                         if (!spotifyDuration || !artist) {
-                            const durationMatch = 
+                            const durationMatch =
                                 html.match(/property=["']music:duration["'][^>]*content=["'](\d+)["']/i) ||
                                 html.match(/content=["'](\d+)["'][^>]*property=["']music:duration["']/i);
 
@@ -530,11 +533,11 @@ export async function getURLMetadata(url: string) {
                 // Search with Artist + Title for much better accuracy
                 const searchQuery = artist ? `${artist} ${title}` : title;
                 const youtubeAlternative = await searchYouTube(searchQuery, spotifyDuration);
-                
-                return { 
-                    success: true, 
-                    title, 
-                    youtubeAlternative 
+
+                return {
+                    success: true,
+                    title,
+                    youtubeAlternative
                 };
             }
         }

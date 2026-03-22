@@ -102,7 +102,7 @@
 .commentGroup {
   display: flex;
   flex-direction: column;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   width: 100%;
 }
 
@@ -152,8 +152,6 @@
   display: flex;
   justify-content: flex-start;
   align-items: flex-start;
-  flex-wrap: wrap;
-  gap: 0.5rem;
   width: 100%;
   margin-top: 0.25rem;
 }
@@ -164,11 +162,63 @@
   font-weight: 600;
   opacity: 0.9;
   display: flex;
-  flex-wrap: wrap;
+  justify-content: space-between;
   align-items: center;
-  gap: 3px;
+  gap: 8px;
   flex: 1;
-  min-width: 250px;
+}
+
+.rewardText {
+  flex: 1;
+  line-height: 1.25;
+}
+
+.bucketContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--brand-primary);
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+
+.bucketSvg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.bucketValue {
+  position: relative;
+  top: 2px;
+  /* Position inside the body of the bucket */
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--brand-primary);
+}
+
+.flyer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 2000;
+  color: var(--brand-primary);
+  font-weight: 900;
+  font-size: 1.2rem;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  margin-left: -15px;
+  /* Center-ish alignment to the coordinate */
+  margin-top: -15px;
 }
 
 .charCounter {

@@ -1,16 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Share2, Check } from "lucide-react";
 import styles from "./ShareSongButton.module.css";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface ShareSongButtonProps {
   slug: string;
+  isNew?: boolean;
 }
 
-export default function ShareSongButton({ slug }: ShareSongButtonProps) {
+export default function ShareSongButton({ slug, isNew }: ShareSongButtonProps) {
   const [copied, setCopied] = useState(false);
+  const [showAutoTooltip, setShowAutoTooltip] = useState(false);
+
+  useEffect(() => {
+    if (isNew) {
+      const timer = setTimeout(() => setShowAutoTooltip(true), 500);
+      const hideTimer = setTimeout(() => setShowAutoTooltip(false), 10500);
+      return () => {
+        clearTimeout(timer);
+        clearTimeout(hideTimer);
+      };
+    }
+  }, [isNew]);
 
   const handleCopy = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -54,14 +67,17 @@ export default function ShareSongButton({ slug }: ShareSongButtonProps) {
         </AnimatePresence>
 
         <AnimatePresence>
-          {copied && (
+          {(copied || showAutoTooltip) && (
             <motion.div
               className={styles.tooltip}
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 5 }}
+              initial={{ opacity: 0, y: 5, x: "-50%" }}
+              animate={{ opacity: 1, y: 0, x: "-50%" }}
+              exit={{ opacity: 0, y: 5, x: "-50%" }}
             >
-              הועתק! כעת שילחו לחברים ובקשו מהם לתת לכם פידבק אנונימי על השיר
+              {copied 
+                ? "הועתק! כעת שילחו לחברים ובקשו מהם לתת לכם פידבק אנונימי על השיר" 
+                : "השיר התווסף! כעת שילחו לחברים ובקשו מהם לתת לכם פידבק אנונימי על השיר"
+              }
             </motion.div>
           )}
         </AnimatePresence>

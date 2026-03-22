@@ -30,7 +30,7 @@ async function signR2Url({
     const datetime = new Date().toISOString().replace(/[:-]|\.\d{3}/g, "");
     const date = datetime.slice(0, 8);
     
-    const canonicalUri = `/${bucket}/${key}`;
+    const canonicalUri = `/${bucket}/${key.split('/').map(encodeURIComponent).join('/')}`;
     const credentialScope = `${date}/${region}/${service}/aws4_request`;
 
     const queryParams: Record<string, string> = {
@@ -73,11 +73,13 @@ async function signR2Url({
     const signature = await hmac(kSigning, stringToSign);
     const signatureHex = Array.from(new Uint8Array(signature)).map(b => b.toString(16).padStart(2, "0")).join("");
 
-    return `${endpoint}/${bucket}/${key}?${canonicalQuerystring}&X-Amz-Signature=${signatureHex}`;
+    return `${endpoint}/${bucket}/${key.split('/').map(encodeURIComponent).join('/')}?${canonicalQuerystring}&X-Amz-Signature=${signatureHex}`;
 }
 
 export async function getPresignedUploadUrl(fileName: string, contentType: string) {
-    const fileKey = `${nanoid()}-${fileName}`;
+    // Sanitize fileName: replace spaces with underscores, but keep other characters
+    const sanitizedName = fileName.replace(/\s+/g, '_');
+    const fileKey = `${nanoid()}-${sanitizedName}`;
     const url = await signR2Url({
         bucket: process.env.R2_BUCKET_NAME!,
         key: fileKey,

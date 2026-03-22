@@ -29,6 +29,13 @@
       "when": 1774191870101,
       "tag": "0003_initial_tokens_100",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1774198603516,
+      "tag": "0004_[any_name]",
+      "breakpoints": true
     }
   ]
 }

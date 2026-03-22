@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Star, Music, LogIn, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUser, SignInButton } from "@clerk/nextjs";
 import { addFeedback } from "@/app/actions/songs";
 import { REWARD_LYRICS, REWARD_COMMENT, MIN_COMMENT_LENGTH, SUCCESS_MESSAGE_DURATION } from "@/lib/constants";
 import styles from "./FeedbackForm.module.css";
+import AnimatedTokenCounter from "./AnimatedTokenCounter";
 
 interface FeedbackFormProps {
   songId: string;
@@ -27,6 +28,40 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
   const [comment, setComment] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [flyers, setFlyers] = useState<{ id: number; x: number; y: number; tx: number; ty: number; value: number }[]>([]);
+  const bucketRef = useRef<HTMLDivElement>(null);
+  const flyerIdRef = useRef(0);
+
+  const triggerFlyer = useCallback((x: number, y: number, value: number, targetX?: number, targetY?: number) => {
+    let finalX = targetX;
+    let finalY = targetY;
+
+    if (finalX === undefined || finalY === undefined) {
+      if (!bucketRef.current) return;
+      const bucketRect = bucketRef.current.getBoundingClientRect();
+      finalX = bucketRect.left + bucketRect.width / 2;
+      finalY = bucketRect.top + bucketRect.height / 2;
+    }
+
+    const id = ++flyerIdRef.current;
+
+    // Add jitter to start and end positions so multiple flyers are visible
+    const jitter = () => (Math.random() - 0.5) * 10;
+
+    setFlyers(prev => [...prev, {
+      id,
+      x: x + jitter(),
+      y: y + jitter(),
+      tx: finalX + jitter(),
+      ty: finalY + jitter(),
+      value
+    }]);
+
+    // Cleanup after animation finishes (safety timeout)
+    setTimeout(() => {
+      setFlyers(prev => prev.filter(f => f.id !== id));
+    }, 2000);
+  }, []);
 
   // Form resets automatically when song changes because key={songId} is used in parent
 
@@ -47,9 +82,22 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
     { key: "overall" as const, label: "ציון כללי" },
   ];
 
-  const handleRating = (key: keyof typeof ratings, value: number) => {
-    setRatings((prev) => ({ ...prev, [key]: value }));
+  const handleRating = (key: keyof typeof ratings, value: number, e?: React.MouseEvent | React.TouchEvent) => {
+    // Determine if we're gaining a new point for this category (from 0 to >0)
+    const isGaining = ratings[key] === 0 && value > 0;
+    const isSettingToZero = ratings[key] === value;
+
+    setRatings((prev) => ({
+      ...prev,
+      [key]: isSettingToZero ? 0 : value
+    }));
+
     if (status === "error") setStatus("idle");
+
+    if (isGaining && e) {
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      triggerFlyer(rect.left + rect.width / 2, rect.top + rect.height / 2, REWARD_LYRICS);
+    }
   };
 
   const handleTouch = (e: React.TouchEvent, key: keyof typeof ratings) => {
@@ -68,7 +116,7 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
 
     // Only update if it's a new value to avoid unnecessary re-renders
     if (ratings[key] !== rating) {
-      handleRating(key, rating);
+      handleRating(key, rating, e);
     }
   };
 
@@ -112,6 +160,21 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
       });
 
       if (result.success) {
+        // --- ADDED BUCKET -> NAVBAR ANIMATION --- //
+        const navTokenElement = document.querySelector('[class*="tokenDisplay"]');
+        if (navTokenElement && bucketRef.current && currentCredits > 0) {
+          const navRect = navTokenElement.getBoundingClientRect();
+          const bucketRect = bucketRef.current.getBoundingClientRect();
+
+          triggerFlyer(
+            bucketRect.left + bucketRect.width / 2,
+            bucketRect.top + bucketRect.height / 2,
+            currentCredits,
+            navRect.left + navRect.width / 2,
+            navRect.top + navRect.height / 2
+          );
+        }
+
         setStatus("success");
         // Reset form immediately on success
         setRatings({
@@ -129,10 +192,14 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
         setErrorMsg(result.error || "משהו השתבש בשליחת הפידבק.");
       }
     } catch {
-      setStatus("error");
-      setErrorMsg("שגיאת תקשורת. אנא נסו שוב.");
     }
   };
+
+  // Calculate live earned credits
+  const filledCategoriesCount = Object.values(ratings).filter(r => r > 0).length;
+  const commentLength = comment.trim().length;
+  const hasValidComment = commentLength >= MIN_COMMENT_LENGTH;
+  const currentCredits = (filledCategoriesCount * REWARD_LYRICS) + (hasValidComment ? REWARD_COMMENT : 0);
 
   if (!isLoaded) {
     return (
@@ -187,7 +254,6 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
               </label>
               <div
                 className={styles.stars}
-                onTouchStart={(e) => handleTouch(e, cat.key)}
                 onTouchMove={(e) => handleTouch(e, cat.key)}
               >
                 {[1, 2, 3, 4, 5].map((star) => (
@@ -195,7 +261,7 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
                     key={star}
                     type="button"
                     className={`${styles.starBtn} ${ratings[cat.key] >= star ? styles.starFilled : ""}`}
-                    onClick={() => handleRating(cat.key, star)}
+                    onClick={(e) => handleRating(cat.key, star, e)}
                   >
                     <Star
                       size={18 + (star - 1) * 1.5}
@@ -216,7 +282,16 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
               placeholder={`נסו להסביר מדוע אתם נותנים את הדירוג הזה (מינימום ${MIN_COMMENT_LENGTH} תווים)`}
               value={comment}
               onChange={(e) => {
-                setComment(e.target.value);
+                const newValue = e.target.value;
+                const wasValid = comment.trim().length >= MIN_COMMENT_LENGTH;
+                const isValid = newValue.trim().length >= MIN_COMMENT_LENGTH;
+
+                if (!wasValid && isValid) {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  triggerFlyer(rect.left + rect.width / 2, rect.top + rect.height / 2, REWARD_COMMENT);
+                }
+
+                setComment(newValue);
                 if (status === "error") setStatus("idle");
               }}
             />
@@ -226,7 +301,47 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
           </div>
           <div className={styles.commentFooterRow}>
             <div className={styles.commentFooter}>
-              קרדיט: קבלו {REWARD_LYRICS} <Music size={12} /> עבור כל דירוג ו-{REWARD_COMMENT} <Music size={12} /> עבור ההסבר
+              <span className={styles.rewardText}>
+                קבלו קרדיט עבור דירוג ו-{REWARD_COMMENT} נק' להסבר
+              </span>
+              <div ref={bucketRef} style={{ display: 'inline-flex', position: 'relative' }}>
+                <AnimatePresence mode="popLayout">
+                  <motion.div
+                    key={currentCredits}
+                    initial={{ scale: 0.5, opacity: 0, y: 10 }}
+                    animate={{ scale: 1, opacity: 1, y: 0 }}
+                    exit={{ scale: 0.5, opacity: 0, y: -10 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                    className={styles.bucketContainer}
+                  >
+                    <svg
+                      width="44"
+                      height="44"
+                      viewBox="0 0 44 44"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      className={styles.bucketSvg}
+                    >
+                      {/* Token Depth/Edge */}
+                      <circle cx="22" cy="24" r="18" fill="currentColor" fillOpacity="0.05" />
+                      
+                      {/* Token Face */}
+                      <circle 
+                        cx="22" 
+                        cy="20" 
+                        r="18" 
+                        fill="white" 
+                        stroke="currentColor" 
+                        strokeWidth="1" 
+                        strokeOpacity="0.2"
+                      />
+                    </svg>
+                    <span className={styles.bucketValue} style={{ top: '0px' }}>
+                      +<AnimatedTokenCounter value={currentCredits} />
+                    </span>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
             </div>
           </div>
         </div>
@@ -247,6 +362,35 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
           <div className={styles.error} style={{ marginTop: '1rem' }}>{errorMsg}</div>
         )}
       </form>
+
+      {/* Flying Numbers Portal-like overlay */}
+      <AnimatePresence>
+        {flyers.map((flyer) => (
+          <motion.div
+            key={flyer.id}
+            initial={{ x: flyer.x, y: flyer.y, opacity: 1, scale: 0.5 }}
+            animate={{
+              x: flyer.tx,
+              y: flyer.ty,
+              opacity: [1, 1, 0.4],
+              scale: [0.5, 1.2, 0.5],
+            }}
+            transition={{
+              duration: 0.8,
+              ease: "circOut",
+              x: { duration: 0.8, ease: "linear" },
+              y: { duration: 0.8, ease: "circIn" } /* Create an arc effect */
+            }}
+            onAnimationComplete={() => {
+              // Immediately remove flyer when animation completes to avoid DOM buildup
+              setFlyers(prev => prev.filter(f => f.id !== flyer.id));
+            }}
+            className={styles.flyer}
+          >
+            +{flyer.value}
+          </motion.div>
+        ))}
+      </AnimatePresence>
     </div>
   );
 }

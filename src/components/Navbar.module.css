@@ -107,13 +107,20 @@
   transform: translateY(-1px);
 }
 
-.tokenDisplay.glowing {
-  box-shadow: 0 0 20px color-mix(in srgb, #ff4d4d, transparent 30%);
-  border-color: #ff4d4d;
+.tokenDisplay.glowingPositive {
+  box-shadow: 0 0 20px color-mix(in srgb, #10b981, transparent 50%);
+  background: color-mix(in srgb, #10b981, transparent 85%);
+  color: #10b981;
+  transform: scale(1.05);
+}
+
+.tokenDisplay.glowingNegative {
+  box-shadow: 0 0 20px color-mix(in srgb, #ff4d4d, transparent 50%);
   background: color-mix(in srgb, #ff4d4d, transparent 85%);
   color: #ff4d4d;
   transform: scale(1.05);
 }
+
 
 .tokenIcon {
   color: inherit;
