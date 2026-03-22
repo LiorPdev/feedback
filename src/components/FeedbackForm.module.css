@@ -98,7 +98,6 @@
 .commentGroup {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
   margin-bottom: 2rem;
   width: 100%;
 }
@@ -109,10 +108,15 @@
   color: var(--text-main);
 }
 
+.textareaWrapper {
+  position: relative;
+  width: 100%;
+}
+
 .textarea {
   width: 100%;
   min-height: 90px;
-  padding: 1.25rem;
+  padding: 1rem;
   border-radius: 16px;
   border: 1.5px solid var(--border-color);
   font-family: inherit;
@@ -142,27 +146,39 @@
 
 .commentFooterRow {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  justify-content: flex-start;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   width: 100%;
-  margin-top: 0;
+  margin-top: 0.25rem;
 }
 
 .commentFooter {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--brand-primary);
-  font-weight: 500;
+  font-weight: 600;
   opacity: 0.9;
-  display: inline-flex;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 3px;
+  flex: 1;
+  min-width: 250px;
 }
 
 .charCounter {
-  font-size: 0.8rem;
-  font-weight: 700;
+  position: absolute;
+  bottom: 0.75rem;
+  left: 1rem;
+  font-size: 0.75rem;
+  font-weight: 500;
   color: var(--text-muted);
   transition: color 0.2s ease;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.5);
+  padding: 2px 1px;
+  border-radius: 4px;
 }
 
 .charCounterLow {

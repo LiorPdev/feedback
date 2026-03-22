@@ -210,21 +210,23 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
         </div>
 
         <div className={styles.commentGroup}>
-          <textarea
-            className={styles.textarea}
-            placeholder={`נסו להסביר מדוע אתם נותנים את הדירוג הזה (מינימום ${MIN_COMMENT_LENGTH} תווים)`}
-            value={comment}
-            onChange={(e) => {
-              setComment(e.target.value);
-              if (status === "error") setStatus("idle");
-            }}
-          />
-          <div className={styles.commentFooterRow}>
-            <div className={styles.commentFooter}>
-              קבלו {REWARD_LYRICS} <Music size={12} /> קרדיט עבור כל דירוג ו-{REWARD_COMMENT} <Music size={12} /> קרדיט עבור טקסט הסבר
-            </div>
+          <div className={styles.textareaWrapper}>
+            <textarea
+              className={styles.textarea}
+              placeholder={`נסו להסביר מדוע אתם נותנים את הדירוג הזה (מינימום ${MIN_COMMENT_LENGTH} תווים)`}
+              value={comment}
+              onChange={(e) => {
+                setComment(e.target.value);
+                if (status === "error") setStatus("idle");
+              }}
+            />
             <div className={`${styles.charCounter} ${comment.length === 0 ? "" : (comment.length < MIN_COMMENT_LENGTH ? styles.charCounterLow : styles.charCounterValid)}`}>
               ({comment.length}/{MIN_COMMENT_LENGTH})
+            </div>
+          </div>
+          <div className={styles.commentFooterRow}>
+            <div className={styles.commentFooter}>
+              קרדיט: קבלו {REWARD_LYRICS} <Music size={12} /> עבור כל דירוג ו-{REWARD_COMMENT} <Music size={12} /> עבור ההסבר
             </div>
           </div>
         </div>

@@ -161,7 +161,7 @@ export default function GetFeedback() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <Link href="/dashboard" className={styles.backButton} title="חזרה למרחב האישי">
+        <Link href={hasSongs ? "/dashboard" : "/"} className={styles.backButton} title={hasSongs ? "חזרה למרחב האישי" : "חזרה לדף הבית"}>
           <ArrowRight size={20} />
         </Link>
         <div className={styles.header}>
