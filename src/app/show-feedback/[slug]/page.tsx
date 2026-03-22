@@ -4,7 +4,7 @@ import styles from "./show-feedback.module.css";
 import { Music, Calendar, Disc } from "lucide-react";
 import { auth } from "@clerk/nextjs/server";
 import DashboardLink from "@/components/DashboardLink";
-
+import ShareSongButton from "@/components/ShareSongButton";
 
 interface ShowFeedbackPageProps {
   params: Promise<{
@@ -71,6 +71,10 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
               <Calendar size={18} />
               <span>{new Date(song.createdAt).toLocaleDateString('he-IL')}</span>
             </div>
+          </div>
+
+          <div className={styles.shareWrapper}>
+            <ShareSongButton slug={song.slug} />
           </div>
         </div>
 

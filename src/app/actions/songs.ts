@@ -555,18 +555,10 @@ export async function getURLMetadata(url: string) {
                     artist = artist.replace(title, '').replace(/[\s·|-]+$/, '').trim();
                 }
 
-                console.log(`[Spotify Final Meta] Title: "${title}", Artist: "${artist}", Duration: ${spotifyDuration}s`);
-
                 // Search with Artist + Title for much better accuracy
                 const searchQuery = artist ? `${artist} ${title}` : title;
                 const youtubeAlternative = await searchYouTube(searchQuery, spotifyDuration);
                 
-                await logToDb({ 
-                    message: "Spotify to YouTube Mapping", 
-                    data: { title, spotifyDuration, youtubeResult: youtubeAlternative }, 
-                    source: "songs.ts:getURLMetadata" 
-                });
-
                 return { 
                     success: true, 
                     title, 

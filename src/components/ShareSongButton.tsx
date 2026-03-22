@@ -61,7 +61,7 @@ export default function ShareSongButton({ slug }: ShareSongButtonProps) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 5 }}
             >
-              שילחו לחברים או משפחה ובקשו מהם לתת לכם פידבק אנונימי על השיר
+              הועתק! כעת שילחו לחברים ובקשו מהם לתת לכם פידבק אנונימי על השיר
             </motion.div>
           )}
         </AnimatePresence>

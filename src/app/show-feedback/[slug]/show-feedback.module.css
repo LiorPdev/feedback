@@ -183,3 +183,9 @@
   border: 1px dashed var(--border-color);
   width: 100%;
 }
+
+.shareWrapper {
+  margin-top: 0rem;
+  display: flex;
+  justify-content: center;
+}
