@@ -9,6 +9,7 @@ import { users, songs, feedbacks } from '@/lib/schema';
 import { SONG_SUBMISSION_COST, INITIAL_TOKENS, REWARD_LYRICS, REWARD_COMPOSITION, REWARD_PRODUCTION, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH } from '@/lib/constants';
 import { sendFeedbackNotification } from '@/lib/mail';
 import { logToDb } from "@/lib/logger";
+import { deleteFileFromR2 } from '@/app/actions/upload';
 
 export async function createSong(formData: FormData) {
     // Extract data from form
@@ -198,11 +199,23 @@ export async function deleteSong(songId: string) {
         // Double check ownership
         const song = await db.query.songs.findFirst({
             where: (songs, { eq }) => eq(songs.id, songId),
-            columns: { userId: true }
+            columns: { userId: true, url: true }
         });
 
         if (!song || song.userId !== clerkUser.id) {
             return { success: false, error: "לא מורשה" };
+        }
+
+        // Clear R2 if it's an uploaded file
+        if (song.url.includes("r2.dev")) {
+            try {
+                const fileKey = song.url.split("/").pop();
+                if (fileKey) {
+                    await deleteFileFromR2(fileKey);
+                }
+            } catch (err) {
+                await logToDb({ message: "R2 deletion error during song delete", data: err, source: "songs.ts:deleteSong" });
+            }
         }
 
         await db.delete(songs).where(eq(songs.id, songId));

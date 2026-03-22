@@ -94,7 +94,6 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
   const [mounted, setMounted] = useState(false);
   const [origin, setOrigin] = useState("");
   const isPausedRef = useRef(true);
-  const userPausedRef = useRef(false);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -152,9 +151,10 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
       try {
         if (isYouTube && playerRef.current?.playVideo) {
           playerRef.current.playVideo();
-        } else if (isSpotify && playerRef.current?.resume) {
-          userPausedRef.current = false;
-          playerRef.current.resume();
+        } else if (isSpotify && playerRef.current?.togglePlay) {
+          if (isPausedRef.current) {
+            playerRef.current.togglePlay();
+          }
         } else if (isAudio && audioRef.current) {
           audioRef.current.play();
         }
@@ -166,9 +166,10 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
       try {
         if (isYouTube && playerRef.current?.pauseVideo) {
           playerRef.current.pauseVideo();
-        } else if (isSpotify && playerRef.current?.pause) {
-          userPausedRef.current = true;
-          playerRef.current.pause();
+        } else if (isSpotify && playerRef.current?.togglePlay) {
+          if (!isPausedRef.current) {
+            playerRef.current.togglePlay();
+          }
         } else if (isAudio && audioRef.current) {
           audioRef.current.pause();
         }
@@ -260,9 +261,6 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
                 isPausedRef.current = isPaused;
                 if (!isPaused && position > 0) {
                   guard(onPlayRef.current)();
-                } else if (isPaused && !userPausedRef.current && position < (duration - 3000) && position > 0) {
-                  // Auto-resume if Spotify paused prematurely (not by user)
-                  EmbedController.resume();
                 } else if (isPaused || position === duration) {
                   guard(onPauseRef.current)();
                 }

@@ -204,12 +204,23 @@ export default function GetFeedback() {
                 <input
                   type="url"
                   className={styles.input}
-                  placeholder="הדביקו קישור מיוטיוב או ספוטיפי..."
+                  placeholder="הדביקו קישור לשיר..."
                   value={songLink}
                   onChange={(e) => setSongLink(e.target.value)}
                   required={submissionType === "link"}
                 />
                 <AnimatePresence>
+                  {songLink.trim() !== "" && songLink.includes("spotify.com") && (
+                    <motion.p
+                      className={styles.infoMsg}
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      style={{ marginTop: '-0.25rem', fontSize: '0.875rem', color: '#1DB954' }}
+                    >
+                      לתשומת לבכם: ספוטיפי מגבילה האזנה בנגנים חיצוניים ל-25 שניות בלבד בנייד. להבטחת חוויית האזנה מלאה, העדיפו יוטיוב או העלאת קובץ.
+                    </motion.p>
+                  )}
                   {songLink.trim() !== "" &&
                     !songLink.includes("youtube.com") &&
                     !songLink.includes("youtu.be") &&
@@ -221,7 +232,7 @@ export default function GetFeedback() {
                         exit={{ opacity: 0, height: 0 }}
                         style={{ marginTop: '-0.25rem', fontSize: '0.875rem' }}
                       >
-                        כדי להבטיח זמינות לכל המאזינים, ניתן לשתף קישורים מיוטיוב או ספוטיפיי בלבד (או להעלות קובץ).
+                        כדי להבטיח זמינות לכל המאזינים, מומלץ לשתף קישורים מיוטיוב בלבד (או להעלות קובץ).
                       </motion.p>
                     )}
                 </AnimatePresence>
