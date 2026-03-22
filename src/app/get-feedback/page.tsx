@@ -161,7 +161,7 @@ export default function GetFeedback() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <Link href={hasSongs ? "/dashboard" : "/"} className={styles.backButton} title={hasSongs ? "חזרה למרחב האישי" : "חזרה לדף הבית"}>
+        <Link href={hasSongs ? "/dashboard" : "/"} className={styles.backButton} title={hasSongs ? "חזרה לאיזור האישי" : "חזרה לדף הבית"}>
           <ArrowRight size={20} />
         </Link>
         <div className={styles.header}>
@@ -198,23 +198,26 @@ export default function GetFeedback() {
                 <input
                   type="url"
                   className={styles.input}
-                  placeholder="הדביקו קישור מיוטיוב, ספוטיפי, סאונדקלאוד..."
+                  placeholder="הדביקו קישור מיוטיוב או ספוטיפי..."
                   value={songLink}
                   onChange={(e) => setSongLink(e.target.value)}
                   required={submissionType === "link"}
                 />
                 <AnimatePresence>
-                  {songLink.includes("music.apple.com") && (
-                    <motion.p
-                      className={styles.errorMsg}
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      style={{ marginTop: '-0.25rem', fontSize: '0.875rem' }}
-                    >
-                      Apple Music לא נתמך. אנא השתמשו בנגנים אחרים.
-                    </motion.p>
-                  )}
+                  {songLink.trim() !== "" &&
+                    !songLink.includes("youtube.com") &&
+                    !songLink.includes("youtu.be") &&
+                    !songLink.includes("spotify.com") && (
+                      <motion.p
+                        className={styles.errorMsg}
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        style={{ marginTop: '-0.25rem', fontSize: '0.875rem' }}
+                      >
+                        כדי להבטיח זמינות לכל המאזינים, מומלץ לשתף קישורים מיוטיוב או ספוטיפיי בלבד.
+                      </motion.p>
+                    )}
                 </AnimatePresence>
               </>
             ) : (

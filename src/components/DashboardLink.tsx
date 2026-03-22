@@ -8,9 +8,9 @@ interface DashboardLinkProps {
   className?: string;
 }
 
-export default function DashboardLink({ 
-  href = "/dashboard", 
-  text = "חזרה למרחב האישי",
+export default function DashboardLink({
+  href = "/dashboard",
+  text = "חזרה לאיזור האישי",
   className = ""
 }: DashboardLinkProps) {
   return (

@@ -119,7 +119,7 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
                   required
-                  placeholder="קישור ל-SoundCloud, YouTube וכו'"
+                  placeholder="קישור ל-Spotify, YouTube וכו'"
                 />
               </div>
 

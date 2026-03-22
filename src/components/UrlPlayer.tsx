@@ -1,22 +1,23 @@
 /**
  * ⚠️ WARNING: CRITICAL COMPONENT - EXTREMELY DELICATE ⚠️
  * 
- * המודול הזה מנהל מספר API חיצוניים (YouTube, SoundCloud, Spotify) בתוך Iframe.
- * תזמון האתחול (Initialization) של ה-APIs האלו רגיש מאוד למחזור החיים (Mount) של React 
- * ולזמינות של אלמנטים ב-DOM.
+ * This module manages multiple external APIs (YouTube, SoundCloud, Spotify) inside an Iframe.
+ * The initialization timing of these APIs is highly sensitive to the React lifecycle (Mount)
+ * and DOM availability.
  * 
- * 1. אין לפצל (DO NOT SPLIT): ניסיונות קודמים להוציא את לוגיקת ספוטיפי או נגנים אחרים לקבצים 
- *    נפרדים (כמו SpotifyPlayer.tsx) גרמו לכשלים בניגון ולבעיות סנכרון. עבודה בתוך קובץ אחד 
- *    מבטיחה שכל ה-APIs יהיו זמינים ושהסנכרון בין השירים יעבוד בצורה מושלמת.
- * 2. הגנות מחזור חיים: השימוש ב-`isUnmountingRef` ובפונקציית ה-`guard` הוא קריטי!
- *    הם מונעים מאירועים "רפאים" (Ghost Events) של שיר שיוצא (למשל בזמן Skip) להשפיע 
- *    על מצב הנגן של השיר החדש.
- * 3. בדיקות Lint: הערות ה-`eslint-disable` נכתבו בכוונה תחילה. אין לשנות אותן אם זה דורש 
- *    שינוי בזרימת הקוד (למשל מעבר מ-`mounted` ל-`useSyncExternalStore`), כי זה עלול להרוס 
- *    את התזמון של טעינת הנגנים.
+ * 1. DO NOT SPLIT: Previous attempts to extract Spotify or other player logic into separate 
+ *    files (e.g., SpotifyPlayer.tsx) caused playback failures and synchronization issues. 
+ *    Keeping everything in one file ensures all APIs are available and synchronization between 
+ *    songs works perfectly.
+ * 2. LIFECYCLE GUARDS: The use of `isUnmountingRef` and the `guard` function is critical!
+ *    They prevent "ghost events" from an exiting song (e.g., during a Skip) from affecting 
+ *    the player state of the new song.
+ * 3. LINT OVERRIDES: `eslint-disable` comments were added intentionally. Do not change them 
+ *    if it requires changing the code flow (e.g., switching from `mounted` to `useSyncExternalStore`), 
+ *    as this might break the player loading timing.
  * 
- * מפתחים (ו-AIs) יקרים: אל תנסו לעשות refactor או "לסדר" את הקוד הזה אלא אם כן אתם 
- * מוכנים לוודא שכל סוגי הנגנים עובדים אחרי לפחות 10 דילוגים (Skip) רצופים.
+ * DEAR DEVELOPERS (AND AIs): Do not attempt to refactor or "clean up" this code unless you 
+ * are prepared to verify that all player types work after at least 10 consecutive skips.
  */
 
 "use client";
@@ -30,7 +31,6 @@ declare global {
   interface Window {
     onYouTubeIframeAPIReady: () => void;
     YT: any; // eslint-disable-line @typescript-eslint/no-explicit-any
-    SC: any; // eslint-disable-line @typescript-eslint/no-explicit-any
     SpotifyIFrameApi: any; // eslint-disable-line @typescript-eslint/no-explicit-any
     onSpotifyIframeApiReady: (IFrameAPI: any) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
   }
@@ -55,13 +55,6 @@ export const getEmbedUrl = (url: string) => {
   if (ytMatch) {
     const videoId = ytMatch[1].split(/[&?]/)[0];
     return `https://www.youtube.com/embed/${videoId}?enablejsapi=1`;
-  }
-
-  // SoundCloud
-  if (url.includes("soundcloud.com")) {
-    return `https://w.soundcloud.com/player/?url=${encodeURIComponent(
-      url
-    )}&color=%23ff5500&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&sharing=false&buying=false`;
   }
 
   // Spotify
@@ -109,7 +102,6 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
   }, []);
 
   const isYouTube = url.includes("youtube.com") || url.includes("youtu.be");
-  const isSoundCloud = url.includes("soundcloud.com");
   const isSpotify = url.includes("spotify.com");
   const isAudio = url.match(/\.(mp3|wav|ogg|m4a|aac)(\?.*)?$/i) || url.includes("r2.dev");
 
@@ -148,17 +140,6 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
         if (typeof playerRef.current.getCurrentTime === 'function') {
           return Math.floor(playerRef.current.getCurrentTime());
         }
-      } else if (isSoundCloud && playerRef.current) {
-        // SoundCloud API is async
-        return new Promise<number>((resolve) => {
-          try {
-            playerRef.current.getPosition((ms: number) => {
-              resolve(Math.floor(ms / 1000));
-            });
-          } catch {
-            resolve(0);
-          }
-        });
       } else if (isSpotify) {
         return Math.floor(spotifyPositionRef.current / 1000);
       } else if (isAudio && audioRef.current) {
@@ -170,8 +151,6 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
       try {
         if (isYouTube && playerRef.current?.playVideo) {
           playerRef.current.playVideo();
-        } else if (isSoundCloud && playerRef.current?.play) {
-          playerRef.current.play();
         } else if (isSpotify && playerRef.current?.togglePlay) {
           if (isPausedRef.current) {
             playerRef.current.togglePlay();
@@ -187,8 +166,6 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
       try {
         if (isYouTube && playerRef.current?.pauseVideo) {
           playerRef.current.pauseVideo();
-        } else if (isSoundCloud && playerRef.current?.pause) {
-          playerRef.current.pause();
         } else if (isSpotify && playerRef.current?.togglePlay) {
           if (!isPausedRef.current) {
             playerRef.current.togglePlay();
@@ -257,40 +234,6 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
         };
       } else {
         initYT();
-      }
-    } else if (isSoundCloud) {
-      const initSC = () => {
-        try {
-          if (!window.SC || !window.SC.Widget) {
-            setTimeout(initSC, 100);
-            return;
-          }
-          const widget = window.SC.Widget(iframeRef.current);
-          playerRef.current = widget;
-          widget.bind(window.SC.Widget.Events.PLAY, () => guard(onPlayRef.current)());
-          widget.bind(window.SC.Widget.Events.PAUSE, () => guard(onPauseRef.current)());
-          widget.bind(window.SC.Widget.Events.FINISH, () => guard(onPauseRef.current)());
-          widget.bind(window.SC.Widget.Events.READY, () => guard(onReadyRef.current)());
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          widget.bind(window.SC.Widget.Events.ERROR, (e: any) => guard(onErrorRef.current)(e));
-        } catch (e) {
-          guard(onErrorRef.current)(e);
-          logAction({ message: "SoundCloud Widget Init Error", data: e, source: "UrlPlayer.tsx:initSC" });
-        }
-      };
-
-      if (!window.SC) {
-        if (!document.querySelector('script[src*="soundcloud.com/player/api.js"]')) {
-          const tag = document.createElement("script");
-          tag.src = "https://w.soundcloud.com/player/api.js";
-          tag.onload = initSC;
-          document.head.appendChild(tag);
-        } else {
-          // Script exists but SC not ready yet
-          initSC();
-        }
-      } else {
-        initSC();
       }
     } else if (isSpotify) {
       const initSpotify = () => {
@@ -365,10 +308,6 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
           if (isYouTube && typeof player.destroy === 'function') {
             // Only destroy if the player is still connected to its iframe
             player.destroy();
-          } else if (isSoundCloud && typeof player.unbind === 'function') {
-            player.unbind(window.SC.Widget.Events.PLAY);
-            player.unbind(window.SC.Widget.Events.PAUSE);
-            player.unbind(window.SC.Widget.Events.FINISH);
           }
         } catch (e) {
           // Swallow errors during cleanup but log to DB
@@ -377,7 +316,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
       }
       playerRef.current = null;
     };
-  }, [embedUrl, url, mounted, origin, isSoundCloud, isSpotify, isYouTube]);
+  }, [embedUrl, url, mounted, origin, isSpotify, isYouTube]);
 
   if (!mounted) {
     return (
@@ -421,7 +360,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
         <iframe
           ref={iframeRef}
           width="100%"
-          height={isSoundCloud ? "80" : isSpotify ? "80" : "152"}
+          height={isSpotify ? "80" : "152"}
           scrolling="no"
           frameBorder="no"
           allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

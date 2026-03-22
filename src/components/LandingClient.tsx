@@ -86,7 +86,7 @@ export default function LandingClient() {
                   className={styles.btnPrimary}
                   onClick={() => window.location.href = hasSongs ? "/dashboard" : "/get-feedback"}
                 >
-                  {hasSongs ? "המרחב האישי שלי" : "אני רוצה לקבל פידבק"}
+                  {hasSongs ? "האיזור האישי שלי" : "אני רוצה לקבל פידבק"}
                 </button>
                 <Link href="/give-feedback" className={styles.btnSecondary}>
                   אני רוצה לתת פידבק

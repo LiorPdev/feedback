@@ -156,11 +156,10 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
   }
 
   const isYouTube = currentSong.url.includes("youtube.com") || currentSong.url.includes("youtu.be");
-  const isSoundCloud = currentSong.url.includes("soundcloud.com");
   const isSpotify = currentSong.url.includes("spotify.com");
   const isAudio = !!currentSong.url.match(/\.(mp3|wav|ogg|m4a|aac)(\?.*)?$/i) || currentSong.url.includes("r2.dev");
   const isBypassTimer = false;
-  const isHiddenPlayer = isYouTube || isSoundCloud || isSpotify || isAudio;
+  const isHiddenPlayer = isYouTube || isSpotify || isAudio;
 
   return (
     <div className={styles.feedWrapper}>

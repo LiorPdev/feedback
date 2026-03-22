@@ -37,7 +37,7 @@ export default async function GiveFeedbackPage({ params }: GiveFeedbackPageProps
               <UserCheck size={24} />
             </div>
             <h2 className={styles.emptyTitle}>לא ניתן לתת פידבק לעצמך</h2>
-            <p>שלחת קישור לשיר שבבעלותך. כדי לראות את הפידבקים שקיבלת עבורו, עברו למרחב האישי.</p>
+            <p>שלחת קישור לשיר שבבעלותך. כדי לראות את הפידבקים שקיבלת עבורו, עברו לאיזור האישי.</p>
             <div className={styles.dashboardLinkMargin}>
               <DashboardLink />
             </div>

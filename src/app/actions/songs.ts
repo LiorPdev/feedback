@@ -8,7 +8,6 @@ import { eq } from 'drizzle-orm';
 import { users, songs, feedbacks } from '@/lib/schema';
 import { SONG_SUBMISSION_COST, INITIAL_TOKENS, REWARD_LYRICS, REWARD_COMPOSITION, REWARD_PRODUCTION, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH } from '@/lib/constants';
 import { sendFeedbackNotification } from '@/lib/mail';
-import { resolveSoundCloudUrl } from "@/lib/soundcloud";
 import { logToDb } from "@/lib/logger";
 
 export async function createSong(formData: FormData) {
@@ -357,7 +356,6 @@ function cleanTitle(title: string) {
         .replace(/ - song and lyrics by .*\| Spotify/gi, '')
         .replace(/ \| Spotify/gi, '')
         .replace(/ \| YouTube/gi, '')
-        .replace(/ - SoundCloud/gi, '')
         .replace(/ \(Official Video\)/gi, '')
         .replace(/ \(Official Audio\)/gi, '')
         .replace(/ \(Official Music Video\)/gi, '')
@@ -388,19 +386,12 @@ export async function getURLMetadata(url: string) {
                 return { success: true, title: cleanTitle(decodeHtmlEntities(data.title)) };
             }
         }
-
-        // Support SoundCloud OEmbed
-        if (url.includes('soundcloud.com')) {
-            const resolvedUrl = await resolveSoundCloudUrl(url);
-            const oembedUrl = `https://soundcloud.com/oembed?url=${encodeURIComponent(url)}&format=json`;
+        if (url.includes('youtube.com') || url.includes('youtu.be')) {
+            const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`;
             const res = await fetch(oembedUrl);
             if (res.ok) {
-                const data = await res.json() as { title: string };
-                return {
-                    success: true,
-                    title: cleanTitle(decodeHtmlEntities(data.title)),
-                    resolvedUrl: resolvedUrl || url
-                };
+                const data = await res.json();
+                return { success: true, title: cleanTitle(decodeHtmlEntities(data.title)) };
             }
         }
 
