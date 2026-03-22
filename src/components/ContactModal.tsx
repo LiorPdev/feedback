@@ -71,19 +71,20 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
                   <h2 className={styles.title}>מה תרצו לספר לנו?</h2>
                   <p className={styles.subtitle}>לכל הצעה, בקשה או בעיה, דברו איתנו!</p>
                   <form onSubmit={handleSubmit} className={styles.form}>
-                    <div className={styles.textareaWrapper}>
-                      <textarea
-                        className={styles.textarea}
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value.slice(0, 200))}
-                        maxLength={200}
-                        disabled={isSubmitting}
-                        required
-                      />
-                      <div className={styles.counter}>
-                        {message.length}/200
+                      <div className={styles.textareaWrapper}>
+                        <textarea
+                          className={styles.textarea}
+                          value={message}
+                          onChange={(e) => setMessage(e.target.value.slice(0, 200))}
+                          maxLength={200}
+                          disabled={isSubmitting}
+                          placeholder="מה תרצו לספר לנו? נשמח לשמוע כל הצעה או בקשה..."
+                          required
+                        />
+                        <div className={`${styles.counter} ${message.length >= 190 ? styles.counterLow : message.length > 0 ? styles.counterValid : ""}`}>
+                          {message.length}/200
+                        </div>
                       </div>
-                    </div>
 
                     {status === "error" && (
                       <p className={styles.error}>{errorMessage}</p>

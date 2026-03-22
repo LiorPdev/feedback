@@ -151,9 +151,12 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
       try {
         if (isYouTube && playerRef.current?.playVideo) {
           playerRef.current.playVideo();
-        } else if (isSpotify && playerRef.current?.togglePlay) {
-          if (isPausedRef.current) {
-            playerRef.current.togglePlay();
+        } else if (isSpotify) {
+          const controller = playerRef.current;
+          if (controller?.resume) {
+            controller.resume();
+          } else if (controller?.togglePlay) {
+            controller.togglePlay();
           }
         } else if (isAudio && audioRef.current) {
           audioRef.current.play();
@@ -166,9 +169,12 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
       try {
         if (isYouTube && playerRef.current?.pauseVideo) {
           playerRef.current.pauseVideo();
-        } else if (isSpotify && playerRef.current?.togglePlay) {
-          if (!isPausedRef.current) {
-            playerRef.current.togglePlay();
+        } else if (isSpotify) {
+          const controller = playerRef.current;
+          if (controller?.pause) {
+            controller.pause();
+          } else if (controller?.togglePlay) {
+            controller.togglePlay();
           }
         } else if (isAudio && audioRef.current) {
           audioRef.current.pause();
@@ -259,10 +265,17 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
                 const { isPaused, duration, position } = e.data;
                 spotifyPositionRef.current = position;
                 isPausedRef.current = isPaused;
-                if (!isPaused && position > 0) {
+                
+                const isMobile = typeof window !== 'undefined' && window.innerWidth < 600;
+                const isAtCutoff = isMobile && position >= 23000 && position < (duration - 1000);
+
+                if (!isPaused && position > 0 && !isAtCutoff) {
                   guard(onPlayRef.current)();
-                } else if (isPaused || position === duration) {
+                } else if (isPaused || position === duration || isAtCutoff) {
                   guard(onPauseRef.current)();
+                  if (isAtCutoff && !isPaused) {
+                    EmbedController.pause();
+                  }
                 }
               });
               EmbedController.on("ready", () => guard(onReadyRef.current)());

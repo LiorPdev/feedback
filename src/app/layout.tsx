@@ -68,7 +68,25 @@ export default function RootLayout({
       localization={heIL as unknown as typeof heIL}
       appearance={{
         elements: {
-          footerAction: { display: "none" }
+          footerAction: { display: "none" },
+          socialButtonsBlockButton: { 
+            marginBottom: "0.75rem",
+            borderRadius: "12px",
+            border: "1.5px solid #e5e7eb",
+          },
+          card: {
+            boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+            borderRadius: "24px",
+          },
+          headerTitle: {
+            fontFamily: "var(--font-heebo)",
+            fontWeight: "800",
+            fontSize: "1.5rem",
+          },
+          headerSubtitle: {
+            fontFamily: "var(--font-heebo)",
+            fontSize: "1rem",
+          }
         }
       }}
     >

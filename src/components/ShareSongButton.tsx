@@ -17,7 +17,8 @@ export default function ShareSongButton({ slug }: ShareSongButtonProps) {
     e.stopPropagation();
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://feedback.activitywiz.com';
     const url = `${origin}/give-feedback/${slug}`;
-    navigator.clipboard.writeText(url);
+    const shareText = `היי, אשמח לפידבק שלכם על השיר שלי 🎸:\n${url}`;
+    navigator.clipboard.writeText(shareText);
     setCopied(true);
     setTimeout(() => setCopied(false), 4000);
   };
