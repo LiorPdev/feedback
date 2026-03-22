@@ -282,13 +282,13 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
                 )
               }
               onSuccess={() => {
-                if (isPlaying) {
-                  setHasRatedCurrent(true);
-                } else {
-                  setTimeout(() => {
+                setTimeout(() => {
+                  if (isPlaying) {
+                    setHasRatedCurrent(true);
+                  } else {
                     handleRemoveCurrent();
-                  }, SUCCESS_MESSAGE_DURATION);
-                }
+                  }
+                }, SUCCESS_MESSAGE_DURATION);
               }}
             />
           )}

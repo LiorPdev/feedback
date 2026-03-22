@@ -60,7 +60,7 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
     // Cleanup after animation finishes (safety timeout)
     setTimeout(() => {
       setFlyers(prev => prev.filter(f => f.id !== id));
-    }, 2500);
+    }, 2000);
   }, []);
 
   // Form resets automatically when song changes because key={songId} is used in parent
@@ -376,10 +376,10 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
               scale: [0.5, 1.5, 1],
             }}
             transition={{
-              duration: 1.1,
+              duration: 1.0,
               ease: "circOut",
-              x: { duration: 1.1, ease: "linear" },
-              y: { duration: 1.1, ease: "circIn" } /* Create an arc effect */
+              x: { duration: 1.0, ease: "linear" },
+              y: { duration: 1.0, ease: "circIn" } /* Create an arc effect */
             }}
             onAnimationComplete={() => {
               // Immediately remove flyer when animation completes to avoid DOM buildup
