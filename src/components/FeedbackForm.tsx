@@ -5,7 +5,7 @@ import { Star, LogIn, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUser, SignInButton } from "@clerk/nextjs";
 import { addFeedback } from "@/app/actions/songs";
-import { REWARD_LYRICS, REWARD_COMMENT, MIN_COMMENT_LENGTH, SUCCESS_MESSAGE_DURATION } from "@/lib/constants";
+import { REWARD_LYRICS, REWARD_COMPOSITION, REWARD_PRODUCTION, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH, SUCCESS_MESSAGE_DURATION } from "@/lib/constants";
 import styles from "./FeedbackForm.module.css";
 import AnimatedTokenCounter from "./AnimatedTokenCounter";
 
@@ -76,10 +76,10 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
   }, [status]);
 
   const categories = [
-    { key: "lyrics" as const, label: "מילים" },
-    { key: "composition" as const, label: "לחן" },
-    { key: "production" as const, label: "הפקה" },
-    { key: "overall" as const, label: "ציון כללי" },
+    { key: "lyrics" as const, name: "מילים", reward: REWARD_LYRICS },
+    { key: "composition" as const, name: "לחן", reward: REWARD_COMPOSITION },
+    { key: "production" as const, name: "ביצוע", reward: REWARD_PRODUCTION },
+    { key: "overall" as const, name: "ציון כללי", reward: REWARD_OVERALL },
   ];
 
   const handleRating = (key: keyof typeof ratings, value: number, e?: React.MouseEvent | React.TouchEvent) => {
@@ -96,7 +96,8 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
 
     if (isGaining && e) {
       const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-      triggerFlyer(rect.left + rect.width / 2, rect.top + rect.height / 2, REWARD_LYRICS);
+      const reward = categories.find(c => c.key === key)?.reward || REWARD_LYRICS;
+      triggerFlyer(rect.left + rect.width / 2, rect.top + rect.height / 2, reward);
     }
   };
 
@@ -196,10 +197,10 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
   };
 
   // Calculate live earned credits
-  const filledCategoriesCount = Object.values(ratings).filter(r => r > 0).length;
+  const earnedFromCategories = categories.reduce((sum, cat) => sum + (ratings[cat.key] > 0 ? cat.reward : 0), 0);
   const commentLength = comment.trim().length;
   const hasValidComment = commentLength >= MIN_COMMENT_LENGTH;
-  const currentCredits = (filledCategoriesCount * REWARD_LYRICS) + (hasValidComment ? REWARD_COMMENT : 0);
+  const currentCredits = earnedFromCategories + (hasValidComment ? REWARD_COMMENT : 0);
 
   if (!isLoaded) {
     return (
@@ -250,7 +251,7 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
           {categories.map((cat) => (
             <div key={cat.key} className={styles.ratingGroup}>
               <label className={styles.ratingLabel}>
-                {cat.label}
+                {cat.name} <span className={styles.labelPoints}>(+{cat.reward})</span>
               </label>
               <div
                 className={styles.stars}
@@ -279,7 +280,7 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
           <div className={styles.textareaWrapper}>
             <textarea
               className={styles.textarea}
-              placeholder={`נסו להסביר מדוע אתם נותנים את הדירוג הזה (מינימום ${MIN_COMMENT_LENGTH} תווים)`}
+              placeholder={`נסו להוסיף כמה מילים על מה שאהבתם או מה שפחות`}
               value={comment}
               onChange={(e) => {
                 const newValue = e.target.value;
@@ -296,14 +297,11 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
               }}
             />
             <div className={`${styles.charCounter} ${comment.length === 0 ? "" : (comment.length < MIN_COMMENT_LENGTH ? styles.charCounterLow : styles.charCounterValid)}`}>
-              ({comment.length}/{MIN_COMMENT_LENGTH})
+              <span className={styles.labelPoints}>(+{REWARD_COMMENT})</span> ({comment.length}/{MIN_COMMENT_LENGTH})
             </div>
           </div>
           <div className={styles.commentFooterRow}>
             <div className={styles.commentFooter}>
-              <span className={styles.rewardText}>
-                קבלו קרדיט עבור דירוג ו-{REWARD_COMMENT} נק&apos; להסבר
-              </span>
               <div ref={bucketRef} style={{ display: 'inline-flex', position: 'relative' }}>
                 <AnimatePresence mode="popLayout">
                   <motion.div
@@ -324,15 +322,15 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
                     >
                       {/* Token Depth/Edge */}
                       <circle cx="22" cy="24" r="18" fill="currentColor" fillOpacity="0.05" />
-                      
+
                       {/* Token Face */}
-                      <circle 
-                        cx="22" 
-                        cy="20" 
-                        r="18" 
-                        fill="white" 
-                        stroke="currentColor" 
-                        strokeWidth="1" 
+                      <circle
+                        cx="22"
+                        cy="20"
+                        r="18"
+                        fill="white"
+                        stroke="currentColor"
+                        strokeWidth="1"
                         strokeOpacity="0.2"
                       />
                     </svg>

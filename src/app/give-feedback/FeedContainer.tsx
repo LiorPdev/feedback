@@ -277,7 +277,7 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
               disabledMessage={
                 isBypassTimer ? "" : (
                   secondsRemaining >= getRequiredTime()
-                    ? `אנא הקשיבו לשיר לפחות ${getRequiredTime()} שניות לפני שליחת פידבק (אנונימי)`
+                    ? `תנו סיכוי לשיר לפחות ${getRequiredTime()} שניות לפני שליחת פידבק (אנונימי)`
                     : `ניתן לשלוח פידבק בעוד ${secondsRemaining} שניות${!isTimerActive ? " (מושהה)" : "..."}`
                 )
               }

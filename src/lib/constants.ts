@@ -13,10 +13,10 @@ export const GENRES = [
 export const INITIAL_TOKENS = 100;
 export const SONG_SUBMISSION_COST = 50;
 
-export const REWARD_LYRICS = 1;
-export const REWARD_COMPOSITION = 1;
-export const REWARD_PRODUCTION = 1;
-export const REWARD_OVERALL = 1;
+export const REWARD_LYRICS = 4;
+export const REWARD_COMPOSITION = 2;
+export const REWARD_PRODUCTION = 2;
+export const REWARD_OVERALL = 2;
 export const REWARD_COMMENT = 10;
 
 export const MIN_COMMENT_LENGTH = 30;

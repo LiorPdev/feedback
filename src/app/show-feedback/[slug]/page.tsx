@@ -103,7 +103,7 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
                 )}
                 {averages.production && (
                   <div className={styles.averageItem}>
-                    <span className={styles.avgLabel}>הפקה</span>
+                    <span className={styles.avgLabel}>ביצוע</span>
                     <span className={styles.avgValue}>{averages.production}</span>
                   </div>
                 )}
@@ -149,7 +149,7 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
                     <span className={styles.fbRatingLabel}>דירוג:</span>
                     <span>מילים: {fb.lyrics}</span>
                     <span>לחן: {fb.composition}</span>
-                    <span>הפקה: {fb.production}</span>
+                    <span>ביצוע: {fb.production}</span>
                     <span className={styles.fbOverallBadge}>כללי: {fb.overall}</span>
                   </div>
                   <p className={styles.fbComment}>{fb.comment}</p>
