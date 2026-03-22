@@ -159,7 +159,7 @@
 }
 
 .tokenLabel {
-  font-size: 0.6em;
+  font-size: 0.7em;
 }
 
 .submitBtn:hover:not(:disabled) {
@@ -327,9 +327,17 @@
 }
 
 @keyframes pulse {
-  0% { opacity: 0.6; }
-  50% { opacity: 1; }
-  100% { opacity: 0.6; }
+  0% {
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.6;
+  }
 }
 
 .dashboardLinkMargin {
@@ -398,4 +406,14 @@
   border-color: #16A34A;
   background: #F0FDF4;
   color: #16A34A;
+}
+
+@media (max-width: 600px) {
+  .radioGroup {
+    gap: 1rem;
+  }
+
+  .card {
+    padding: 2rem;
+  }
 }

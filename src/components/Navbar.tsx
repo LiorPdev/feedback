@@ -20,6 +20,7 @@ export default function Navbar() {
   const [isGlowing, setIsGlowing] = useState(false);
   const [showTokensInfo, setShowTokensInfo] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
+  const [isStarHovered, setIsStarHovered] = useState(false);
   const infoRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -71,6 +72,19 @@ export default function Navbar() {
       return () => clearTimeout(updateTimer);
     }
   }, [tokens, displayedTokens]);
+
+  useEffect(() => {
+    const handleHoverStart = () => setIsStarHovered(true);
+    const handleHoverEnd = () => setIsStarHovered(false);
+
+    window.addEventListener("star-hover-start", handleHoverStart);
+    window.addEventListener("star-hover-end", handleHoverEnd);
+
+    return () => {
+      window.removeEventListener("star-hover-start", handleHoverStart);
+      window.removeEventListener("star-hover-end", handleHoverEnd);
+    };
+  }, []);
 
   useEffect(() => {
     if (isGlowing) {
@@ -126,7 +140,7 @@ export default function Navbar() {
             {tokens !== null && (
               <div className={styles.tokenWrapper}>
                 <div
-                  className={`${styles.tokenDisplay} ${isGlowing ? styles.glowing : ""}`}
+                  className={`${styles.tokenDisplay} ${isGlowing ? styles.glowing : ""} ${isStarHovered ? styles.starHoverGlow : ""}`}
                   title="לחצו להסבר על הקרדיטים"
                   onClick={() => setShowTokensInfo(!showTokensInfo)}
                 >
@@ -149,7 +163,7 @@ export default function Navbar() {
                         <HelpCircle size={18} className={styles.helpIcon} />
                         <h3>איך עובד מנגנון הקרדיטים?</h3>
                       </div>
-                      <p>העלאת שיר חדש עושה שימוש בקרדיטים שצברת. כדי לקבל קרדיטים נוספים, פשוט תנו פידבק כנה ובונה לשירים של יוצרים אחרים בקהילה.</p>
+                      <p>העלאת שיר חדש עושה שימוש בקרדיטים. כדי לקבל קרדיטים נוספים, פשוט תנו פידבק אמיתי ובונה לשירים של יוצרים אחרים בקהילה.</p>
                       <div className={styles.popupArrow} />
                     </motion.div>
                   )}

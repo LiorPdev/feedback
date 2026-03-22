@@ -42,6 +42,7 @@ interface UrlPlayerProps {
   onPause?: () => void;
   onReady?: () => void;
   onError?: (error: unknown) => void;
+  onEnded?: () => void;
   isHidden?: boolean;
 }
 
@@ -89,7 +90,7 @@ export interface UrlPlayerHandle {
   pause: () => void;
 }
 
-const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, onPause, onReady, onError, isHidden = false }, ref) => {
+const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, onPause, onReady, onError, onEnded, isHidden = false }, ref) => {
   const isUnmountingRef = useRef(false);
   const [mounted, setMounted] = useState(false);
   const [origin, setOrigin] = useState("");
@@ -116,6 +117,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
   const onPauseRef = useRef(onPause);
   const onReadyRef = useRef(onReady);
   const onErrorRef = useRef(onError);
+  const onEndedRef = useRef(onEnded);
 
   useEffect(() => {
     spotifyPositionRef.current = 0;
@@ -127,7 +129,8 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
     onPauseRef.current = onPause;
     onReadyRef.current = onReady;
     onErrorRef.current = onError;
-  }, [onPlay, onPause, onReady, onError]);
+    onEndedRef.current = onEnded;
+  }, [onPlay, onPause, onReady, onError, onEnded]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const guard = (fn: ((...args: any[]) => void) | undefined) => (...args: any[]) => {
@@ -207,15 +210,15 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
             events: {
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               onStateChange: (event: any) => {
-                if (event.data === window.YT.PlayerState.PLAYING) {
-                  guard(onPlayRef.current)();
-                } else if (
-                  event.data === window.YT.PlayerState.PAUSED ||
-                  event.data === window.YT.PlayerState.ENDED
-                ) {
-                  guard(onPauseRef.current)();
-                }
-              },
+                  if (event.data === window.YT.PlayerState.PLAYING) {
+                    guard(onPlayRef.current)();
+                  } else if (event.data === window.YT.PlayerState.PAUSED) {
+                    guard(onPauseRef.current)();
+                  } else if (event.data === window.YT.PlayerState.ENDED) {
+                    guard(onPauseRef.current)();
+                    guard(onEndedRef.current)();
+                  }
+                },
               onReady: () => guard(onReadyRef.current)(),
             },
           });
@@ -274,12 +277,15 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
 
                 if (!isPaused && position > 0 && !shouldAutoPause) {
                   guard(onPlayRef.current)();
-                } else if (isPaused || position === duration || shouldAutoPause) {
+                } else if (isPaused || shouldAutoPause) {
                   guard(onPauseRef.current)();
                   if (shouldAutoPause && !isPaused) {
                     hasAutoPausedAtCutoffRef.current = true;
                     EmbedController.pause();
                   }
+                } else if (position > 0 && position === duration) {
+                  guard(onPauseRef.current)();
+                  guard(onEndedRef.current)();
                 }
               });
               EmbedController.on("ready", () => guard(onReadyRef.current)());
@@ -366,7 +372,10 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
           src={url}
           onPlay={() => guard(onPlayRef.current)()}
           onPause={() => guard(onPauseRef.current)()}
-          onEnded={() => guard(onPauseRef.current)()}
+          onEnded={() => {
+            guard(onPauseRef.current)();
+            guard(onEndedRef.current)();
+          }}
           onCanPlay={() => guard(onReadyRef.current)()}
           className={styles.audio}
           controls={!isHidden}

@@ -79,8 +79,15 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
   const onPlayerPause = useCallback(() => {
     setIsTimerActive(false);
     setIsPlaying(false);
-    setSecondsRemaining(getRequiredTime());
-  }, [getRequiredTime]);
+    // REMOVED: setSecondsRemaining(getRequiredTime());
+    // We don't reset the timer on pause anymore, allowing users to resume.
+  }, []);
+
+  const onPlayerEnded = useCallback(() => {
+    setIsTimerActive(false);
+    setIsPlaying(false);
+    setSecondsRemaining(0);
+  }, []);
 
   const resetSongState = useCallback(() => {
     setSecondsRemaining(getRequiredTime());
@@ -113,7 +120,12 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
     }
     resetSongState();
     setCurrentIndex((prev) => {
-      const nextIndex = (prev + 1) % songs.length;
+      if (songs.length <= 1) return prev;
+      let nextIndex = prev;
+      // Pick a random index that isn't the current one
+      while (nextIndex === prev) {
+        nextIndex = Math.floor(Math.random() * songs.length);
+      }
       return nextIndex;
     });
   };
@@ -206,6 +218,7 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
                   url={currentSong.url}
                   onPlay={onPlayerPlay}
                   onPause={onPlayerPause}
+                  onEnded={onPlayerEnded}
                   onReady={() => setIsBuffering(false)}
                   onError={onPlayerError}
                   isHidden={isHiddenPlayer}
@@ -245,8 +258,8 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
           )}
 
           {(songs.length > 1 || hasRatedCurrent) && (
-            <button 
-              className={styles.btnSkip} 
+            <button
+              className={styles.btnSkip}
               onClick={hasRatedCurrent ? handleRemoveCurrent : handleSkip}
             >
               {hasRatedCurrent ? "שיר הבא" : "דלג"}
@@ -263,9 +276,9 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
               isDisabled={!isBypassTimer && secondsRemaining > 0}
               disabledMessage={
                 isBypassTimer ? "" : (
-                  !isTimerActive
-                    ? `אנא הקשיבו לשיר לפחות ${getRequiredTime()} שניות לפני שליחת פידבק`
-                    : `ניתן לשלוח פידבק בעוד ${secondsRemaining} שניות...`
+                  secondsRemaining >= getRequiredTime()
+                    ? `אנא הקשיבו לשיר לפחות ${getRequiredTime()} שניות לפני שליחת פידבק (אנונימי)`
+                    : `ניתן לשלוח פידבק בעוד ${secondsRemaining} שניות${!isTimerActive ? " (מושהה)" : "..."}`
                 )
               }
               onSuccess={() => {

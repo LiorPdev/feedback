@@ -4,6 +4,7 @@ import FeedContainer from "../FeedContainer";
 import styles from "../feed.module.css";
 import { notFound } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
+export const dynamic = "force-dynamic";
 import DashboardLink from "@/components/DashboardLink";
 import { UserCheck } from "lucide-react";
 

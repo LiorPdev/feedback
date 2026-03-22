@@ -2,6 +2,7 @@ import { getFeedSongs } from "@/app/actions/songs";
 import FeedContainer from "./FeedContainer";
 import styles from "./feed.module.css";
 import { auth } from "@clerk/nextjs/server";
+export const dynamic = "force-dynamic";
 
 export default async function GiveFeedbackFeedPage() {
   const result = await getFeedSongs();

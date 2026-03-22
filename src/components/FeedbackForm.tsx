@@ -187,8 +187,13 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
               </label>
               <div
                 className={styles.stars}
-                onTouchStart={(e) => handleTouch(e, cat.key)}
+                onTouchStart={(e) => {
+                  handleTouch(e, cat.key);
+                  window.dispatchEvent(new CustomEvent("star-hover-start"));
+                }}
                 onTouchMove={(e) => handleTouch(e, cat.key)}
+                onTouchEnd={() => window.dispatchEvent(new CustomEvent("star-hover-end"))}
+                onTouchCancel={() => window.dispatchEvent(new CustomEvent("star-hover-end"))}
               >
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button
@@ -196,6 +201,8 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
                     type="button"
                     className={`${styles.starBtn} ${ratings[cat.key] >= star ? styles.starFilled : ""}`}
                     onClick={() => handleRating(cat.key, star)}
+                    onMouseEnter={() => window.dispatchEvent(new CustomEvent("star-hover-start"))}
+                    onMouseLeave={() => window.dispatchEvent(new CustomEvent("star-hover-end"))}
                   >
                     <Star
                       size={18 + (star - 1) * 1.5}
@@ -225,8 +232,12 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
             </div>
           </div>
           <div className={styles.commentFooterRow}>
-            <div className={styles.commentFooter}>
-              קרדיט: קבלו {REWARD_LYRICS} <Music size={12} /> עבור כל דירוג ו-{REWARD_COMMENT} <Music size={12} /> עבור ההסבר
+            <div
+              className={styles.commentFooter}
+              onMouseEnter={() => window.dispatchEvent(new CustomEvent("star-hover-start"))}
+              onMouseLeave={() => window.dispatchEvent(new CustomEvent("star-hover-end"))}
+            >
+              <Music size={12} /> קבלו קרדיט {REWARD_LYRICS}  עבור כל דירוג ו-{REWARD_COMMENT} נק' עבור ההסבר <Music size={12} />
             </div>
           </div>
         </div>

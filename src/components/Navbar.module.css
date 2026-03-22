@@ -115,6 +115,13 @@
   transform: scale(1.05);
 }
 
+.tokenDisplay.starHoverGlow {
+  box-shadow: 0 0 20px color-mix(in srgb, #ff4d4d, transparent 30%);
+  border-color: #ff4d4d;
+  background: color-mix(in srgb, var(--brand-primary), transparent 90%);
+  transform: translateY(-1px) scale(1.01);
+}
+
 .tokenIcon {
   color: inherit;
   display: flex;

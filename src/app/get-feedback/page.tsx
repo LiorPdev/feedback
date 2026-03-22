@@ -373,6 +373,10 @@ export default function GetFeedback() {
           <button
             type="submit"
             className={styles.submitBtn}
+            onMouseEnter={() => window.dispatchEvent(new CustomEvent("star-hover-start"))}
+            onMouseLeave={() => window.dispatchEvent(new CustomEvent("star-hover-end"))}
+            onTouchStart={() => window.dispatchEvent(new CustomEvent("star-hover-start"))}
+            onTouchEnd={() => window.dispatchEvent(new CustomEvent("star-hover-end"))}
             disabled={
               status === "loading" ||
               (submissionType === "link" ? (!songLink || !isSupportedLink) : (!songFile || !!fileError)) ||

@@ -8,6 +8,7 @@ export const users = sqliteTable('User', {
     provider: text('provider'),
     providerId: text('providerId').unique(),
     tokens: integer('tokens').default(100).notNull(),
+    userRank: integer('userRank').default(1).notNull(),
     createdAt: text('createdAt').notNull().$defaultFn(() => new Date().toISOString()),
     updatedAt: text('updatedAt').notNull().$defaultFn(() => new Date().toISOString()),
 });
