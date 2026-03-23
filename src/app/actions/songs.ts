@@ -135,6 +135,7 @@ export async function addFeedback(data: {
 
         // Revalidate both views to show the new feedback and updated tokens in dashboard
         revalidatePath('/dashboard');
+        revalidatePath('/give-feedback');
         revalidatePath('/give-feedback/[slug]', 'page');
         revalidatePath('/show-feedback/[slug]', 'page');
 

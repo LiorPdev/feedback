@@ -55,6 +55,7 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
   const [isBuffering, setIsBuffering] = useState(false);
   const [hasRatedCurrent, setHasRatedCurrent] = useState(!!initialFeedback);
   const [userFeedback, setUserFeedback] = useState<Feedback | null>(initialFeedback || null);
+  const [justSubmitted, setJustSubmitted] = useState(false);
   const [playerError, setPlayerError] = useState<string | null>(null);
   const playerRef = useRef<UrlPlayerHandle>(null);
 
@@ -108,6 +109,7 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
     setIsPlaying(false);
     setIsBuffering(false);
     setHasRatedCurrent(false);
+    setJustSubmitted(false);
     setPlayerError(null);
   }, [getRequiredTime]);
 
@@ -316,7 +318,10 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
                 )
               }
               onSuccess={(feedback) => {
-                if (feedback) setUserFeedback(feedback);
+                if (feedback) {
+                  setUserFeedback(feedback);
+                  setJustSubmitted(true);
+                }
                 setTimeout(() => {
                   if (feedback && isPlaying) {
                     setHasRatedCurrent(true);
@@ -332,7 +337,7 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
             <div className={styles.ratedContainer}>
               <div className={styles.ratedHeader}>
                 <CheckCircle2 size={18} />
-                <span>כבר נתת פידבק על השיר 👑</span>
+                <span>{justSubmitted ? "תודה! הפידבק שלך נשמר" : "כבר נתת פידבק על השיר 👑"}</span>
               </div>
 
               <div className={styles.ratedGrid}>
