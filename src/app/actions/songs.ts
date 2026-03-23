@@ -91,6 +91,7 @@ export async function addFeedback(data: {
     overall: number;
     comment: string;
     playedSeconds?: number;
+    listenCredits?: number;
 }) {
     const clerkUser = await currentUser();
     if (!clerkUser) {
@@ -124,6 +125,7 @@ export async function addFeedback(data: {
         if (data.production > 0) reward += REWARD_PRODUCTION;
         if (data.overall > 0) reward += REWARD_OVERALL;
         if (data.comment.trim().length >= MIN_COMMENT_LENGTH) reward += REWARD_COMMENT;
+        if (data.listenCredits) reward += data.listenCredits;
 
         // Grant credits
         await db.update(users)

@@ -164,7 +164,13 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
             controller.togglePlay();
           }
         } else if (isAudio && audioRef.current) {
-          audioRef.current.play();
+          const playPromise = audioRef.current.play();
+          if (playPromise !== undefined) {
+            playPromise.catch((e) => {
+              logAction({ message: "Audio play promise rejected", data: e?.message || e, source: "UrlPlayer.tsx:play" });
+              if (onErrorRef.current) guard(onErrorRef.current)(e);
+            });
+          }
         }
       } catch (e) {
         logAction({ message: "Play error", data: e, source: "UrlPlayer.tsx:play" });

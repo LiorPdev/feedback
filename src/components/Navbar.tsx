@@ -9,6 +9,7 @@ import ContactModal from "./ContactModal";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { getUserTokens } from "@/app/actions/songs";
+import { REWARD_OVERALL, REWARD_COMMENT, SONG_SUBMISSION_COST } from "@/lib/constants";
 import styles from "./Navbar.module.css";
 import AnimatedTokenCounter from "./AnimatedTokenCounter";
 
@@ -149,7 +150,8 @@ export default function Navbar() {
                         <HelpCircle size={18} className={styles.helpIcon} />
                         <h3>איך עובד מנגנון הקרדיטים?</h3>
                       </div>
-                      <p>העלאת שיר חדש עושה שימוש בקרדיטים. כדי לקבל קרדיטים נוספים, פשוט תנו פידבק אמיתי ובונה לשירים של יוצרים אחרים בקהילה.</p>
+                      <p>העלאת שיר חדש עושה שימוש ב {SONG_SUBMISSION_COST} תווי קרדיט. כדי לקבל קרדיטים נוספים, פשוט תנו פידבק אמיתי ובונה לשירים של יוצרים אחרים בקהילה.</p>
+                      <p style={{ marginTop: "5px" }}>על כל דירוג קטגוריה תקבלו {REWARD_OVERALL} תווי קרדיט, ועל הוספת הסבר תקבלו {REWARD_COMMENT} תווי קרדיט נוספים.</p>
                       <div className={styles.popupArrow} />
                     </motion.div>
                   )}

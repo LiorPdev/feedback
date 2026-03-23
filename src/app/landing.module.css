@@ -132,6 +132,9 @@
   box-shadow: var(--shadow-lg);
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
 }
 
 .btnPrimary:hover {
@@ -152,6 +155,9 @@
   box-shadow: var(--shadow);
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
 }
 
 .btnSecondary:hover {
@@ -328,6 +334,10 @@
     scroll-snap-align: center;
     padding: 2rem;
     box-shadow: var(--shadow);
+  }
+
+  .featureIcon {
+    display: none;
   }
 
   .sectionTitle {

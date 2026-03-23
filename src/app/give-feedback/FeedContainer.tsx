@@ -55,6 +55,7 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
   const [isBuffering, setIsBuffering] = useState(false);
   const [hasRatedCurrent, setHasRatedCurrent] = useState(!!initialFeedback);
   const [userFeedback, setUserFeedback] = useState<Feedback | null>(initialFeedback || null);
+  const [playerError, setPlayerError] = useState<string | null>(null);
   const playerRef = useRef<UrlPlayerHandle>(null);
 
   const embedUrl = currentSong ? getEmbedUrl(currentSong.url) : null;
@@ -87,6 +88,7 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
     setIsTimerActive(true);
     setIsPlaying(true);
     setIsBuffering(false);
+    setPlayerError(null);
   }, []);
 
   const onPlayerPause = useCallback(() => {
@@ -106,6 +108,7 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
     setIsPlaying(false);
     setIsBuffering(false);
     setHasRatedCurrent(false);
+    setPlayerError(null);
   }, [getRequiredTime]);
 
   const onPlayerError = useCallback((error: unknown) => {
@@ -120,6 +123,14 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
     });
     setIsBuffering(false);
     setIsPlaying(false);
+    
+    // Provide a human-readable error based on typical browser NotSupported/NotAllowed errors
+    const errStr = (error as Error)?.message || String(error);
+    if (errStr.includes("NotSupportedError") || errStr.includes("no supported sources")) {
+      setPlayerError("לא ניתן לנגן קובץ זה - ייתכן שהפורמט אינו נתמך או שהקובץ פגום.");
+    } else {
+      setPlayerError("שגיאה בטעינת הנגן. אנא נסו לרענן או לעבור לשיר הבא.");
+    }
   }, [currentSong?.url]);
 
   const handleSkip = () => {
@@ -237,6 +248,11 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
               )}
             </motion.div>
           </AnimatePresence>
+          {playerError && (
+            <div className={styles.errorMsg} style={{ marginTop: '0.5rem', textAlign: 'center' }}>
+              {playerError}
+            </div>
+          )}
         </div>
 
         <div className={styles.actions}>
@@ -286,6 +302,7 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
               songId={currentSong.id}
               key={currentSong.id}
               getPlayedSeconds={getPlayedSeconds}
+              isPlaying={isPlaying}
               isDisabled={!isBypassTimer && secondsRemaining > 0}
               disabledMessage={
                 isBypassTimer ? "" : (
@@ -311,7 +328,7 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
             <div className={styles.ratedContainer}>
               <div className={styles.ratedHeader}>
                 <CheckCircle2 size={18} />
-                <span>נראה שכבר נתת פידבק על השיר 👑</span>
+                <span>כבר נתת פידבק על השיר 👑</span>
               </div>
 
               <div className={styles.ratedGrid}>

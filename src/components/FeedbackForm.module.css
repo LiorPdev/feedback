@@ -98,20 +98,20 @@
   min-height: 90px;
   padding: 1rem;
   border-radius: 16px;
-  border: 1.5px solid var(--border-color);
+  border: 2.5px solid var(--border-color);
   font-family: inherit;
   font-size: 1rem;
   transition: all 0.2s ease;
   resize: vertical;
-  background: var(--bg-section);
+  background: white;
   box-sizing: border-box;
 }
 
 .textarea:focus {
   outline: none;
-  border-color: var(--brand-primary);
+  border-color: color-mix(in srgb, var(--brand-primary), transparent 85%);
   background: white;
-  box-shadow: 0 0 0 4px var(--brand-light);
+  box-shadow: 0 0 0 1px var(--brand-light);
 }
 
 

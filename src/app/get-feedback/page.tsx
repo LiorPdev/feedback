@@ -272,7 +272,7 @@ export default function GetFeedback() {
                                 rel="noopener noreferrer"
                                 className={styles.previewLink}
                               >
-                                צפייה ביוטיוב
+                                בדיקה
                               </a>
                             </div>
                           </div>

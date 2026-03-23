@@ -11,9 +11,9 @@ export const GENRES = [
 ];
 
 export const INITIAL_TOKENS = 100;
-export const SONG_SUBMISSION_COST = 50;
+export const SONG_SUBMISSION_COST = 80;
 
-export const REWARD_LYRICS = 4;
+export const REWARD_LYRICS = 2;
 export const REWARD_COMPOSITION = 2;
 export const REWARD_PRODUCTION = 2;
 export const REWARD_OVERALL = 2;

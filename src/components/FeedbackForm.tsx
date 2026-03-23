@@ -23,11 +23,12 @@ interface FeedbackFormProps {
   songId: string;
   onSuccess?: (feedback?: SubmittedFeedback) => void;
   getPlayedSeconds?: () => Promise<number>;
+  isPlaying?: boolean;
   isDisabled?: boolean;
   disabledMessage?: string;
 }
 
-export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDisabled, disabledMessage }: FeedbackFormProps) {
+export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isPlaying, isDisabled, disabledMessage }: FeedbackFormProps) {
   const { isLoaded, isSignedIn } = useUser();
   const [ratings, setRatings] = useState({
     lyrics: 0,
@@ -72,6 +73,41 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
       setFlyers(prev => prev.filter(f => f.id !== id));
     }, 2000);
   }, []);
+
+  const [listenCredits, setListenCredits] = useState(0);
+  const playRewardGivenRef = useRef(false);
+  const playTimeSecondsRef = useRef(0);
+
+  useEffect(() => {
+    if (isPlaying && !playRewardGivenRef.current) {
+      playRewardGivenRef.current = true;
+      setListenCredits(prev => prev + 1);
+      
+      if (bucketRef.current) {
+        const bucketRect = bucketRef.current.getBoundingClientRect();
+        triggerFlyer(bucketRect.left + bucketRect.width/2, bucketRect.top - 80, 1, bucketRect.left + bucketRect.width/2, bucketRect.top + bucketRect.height/2);
+      }
+    }
+
+    let interval: NodeJS.Timeout;
+    if (isPlaying) {
+      interval = setInterval(() => {
+        playTimeSecondsRef.current += 1;
+        
+        if (playTimeSecondsRef.current >= 5) {
+          playTimeSecondsRef.current = 0; // Reset for the next 5s block
+          setListenCredits(prev => prev + 1);
+          
+          if (bucketRef.current) {
+            const bucketRect = bucketRef.current.getBoundingClientRect();
+            triggerFlyer(bucketRect.left + bucketRect.width/2, bucketRect.top - 80, 1, bucketRect.left + bucketRect.width/2, bucketRect.top + bucketRect.height/2);
+          }
+        }
+      }, 1000);
+    }
+    
+    return () => clearInterval(interval);
+  }, [isPlaying, triggerFlyer]);
 
   // Form resets automatically when song changes because key={songId} is used in parent
 
@@ -168,6 +204,7 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
         overall: ratings.overall,
         comment: commentTrimmed,
         playedSeconds,
+        listenCredits,
       });
 
       if (result.success) {
@@ -210,7 +247,7 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
   const earnedFromCategories = categories.reduce((sum, cat) => sum + (ratings[cat.key] > 0 ? cat.reward : 0), 0);
   const commentLength = comment.trim().length;
   const hasValidComment = commentLength >= MIN_COMMENT_LENGTH;
-  const currentCredits = earnedFromCategories + (hasValidComment ? REWARD_COMMENT : 0);
+  const currentCredits = earnedFromCategories + (hasValidComment ? REWARD_COMMENT : 0) + listenCredits;
 
   if (!isLoaded) {
     return (
@@ -245,7 +282,7 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
             {categories.map((cat) => (
               <div key={cat.key} className={styles.ratingGroup}>
                 <label className={styles.ratingLabel}>
-                  {cat.name} <span className={styles.labelPoints}>(+{cat.reward})</span>
+                  {cat.name}
                 </label>
                 <div
                   className={styles.stars}
@@ -274,7 +311,7 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
             <div className={styles.textareaWrapper}>
               <textarea
                 className={styles.textarea}
-                placeholder={`נסו להוסיף כמה מילים על מה שאהבתם או מה כדאי לנו לשפר`}
+                placeholder={`נסו להוסיף כמה מילים על מה שאהבתם או מה כדאי לשפר`}
                 value={comment}
                 onChange={(e) => {
                   const newValue = e.target.value;
@@ -291,7 +328,7 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
                 }}
               />
               <div className={`${styles.charCounter} ${comment.length === 0 ? "" : (comment.length < MIN_COMMENT_LENGTH ? styles.charCounterLow : styles.charCounterValid)}`}>
-                <span className={styles.labelPoints}>(+{REWARD_COMMENT})</span> ({comment.length}/{MIN_COMMENT_LENGTH})
+                ({comment.length}/{MIN_COMMENT_LENGTH})
               </div>
             </div>
           </div>
