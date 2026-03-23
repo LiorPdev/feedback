@@ -1,11 +1,12 @@
 "use client";
+import { SignedIn } from "@clerk/nextjs";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "./feed.module.css";
 import FeedbackForm from "@/components/FeedbackForm";
 import UrlPlayer, { getEmbedUrl, type UrlPlayerHandle } from "@/components/UrlPlayer";
 import DashboardLink from "@/components/DashboardLink";
-import { Play, Pause, ArrowRight } from "lucide-react";
+import { Play, Pause, ArrowRight, CheckCircle2, Star } from "lucide-react";
 import Link from "next/link";
 import { MIN_LISTEN_TIME, MIN_LISTEN_TIME_SPOTIFY_MOBILE, SUCCESS_MESSAGE_DURATION } from "@/lib/constants";
 import { logAction } from "@/app/actions/logs";
@@ -21,11 +22,22 @@ interface Song {
   };
 }
 
-interface FeedContainerProps {
-  initialSongs: Song[];
+interface Feedback {
+  id: string;
+  lyrics: number;
+  composition: number;
+  production: number;
+  overall: number;
+  comment: string;
+  createdAt: string;
 }
 
-export default function FeedContainer({ initialSongs }: FeedContainerProps) {
+interface FeedContainerProps {
+  initialSongs: Song[];
+  initialFeedback?: Feedback | null;
+}
+
+export default function FeedContainer({ initialSongs, initialFeedback }: FeedContainerProps) {
   const [songs, setSongs] = useState(initialSongs);
   const [currentIndex, setCurrentIndex] = useState(0);
   const currentSong = songs[currentIndex];
@@ -41,7 +53,8 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isBuffering, setIsBuffering] = useState(false);
-  const [hasRatedCurrent, setHasRatedCurrent] = useState(false);
+  const [hasRatedCurrent, setHasRatedCurrent] = useState(!!initialFeedback);
+  const [userFeedback, setUserFeedback] = useState<Feedback | null>(initialFeedback || null);
   const playerRef = useRef<UrlPlayerHandle>(null);
 
   const embedUrl = currentSong ? getEmbedUrl(currentSong.url) : null;
@@ -79,8 +92,6 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
   const onPlayerPause = useCallback(() => {
     setIsTimerActive(false);
     setIsPlaying(false);
-    // REMOVED: setSecondsRemaining(getRequiredTime());
-    // We don't reset the timer on pause anymore, allowing users to resume.
   }, []);
 
   const onPlayerEnded = useCallback(() => {
@@ -257,14 +268,16 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
             </button>
           )}
 
-          {(songs.length > 1 || hasRatedCurrent) && (
-            <button
-              className={styles.btnSkip}
-              onClick={hasRatedCurrent ? handleRemoveCurrent : handleSkip}
-            >
-              {hasRatedCurrent ? "שיר הבא" : "דלג"}
-            </button>
-          )}
+          <SignedIn>
+            {(songs.length > 1 || hasRatedCurrent) && (
+              <button
+                className={styles.btnSkip}
+                onClick={hasRatedCurrent ? handleRemoveCurrent : handleSkip}
+              >
+                {hasRatedCurrent ? "שיר הבא" : "דלג"}
+              </button>
+            )}
+          </SignedIn>
         </div>
 
         <div className={styles.feedbackSection}>
@@ -281,7 +294,8 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
                     : `ניתן לשלוח פידבק בעוד ${secondsRemaining} שניות${!isTimerActive ? " (מושהה)" : "..."}`
                 )
               }
-              onSuccess={() => {
+              onSuccess={(feedback) => {
+                if (feedback) setUserFeedback(feedback);
                 setTimeout(() => {
                   if (isPlaying) {
                     setHasRatedCurrent(true);
@@ -292,9 +306,46 @@ export default function FeedContainer({ initialSongs }: FeedContainerProps) {
               }}
             />
           )}
-          {hasRatedCurrent && (
-            <div className={styles.successMessageInline}>
-              <p>הפידבק נשלח בהצלחה! ניתן להמשיך להאזין או לעבור לשיר הבא.</p>
+
+          {hasRatedCurrent && userFeedback && (
+            <div className={styles.ratedContainer}>
+              <div className={styles.ratedHeader}>
+                <CheckCircle2 size={18} />
+                <span>נראה שכבר נתת פידבק על השיר 👑</span>
+              </div>
+
+              <div className={styles.ratedGrid}>
+                {[
+                  { label: "מילים", value: userFeedback.lyrics },
+                  { label: "לחן", value: userFeedback.composition },
+                  { label: "ביצוע", value: userFeedback.production },
+                  { label: "כללי", value: userFeedback.overall },
+                ].map((item, idx) => (
+                  <div key={idx} className={styles.ratedItem}>
+                    <span className={styles.ratedLabel}>{item.label}</span>
+                    <div className={styles.ratedStars}>
+                      {[1, 2, 3, 4, 5].map(star => (
+                        <Star
+                          key={star}
+                          size={14}
+                          fill={item.value >= star ? "currentColor" : "none"}
+                          strokeWidth={2}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {userFeedback.comment && (
+                <div className={styles.ratedComment}>
+                  {userFeedback.comment}
+                </div>
+              )}
+
+              <div className={styles.successMessageInline} style={{ marginTop: '1.5rem' }}>
+                <p>הפידבק נשמר במערכת. ניתן להמשיך להאזין או לעבור לשיר הבא.</p>
+              </div>
             </div>
           )}
         </div>

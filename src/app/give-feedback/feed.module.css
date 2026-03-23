@@ -116,7 +116,7 @@
 
 .btnPlay {
   padding: 0.8rem 1.5rem;
-  background: var(--brand-primary);
+  background: color-mix(in srgb, var(--brand-primary), transparent 15%);
   color: white;
   border: none;
   border-radius: 100px;
@@ -204,8 +204,72 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ratedContainer {
+  width: 100%;
+  background: var(--bg-section);
+  padding: 1.5rem;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  margin-top: 1rem;
+  text-align: right;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.ratedHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 1.25rem;
+  color: #166534;
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+.ratedGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.ratedItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ratedLabel {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.ratedStars {
+  display: flex;
+  gap: 2px;
+  color: #fbbf24;
+}
+
+.ratedComment {
+  background: var(--card-bg);
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text-main);
+  white-space: pre-wrap;
 }
 
 .emptyState {

@@ -32,7 +32,7 @@ export default function NotFound() {
 
       <h1 style={{ fontSize: "2.5rem", fontWeight: "900", margin: 0 }}>הקישור לא נמצא</h1>
       <p style={{ color: "var(--text-muted)", fontSize: "1.1rem", maxWidth: "400px", lineHeight: "1.6" }}>
-        ייתכן שהקישור שבור או שהשיר הוסר.
+        ייתכן שהקישור לא תקין או שהשיר הוסר.
       </p>
 
       <Link href="/" style={{

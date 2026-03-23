@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Music } from "lucide-react";
 import SongCard from "@/components/SongCard";
 import styles from "./dashboard.module.css";
-
+import { logAction } from "@/app/actions/logs";
 
 export default async function DashboardPage({
   searchParams
@@ -35,10 +35,23 @@ export default async function DashboardPage({
     });
   } catch (err: unknown) {
     const error = err as Error;
+    await logAction({
+      message: "Dashboard Database Error",
+      data: {
+        error: error.message,
+        stack: error.stack,
+        userId: clerkUser.id
+      },
+      source: "dashboard/page.tsx"
+    });
+
     return (
-      <div style={{ padding: '2rem', color: 'red', direction: 'ltr' }}>
-        <h2>Database Error Detected</h2>
-        <pre>{error.stack || error.message || String(err)}</pre>
+      <div className={styles.container}>
+        <div className={styles.dbError}>
+          <h2>אופס, משהו השתבש</h2>
+          <p>נתקלנו בבעיה בטעינת הנתונים שלך. השגיאה דווחה למערכת ואנו נטפל בה מייד.</p>
+          <Link href="/" className={styles.emptyBtn}>חזרה לדף הבית</Link>
+        </div>
       </div>
     );
   }
@@ -67,7 +80,7 @@ export default async function DashboardPage({
         {user.songs.length === 0 ? (
           <div className={styles.emptyState}>
             <Music size={48} className={styles.emptyIcon} />
-            <p>לא נשלחו עדיין שירים לקבלת פידבק מהקהילה</p>
+            <p>לא נשלח עדיין אף שיר לקבלת פידבק מהקהילה</p>
             <Link href="/get-feedback" className={styles.emptyBtn}>
               שלחו את השיר הראשון שלכם
             </Link>

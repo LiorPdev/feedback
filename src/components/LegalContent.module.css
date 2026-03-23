@@ -1,7 +1,7 @@
 .container {
-  min-height: calc(100vh - 55px);
+  min-height: 100vh;
   padding: 20px 20px 60px;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  background-color: var(--bg-section);
   direction: rtl;
   display: flex;
   flex-direction: column;
@@ -16,21 +16,21 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  color: #64748b;
+  color: var(--text-muted);
   text-decoration: none;
   font-weight: 500;
   transition: color 0.2s;
 }
 
 .backLink:hover {
-  color: #1e293b;
+  color: var(--text-main);
 }
 
 .card {
-  background: white;
+  background: var(--card-bg);
   padding: 50px 40px;
   border-radius: 24px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-md);
   max-width: 800px;
   width: 100%;
 }
@@ -38,16 +38,16 @@
 .title {
   font-size: 32px;
   font-weight: 800;
-  color: #1e293b;
+  color: var(--text-main);
   margin-bottom: 20px;
-  border-bottom: 4px solid #fde68a;
+  border-bottom: 4px solid var(--brand-primary); /* Using brand primary for consistent accent */
   display: inline-block;
   padding-bottom: 5px;
 }
 
 .intro {
   font-size: 18px;
-  color: #475569;
+  color: var(--text-muted);
   line-height: 1.6;
   margin-bottom: 40px;
 }
@@ -61,13 +61,13 @@
 .sectionTitle {
   font-size: 20px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text-main);
   margin-bottom: 15px;
 }
 
 .sectionContent {
   font-size: 16px;
-  color: #475569;
+  color: var(--text-muted);
   line-height: 1.8;
   white-space: pre-line;
 }

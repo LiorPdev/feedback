@@ -6,7 +6,7 @@ import Link from "next/link";
 import DeleteSongButton from "@/components/DeleteSongButton";
 import EditSongButton from "@/components/EditSongButton";
 import ShareSongButton from "@/components/ShareSongButton";
-import styles from "@/app/dashboard/dashboard.module.css";
+import styles from "./SongCard.module.css";
 
 interface SongCardProps {
   song: {

@@ -68,7 +68,8 @@
   font-size: 0.9rem;
 }
 
-.input, .select {
+.input,
+.select {
   padding: 0.8rem 1rem;
   border-radius: 12px;
   border: 1px solid var(--border-color);
@@ -80,7 +81,8 @@
   box-sizing: border-box;
 }
 
-.input:focus, .select:focus {
+.input:focus,
+.select:focus {
   outline: none;
   border-color: var(--brand-primary);
   box-shadow: 0 0 0 3px var(--brand-light);
@@ -92,7 +94,8 @@
   margin-top: 1rem;
 }
 
-.cancelBtn, .saveBtn {
+.cancelBtn,
+.saveBtn {
   flex: 1;
   padding: 1rem;
   border-radius: 14px;
@@ -113,7 +116,7 @@
 }
 
 .saveBtn {
-  background: var(--brand-primary);
+  background: color-mix(in srgb, var(--brand-primary), transparent 15%);
   color: white;
   border: none;
   display: flex;
@@ -137,6 +140,11 @@
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }

@@ -9,9 +9,19 @@ import { REWARD_LYRICS, REWARD_COMPOSITION, REWARD_PRODUCTION, REWARD_OVERALL, R
 import styles from "./FeedbackForm.module.css";
 import AnimatedTokenCounter from "./AnimatedTokenCounter";
 
+interface SubmittedFeedback {
+  id: string;
+  lyrics: number;
+  composition: number;
+  production: number;
+  overall: number;
+  comment: string;
+  createdAt: string;
+}
+
 interface FeedbackFormProps {
   songId: string;
-  onSuccess?: () => void;
+  onSuccess?: (feedback?: SubmittedFeedback) => void;
   getPlayedSeconds?: () => Promise<number>;
   isDisabled?: boolean;
   disabledMessage?: string;
@@ -185,7 +195,7 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
           overall: 0,
         });
         setComment("");
-        onSuccess?.();
+        onSuccess?.(result.feedback);
         // Dispatch custom event to notify Navbar or other components
         window.dispatchEvent(new CustomEvent("tokens-updated"));
       } else {
@@ -205,103 +215,89 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
   if (!isLoaded) {
     return (
       <div className={styles.form}>
-        <div className={styles.spinner} style={{ margin: '2rem auto' }} />
-      </div>
-    );
-  }
-
-  if (!isSignedIn) {
-    return (
-      <div className={styles.form}>
-        <div className={styles.authPrompt}>
-          <h2 className={styles.heading}>רוצים לתת פידבק?</h2>
-          <p className={styles.subHeading} style={{ textAlign: 'center', marginBottom: '1.5rem', color: '#64748B' }}>
-            כדי שלא נציג לך שוב ושוב שירים שכבר דירגת, וכדי לשמור על איכות הקהילה, יש להתחבר למערכת. אנחנו מתחייבים שהדירוגים שלך אנונימיים לחלוטין.          </p>
-          <SignInButton mode="modal">
-            <button className={styles.submitBtn}>
-              <LogIn size={18} />
-              <span>התחברות</span>
-            </button>
-          </SignInButton>
-        </div>
+        <div className={styles.spinner} />
       </div>
     );
   }
 
   return (
     <div className={styles.form}>
-      <AnimatePresence>
-        {status === "success" && (
-          <div className={styles.successOverlay}>
-            <motion.div
-              className={styles.successPopup}
-              initial={{ opacity: 0, y: 20, scale: 0.8 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
-            >
-              <CheckCircle2 size={20} className={styles.successIcon} />
-              <span>תודה על הפידבק שלך!</span>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      <form onSubmit={handleSubmit}>
-        <div className={styles.ratingGrid}>
-          {categories.map((cat) => (
-            <div key={cat.key} className={styles.ratingGroup}>
-              <label className={styles.ratingLabel}>
-                {cat.name} <span className={styles.labelPoints}>(+{cat.reward})</span>
-              </label>
-              <div
-                className={styles.stars}
-                onTouchMove={(e) => handleTouch(e, cat.key)}
+      {/* Container for the form that gets blurred when unauthenticated */}
+      <div className={!isSignedIn ? styles.blurred : ""}>
+        <AnimatePresence>
+          {status === "success" && (
+            <div className={styles.successOverlay}>
+              <motion.div
+                className={styles.successPopup}
+                initial={{ opacity: 0, y: 20, scale: 0.8 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
               >
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    type="button"
-                    className={`${styles.starBtn} ${ratings[cat.key] >= star ? styles.starFilled : ""}`}
-                    onClick={(e) => handleRating(cat.key, star, e)}
-                  >
-                    <Star
-                      size={18 + (star - 1) * 1.5}
-                      fill={ratings[cat.key] >= star ? "currentColor" : "none"}
-                      strokeWidth={1.5}
-                    />
-                  </button>
-                ))}
+                <CheckCircle2 size={20} className={styles.successIcon} />
+                <span>תודה על הפידבק שלך!</span>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        <form onSubmit={handleSubmit}>
+          <div className={styles.ratingGrid}>
+            {categories.map((cat) => (
+              <div key={cat.key} className={styles.ratingGroup}>
+                <label className={styles.ratingLabel}>
+                  {cat.name} <span className={styles.labelPoints}>(+{cat.reward})</span>
+                </label>
+                <div
+                  className={styles.stars}
+                  onTouchMove={(e) => handleTouch(e, cat.key)}
+                >
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      className={`${styles.starBtn} ${ratings[cat.key] >= star ? styles.starFilled : ""}`}
+                      onClick={(e) => handleRating(cat.key, star, e)}
+                    >
+                      <Star
+                        size={18 + (star - 1) * 1.5}
+                        fill={ratings[cat.key] >= star ? "currentColor" : "none"}
+                        strokeWidth={1.5}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className={styles.commentGroup}>
+            <div className={styles.textareaWrapper}>
+              <textarea
+                className={styles.textarea}
+                placeholder={`נסו להוסיף כמה מילים על מה שאהבתם או מה כדאי לנו לשפר`}
+                value={comment}
+                onChange={(e) => {
+                  const newValue = e.target.value;
+                  const wasValid = comment.trim().length >= MIN_COMMENT_LENGTH;
+                  const isValid = newValue.trim().length >= MIN_COMMENT_LENGTH;
+
+                  if (!wasValid && isValid) {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    triggerFlyer(rect.left + rect.width / 2, rect.top + rect.height / 2, REWARD_COMMENT);
+                  }
+
+                  setComment(newValue);
+                  if (status === "error") setStatus("idle");
+                }}
+              />
+              <div className={`${styles.charCounter} ${comment.length === 0 ? "" : (comment.length < MIN_COMMENT_LENGTH ? styles.charCounterLow : styles.charCounterValid)}`}>
+                <span className={styles.labelPoints}>(+{REWARD_COMMENT})</span> ({comment.length}/{MIN_COMMENT_LENGTH})
               </div>
             </div>
-          ))}
-        </div>
-
-        <div className={styles.commentGroup}>
-          <div className={styles.textareaWrapper}>
-            <textarea
-              className={styles.textarea}
-              placeholder={`נסו להוסיף כמה מילים על מה שאהבתם או מה שפחות`}
-              value={comment}
-              onChange={(e) => {
-                const newValue = e.target.value;
-                const wasValid = comment.trim().length >= MIN_COMMENT_LENGTH;
-                const isValid = newValue.trim().length >= MIN_COMMENT_LENGTH;
-
-                if (!wasValid && isValid) {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  triggerFlyer(rect.left + rect.width / 2, rect.top + rect.height / 2, REWARD_COMMENT);
-                }
-
-                setComment(newValue);
-                if (status === "error") setStatus("idle");
-              }}
-            />
-            <div className={`${styles.charCounter} ${comment.length === 0 ? "" : (comment.length < MIN_COMMENT_LENGTH ? styles.charCounterLow : styles.charCounterValid)}`}>
-              <span className={styles.labelPoints}>(+{REWARD_COMMENT})</span> ({comment.length}/{MIN_COMMENT_LENGTH})
-            </div>
           </div>
-          <div className={styles.commentFooterRow}>
-            <div className={styles.commentFooter}>
+
+          <div className={styles.submitWrapper}>
+            <div className={styles.bucketWrapper}>
               <div ref={bucketRef} style={{ display: 'inline-flex', position: 'relative' }}>
                 <AnimatePresence mode="popLayout">
                   <motion.div
@@ -334,32 +330,55 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isDi
                         strokeOpacity="0.2"
                       />
                     </svg>
-                    <span className={styles.bucketValue} style={{ top: '0px' }}>
+                    <span className={styles.bucketValue}>
                       +<AnimatedTokenCounter value={currentCredits} />
                     </span>
                   </motion.div>
                 </AnimatePresence>
               </div>
             </div>
+
+            <button
+              type="submit"
+              className={styles.submitBtn}
+              disabled={status === "loading" || isDisabled}
+            >
+              {status === "loading" ? (
+                <div className={styles.spinner} />
+              ) : (
+                <span>{isDisabled ? disabledMessage : "שליחת פידבק (אנונימי)"}</span>
+              )}
+            </button>
           </div>
-        </div>
 
-        <button
-          type="submit"
-          className={styles.submitBtn}
-          disabled={status === "loading" || isDisabled}
-        >
-          {status === "loading" ? (
-            <div className={styles.spinner} />
-          ) : (
-            <span>{isDisabled ? disabledMessage : "שליחת פידבק (אנונימי)"}</span>
+          {status === "error" && (
+            <div className={styles.error} style={{ marginTop: '1rem' }}>{errorMsg}</div>
           )}
-        </button>
+        </form>
+      </div>
 
-        {status === "error" && (
-          <div className={styles.error} style={{ marginTop: '1rem' }}>{errorMsg}</div>
-        )}
-      </form>
+      {/* Overlay for unauthenticated users */}
+      {!isSignedIn && (
+        <div className={styles.authOverlay}>
+          <motion.div
+            className={styles.authContent}
+            initial={{ opacity: 0, scale: 0.9, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+          >
+            <h2 className={styles.heading}>רוצים לתת פידבק?</h2>
+            <p className={styles.subHeading}>
+              כדי שלא נציג לך שוב ושוב שירים שכבר דירגת וכדי לשמור על איכות הקהילה, יש לבצע התחברות קצרה למערכת. אנחנו מתחייבים שהדירוגים שלך אנונימיים לחלוטין.
+            </p>
+            <SignInButton mode="modal">
+              <button className={styles.submitBtn}>
+                <LogIn size={18} />
+                <span>התחברות</span>
+              </button>
+            </SignInButton>
+          </motion.div>
+        </div>
+      )}
 
       {/* Flying Numbers Portal-like overlay */}
       <AnimatePresence>

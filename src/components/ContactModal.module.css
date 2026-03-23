@@ -83,7 +83,7 @@
   width: 100%;
   height: 160px;
   padding: 1rem;
-  padding-bottom: 2.5rem; /* Space for counter */
+  padding-bottom: 2.5rem;
   border: 1.5px solid var(--border-color);
   border-radius: 16px;
   resize: none;
@@ -125,7 +125,7 @@
 }
 
 .submitButton {
-  background: var(--brand-primary);
+  background: color-mix(in srgb, var(--brand-primary), transparent 15%);
   color: white;
   border: none;
   padding: 1rem;
@@ -156,8 +156,13 @@
 }
 
 @keyframes rotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .successMessage {

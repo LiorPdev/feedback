@@ -63,10 +63,24 @@ export default async function GiveFeedbackPage({ params }: GiveFeedbackPageProps
     );
   }
 
+  // Check for existing feedback
+  let initialFeedback = null;
+  if (userId) {
+    const existingFeedback = await db.query.feedbacks.findFirst({
+      where: (f, { eq, and }) => and(eq(f.songId, result.songs[0].id), eq(f.authorId, userId))
+    });
+    if (existingFeedback) {
+      initialFeedback = existingFeedback;
+    }
+  }
+
   return (
     <div className={styles.container}>
       <main className={styles.main}>
-        <FeedContainer initialSongs={result.songs} />
+        <FeedContainer 
+          initialSongs={result.songs} 
+          initialFeedback={initialFeedback}
+        />
       </main>
     </div>
   );

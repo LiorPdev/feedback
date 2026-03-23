@@ -1,8 +1,8 @@
 .footer {
   width: 100%;
   padding: 20px 0;
-  border-top: 1px solid #e2e8f0;
-  background-color: #f8fafc;
+  border-top: 1px solid var(--border-color);
+  background-color: var(--bg-section);
   direction: rtl;
   scroll-snap-align: start;
 }
@@ -19,7 +19,7 @@
 }
 
 .copyright {
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 14px;
 }
 
@@ -30,18 +30,18 @@
 }
 
 .link {
-  color: #1e293b;
+  color: var(--text-main);
   text-decoration: none;
   font-size: 14px;
   transition: color 0.2s;
 }
 
 .link:hover {
-  color: #2563eb;
+  color: var(--brand-primary);
 }
 
 .separator {
-  color: #cbd5e1;
+  color: var(--border-color);
   font-size: 12px;
 }
 

@@ -121,7 +121,7 @@
 }
 
 .btnPrimary {
-  background: var(--primary);
+  background: color-mix(in srgb, var(--brand-primary), transparent 15%);
   color: white;
   padding: 1rem 2rem;
   border-radius: 12px;
@@ -247,37 +247,7 @@
   line-height: 1.8;
 }
 
-/* Footer */
-.footer {
-  padding: 2rem 5vw;
-  background: transparent;
-  border-top: 1px solid var(--border-color);
-}
-
-.footerContent {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.copyright {
-  color: var(--text-muted);
-  font-size: 0.9rem;
-}
-
-.footerLink {
-  color: inherit;
-  text-decoration: none;
-  transition: opacity 0.2s;
-}
-
-.footerLink:hover {
-  opacity: 0.8;
-  text-decoration: underline;
-}
-
+/* Scroll Down Button */
 .scrollDownFab {
   position: absolute;
   bottom: 2.5rem;
@@ -390,14 +360,13 @@
     padding: 1.25rem;
     margin: 0 1rem;
   }
-}
-@media (max-width: 600px) {
+
   .features {
     padding-top: 2rem !important;
   }
+
   .sectionTitle {
     margin-bottom: 2rem !important;
     font-size: 2rem !important;
   }
 }
-

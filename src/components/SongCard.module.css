@@ -1,0 +1,139 @@
+.songCard {
+  position: relative;
+  background: var(--card-bg);
+  padding: 1.5rem;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.songCard:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--brand-light);
+}
+
+.songMain {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.songHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.songTitle {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin: 0;
+  color: var(--text-main);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.songStatus {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.genreTag {
+  background: var(--bg-section);
+  padding: 0.4rem 0.8rem;
+  border-radius: 100px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.songDate {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+  flex-shrink: 0;
+  padding-top: 0.25rem;
+}
+
+.songActions {
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.adminActions {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.viewLink {
+  color: var(--brand-contrast);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: opacity 0.2s;
+}
+
+/* Ensure the link covers the whole card but admin actions are clickable */
+.viewLink::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+}
+
+/* Wait, the ::after trick depends on the songCard being relative. 
+   In SongCard.tsx, the link is only part of songActions. 
+   If we want the whole card clickable, it should be structured differently. 
+   But I'll keep the current logic for now. */
+
+.viewLink:hover {
+  opacity: 0.8;
+}
+
+@keyframes highlightGlow {
+  0% {
+    box-shadow: 0 0 0 0 var(--brand-light);
+    border-color: var(--brand-primary);
+    opacity: 0.4;
+  }
+  50% {
+    box-shadow: 0 0 25px 5px var(--brand-light);
+    border-color: var(--brand-primary);
+    transform: scale(1.02);
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+    border-color: var(--border-color);
+  }
+}
+
+.newSongHighlight {
+  animation: highlightGlow 2.5s ease-out forwards;
+  z-index: 10;
+}

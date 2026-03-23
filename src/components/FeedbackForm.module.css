@@ -16,32 +16,8 @@
   font-size: 1.25rem;
   font-weight: 800;
   color: var(--text-main);
-  margin: 0;
+  margin: 0 0 1rem 0;
   text-align: center;
-}
-
-.skipBtn {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  padding: 0.35rem 1rem;
-  background: var(--bg-section);
-  color: var(--text-muted);
-  border: 1px solid var(--border-color);
-  border-radius: 100px;
-  font-size: 0.8rem;
-  font-weight: 800;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.skipBtn:hover {
-  background: var(--border-color);
-  color: var(--text-main);
-  box-shadow: var(--shadow-sm);
 }
 
 .ratingGrid {
@@ -112,12 +88,6 @@
   width: 100%;
 }
 
-.label {
-  font-size: 1rem;
-  font-weight: 800;
-  color: var(--text-main);
-}
-
 .textareaWrapper {
   position: relative;
   width: 100%;
@@ -144,40 +114,6 @@
   box-shadow: 0 0 0 4px var(--brand-light);
 }
 
-.pointLabel {
-  font-weight: 600;
-  opacity: 0.9;
-  margin-right: 6px;
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  color: var(--brand-primary);
-}
-
-.commentFooterRow {
-  display: flex;
-  justify-content: flex-start;
-  align-items: flex-start;
-  width: 100%;
-  margin-top: 0.25rem;
-}
-
-.commentFooter {
-  font-size: 0.8rem;
-  color: var(--brand-primary);
-  font-weight: 600;
-  opacity: 0.9;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-}
-
-.rewardText {
-  flex: 1;
-  line-height: 1.25;
-}
 
 .bucketContainer {
   position: relative;
@@ -200,11 +136,27 @@
 
 .bucketValue {
   position: relative;
-  top: 2px;
-  /* Position inside the body of the bucket */
-  font-size: 0.9rem;
-  font-weight: 800;
+  top: -1px;
+  font-size: 0.95rem;
+  font-weight: 700;
   color: var(--brand-primary);
+}
+
+.submitWrapper {
+  position: relative;
+  width: 100%;
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.bucketWrapper {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: 0.5rem;
+  z-index: 10;
+  pointer-events: none;
 }
 
 .flyer {
@@ -223,7 +175,6 @@
   width: 30px;
   height: 30px;
   margin-left: -15px;
-  /* Center-ish alignment to the coordinate */
   margin-top: -15px;
 }
 
@@ -251,8 +202,8 @@
 
 .submitBtn {
   width: 100%;
-  padding: 1rem;
-  background: var(--brand-primary);
+  padding: 1rem 1rem 1rem 3.5rem;
+  background: color-mix(in srgb, var(--brand-primary), transparent 15%);
   color: white;
   border: none;
   border-radius: 16px;
@@ -324,51 +275,20 @@
   flex-shrink: 0;
 }
 
-.resetBtn {
-  padding: 0.9rem 2rem;
-  background: var(--bg-section);
-  color: var(--text-muted);
-  border: none;
-  border-radius: 100px;
-  font-weight: 800;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
+.subHeading {
   font-size: 1rem;
-}
-
-.resetBtn:hover {
-  background: #f1f5f9;
-  color: #475569;
-}
-
-.authPrompt {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem 1rem;
+  color: #64748B;
+  line-height: 1.7;
+  margin-bottom: 2rem;
   text-align: center;
-}
-
-.authIcon {
-  width: 80px;
-  height: 80px;
-  background: var(--bg-section);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-muted);
-  margin-bottom: 1.5rem;
 }
 
 .subHeading {
   font-size: 1rem;
-  color: var(--text-muted);
-  line-height: 1.5;
-  margin-bottom: 1.5rem;
+  color: #64748B;
+  line-height: 1.7;
+  margin-bottom: 2rem;
+  text-align: center;
 }
 
 .spinner {
@@ -378,6 +298,41 @@
   border-radius: 50%;
   border-top-color: white;
   animation: spin 0.8s linear infinite;
+  margin: 2rem auto;
+}
+
+.blurred {
+  filter: blur(2px);
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.6;
+}
+
+.authOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 1.5rem;
+}
+
+.authContent {
+  background: white;
+  padding: 2.5rem 2rem;
+  border-radius: 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 @keyframes spin {

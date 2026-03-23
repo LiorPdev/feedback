@@ -240,7 +240,7 @@ export default function GetFeedback() {
                 <AnimatePresence>
                   {songLink.trim() !== "" && songLink.includes("spotify.com") && (
                     <motion.div
-                      className={styles.spotifyWarning}
+                      className={styles.infoWarning}
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
@@ -264,7 +264,7 @@ export default function GetFeedback() {
                                   setYoutubeAlternative(null);
                                 }}
                               >
-                                החלף ליוטיוב
+                                החלפה ליוטיוב
                               </button>
                               <a
                                 href={youtubeAlternative.url}
@@ -272,7 +272,7 @@ export default function GetFeedback() {
                                 rel="noopener noreferrer"
                                 className={styles.previewLink}
                               >
-                                פתיחה ביוטיוב
+                                צפייה ביוטיוב
                               </a>
                             </div>
                           </div>
@@ -284,15 +284,16 @@ export default function GetFeedback() {
                     !songLink.includes("youtube.com") &&
                     !songLink.includes("youtu.be") &&
                     !songLink.includes("spotify.com") && (
-                      <motion.p
-                        className={styles.errorMsg}
+                      <motion.div
+                        className={styles.infoWarning}
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
-                        style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}
                       >
-                        כדי להבטיח זמינות לכל המאזינים, מומלץ לשתף קישורים מיוטיוב בלבד (או להעלות קובץ).
-                      </motion.p>
+                        <p className={styles.infoMsg}>
+                          חלק מהנגנים מגבילים האזנה ממקורות חיצוניים. כדי להבטיח זמינות לכל המאזינים, חשוב לשתף קישורים מיוטיוב בלבד או להעלות קובץ.
+                        </p>
+                      </motion.div>
                     )}
                 </AnimatePresence>
               </>

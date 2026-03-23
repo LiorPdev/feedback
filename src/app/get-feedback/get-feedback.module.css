@@ -142,7 +142,7 @@
   width: 200px;
   margin: calc(1rem + 10px) auto 0;
   padding: 1.1rem;
-  background-color: var(--brand-primary);
+  background-color: color-mix(in srgb, var(--brand-primary), transparent 15%);
   color: white;
   border: none;
   border-radius: 14px;
@@ -189,7 +189,7 @@
   margin-top: 0.1rem;
 }
 
-.spotifyWarning {
+.infoWarning {
   background: rgba(29, 185, 84, 0.08);
   border: 1px solid rgba(29, 185, 84, 0.2);
   border-radius: 12px;
@@ -229,27 +229,6 @@
   margin-top: 4px;
 }
 
-.previewLink {
-  background: white;
-  color: #374151;
-  border: 1px solid #d1d5db;
-  padding: 5px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  font-size: 0.8rem;
-  text-decoration: none;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-}
-
-.previewLink:hover {
-  background: #f9fafb;
-  border-color: #9ca3af;
-  color: #111827;
-}
-
 .alternativeCard {
   background: white;
   border-radius: 8px;
@@ -272,20 +251,42 @@
 }
 
 .swapBtn {
-  background: #ff0000;
+  background: color-mix(in srgb, var(--brand-primary), transparent 45%);
   color: white;
   border: none;
   border-radius: 6px;
   padding: 0.4rem 0.75rem;
   font-size: 0.8rem;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
 }
 
 .swapBtn:hover {
-  background: #cc0000;
+  background: color-mix(in srgb, var(--brand-primary), transparent 25%);
+  transform: translateY(-1px);
+}
+
+.previewLink {
+  background: white;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.8rem;
+  text-decoration: none;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.previewLink:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+  color: #111827;
   transform: translateY(-1px);
 }
 

@@ -31,7 +31,7 @@ export default function ShareSongButton({ slug, isNew, variant = "standard" }: S
     e.stopPropagation();
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://feedback.activitywiz.com';
     const url = `${origin}/give-feedback/${slug}`;
-    const shareText = `היי, אשמח לפידבק שלכם על השיר שלי 🎸:\n${url}`;
+    const shareText = `היי, האם תוכלו להקשיב ולשלוח לי פידבק על השיר? 🎸:\n${url}`;
     navigator.clipboard.writeText(shareText);
     setCopied(true);
     setTimeout(() => setCopied(false), 4000);
@@ -84,8 +84,8 @@ export default function ShareSongButton({ slug, isNew, variant = "standard" }: S
               animate={{ opacity: 1, y: 0, x: "-50%" }}
               exit={{ opacity: 0, y: 5, x: "-50%" }}
             >
-              {copied 
-                ? "הועתק! כעת שילחו לחברים ובקשו מהם לתת לכם פידבק אנונימי על השיר" 
+              {copied
+                ? "הועתק! כעת שילחו לחברים ובקשו מהם לתת לכם פידבק אנונימי על השיר"
                 : "השיר התווסף! כעת שילחו לחברים ובקשו מהם לתת לכם פידבק אנונימי על השיר"
               }
             </motion.div>
