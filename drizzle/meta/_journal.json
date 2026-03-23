@@ -36,6 +36,13 @@
       "when": 1774198603516,
       "tag": "0004_[any_name]",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1774277769210,
+      "tag": "0005_artistName_UserGenre",
+      "breakpoints": true
     }
   ]
 }

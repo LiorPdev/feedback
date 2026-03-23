@@ -82,10 +82,10 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isPl
     if (isPlaying && !playRewardGivenRef.current) {
       playRewardGivenRef.current = true;
       setListenCredits(prev => prev + 1);
-      
+
       if (bucketRef.current) {
         const bucketRect = bucketRef.current.getBoundingClientRect();
-        triggerFlyer(bucketRect.left + bucketRect.width/2, bucketRect.top - 80, 1, bucketRect.left + bucketRect.width/2, bucketRect.top + bucketRect.height/2);
+        triggerFlyer(bucketRect.left + bucketRect.width / 2, bucketRect.top - 80, 1, bucketRect.left + bucketRect.width / 2, bucketRect.top + bucketRect.height / 2);
       }
     }
 
@@ -93,19 +93,19 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isPl
     if (isPlaying) {
       interval = setInterval(() => {
         playTimeSecondsRef.current += 1;
-        
+
         if (playTimeSecondsRef.current >= 5) {
           playTimeSecondsRef.current = 0; // Reset for the next 5s block
           setListenCredits(prev => prev + 1);
-          
+
           if (bucketRef.current) {
             const bucketRect = bucketRef.current.getBoundingClientRect();
-            triggerFlyer(bucketRect.left + bucketRect.width/2, bucketRect.top - 80, 1, bucketRect.left + bucketRect.width/2, bucketRect.top + bucketRect.height/2);
+            triggerFlyer(bucketRect.left + bucketRect.width / 2, bucketRect.top - 80, 1, bucketRect.left + bucketRect.width / 2, bucketRect.top + bucketRect.height / 2);
           }
         }
       }, 1000);
     }
-    
+
     return () => clearInterval(interval);
   }, [isPlaying, triggerFlyer]);
 
@@ -252,7 +252,9 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isPl
   if (!isLoaded) {
     return (
       <div className={styles.form}>
-        <div className={styles.spinner} />
+        <div className={styles.spinnerContainer}>
+          <div className={styles.spinner} />
+        </div>
       </div>
     );
   }
@@ -403,7 +405,6 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isPl
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
           >
-            <h2 className={styles.heading}>רוצים לתת פידבק?</h2>
             <p className={styles.subHeading}>
               כדי שלא נציג לך שוב ושוב שירים שכבר דירגת וכדי לשמור על איכות הקהילה, יש לבצע התחברות קצרה למערכת. אנחנו מתחייבים שהדירוגים שלך אנונימיים לחלוטין.
             </p>

@@ -161,8 +161,7 @@ export default function Navbar() {
                         <HelpCircle size={18} className={styles.helpIcon} />
                         <h3>איך עובד מנגנון הקרדיטים?</h3>
                       </div>
-                      <p>העלאת שיר חדש עושה שימוש ב {SONG_SUBMISSION_COST} תווי קרדיט. כדי לקבל קרדיטים נוספים, פשוט תנו פידבק אמיתי ובונה לשירים של יוצרים אחרים בקהילה.</p>
-                      <p style={{ marginTop: "5px" }}>על כל דירוג קטגוריה תקבלו {REWARD_OVERALL} תווי קרדיט, ועל הוספת הסבר תקבלו {REWARD_COMMENT} תווי קרדיט נוספים.</p>
+                      <p>העלאת שיר מורידה מתווי הקרדיט שלך. כדי לצבור תווי קרדיט חדשים, פשוט תנו פידבק לשירים של יוצרים אחרים בקהילה.</p>
                       <div className={styles.popupArrow} />
                     </motion.div>
                   )}

@@ -9,6 +9,7 @@ export const users = sqliteTable('User', {
     providerId: text('providerId').unique(),
     tokens: integer('tokens').default(100).notNull(),
     userRank: integer('userRank').default(1).notNull(),
+    userGenre: text('userGenre'),
     createdAt: text('createdAt').notNull().$defaultFn(() => new Date().toISOString()),
     updatedAt: text('updatedAt').notNull().$defaultFn(() => new Date().toISOString()),
 });
@@ -19,6 +20,7 @@ export const songs = sqliteTable('Song', {
     url: text('url').notNull().unique(),
     title: text('title').notNull(),
     genre: text('genre').notNull(),
+    artist: text('artist'),
     slug: text('slug').notNull().unique(),
     createdAt: text('createdAt').notNull().$defaultFn(() => new Date().toISOString()),
     updatedAt: text('updatedAt').notNull().$defaultFn(() => new Date().toISOString()),

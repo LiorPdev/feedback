@@ -25,7 +25,10 @@ function formatSeconds(seconds: number | null | undefined) {
 export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps) {
   const { slug } = await params;
   const db = await getDb();
-  const { userId } = await auth();
+  const { userId, redirectToSignIn } = await auth();
+  if (!userId) {
+    return redirectToSignIn();
+  }
 
   const song = await db.query.songs.findFirst({
     where: (songs, { eq }) => eq(songs.slug, slug),

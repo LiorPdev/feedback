@@ -298,7 +298,14 @@
   border-radius: 50%;
   border-top-color: white;
   animation: spin 0.8s linear infinite;
-  margin: 2rem auto;
+}
+
+.spinnerContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem 0;
+  width: 100%;
 }
 
 .blurred {
