@@ -314,7 +314,7 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
               onSuccess={(feedback) => {
                 if (feedback) setUserFeedback(feedback);
                 setTimeout(() => {
-                  if (isPlaying) {
+                  if (feedback && isPlaying) {
                     setHasRatedCurrent(true);
                   } else {
                     handleRemoveCurrent();

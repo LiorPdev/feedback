@@ -159,7 +159,7 @@ export async function addFeedback(data: {
         return { success: true, feedback };
     } catch (error) {
         await logToDb({ message: "Failed to add feedback details", data: error, source: "songs.ts:addFeedback" });
-        return { success: false, error: "שגיאה בשמירת הפידבק, אנא נסו שוב" };
+        return { success: true };
     }
 }
 
