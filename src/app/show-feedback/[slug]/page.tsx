@@ -7,6 +7,8 @@ import { auth } from "@clerk/nextjs/server";
 import DashboardLink from "@/components/DashboardLink";
 import ShareSongButton from "@/components/ShareSongButton";
 import SongPlayer from "./SongPlayer";
+import { SignInButton } from "@clerk/nextjs";
+import { LogIn } from "lucide-react";
 
 interface ShowFeedbackPageProps {
   params: Promise<{
@@ -25,10 +27,7 @@ function formatSeconds(seconds: number | null | undefined) {
 export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps) {
   const { slug } = await params;
   const db = await getDb();
-  const { userId, redirectToSignIn } = await auth();
-  if (!userId) {
-    return redirectToSignIn();
-  }
+  const { userId } = await auth();
 
   const song = await db.query.songs.findFirst({
     where: (songs, { eq }) => eq(songs.slug, slug),
@@ -50,8 +49,8 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
 
   const isOwner = userId === song.userId;
 
-  // If NOT owner tries to view results, send them to give feedback
-  if (!isOwner) {
+  // If AUTHENTICATED but NOT owner, send them to give feedback
+  if (userId && !isOwner) {
     redirect(`/give-feedback/${slug}`);
   }
 
@@ -74,7 +73,7 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
     <div className={styles.container}>
       <div className={styles.blob} />
 
-      <main className={styles.main}>
+      <main className={`${styles.main} ${!userId ? styles.blurred : ""}`}>
         <div className={styles.card}>
           <Link href="/dashboard" className={styles.backButton} title="חזרה לאיזור האישי">
             <ArrowRight size={20} />
@@ -166,6 +165,23 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
 
         <DashboardLink />
       </main>
+
+      {!userId && (
+        <div className={styles.authOverlay}>
+          <div className={styles.authContent}>
+            <p className={styles.subHeading}>
+              כדי לצפות בפידבקים ובתובנות על השיר שלך, יש להתחבר למערכת.
+              הגישה לתוצאות מורשית לבעלי השיר בלבד.
+            </p>
+            <SignInButton mode="modal">
+              <button className={styles.loginBtn}>
+                <LogIn size={20} />
+                <span>התחברות למערכת</span>
+              </button>
+            </SignInButton>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

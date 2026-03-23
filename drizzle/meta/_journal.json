@@ -43,6 +43,13 @@
       "when": 1774277769210,
       "tag": "0005_artistName_UserGenre",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1774279924238,
+      "tag": "0006_SongIsActive",
+      "breakpoints": true
     }
   ]
 }

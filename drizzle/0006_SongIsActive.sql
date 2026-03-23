@@ -1,0 +1,1 @@
+ALTER TABLE `Song` ADD `isActive` integer DEFAULT true NOT NULL;
