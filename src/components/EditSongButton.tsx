@@ -112,7 +112,7 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
               </div>
 
               <div className={styles.field}>
-                <label>קישור לשמיעה</label>
+                <label>קישור לשיר</label>
                 <input
                   type="url"
                   className={styles.input}

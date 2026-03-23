@@ -209,6 +209,15 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
         }
 
         try {
+          if (!iframeRef.current) {
+            logAction({ 
+              message: "YouTube Init: No iframe ref", 
+              data: { url, origin }, 
+              source: "UrlPlayer.tsx:initYT" 
+            });
+            return;
+          }
+
           playerRef.current = new window.YT.Player(iframeRef.current, {
             playerVars: {
               origin: origin,
@@ -230,7 +239,20 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
           });
         } catch (e) {
           guard(onErrorRef.current)(e);
-          logAction({ message: "YouTube Player Init Error", data: e, source: "UrlPlayer.tsx:initYT" });
+          logAction({ 
+            message: "YouTube Player Init Error", 
+            data: {
+              url: url,
+              origin: origin,
+              iframeExists: !!iframeRef.current,
+              error: e instanceof Error ? {
+                message: e.message,
+                stack: e.stack,
+                name: e.name
+              } : String(e)
+            }, 
+            source: "UrlPlayer.tsx:initYT" 
+          });
         }
       };
 

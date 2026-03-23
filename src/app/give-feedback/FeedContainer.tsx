@@ -123,7 +123,7 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
     });
     setIsBuffering(false);
     setIsPlaying(false);
-    
+
     // Provide a human-readable error based on typical browser NotSupported/NotAllowed errors
     const errStr = (error as Error)?.message || String(error);
     if (errStr.includes("NotSupportedError") || errStr.includes("no supported sources")) {
@@ -307,7 +307,7 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
               disabledMessage={
                 isBypassTimer ? "" : (
                   secondsRemaining >= getRequiredTime()
-                    ? `תנו סיכוי לשיר לפחות ${getRequiredTime()} שניות לפני שליחת פידבק (אנונימי)`
+                    ? `תנו לשיר סיכוי של  ${getRequiredTime()} שניות... הפידבק שלכם אנונימי`
                     : `ניתן לשלוח פידבק בעוד ${secondsRemaining} שניות${!isTimerActive ? " (מושהה)" : "..."}`
                 )
               }

@@ -64,10 +64,12 @@ export default function LandingClient() {
             <motion.p className={styles.heroSubtitle} variants={fadeInUp}>
               קהילה לקבלת משוב אמיתי על היצירות שלנו
             </motion.p>
-            <motion.div className={styles.howItWorks} variants={fadeInUp}>
-              <h3>איך זה עובד?</h3>
-              <p>אתם מעלים יצירה כדי לקבל משוב אמיתי מאנשי הקהילה וגם נותנים פידבק אנונימי לאחרים כדי לעזור להם להשתפר.</p>
-            </motion.div>
+            <SignedOut>
+              <motion.div className={styles.howItWorks} variants={fadeInUp}>
+                <h3>איך זה עובד?</h3>
+                <p>אתם מעלים יצירה כדי לקבל משוב אמיתי מאנשי הקהילה וגם נותנים פידבק אנונימי לאחרים כדי לעזור להם להשתפר.</p>
+              </motion.div>
+            </SignedOut>
             <motion.div className={styles.heroButtons} variants={fadeInUp}>
               <SignedOut>
                 <SignInButton mode="modal" forceRedirectUrl="/get-feedback">

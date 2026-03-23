@@ -11,12 +11,13 @@ import { sendFeedbackNotification } from '@/lib/mail';
 import { logToDb } from "@/lib/logger";
 import { deleteFileFromR2 } from '@/app/actions/upload';
 import { syncUser } from '@/lib/user-auth';
+import { sanitizeInput } from '@/lib/utils';
 
 export async function createSong(formData: FormData) {
-    // Extract data from form
+    // Extract and sanitize data from form
     const url = formData.get('url') as string;
-    const title = formData.get('title') as string;
-    const genre = formData.get('genre') as string;
+    const title = sanitizeInput(formData.get('title') as string);
+    const genre = sanitizeInput(formData.get('genre') as string);
 
     // Strict URL validation: Only YouTube, Spotify, or internal R2 uploads
     const isYouTube = url.includes("youtube.com") || url.includes("youtu.be");
@@ -114,7 +115,7 @@ export async function addFeedback(data: {
             composition: data.composition,
             production: data.production,
             overall: data.overall,
-            comment: data.comment,
+            comment: sanitizeInput(data.comment),
             playedSeconds: data.playedSeconds,
         }).returning();
 
@@ -323,9 +324,9 @@ export async function updateSong(songId: string, data: { title: string, url: str
 
         await db.update(songs)
             .set({
-                title: data.title,
+                title: sanitizeInput(data.title),
                 url: data.url,
-                genre: data.genre
+                genre: sanitizeInput(data.genre)
             })
             .where(eq(songs.id, songId));
 

@@ -12,6 +12,7 @@ import { getUserTokens } from "@/app/actions/songs";
 import { REWARD_OVERALL, REWARD_COMMENT, SONG_SUBMISSION_COST } from "@/lib/constants";
 import styles from "./Navbar.module.css";
 import AnimatedTokenCounter from "./AnimatedTokenCounter";
+import { getCookie, setCookie } from "@/lib/cookieUtils";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -83,6 +84,16 @@ export default function Navbar() {
       return () => clearTimeout(stopGlowTimer);
     }
   }, [glowMode]);
+
+  useEffect(() => {
+    if (user && pathname.startsWith("/give-feedback")) {
+      const isExplained = getCookie("fbCreditExplained");
+      if (!isExplained) {
+        setShowTokensInfo(true);
+        setCookie("fbCreditExplained", "true", 365);
+      }
+    }
+  }, [pathname, user]);
 
   const handleShare = () => {
     if (navigator.share) {
