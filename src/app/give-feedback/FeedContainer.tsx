@@ -137,8 +137,12 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
     if (songs.length <= 1) return;
     try {
       playerRef.current?.pause();
-    } catch {
-      console.warn("Failed to pause before skip");
+    } catch (err) {
+      logAction({
+        message: "Failed to pause before skip",
+        data: { error: (err as Error)?.message || String(err) },
+        source: "FeedContainer.tsx:handleSkip"
+      });
     }
     resetSongState();
     setCurrentIndex((prev) => {
@@ -307,7 +311,7 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
               disabledMessage={
                 isBypassTimer ? "" : (
                   secondsRemaining >= getRequiredTime()
-                    ? `תנו לשיר סיכוי של  ${getRequiredTime()} שניות... הפידבק שלכם אנונימי`
+                    ? `שליחת פידבק (אנונימי)`
                     : `ניתן לשלוח פידבק בעוד ${secondsRemaining} שניות${!isTimerActive ? " (מושהה)" : "..."}`
                 )
               }

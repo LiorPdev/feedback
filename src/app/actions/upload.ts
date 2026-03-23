@@ -1,6 +1,7 @@
 'use server'
 
 import { nanoid } from 'nanoid';
+import { logToDb } from '@/lib/logger';
 
 
 
@@ -113,7 +114,7 @@ export async function deleteFileFromR2(fileKey: string) {
 
         return { success: true };
     } catch (error) {
-        console.error("R2 deletion error:", error);
+        await logToDb({ message: "R2 deletion error", data: error, source: "upload.ts:deleteFileFromR2" });
         return { success: false, error: "Failed to delete from R2" };
     }
 }

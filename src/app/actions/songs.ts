@@ -250,7 +250,7 @@ export async function getFeedSongs(firstSongSlug?: string) {
         let firstSong = null;
         if (firstSongSlug) {
             firstSong = await db.query.songs.findFirst({
-                where: (songs, { eq }) => eq(songs.slug, firstSongSlug),
+                where: (songs, { eq, and }) => and(eq(songs.slug, firstSongSlug), eq(songs.isActive, true)),
                 with: {
                     user: {
                         columns: {
@@ -279,6 +279,9 @@ export async function getFeedSongs(firstSongSlug?: string) {
                 if (firstSongSlug) {
                     filters.push(ne(songs.slug, firstSongSlug));
                 }
+
+                // Only show active songs
+                filters.push(eq(songs.isActive, true));
 
                 return filters.length > 0 ? and(...filters) : undefined;
             },
@@ -335,6 +338,37 @@ export async function updateSong(songId: string, data: { title: string, url: str
     } catch (error) {
         await logToDb({ message: "Failed to update song", data: error, source: "songs.ts:updateSong" });
         return { success: false, error: "שגיאה בעדכון השיר" };
+    }
+}
+
+export async function toggleSongStatus(songId: string, isActive: boolean) {
+    const clerkUser = await currentUser();
+    if (!clerkUser) {
+        return { success: false, error: "Unauthorized" };
+    }
+
+    const db = await getDb();
+    try {
+        // Double check ownership
+        const song = await db.query.songs.findFirst({
+            where: (songs, { eq }) => eq(songs.id, songId),
+            columns: { userId: true }
+        });
+
+        if (!song || song.userId !== clerkUser.id) {
+            return { success: false, error: "לא מורשה" };
+        }
+
+        await db.update(songs)
+            .set({ isActive: isActive })
+            .where(eq(songs.id, songId));
+
+        revalidatePath('/dashboard');
+        revalidatePath('/give-feedback');
+        return { success: true };
+    } catch (error) {
+        await logToDb({ message: "Failed to toggle song status", data: error, source: "songs.ts:toggleSongStatus" });
+        return { success: false, error: "שגיאה בעדכון סטטוס השיר" };
     }
 }
 
@@ -517,7 +551,7 @@ export async function getURLMetadata(url: string) {
                         }
                     }
                 } catch (e) {
-                    console.error(`[Spotify Page Fetch] Error:`, e);
+                    await logToDb({ message: "[Spotify Page Fetch] Error", data: e, source: "songs.ts:getURLMetadata" });
                 }
 
                 // Final Cleanups

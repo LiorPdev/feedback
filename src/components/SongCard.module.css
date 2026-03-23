@@ -137,3 +137,26 @@
   animation: highlightGlow 2.5s ease-out forwards;
   z-index: 10;
 }
+
+.paused {
+  border-style: dashed;
+  background: var(--bg-section);
+}
+
+.paused:hover {
+  transform: none;
+  box-shadow: var(--shadow-sm);
+  border-color: var(--border-color);
+}
+
+.paused .songMain,
+.paused .viewLink {
+  opacity: 0.3;
+  filter: grayscale(1);
+  pointer-events: none;
+}
+
+.paused .adminActions {
+  pointer-events: auto;
+  opacity: 1;
+}
