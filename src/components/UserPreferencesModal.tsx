@@ -54,9 +54,9 @@ export default function UserPreferencesModal({
         <div className={styles.overlay} onClick={onClose}>
           <motion.div
             className={styles.modal}
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
             onClick={(e) => e.stopPropagation()}
           >
             <button 
@@ -68,10 +68,9 @@ export default function UserPreferencesModal({
             </button>
 
             <div className={styles.content}>
-              <h2 className={styles.title}>העדפות משתמש</h2>
+              <h2 className={styles.title}>הסגנון המועדף עלי</h2>
 
                <div className={styles.formGroup}>
-                <label className={styles.formLabel}>הסגנון המועדף עלי הוא:</label>
                 <div className={styles.genreGrid}>
                   {GENRES.map((g) => (
                     <button
