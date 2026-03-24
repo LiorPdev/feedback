@@ -2,9 +2,10 @@
 
 import { useState, useEffect, Fragment } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Music, ArrowRight } from "lucide-react";
+import { Music } from "lucide-react";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
+import BackButton from "@/components/BackButton";
 import { createSong, getUserSongCount, getURLMetadata } from "@/app/actions/songs";
 import { getPresignedUploadUrl } from "@/app/actions/upload";
 import { logAction } from "@/app/actions/logs";
@@ -177,9 +178,11 @@ export default function GetFeedback() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <Link href={hasSongs ? "/dashboard" : "/"} className={styles.backButton} title={hasSongs ? "חזרה לאיזור האישי" : "חזרה לדף הבית"}>
-          <ArrowRight size={20} />
-        </Link>
+        <BackButton 
+          href={hasSongs ? "/dashboard" : "/"} 
+          title={hasSongs ? "חזרה לאיזור האישי" : "חזרה לדף הבית"}
+          className={styles.backButton}
+        />
         <div className={styles.header}>
           <h1>שליחת שיר</h1>
         </div>

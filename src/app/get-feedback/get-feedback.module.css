@@ -30,23 +30,7 @@
   position: absolute;
   top: 1.25rem;
   right: 1.25rem;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background-color: transparent;
-  color: var(--text-muted);
-  transition: all 0.2s ease;
-  text-decoration: none;
   z-index: 10;
-}
-
-.backButton:hover {
-  background-color: var(--brand-light);
-  color: var(--brand-primary);
-  transform: scale(1.1);
 }
 
 .form {
@@ -419,5 +403,9 @@
 
   .alternativeTitle {
     display: none;
+  }
+
+  .backButton {
+    top: 0.95rem; /* 5px higher than 1.25rem (20px -> 15px) */
   }
 }

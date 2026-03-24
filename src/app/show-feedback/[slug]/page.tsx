@@ -1,8 +1,7 @@
 import { getDb } from "@/lib/db";
 import { notFound, redirect } from "next/navigation";
 import styles from "./show-feedback.module.css";
-import { ArrowRight } from "lucide-react";
-import Link from "next/link";
+import BackButton from "@/components/BackButton";
 import { auth } from "@clerk/nextjs/server";
 import DashboardLink from "@/components/DashboardLink";
 import ShareSongButton from "@/components/ShareSongButton";
@@ -75,9 +74,11 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
 
       <main className={`${styles.main} ${!userId ? styles.blurred : ""}`}>
         <div className={styles.card}>
-          <Link href="/dashboard" className={styles.backButton} title="חזרה לאיזור האישי">
-            <ArrowRight size={20} />
-          </Link>
+          <BackButton 
+            href="/dashboard" 
+            title="חזרה לאיזור האישי" 
+            className={styles.backButton} 
+          />
           <SongPlayer url={song.url} />
 
           <div className={styles.titleRow}>

@@ -8,12 +8,20 @@
 
 .header {
   max-width: 1000px;
-  margin: 0 auto 1rem;
+  margin: 0 auto 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 2rem;
 }
+
+.welcomeContainer {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+
 
 .welcome h1 {
   font-size: 2.5rem;
@@ -136,8 +144,12 @@
     flex-direction: column;
     align-items: center;
     text-align: center;
+    position: relative;
+    padding-top: 1rem;
   }
-  
+
+
+
   .hideOnMobile {
     display: none;
   }

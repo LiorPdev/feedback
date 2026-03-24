@@ -30,8 +30,8 @@ export default function UserPreferencesModal({
   }, [initialGenre, isOpen]);
 
   const toggleGenre = (genre: string) => {
-    setLocalGenres(prev => 
-      prev.includes(genre) 
+    setLocalGenres(prev =>
+      prev.includes(genre)
         ? prev.filter(g => g !== genre)
         : [...prev, genre]
     );
@@ -59,9 +59,9 @@ export default function UserPreferencesModal({
             exit={{ opacity: 0, scale: 0.9 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <button 
-              className={styles.closeButton} 
-              onClick={onClose} 
+            <button
+              className={styles.closeButton}
+              onClick={onClose}
               aria-label="סגור"
             >
               <X size={24} />
@@ -70,7 +70,7 @@ export default function UserPreferencesModal({
             <div className={styles.content}>
               <h2 className={styles.title}>הסגנון המועדף עלי</h2>
 
-               <div className={styles.formGroup}>
+              <div className={styles.formGroup}>
                 <div className={styles.genreGrid}>
                   {GENRES.map((g) => (
                     <button
@@ -88,18 +88,18 @@ export default function UserPreferencesModal({
 
               <div className={styles.footer}>
                 <button
-                  className={styles.confirmButton}
-                  onClick={handleConfirm}
-                  disabled={isSaving || localGenres.length === 0}
-                >
-                  {isSaving ? <Loader2 size={20} className={styles.spinner} /> : "אישור"}
-                </button>
-                <button
                   className={styles.cancelButton}
                   onClick={onClose}
                   disabled={isSaving}
                 >
                   ביטול
+                </button>
+                <button
+                  className={styles.confirmButton}
+                  onClick={handleConfirm}
+                  disabled={isSaving || localGenres.length === 0}
+                >
+                  {isSaving ? <Loader2 size={20} className={styles.spinner} /> : "אישור"}
                 </button>
               </div>
             </div>

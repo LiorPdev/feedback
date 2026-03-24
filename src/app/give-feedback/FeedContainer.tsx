@@ -1,12 +1,13 @@
 "use client";
-import { SignedIn } from "@clerk/nextjs";
+import { SignedIn, useUser } from "@clerk/nextjs";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "./feed.module.css";
 import FeedbackForm from "@/components/FeedbackForm";
 import UrlPlayer, { getEmbedUrl, type UrlPlayerHandle } from "@/components/UrlPlayer";
 import DashboardLink from "@/components/DashboardLink";
-import { Play, Pause, ArrowRight, CheckCircle2, Star } from "lucide-react";
+import BackButton from "@/components/BackButton";
+import { Play, Pause, CheckCircle2, Star } from "lucide-react";
 import Link from "next/link";
 import { MIN_LISTEN_TIME, MIN_LISTEN_TIME_SPOTIFY_MOBILE, SUCCESS_MESSAGE_DURATION } from "@/lib/constants";
 import { logAction } from "@/app/actions/logs";
@@ -38,6 +39,7 @@ interface FeedContainerProps {
 }
 
 export default function FeedContainer({ initialSongs, initialFeedback }: FeedContainerProps) {
+  const { isSignedIn, isLoaded } = useUser();
   const [songs, setSongs] = useState(initialSongs);
   const [currentIndex, setCurrentIndex] = useState(0);
   const currentSong = songs[currentIndex];
@@ -201,7 +203,7 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
   };
 
   const togglePlayback = () => {
-    if (!playerRef.current) return;
+    if (!playerRef.current || !isSignedIn) return;
 
     if (isPlaying) {
       playerRef.current.pause();
@@ -243,9 +245,7 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
     <div className={styles.feedWrapper}>
       <div className={styles.songCard}>
         <div className={styles.topHeader}>
-          <Link href="/" className={styles.backButton} title="חזרה לדף הבית">
-            <ArrowRight size={20} />
-          </Link>
+          <BackButton href="/" title="חזרה לדף הבית" className={styles.backButton} />
           <div className={styles.headerRow}>
             <h2 className={styles.title}>
               {currentSong.title}
@@ -294,6 +294,7 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
               <button
                 className={isProminentNext ? styles.btnSkip : (isPlaying ? styles.btnPause : styles.btnPlay)}
                 onClick={togglePlayback}
+                disabled={!isSignedIn && isLoaded}
               >
                 {isBuffering ? (
                   <>

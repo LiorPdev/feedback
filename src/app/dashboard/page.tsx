@@ -6,6 +6,7 @@ import { Music } from "lucide-react";
 import SongCard from "@/components/SongCard";
 import styles from "./dashboard.module.css";
 import { logAction } from "@/app/actions/logs";
+import BackButton from "@/components/BackButton";
 
 export default async function DashboardPage({
   searchParams
@@ -63,10 +64,16 @@ export default async function DashboardPage({
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <div className={styles.welcome}>
-          <h1>שלום{user.name ? `, ${user.name.split(" ")[0]}` : ""}</h1>
+        <div className={styles.welcomeContainer}>
+          <BackButton 
+            href="/" 
+            title="חזרה לדף הבית" 
+            style={{ transform: 'translateY(-3px)' }} 
+          />
+          <div className={styles.welcome}>
+            <h1>שלום{user.name ? `, ${user.name.split(" ")[0]}` : ""}</h1>
+          </div>
         </div>
-
       </div>
 
       <div className={styles.content}>
