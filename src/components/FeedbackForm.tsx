@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Star, LogIn, CheckCircle2 } from "lucide-react";
+import { Star, LogIn, CheckCircle2, X, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUser, SignInButton } from "@clerk/nextjs";
 import { addFeedback } from "@/app/actions/songs";
@@ -138,6 +138,7 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isPl
       [key]: isSettingToZero ? 0 : value
     }));
 
+
     if (status === "error") setStatus("idle");
 
     if (isGaining && e) {
@@ -249,9 +250,9 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isPl
           overall: 0,
         });
         setComment("");
-        onSuccess?.(result.feedback, { 
-          averageRating: result.averageRating as number, 
-          totalFeedbacks: result.totalFeedbacks as number 
+        onSuccess?.(result.feedback, {
+          averageRating: result.averageRating as number,
+          totalFeedbacks: result.totalFeedbacks as number
         });
         // Dispatch custom event to notify Navbar or other components
         window.dispatchEvent(new CustomEvent("tokens-updated"));
@@ -285,16 +286,23 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isPl
       <div className={!isSignedIn ? styles.blurred : ""}>
         <AnimatePresence>
           {status === "success" && (
-            <div className={styles.successOverlay}>
+            <div className={styles.successOverlay} onClick={() => setStatus("idle")}>
               <motion.div
                 className={styles.successPopup}
                 initial={{ opacity: 0, y: 20, scale: 0.8 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+                onClick={(e) => e.stopPropagation()}
               >
+                <button
+                  className={styles.closeBtn}
+                  onClick={() => setStatus("idle")}
+                  aria-label="סגור"
+                >
+                  <X size={20} />
+                </button>
                 <div className={`${styles.successHeader} ${songStats ? styles.successHeaderWithStats : ""}`}>
-                  <CheckCircle2 size={24} className={styles.successIcon} />
-                  <span className={styles.successTitle}>תודה על הפידבק שלך!</span>
+                  <span className={styles.successTitle}>תודה על הפידבק!</span>
                 </div>
 
                 {songStats && (
@@ -304,6 +312,31 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isPl
                     </p>
                   </div>
                 )}
+              </motion.div>
+            </div>
+          )}
+
+          {status === "error" && (
+            <div className={styles.errorOverlay} onClick={() => setStatus("idle")}>
+              <motion.div
+                className={styles.errorPopup}
+                initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  className={styles.closeBtn}
+                  onClick={() => setStatus("idle")}
+                  aria-label="סגור"
+                >
+                  <X size={20} />
+                </button>
+                <div className={styles.errorHeader}>
+                  <AlertCircle size={24} className={styles.errorIcon} />
+                  <span className={styles.errorTitle}>שימו לב</span>
+                </div>
+                <div className={styles.errorContent}>{errorMsg}</div>
               </motion.div>
             </div>
           )}
@@ -419,10 +452,6 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isPl
               )}
             </button>
           </div>
-
-          {status === "error" && (
-            <div className={styles.error} style={{ marginTop: '1rem' }}>{errorMsg}</div>
-          )}
         </form>
       </div>
 

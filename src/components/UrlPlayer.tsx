@@ -86,6 +86,7 @@ export const getSpotifyUri = (url: string) => {
 
 export interface UrlPlayerHandle {
   getPlaybackTime: () => Promise<number>;
+  getDuration: () => Promise<number>;
   play: () => void;
   pause: () => void;
 }
@@ -112,6 +113,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const playerRef = useRef<any>(null);
   const spotifyPositionRef = useRef(0);
+  const spotifyDurationRef = useRef(0);
   const hasAutoPausedAtCutoffRef = useRef(false);
   const onPlayRef = useRef(onPlay);
   const onPauseRef = useRef(onPause);
@@ -141,7 +143,6 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
   useImperativeHandle(ref, () => ({
     getPlaybackTime: async () => {
       if (isYouTube && playerRef.current) {
-        // YouTube API is sync
         if (typeof playerRef.current.getCurrentTime === 'function') {
           return Math.floor(playerRef.current.getCurrentTime());
         }
@@ -149,6 +150,18 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
         return Math.floor(spotifyPositionRef.current / 1000);
       } else if (isAudio && audioRef.current) {
         return Math.floor(audioRef.current.currentTime);
+      }
+      return 0;
+    },
+    getDuration: async () => {
+      if (isYouTube && playerRef.current) {
+        if (typeof playerRef.current.getDuration === 'function') {
+          return Math.floor(playerRef.current.getDuration());
+        }
+      } else if (isSpotify) {
+        return Math.floor(spotifyDurationRef.current / 1000);
+      } else if (isAudio && audioRef.current) {
+        return Math.floor(audioRef.current.duration || 0);
       }
       return 0;
     },
@@ -297,6 +310,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
               EmbedController.on("playback_update", (e: any) => {
                 const { isPaused, duration, position } = e.data;
                 spotifyPositionRef.current = position;
+                spotifyDurationRef.current = duration;
                 isPausedRef.current = isPaused;
                 
                 const isMobile = typeof window !== 'undefined' && window.innerWidth < 600;

@@ -62,6 +62,8 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
   );
   const [justSubmitted, setJustSubmitted] = useState(false);
   const [playerError, setPlayerError] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
   const playerRef = useRef<UrlPlayerHandle>(null);
 
   const embedUrl = currentSong ? getEmbedUrl(currentSong.url) : null;
@@ -87,6 +89,23 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
 
     return () => clearInterval(interval);
   }, [isTimerActive]);
+
+  useEffect(() => {
+    if (!isPlaying) return;
+
+    const interval = setInterval(async () => {
+      if (playerRef.current) {
+        const [time, dur] = await Promise.all([
+          playerRef.current.getPlaybackTime(),
+          playerRef.current.getDuration()
+        ]);
+        setCurrentTime(time);
+        if (dur > 0) setDuration(dur);
+      }
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, [isPlaying]);
 
 
 
@@ -122,6 +141,8 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
         : null
     );
     setPlayerError(null);
+    setCurrentTime(0);
+    setDuration(0);
   }, [getRequiredTime, currentIndex, songs]);
 
   const onPlayerError = useCallback((error: unknown) => {
@@ -224,6 +245,7 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
   const isAudio = !!currentSong.url.match(/\.(mp3|wav|ogg|m4a|aac)(\?.*)?$/i) || currentSong.url.includes("r2.dev");
   const isBypassTimer = false;
   const isHiddenPlayer = isYouTube || isSpotify || isAudio;
+  const isProminentNext = !isPlaying && hasRatedCurrent;
 
   return (
     <div className={styles.feedWrapper}>
@@ -274,45 +296,54 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
           )}
         </div>
 
-        <div className={styles.actions}>
-          {isHiddenPlayer ? (
-            <button
-              className={isPlaying ? styles.btnPause : styles.btnPlay}
-              onClick={togglePlayback}
-            >
-              {isBuffering ? (
-                <>
-                  <div className={styles.loadingSpinner} />
-                  <span>טוען...</span>
-                </>
-              ) : isPlaying ? (
-                <>
-                  <Pause size={20} fill="currentColor" />
-                  <span>עצור</span>
-                </>
-              ) : (
-                <>
-                  <Play size={20} fill="currentColor" />
-                  <span>נגן</span>
-                </>
-              )}
-            </button>
-          ) : !embedUrl && (
-            <button className={styles.btnPlay} onClick={handlePlayOld}>
-              <span>להקשיב</span>
-            </button>
-          )}
-
-          <SignedIn>
-            {(songs.length > 1 || hasRatedCurrent) && (
+        <div className={styles.controlsWrapper}>
+          <div className={styles.actions}>
+            {isHiddenPlayer ? (
               <button
-                className={styles.btnSkip}
-                onClick={hasRatedCurrent ? handleRemoveCurrent : handleSkip}
+                className={isProminentNext ? styles.btnSkip : (isPlaying ? styles.btnPause : styles.btnPlay)}
+                onClick={togglePlayback}
               >
-                {hasRatedCurrent ? "שיר הבא" : "דלג"}
+                {isBuffering ? (
+                  <>
+                    <div className={styles.loadingSpinner} />
+                    <span>טוען...</span>
+                  </>
+                ) : isPlaying ? (
+                  <>
+                    <Pause size={20} fill="currentColor" />
+                    <span>עצור</span>
+                  </>
+                ) : (
+                  <>
+                    <Play size={20} fill="currentColor" />
+                    <span>נגן</span>
+                  </>
+                )}
+              </button>
+            ) : !embedUrl && (
+              <button className={isProminentNext ? styles.btnSkip : styles.btnPlay} onClick={handlePlayOld}>
+                <span>להקשיב</span>
               </button>
             )}
-          </SignedIn>
+
+            <SignedIn>
+              {(songs.length > 1 || hasRatedCurrent) && (
+                <button
+                  className={isProminentNext ? styles.btnPlay : styles.btnSkip}
+                  onClick={hasRatedCurrent ? handleRemoveCurrent : handleSkip}
+                >
+                  {hasRatedCurrent ? "שיר הבא" : "שיר אחר"}
+                </button>
+              )}
+            </SignedIn>
+          </div>
+
+          <div className={`${styles.progressContainer} ${duration > 0 ? styles.visible : ""}`}>
+            <div
+              className={styles.progressBar}
+              style={{ width: `${duration > 0 ? Math.min((currentTime / duration) * 100, 100) : 0}%` }}
+            />
+          </div>
         </div>
 
         <div className={styles.feedbackSection}>
@@ -396,9 +427,8 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
             </div>
           )}
         </div>
+        <DashboardLink href="/" text="חזרה לדף הבית" className={styles.dashboardLinkMargin} />
       </div>
-
-      <DashboardLink href="/" text="חזרה לדף הבית" className={styles.dashboardLinkMargin} />
     </div>
   );
 }
