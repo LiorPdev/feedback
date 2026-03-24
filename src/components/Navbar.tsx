@@ -25,6 +25,7 @@ export default function Navbar() {
   const [showTokensInfo, setShowTokensInfo] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
   const [showPreferencesModal, setShowPreferencesModal] = useState(false);
+  const [pendingRedirect, setPendingRedirect] = useState<string | null>(null);
   const redirectUrlRef = useRef<string | null>(null);
   const infoRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -66,11 +67,19 @@ export default function Navbar() {
     };
   }, [user, pathname, displayedTokens, tokens]); // Added tokens to dependencies for fetchTokens to compare correctly
 
+  useEffect(() => {
+    if (pendingRedirect && !showPreferencesModal) {
+      router.push(pendingRedirect);
+      setPendingRedirect(null);
+    }
+  }, [pendingRedirect, showPreferencesModal, router]);
+
   const handleClosePrefs = () => {
     const redirectTo = redirectUrlRef.current;
     setShowPreferencesModal(false);
+    
     if (redirectTo) {
-      router.push(redirectTo);
+      setPendingRedirect(redirectTo);
       redirectUrlRef.current = null;
     }
   };

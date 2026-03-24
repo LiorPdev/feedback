@@ -43,8 +43,8 @@ export default function UserPreferencesModal({
     const result = await updateUserGenre(genreString);
     setIsSaving(false);
     if (result.success) {
-      window.dispatchEvent(new CustomEvent("tokens-updated"));
       onClose();
+      window.dispatchEvent(new CustomEvent("tokens-updated"));
     }
   };
 

@@ -64,11 +64,19 @@ export default function LandingClient({
     if (isLoaded) {
       checkUserData();
     }
+
+    const handleUpdate = () => {
+      checkUserData();
+    };
+    window.addEventListener("tokens-updated", handleUpdate);
+
+    return () => {
+      window.removeEventListener("tokens-updated", handleUpdate);
+    };
   }, [user, isLoaded]);
 
-  const handleGiveFeedbackClick = (e: React.MouseEvent) => {
+  const handleGiveFeedbackClick = () => {
     if (user && !userGenre) {
-      e.preventDefault();
       window.dispatchEvent(new CustomEvent("open-preferences-modal", { 
         detail: { redirectTo: "/give-feedback" } 
       }));
@@ -126,13 +134,21 @@ export default function LandingClient({
                 >
                   {hasSongs ? "האיזור האישי שלי" : "אני רוצה לקבל פידבק"}
                 </Link>
-                <Link 
-                  href="/give-feedback" 
-                  className={styles.btnSecondary}
-                  onClick={handleGiveFeedbackClick}
-                >
-                  אני רוצה לתת פידבק
-                </Link>
+                {userGenre ? (
+                  <Link 
+                    href="/give-feedback" 
+                    className={styles.btnSecondary}
+                  >
+                    אני רוצה לתת פידבק
+                  </Link>
+                ) : (
+                  <button
+                    className={styles.btnSecondary}
+                    onClick={handleGiveFeedbackClick}
+                  >
+                    אני רוצה לתת פידבק
+                  </button>
+                )}
               </SignedIn>
             </motion.div>
           </motion.div>
