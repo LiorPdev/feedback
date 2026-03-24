@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { ADMIN_EMAIL } from "@/lib/constants";
-import { Music, Home, HelpCircle, Share2, MessageCircle, BarChart } from "lucide-react";
+import { Music, Home, HelpCircle, Share2, MessageCircle, BarChart, X } from "lucide-react";
 import ContactModal from "./ContactModal";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
@@ -158,8 +158,20 @@ export default function Navbar() {
                       className={styles.tokenInfoPopup}
                     >
                       <div className={styles.popupHeader}>
-                        <HelpCircle size={18} className={styles.helpIcon} />
-                        <h3>איך עובד מנגנון הקרדיטים?</h3>
+                        <div className={styles.headerTitleGroup}>
+                          <HelpCircle size={18} className={styles.helpIcon} />
+                          <h3>איך עובד מנגנון הקרדיטים?</h3>
+                        </div>
+                        <button 
+                          className={styles.closePopupButton}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowTokensInfo(false);
+                          }}
+                          aria-label="סגור"
+                        >
+                          <X size={16} />
+                        </button>
                       </div>
                       <p>העלאת שיר מורידה מתווי הקרדיט שלך. כדי לצבור תווי קרדיט חדשים, פשוט תנו פידבק לשירים של יוצרים אחרים בקהילה.</p>
                       <div className={styles.popupArrow} />
