@@ -47,8 +47,17 @@ export async function createSong(formData: FormData) {
             return { success: false, error: "משתמש לא נמצא" };
         }
 
+        // Check if song already exists for this specific user
+        const existingSong = await db.query.songs.findFirst({
+            where: (songs, { eq, and }) => and(eq(songs.url, url), eq(songs.userId, clerkUser.id))
+        });
+
+        if (existingSong) {
+            return { success: false, error: "השיר כבר הועלה בעבר וקיים באיזור האישי" };
+        }
+
         // Check tokens
-        if (!dbUser || dbUser.tokens < SONG_SUBMISSION_COST) {
+        if (dbUser.tokens < SONG_SUBMISSION_COST) {
             return {
                 success: false,
                 error: `אין לך מספיק קרדיט לשליחת השיר. עלות שליחה היא ${SONG_SUBMISSION_COST} [MUSIC_ICON]. ניתן לקבל קרדיט על ידי מתן פידבק לשירים אחרים!`,
@@ -74,10 +83,10 @@ export async function createSong(formData: FormData) {
     } catch (error: unknown) {
         await logToDb({ message: "Failed to create song details", data: error, source: "songs.ts:createSong" });
 
-        // Handle common SQLite errors
+        // If it's another type of unique constraint (e.g., slug collision, very rare)
         const errorStr = String(error);
-        if (errorStr.includes('UNIQUE constraint failed: Song.url') || (error as { code?: string }).code === 'SQLITE_CONSTRAINT_UNIQUE') {
-            return { success: false, error: "השיר הזה כבר נשלח בעבר על ידי מישהו אחר" };
+        if (errorStr.includes('UNIQUE constraint failed') || (error as { code?: string }).code === 'SQLITE_CONSTRAINT_UNIQUE') {
+            return { success: false, error: "שגיאה בשמירת השיר, נסה שוב" };
         }
 
         return { success: false, error: "שגיאה בשליחת השיר, אנא נסו שוב" };
@@ -157,10 +166,21 @@ export async function addFeedback(data: {
             await logToDb({ message: "Email notification failed", data: emailError, source: "songs.ts:addFeedback" });
         }
 
-        return { success: true, feedback };
+        // Fetch averages for the song after the new feedback
+        const allFeedbacks = await db.query.feedbacks.findMany({
+            where: (feedbacks, { eq }) => eq(feedbacks.songId, data.songId),
+            columns: { lyrics: true, composition: true, production: true, overall: true }
+        });
+
+        const totalFeedbacks = allFeedbacks.length;
+        const sumAll = allFeedbacks.reduce((acc, f) =>
+            acc + f.lyrics + f.composition + f.production + f.overall, 0);
+        const averageRating = sumAll / (totalFeedbacks * 4);
+
+        return { success: true, feedback, averageRating, totalFeedbacks };
     } catch (error) {
         await logToDb({ message: "Failed to add feedback details", data: error, source: "songs.ts:addFeedback" });
-        return { success: true };
+        return { success: false, error: "שגיאה בשמירת הפידבק" };
     }
 }
 
@@ -301,7 +321,30 @@ export async function getFeedSongs(firstSongSlug?: string) {
 
         const finalSongs = firstSong ? [firstSong, ...shuffledRemaining] : shuffledRemaining;
 
-        return { success: true, songs: finalSongs };
+        // Calculate average ratings for the selected songs
+        const songIds = finalSongs.map(s => s.id);
+        let songsWithStats = finalSongs.map(s => ({ ...s, averageRating: 0, totalFeedbacks: 0 }));
+
+        if (songIds.length > 0) {
+            const { inArray } = await import('drizzle-orm');
+            const stats = await db.select({
+                songId: feedbacks.songId,
+                total: sql<number>`count(${feedbacks.id})`,
+                avgRating: sql<number>`avg((${feedbacks.lyrics} + ${feedbacks.composition} + ${feedbacks.production} + ${feedbacks.overall}) / 4.0)`
+            })
+                .from(feedbacks)
+                .where(inArray(feedbacks.songId, songIds))
+                .groupBy(feedbacks.songId);
+
+            const statsMap = new Map(stats.map(s => [s.songId, s]));
+            songsWithStats = finalSongs.map(s => ({
+                ...s,
+                averageRating: statsMap.get(s.id)?.avgRating ?? 0,
+                totalFeedbacks: statsMap.get(s.id)?.total ?? 0
+            }));
+        }
+
+        return { success: true, songs: songsWithStats };
     } catch (error) {
         await logToDb({ message: "Failed to fetch feed songs", data: error, source: "songs.ts:getFeedSongs" });
         return { success: false, error: "שגיאה בטעינת השירים" };

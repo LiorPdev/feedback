@@ -21,7 +21,7 @@ interface SubmittedFeedback {
 
 interface FeedbackFormProps {
   songId: string;
-  onSuccess?: (feedback?: SubmittedFeedback) => void;
+  onSuccess?: (feedback: any, stats?: { averageRating: number; totalFeedbacks: number }) => void;
   getPlayedSeconds?: () => Promise<number>;
   isPlaying?: boolean;
   isDisabled?: boolean;
@@ -167,6 +167,8 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isPl
     }
   };
 
+  const [songStats, setSongStats] = useState<{ averageRating: number; totalFeedbacks: number } | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -223,7 +225,22 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isPl
           );
         }
 
-        setStatus("success");
+        if (result.averageRating !== undefined) {
+          setSongStats({
+            averageRating: result.averageRating,
+            totalFeedbacks: result.totalFeedbacks || 0
+          });
+        }
+
+        if (!isPlaying) {
+          setStatus("success");
+          setTimeout(() => {
+            setStatus("idle");
+            setSongStats(null);
+          }, SUCCESS_MESSAGE_DURATION);
+        } else {
+          setStatus("idle");
+        }
         // Reset form immediately on success
         setRatings({
           lyrics: 0,
@@ -232,7 +249,10 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isPl
           overall: 0,
         });
         setComment("");
-        onSuccess?.(result.feedback);
+        onSuccess?.(result.feedback, { 
+          averageRating: result.averageRating as number, 
+          totalFeedbacks: result.totalFeedbacks as number 
+        });
         // Dispatch custom event to notify Navbar or other components
         window.dispatchEvent(new CustomEvent("tokens-updated"));
       } else {
@@ -272,8 +292,18 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isPl
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
               >
-                <CheckCircle2 size={20} className={styles.successIcon} />
-                <span>תודה על הפידבק שלך!</span>
+                <div className={`${styles.successHeader} ${songStats ? styles.successHeaderWithStats : ""}`}>
+                  <CheckCircle2 size={24} className={styles.successIcon} />
+                  <span className={styles.successTitle}>תודה על הפידבק שלך!</span>
+                </div>
+
+                {songStats && (
+                  <div className={styles.successStats}>
+                    <p className={styles.successScoreLabel}>
+                      דירוג מאזינים ממוצע: <span className={styles.successScoreValue}>{songStats.averageRating.toFixed(1)}</span>
+                    </p>
+                  </div>
+                )}
               </motion.div>
             </div>
           )}

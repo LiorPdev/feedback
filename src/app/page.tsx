@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import LandingClient from "@/components/LandingClient";
+import { auth } from "@clerk/nextjs/server";
+import { getUserSongCount } from "@/app/actions/songs";
 
 export const metadata: Metadata = {
   title: "פידבק-ספייס | קהילה לקבלת פידבקים",
@@ -35,6 +37,16 @@ export const metadata: Metadata = {
   },
 };
 
-export default function Home() {
-  return <LandingClient />;
+export default async function Home() {
+  const { userId } = await auth();
+  let initialHasSongs = false;
+
+  if (userId) {
+    const result = await getUserSongCount(userId);
+    if (result.success && result.count > 0) {
+      initialHasSongs = true;
+    }
+  }
+
+  return <LandingClient initialHasSongs={initialHasSongs} />;
 }

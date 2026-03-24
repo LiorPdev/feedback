@@ -4,12 +4,12 @@ import { SignInButton, SignedIn, SignedOut, UserButton, useUser } from "@clerk/n
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
-import { Music, Home, HelpCircle, Share2, MessageCircle } from "lucide-react";
+import { ADMIN_EMAIL } from "@/lib/constants";
+import { Music, Home, HelpCircle, Share2, MessageCircle, BarChart } from "lucide-react";
 import ContactModal from "./ContactModal";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { getUserTokens } from "@/app/actions/songs";
-import { REWARD_OVERALL, REWARD_COMMENT, SONG_SUBMISSION_COST } from "@/lib/constants";
 import styles from "./Navbar.module.css";
 import AnimatedTokenCounter from "./AnimatedTokenCounter";
 import { getCookie, setCookie } from "@/lib/cookieUtils";
@@ -180,6 +180,13 @@ export default function Navbar() {
                   labelIcon={<MessageCircle size={16} />}
                   onClick={() => setShowContactModal(true)}
                 />
+                {user?.primaryEmailAddress?.emailAddress === ADMIN_EMAIL && (
+                  <UserButton.Link
+                    label="דוחות מנהל"
+                    labelIcon={<BarChart size={16} />}
+                    href="/admin/reports"
+                  />
+                )}
               </UserButton.MenuItems>
             </UserButton>
           </SignedIn>

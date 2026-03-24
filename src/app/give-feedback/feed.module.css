@@ -43,8 +43,7 @@
 
 .backButton {
   position: absolute;
-  top: 1.25rem;
-  right: 1.25rem;
+  right: 0;
   width: 32px;
   height: 32px;
   display: flex;
@@ -64,15 +63,20 @@
   transform: scale(1.1);
 }
 
+.topHeader {
+  width: 100%;
+  max-width: 600px;
+  position: relative;
+  margin-bottom: 1rem;
+}
+
 .headerRow {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  margin-bottom: 1rem;
   width: 100%;
   padding: 0 2.5rem;
-  /* Space for the back button on both sides to keep it centered */
   box-sizing: border-box;
 }
 
@@ -110,6 +114,7 @@
   display: flex;
   gap: 1rem;
   width: 100%;
+  max-width: 600px;
   justify-content: center;
   margin: 10px 0;
 }
@@ -229,6 +234,7 @@
 .ratedHeader {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   margin-bottom: 1.25rem;
   color: #166534;
@@ -261,6 +267,25 @@
   color: #fbbf24;
 }
 
+.ratedStatsContainer {
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.ratedStatsTitle {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.ratedStatsValue {
+  font-size: 1.1rem;
+  margin-right: 8px;
+  color: var(--brand-primary);
+}
+
 .ratedComment {
   background: var(--card-bg);
   padding: 1rem;
@@ -270,6 +295,7 @@
   line-height: 1.6;
   color: var(--text-main);
   white-space: pre-wrap;
+  margin-top: 1rem;
 }
 
 .emptyState {
@@ -311,7 +337,8 @@
   margin-top: 0.5rem;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 600px),
+(max-height: 820px) {
   .main {
     max-width: 100%;
     padding: 0;
@@ -344,10 +371,11 @@
   .btnPlay,
   .btnPause,
   .btnSkip {
-    flex: 1;
+    flex: initial;
+    width: auto;
     white-space: nowrap;
     font-size: 0.85rem;
-    padding: 0.8rem 0.5rem;
+    padding: 0.8rem 1.2rem;
   }
 
   .title {
@@ -356,6 +384,14 @@
 
   .feedbackSection {
     padding: 0;
+  }
+
+  .backButton {
+    right: 0;
+  }
+
+  .headerRow {
+    padding: 0 2rem;
   }
 
 }

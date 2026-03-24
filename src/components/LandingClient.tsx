@@ -26,9 +26,9 @@ const staggerContainer = {
   },
 };
 
-export default function LandingClient() {
+export default function LandingClient({ initialHasSongs = false }: { initialHasSongs?: boolean }) {
   const { user, isLoaded } = useUser();
-  const [hasSongs, setHasSongs] = useState(false);
+  const [hasSongs, setHasSongs] = useState(initialHasSongs);
 
   useEffect(() => {
     async function checkSongs() {
@@ -36,10 +36,15 @@ export default function LandingClient() {
         const result = await getUserSongCount(user.id);
         if (result.success && result.count > 0) {
           setHasSongs(true);
+        } else {
+          setHasSongs(false);
         }
       }
     }
-    checkSongs();
+    // Only re-check if we don't have a reliable initial value or if the user changed
+    if (isLoaded) {
+      checkSongs();
+    }
   }, [user, isLoaded]);
 
   return (

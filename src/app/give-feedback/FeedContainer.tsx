@@ -44,7 +44,7 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
 
   const getRequiredTime = useCallback(() => {
     if (typeof window === 'undefined') return MIN_LISTEN_TIME;
-    const isMobile = window.innerWidth < 600;
+    const isMobile = window.innerWidth < 600 || window.innerHeight < 820;
     const isSpotify = currentSong?.url.includes("spotify.com");
     return (isSpotify && isMobile) ? MIN_LISTEN_TIME_SPOTIFY_MOBILE : MIN_LISTEN_TIME;
   }, [currentSong?.url]);
@@ -54,7 +54,12 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
   const [isPlaying, setIsPlaying] = useState(false);
   const [isBuffering, setIsBuffering] = useState(false);
   const [hasRatedCurrent, setHasRatedCurrent] = useState(!!initialFeedback);
-  const [userFeedback, setUserFeedback] = useState<Feedback | null>(initialFeedback || null);
+  const [userFeedback, setUserFeedback] = useState<any>(initialFeedback || null);
+  const [currentSongStats, setCurrentSongStats] = useState<{ averageRating: number; totalFeedbacks: number } | null>(
+    (currentSong as any)?.averageRating !== undefined
+      ? { averageRating: (currentSong as any).averageRating, totalFeedbacks: (currentSong as any).totalFeedbacks }
+      : null
+  );
   const [justSubmitted, setJustSubmitted] = useState(false);
   const [playerError, setPlayerError] = useState<string | null>(null);
   const playerRef = useRef<UrlPlayerHandle>(null);
@@ -110,8 +115,14 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
     setIsBuffering(false);
     setHasRatedCurrent(false);
     setJustSubmitted(false);
+    setUserFeedback(null);
+    setCurrentSongStats(
+      (songs[currentIndex] as any)?.averageRating !== undefined
+        ? { averageRating: (songs[currentIndex] as any).averageRating, totalFeedbacks: (songs[currentIndex] as any).totalFeedbacks }
+        : null
+    );
     setPlayerError(null);
-  }, [getRequiredTime]);
+  }, [getRequiredTime, currentIndex, songs]);
 
   const onPlayerError = useCallback((error: unknown) => {
     logAction({
@@ -217,18 +228,20 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
   return (
     <div className={styles.feedWrapper}>
       <div className={styles.songCard}>
-        <Link href="/" className={styles.backButton} title="חזרה לדף הבית">
-          <ArrowRight size={20} />
-        </Link>
-        <div className={styles.headerRow}>
-          <h2 className={styles.title}>
-            {currentSong.title}
-          </h2>
-          {currentSong.genre && (
-            <span className={styles.genreInline}>
-              • {currentSong.genre}
-            </span>
-          )}
+        <div className={styles.topHeader}>
+          <Link href="/" className={styles.backButton} title="חזרה לדף הבית">
+            <ArrowRight size={20} />
+          </Link>
+          <div className={styles.headerRow}>
+            <h2 className={styles.title}>
+              {currentSong.title}
+            </h2>
+            {currentSong.genre && (
+              <span className={styles.genreInline}>
+                • {currentSong.genre}
+              </span>
+            )}
+          </div>
         </div>
 
         <div className={styles.playerSection}>
@@ -317,18 +330,22 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
                     : `ניתן לשלוח פידבק בעוד ${secondsRemaining} שניות${!isTimerActive ? " (מושהה)" : "..."}`
                 )
               }
-              onSuccess={(feedback) => {
+              onSuccess={(feedback, stats) => {
                 if (feedback) {
                   setUserFeedback(feedback);
+                  if (stats) setCurrentSongStats(stats);
                   setJustSubmitted(true);
                 }
-                setTimeout(() => {
-                  if (feedback && isPlaying) {
-                    setHasRatedCurrent(true);
-                  } else {
+
+                if (isPlaying) {
+                  // Transition immediately while song plays
+                  setHasRatedCurrent(true);
+                } else {
+                  // Wait for the success popup to finish
+                  setTimeout(() => {
                     handleRemoveCurrent();
-                  }
-                }, SUCCESS_MESSAGE_DURATION);
+                  }, SUCCESS_MESSAGE_DURATION);
+                }
               }}
             />
           )}
@@ -340,38 +357,42 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
                 <span>{justSubmitted ? "תודה! הפידבק שלך נשמר" : "כבר נתת פידבק על השיר 👑"}</span>
               </div>
 
-              <div className={styles.ratedGrid}>
-                {[
-                  { label: "מילים", value: userFeedback.lyrics },
-                  { label: "לחן", value: userFeedback.composition },
-                  { label: "ביצוע", value: userFeedback.production },
-                  { label: "כללי", value: userFeedback.overall },
-                ].map((item, idx) => (
-                  <div key={idx} className={styles.ratedItem}>
-                    <span className={styles.ratedLabel}>{item.label}</span>
-                    <div className={styles.ratedStars}>
-                      {[1, 2, 3, 4, 5].map(star => (
-                        <Star
-                          key={star}
-                          size={14}
-                          fill={item.value >= star ? "currentColor" : "none"}
-                          strokeWidth={2}
-                        />
-                      ))}
+              {justSubmitted && currentSongStats ? (
+                <div className={styles.ratedStatsContainer}>
+                  <p className={styles.ratedStatsTitle}>
+                    דירוג מאזינים ממוצע: <span className={styles.ratedStatsValue}>{currentSongStats.averageRating.toFixed(1)}</span>
+                  </p>
+                </div>
+              ) : (
+                <div className={styles.ratedGrid}>
+                  {[
+                    { label: "מילים", value: userFeedback.lyrics },
+                    { label: "לחן", value: userFeedback.composition },
+                    { label: "ביצוע", value: userFeedback.production },
+                    { label: "כללי", value: userFeedback.overall },
+                  ].map((item, idx) => (
+                    <div key={idx} className={styles.ratedItem}>
+                      <span className={styles.ratedLabel}>{item.label}</span>
+                      <div className={styles.ratedStars}>
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            size={14}
+                            fill={item.value >= star ? "currentColor" : "none"}
+                            strokeWidth={2}
+                          />
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
 
               {userFeedback.comment && (
                 <div className={styles.ratedComment}>
                   {userFeedback.comment}
                 </div>
               )}
-
-              <div className={styles.successMessageInline} style={{ marginTop: '1.5rem' }}>
-                <p>הפידבק נשמר במערכת. ניתן להמשיך להאזין או לעבור לשיר הבא.</p>
-              </div>
             </div>
           )}
         </div>

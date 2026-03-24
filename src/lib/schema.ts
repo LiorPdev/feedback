@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, index } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, index, uniqueIndex } from 'drizzle-orm/sqlite-core';
 import { relations } from 'drizzle-orm';
 
 export const users = sqliteTable('User', {
@@ -12,12 +12,16 @@ export const users = sqliteTable('User', {
     userGenre: text('userGenre'),
     createdAt: text('createdAt').notNull().$defaultFn(() => new Date().toISOString()),
     updatedAt: text('updatedAt').notNull().$defaultFn(() => new Date().toISOString()),
+}, (table) => {
+    return {
+        createdAtIdx: index('User_createdAt_idx').on(table.createdAt),
+    };
 });
 
 export const songs = sqliteTable('Song', {
     id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
     userId: text('userId').notNull().references(() => users.id, { onDelete: 'cascade' }),
-    url: text('url').notNull().unique(),
+    url: text('url').notNull(),
     title: text('title').notNull(),
     genre: text('genre').notNull(),
     artist: text('artist'),
@@ -28,6 +32,7 @@ export const songs = sqliteTable('Song', {
 }, (table) => {
     return {
         userIdIdx: index('Song_userId_idx').on(table.userId),
+        createdAtIdx: index('Song_createdAt_idx').on(table.createdAt),
     };
 });
 
@@ -44,8 +49,9 @@ export const feedbacks = sqliteTable('Feedback', {
     createdAt: text('createdAt').notNull().$defaultFn(() => new Date().toISOString()),
 }, (table) => {
     return {
-        songIdIdx: index('Feedback_songId_idx').on(table.songId),
+        songIdAuthorIdUniqueIdx: uniqueIndex('Feedback_songId_authorId_idx').on(table.songId, table.authorId),
         authorIdIdx: index('Feedback_authorId_idx').on(table.authorId),
+        createdAtIdx: index('Feedback_createdAt_idx').on(table.createdAt),
     };
 });
 
