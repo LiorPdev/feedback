@@ -1,5 +1,4 @@
 User-agent: *
-Allow: /$
-Disallow: /
+Allow: /
 
 Sitemap: https://feedback.activitywiz.com/sitemap.xml

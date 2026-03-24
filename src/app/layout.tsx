@@ -32,6 +32,8 @@ export const metadata: Metadata = {
   description: "קהילה לקבלת פידבקים קלה ומהירה, מותאמת לאמנים ויוצרים. בואו לקבל חוות דעת כנה על היצירות שלכם.",
   icons: {
     icon: [
+      { url: "/Logo192.png", sizes: "192x192", type: "image/png" },
+      { url: "/Logo512.png", sizes: "512x512", type: "image/png" },
       { url: "/Logo.webp", type: "image/webp" },
       { url: "/Logo.png", type: "image/png" },
     ],
@@ -42,7 +44,7 @@ export const metadata: Metadata = {
   },
   robots: {
     index: false,
-    follow: false,
+    follow: true,
   },
   manifest: "/manifest.json",
 };

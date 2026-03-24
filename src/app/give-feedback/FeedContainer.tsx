@@ -179,15 +179,7 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
       });
     }
     resetSongState();
-    setCurrentIndex((prev) => {
-      if (songs.length <= 1) return prev;
-      let nextIndex = prev;
-      // Pick a random index that isn't the current one
-      while (nextIndex === prev) {
-        nextIndex = Math.floor(Math.random() * songs.length);
-      }
-      return nextIndex;
-    });
+    setCurrentIndex((prev) => (prev + 1) % songs.length);
   };
 
   const handleRemoveCurrent = () => {

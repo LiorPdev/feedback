@@ -36,6 +36,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+  gap: 1rem;
 }
 
 .sectionHeader h2 {
@@ -135,5 +136,9 @@
     flex-direction: column;
     align-items: center;
     text-align: center;
+  }
+  
+  .hideOnMobile {
+    display: none;
   }
 }

@@ -2,14 +2,15 @@
 
 import { SignInButton, SignedIn, SignedOut, UserButton, useUser } from "@clerk/nextjs";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { ADMIN_EMAIL } from "@/lib/constants";
-import { Music, Home, HelpCircle, Share2, MessageCircle, BarChart, X } from "lucide-react";
+import { Music, Home, HelpCircle, Share2, MessageCircle, BarChart, X, User as UserIcon } from "lucide-react";
 import ContactModal from "./ContactModal";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { getUserTokens } from "@/app/actions/songs";
+import { getUserData } from "@/app/actions/user";
+import UserPreferencesModal from "./UserPreferencesModal";
 import styles from "./Navbar.module.css";
 import AnimatedTokenCounter from "./AnimatedTokenCounter";
 import { getCookie, setCookie } from "@/lib/cookieUtils";
@@ -18,38 +19,61 @@ export default function Navbar() {
   const pathname = usePathname();
   const { user } = useUser();
   const [tokens, setTokens] = useState<number | null>(null);
+  const [userGenre, setUserGenre] = useState<string>("");
   const [displayedTokens, setDisplayedTokens] = useState<number | null>(null);
   const [glowMode, setGlowMode] = useState<"positive" | "negative" | null>(null);
   const [showTokensInfo, setShowTokensInfo] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
+  const [showPreferencesModal, setShowPreferencesModal] = useState(false);
+  const redirectUrlRef = useRef<string | null>(null);
   const infoRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
-    const fetchTokens = async () => {
+    const fetchUserData = async () => {
       if (user) {
-        const result = await getUserTokens(user.id);
-        if (result.success) {
+        const result = await getUserData(user.id);
+        if (result.success && result.tokens !== undefined) {
           if (tokens !== null && result.tokens !== tokens) {
             setGlowMode(result.tokens > tokens ? "positive" : "negative");
           }
           setTokens(result.tokens);
+          setUserGenre(result.userGenre || "");
           if (displayedTokens === null) {
             setDisplayedTokens(result.tokens);
           }
         }
       }
     };
-    fetchTokens();
+    fetchUserData();
 
     const handleUpdate = () => {
-      fetchTokens();
+      fetchUserData();
     };
 
     window.addEventListener("tokens-updated", handleUpdate);
+    
+    const handleOpenPrefs = (e: any) => {
+      const redirectTo = e.detail?.redirectTo;
+      redirectUrlRef.current = redirectTo || null;
+      setShowPreferencesModal(true);
+    };
+    window.addEventListener("open-preferences-modal", handleOpenPrefs);
+
     return () => {
       window.removeEventListener("tokens-updated", handleUpdate);
+      window.removeEventListener("open-preferences-modal", handleOpenPrefs);
     };
   }, [user, pathname, displayedTokens, tokens]); // Added tokens to dependencies for fetchTokens to compare correctly
+
+  const handleClosePrefs = () => {
+    const redirectTo = redirectUrlRef.current;
+    setShowPreferencesModal(false);
+    if (redirectTo) {
+      router.push(redirectTo);
+      redirectUrlRef.current = null;
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -162,7 +186,7 @@ export default function Navbar() {
                           <HelpCircle size={18} className={styles.helpIcon} />
                           <h3>איך עובד מנגנון הקרדיטים?</h3>
                         </div>
-                        <button 
+                        <button
                           className={styles.closePopupButton}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -173,7 +197,7 @@ export default function Navbar() {
                           <X size={16} />
                         </button>
                       </div>
-                      <p>העלאת שיר מורידה מתווי הקרדיט שלך. כדי לצבור תווי קרדיט חדשים, פשוט תנו פידבק לשירים של יוצרים אחרים בקהילה.</p>
+                      <p>שליחת שיר מורידה מתווי הקרדיט שלך. כדי לצבור תווי קרדיט חדשים, פשוט תנו פידבק לשירים של יוצרים אחרים בקהילה.</p>
                       <div className={styles.popupArrow} />
                     </motion.div>
                   )}
@@ -182,6 +206,11 @@ export default function Navbar() {
             )}
             <UserButton afterSignOutUrl="/">
               <UserButton.MenuItems>
+                <UserButton.Action
+                  label="העדפות משתמש"
+                  labelIcon={<UserIcon size={16} />}
+                  onClick={() => setShowPreferencesModal(true)}
+                />
                 <UserButton.Action
                   label="שתפו עם חברים"
                   labelIcon={<Share2 size={16} />}
@@ -207,6 +236,11 @@ export default function Navbar() {
       <ContactModal
         isOpen={showContactModal}
         onClose={() => setShowContactModal(false)}
+      />
+      <UserPreferencesModal
+        isOpen={showPreferencesModal}
+        onClose={handleClosePrefs}
+        initialGenre={userGenre}
       />
     </nav>
   );

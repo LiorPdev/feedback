@@ -33,6 +33,8 @@ export const songs = sqliteTable('Song', {
     return {
         userIdIdx: index('Song_userId_idx').on(table.userId),
         createdAtIdx: index('Song_createdAt_idx').on(table.createdAt),
+        isActiveIdx: index('Song_isActive_idx').on(table.isActive),
+        genreIdx: index('Song_genre_idx').on(table.genre),
     };
 });
 

@@ -267,7 +267,17 @@ export async function getFeedSongs(firstSongSlug?: string) {
             ratedSongIds = userFeedbacks.map(f => f.songId);
         }
 
-        // Fetch the first song specifically if requested
+        // 1. Get user's preferred genre if authenticated
+        let preferredGenre: string | null = null;
+        if (userId) {
+            const user = await db.query.users.findFirst({
+                where: eq(users.id, userId),
+                columns: { userGenre: true }
+            });
+            preferredGenre = user?.userGenre ?? null;
+        }
+
+        // 2. Fetch the first song specifically if requested
         let firstSong = null;
         if (firstSongSlug) {
             firstSong = await db.query.songs.findFirst({
@@ -283,7 +293,7 @@ export async function getFeedSongs(firstSongSlug?: string) {
         }
 
         const remainingSongs = await db.query.songs.findMany({
-            where: (songs, { ne, and, not, inArray }) => {
+            where: (songs, { ne, and, not, inArray, eq }) => {
                 const filters = [];
 
                 // Don't show user's own songs
@@ -313,14 +323,28 @@ export async function getFeedSongs(firstSongSlug?: string) {
                     }
                 }
             },
-            orderBy: [sql`RANDOM()`]
         });
 
-        // Guaranteed randomization in JS as a fallback for DB/caching issues
-        const shuffledRemaining = [...remainingSongs].sort(() => Math.random() - 0.5);
+        // 3. Shuffle and Prioritize in JavaScript
+        // This is more reliable for handling Hebrew strings and Cloudflare D1 environment nuances
+        const preferredGenres = preferredGenre 
+            ? preferredGenre.split(",").map(g => g.trim()).filter(Boolean)
+            : [];
 
-        const finalSongs = firstSong ? [firstSong, ...shuffledRemaining] : shuffledRemaining;
+        const sortedSongs = [...remainingSongs]
+            .sort(() => Math.random() - 0.5) // Randomize first
+            .sort((a, b) => {
+                // Then stable sort by genre: matching any preferred genre (0) comes before non-matching (1)
+                if (preferredGenres.length > 0) {
+                    const aMatch = preferredGenres.includes(a.genre) ? 0 : 1;
+                    const bMatch = preferredGenres.includes(b.genre) ? 0 : 1;
+                    return aMatch - bMatch;
+                }
+                return 0;
+            });
 
+        const finalSongs = firstSong ? [firstSong, ...sortedSongs] : sortedSongs;
+        
         // Calculate average ratings for the selected songs
         const songIds = finalSongs.map(s => s.id);
         let songsWithStats = finalSongs.map(s => ({ ...s, averageRating: 0, totalFeedbacks: 0 }));

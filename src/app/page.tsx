@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import LandingClient from "@/components/LandingClient";
 import { auth } from "@clerk/nextjs/server";
 import { getUserSongCount } from "@/app/actions/songs";
+import { getUserData } from "@/app/actions/user";
 
 export const metadata: Metadata = {
   title: "פידבק-ספייס | קהילה לקבלת פידבקים",
-  description: "קהילה לקבלת פידבקים, מותאמת לאמנים ויוצרים. בואו לקבל חוות דעת כנה על היצירות שלכם.",
+  description: "מותאמת לאמנים ויוצרים. בואו לקבל חוות דעת כנה על היצירות שלכם.",
   alternates: {
     canonical: "/",
   },
@@ -14,8 +15,8 @@ export const metadata: Metadata = {
     follow: true,
   },
   openGraph: {
-    title: "פידבק-ספייס | קהילה לקבלת פידבקים אמיתיים",
-    description: "קהילה לקבלת פידבקים, מותאמת לאמנים ויוצרים. בואו לקבל חוות דעת כנה על היצירות שלכם.",
+    title: "פידבק-ספייס | קהילה לקבלת פידבקים",
+    description: "מותאמת לאמנים ויוצרים. בואו לקבל חוות דעת כנה על היצירות שלכם.",
     url: "https://feedback.activitywiz.com",
     siteName: "פידבק-ספייס",
     images: [
@@ -32,7 +33,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "פידבק-ספייס | קהילה לקבלת פידבקים",
-    description: "קהילה לקבלת פידבקים, מותאמת לאמנים ויוצרים.",
+    description: "מותאמת לאמנים ויוצרים.",
     images: ["/og_image.png"],
   },
 };
@@ -40,13 +41,21 @@ export const metadata: Metadata = {
 export default async function Home() {
   const { userId } = await auth();
   let initialHasSongs = false;
+  let initialGenre = "";
 
   if (userId) {
-    const result = await getUserSongCount(userId);
-    if (result.success && result.count > 0) {
+    const [songResult, userResult] = await Promise.all([
+      getUserSongCount(userId),
+      getUserData(userId)
+    ]);
+    
+    if (songResult.success && songResult.count > 0) {
       initialHasSongs = true;
+    }
+    if (userResult.success && userResult.userGenre) {
+      initialGenre = userResult.userGenre;
     }
   }
 
-  return <LandingClient initialHasSongs={initialHasSongs} />;
+  return <LandingClient initialHasSongs={initialHasSongs} initialGenre={initialGenre} />;
 }

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { SignInButton, SignedIn, SignedOut, useUser } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { CheckCircle } from "lucide-react";
 import Image from "next/image";
@@ -26,26 +27,53 @@ const staggerContainer = {
   },
 };
 
-export default function LandingClient({ initialHasSongs = false }: { initialHasSongs?: boolean }) {
+export default function LandingClient({
+  initialHasSongs = false,
+  initialGenre = ""
+}: {
+  initialHasSongs?: boolean,
+  initialGenre?: string
+}) {
   const { user, isLoaded } = useUser();
   const [hasSongs, setHasSongs] = useState(initialHasSongs);
+  const [userGenre, setUserGenre] = useState(initialGenre);
+  const router = useRouter();
 
   useEffect(() => {
-    async function checkSongs() {
+    async function checkUserData() {
       if (isLoaded && user) {
-        const result = await getUserSongCount(user.id);
-        if (result.success && result.count > 0) {
+        const [songResult, userResult] = await Promise.all([
+          getUserSongCount(user.id),
+          (async () => {
+            const { getUserData } = await import("@/app/actions/user");
+            return getUserData(user.id);
+          })()
+        ]);
+
+        if (songResult.success && songResult.count > 0) {
           setHasSongs(true);
         } else {
           setHasSongs(false);
         }
+
+        if (userResult.success && userResult.userGenre) {
+          setUserGenre(userResult.userGenre);
+        }
       }
     }
-    // Only re-check if we don't have a reliable initial value or if the user changed
     if (isLoaded) {
-      checkSongs();
+      checkUserData();
     }
   }, [user, isLoaded]);
+
+  const handleGiveFeedbackClick = (e: React.MouseEvent) => {
+    if (user && !userGenre) {
+      e.preventDefault();
+      window.dispatchEvent(new CustomEvent("open-preferences-modal", { 
+        detail: { redirectTo: "/give-feedback" } 
+      }));
+    }
+  };
 
   return (
     <div className={styles.landingPage}>
@@ -83,7 +111,10 @@ export default function LandingClient({ initialHasSongs = false }: { initialHasS
                   </button>
                 </SignInButton>
                 <SignInButton mode="modal" forceRedirectUrl="/give-feedback">
-                  <button className={styles.btnSecondary}>
+                  <button 
+                    className={styles.btnSecondary}
+                    onClick={handleGiveFeedbackClick}
+                  >
                     אני רוצה לתת פידבק
                   </button>
                 </SignInButton>
@@ -95,7 +126,11 @@ export default function LandingClient({ initialHasSongs = false }: { initialHasS
                 >
                   {hasSongs ? "האיזור האישי שלי" : "אני רוצה לקבל פידבק"}
                 </Link>
-                <Link href="/give-feedback" className={styles.btnSecondary}>
+                <Link 
+                  href="/give-feedback" 
+                  className={styles.btnSecondary}
+                  onClick={handleGiveFeedbackClick}
+                >
                   אני רוצה לתת פידבק
                 </Link>
               </SignedIn>

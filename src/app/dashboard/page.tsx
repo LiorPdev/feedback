@@ -71,9 +71,9 @@ export default async function DashboardPage({
 
       <div className={styles.content}>
         <div className={styles.sectionHeader}>
-          <h2>השירים ששלחתי לקבלת פידבק</h2>
+          <h2>השירים ששלחתי <span className={styles.hideOnMobile}>לקבל פידבק</span></h2>
           <Link href="/get-feedback" className={styles.submitNewBtn}>
-            שליחת שיר חדש
+            שליחת שיר נוסף
           </Link>
         </div>
 
