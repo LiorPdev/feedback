@@ -7,7 +7,8 @@ import FeedbackForm from "@/components/FeedbackForm";
 import UrlPlayer, { getEmbedUrl, type UrlPlayerHandle } from "@/components/UrlPlayer";
 import DashboardLink from "@/components/DashboardLink";
 import BackButton from "@/components/BackButton";
-import { Play, Pause, CheckCircle2, Star } from "lucide-react";
+import { Play, Pause, CheckCircle2, Star, MoreHorizontal, Music2 } from "lucide-react";
+import SocialIcon from "@/components/SocialIcon";
 import Link from "next/link";
 import { MIN_LISTEN_TIME, MIN_LISTEN_TIME_SPOTIFY_MOBILE, SUCCESS_MESSAGE_DURATION } from "@/lib/constants";
 import { logAction } from "@/app/actions/logs";
@@ -20,6 +21,7 @@ interface Song {
   slug: string;
   user?: {
     name: string | null;
+    socialLinks?: string | null;
   };
 }
 
@@ -252,9 +254,11 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
             </h2>
             {currentSong.genre && (
               <span className={styles.genreInline}>
-                • {currentSong.genre}
+                ({currentSong.genre})
               </span>
             )}
+
+            <SocialsHeader socialLinks={currentSong.user?.socialLinks} />
           </div>
         </div>
 
@@ -274,7 +278,7 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
                   onPlay={onPlayerPlay}
                   onPause={onPlayerPause}
                   onEnded={onPlayerEnded}
-                  onReady={() => setIsBuffering(false)}
+                   onReady={() => setIsBuffering(false)}
                   onError={onPlayerError}
                   isHidden={isHiddenPlayer}
                 />
@@ -424,4 +428,63 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
       </div>
     </div>
   );
+}
+
+function SocialsHeader({ socialLinks }: { socialLinks?: string | null }) {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  if (!socialLinks) return null;
+  
+  try {
+    const links = JSON.parse(socialLinks);
+    const platforms = [
+      { id: "spotify", name: "Spotify", url: links.spotify },
+      { id: "youtube", name: "YouTube", url: links.youtube },
+      { id: "applemusic", name: "Apple Music", url: links.appleMusic },
+      { id: "instagram", name: "Instagram", url: links.instagram },
+      { id: "facebook", name: "Facebook", url: links.facebook },
+      { id: "tiktok", name: "TikTok", url: links.tiktok },
+    ].filter(p => p.url);
+
+    if (platforms.length === 0) return null;
+
+    return (
+      <div className={styles.headerSocialsContainer}>
+        {/* Desktop View: Show All inline */}
+        <div className={styles.desktopSocials}>
+          {platforms.map(p => (
+            <a key={p.id} href={p.url} target="_blank" rel="noopener noreferrer" title={p.name} className={styles.headerSocialLink}>
+              <SocialIcon platform={p.id} size={16} />
+            </a>
+          ))}
+        </div>
+
+        {/* Mobile View: Single Toggle for ALL socials */}
+        <div className={styles.mobileSocials}>
+          <div className={styles.moreSocialsWrapper}>
+            <button 
+              className={styles.moreSocialsBtn}
+              onClick={() => setIsOpen(!isOpen)}
+              title="קישורי האמן"
+            >
+              <SocialIcon platform="spotify" size={16} />
+            </button>
+            
+            {isOpen && (
+              <div className={styles.socialsDropdown}>
+                {platforms.map(p => (
+                  <a key={p.id} href={p.url} target="_blank" rel="noopener noreferrer" title={p.name} className={styles.dropdownSocialLink} onClick={() => setIsOpen(false)}>
+                    <SocialIcon platform={p.id} size={18} />
+                    <span>{p.name}</span>
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  } catch (e) {
+    return null;
+  }
 }

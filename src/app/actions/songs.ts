@@ -285,7 +285,8 @@ export async function getFeedSongs(firstSongSlug?: string) {
                 with: {
                     user: {
                         columns: {
-                            name: true
+                            name: true,
+                            socialLinks: true
                         }
                     }
                 }
@@ -319,7 +320,8 @@ export async function getFeedSongs(firstSongSlug?: string) {
             with: {
                 user: {
                     columns: {
-                        name: true
+                        name: true,
+                        socialLinks: true
                     }
                 }
             },

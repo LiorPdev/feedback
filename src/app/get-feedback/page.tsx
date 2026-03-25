@@ -5,13 +5,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Music } from "lucide-react";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
-import BackButton from "@/components/BackButton";
 import { createSong, getUserSongCount, getURLMetadata } from "@/app/actions/songs";
 import { getPresignedUploadUrl } from "@/app/actions/upload";
 import { logAction } from "@/app/actions/logs";
 import { useRouter } from "next/navigation";
 import styles from "./get-feedback.module.css";
-import DashboardLink from "@/components/DashboardLink";
 import { GENRES, SONG_SUBMISSION_COST, MAX_FILE_SIZE, MAX_FILE_SIZE_MB } from "@/lib/constants";
 
 export default function GetFeedback() {
@@ -178,11 +176,6 @@ export default function GetFeedback() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <BackButton
-          href={hasSongs ? "/dashboard" : "/"}
-          title={hasSongs ? "חזרה לאיזור האישי" : "חזרה לדף הבית"}
-          className={styles.backButton}
-        />
         <div className={styles.header}>
           <h1>שליחת שיר</h1>
         </div>
@@ -218,7 +211,7 @@ export default function GetFeedback() {
                   <input
                     type="url"
                     className={styles.input}
-                    placeholder="הדביקו קישור לשיר..."
+                    placeholder="https://..."
                     value={songLink}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                       const val = e.target.value;
@@ -352,7 +345,7 @@ export default function GetFeedback() {
               value={songTitle}
               onChange={(e) => setSongTitle(e.target.value)}
               required
-              maxLength={30}
+              maxLength={22}
             />
           </div>
 
@@ -375,27 +368,37 @@ export default function GetFeedback() {
             </div>
           </div>
 
-          <button
-            type="submit"
-            className={styles.submitBtn}
-            onMouseEnter={() => window.dispatchEvent(new CustomEvent("star-hover-start"))}
-            onMouseLeave={() => window.dispatchEvent(new CustomEvent("star-hover-end"))}
-            onTouchStart={() => window.dispatchEvent(new CustomEvent("star-hover-start"))}
-            onTouchEnd={() => window.dispatchEvent(new CustomEvent("star-hover-end"))}
-            disabled={
-              status === "loading" ||
-              (submissionType === "link" ? (!songLink || !isSupportedLink) : (!songFile || !!fileError)) ||
-              !songTitle ||
-              !selectedGenre ||
-              !user
-            }
-          >
-            {status === "loading" ? (
-              <div className={styles.loadingSpinner} />
-            ) : (
-              <>שליחה <span className={styles.tokenLabel}>({SONG_SUBMISSION_COST} <Music size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /> קרדיט)</span></>
-            )}
-          </button>
+          <div className={styles.formActions}>
+            <button
+              type="button"
+              className={styles.cancelBtn}
+              onClick={() => router.push(hasSongs ? "/dashboard" : "/")}
+              disabled={status === "loading"}
+            >
+              ביטול
+            </button>
+            <button
+              type="submit"
+              className={styles.submitBtn}
+              onMouseEnter={() => window.dispatchEvent(new CustomEvent("star-hover-start"))}
+              onMouseLeave={() => window.dispatchEvent(new CustomEvent("star-hover-end"))}
+              onTouchStart={() => window.dispatchEvent(new CustomEvent("star-hover-start"))}
+              onTouchEnd={() => window.dispatchEvent(new CustomEvent("star-hover-end"))}
+              disabled={
+                status === "loading" ||
+                (submissionType === "link" ? (!songLink || !isSupportedLink) : (!songFile || !!fileError)) ||
+                !songTitle ||
+                !selectedGenre ||
+                !user
+              }
+            >
+              {status === "loading" ? (
+                <div className={styles.loadingSpinner} />
+              ) : (
+                <>שליחה <span className={styles.tokenLabel}>({SONG_SUBMISSION_COST} <Music size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /> קרדיט)</span></>
+              )}
+            </button>
+          </div>
 
           <AnimatePresence>
             {errorMessage && (
@@ -425,11 +428,6 @@ export default function GetFeedback() {
         </form>
       </motion.div>
 
-      <DashboardLink
-        href={hasSongs ? "/dashboard" : "/"}
-        text={hasSongs ? "חזרה לאיזור האישי" : "חזרה לדף הבית"}
-        className={styles.dashboardLinkMargin}
-      />
     </div>
   );
 }

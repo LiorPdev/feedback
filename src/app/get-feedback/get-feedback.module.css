@@ -39,7 +39,7 @@
 }
 
 .header h1 {
-  font-size: 2rem;
+  font-size: 1.9rem;
   font-weight: 800;
   margin: -20px 0 0 0;
   color: var(--text-main);
@@ -72,6 +72,10 @@
   color: var(--text-main);
   background-color: var(--card-bg);
   box-sizing: border-box;
+}
+
+.input[type="url"] {
+  direction: ltr;
 }
 
 .input:focus {
@@ -124,7 +128,7 @@
 
 .submitBtn {
   width: 200px;
-  margin: calc(1rem + 10px) auto 0;
+  margin: 0;
   padding: 1.1rem;
   background-color: color-mix(in srgb, var(--brand-primary), transparent 15%);
   color: white;
@@ -153,6 +157,41 @@
 
 .submitBtn:disabled {
   opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.formActions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: calc(1.5rem + 10px);
+}
+
+.cancelBtn {
+  background-color: transparent;
+  color: var(--text-muted);
+  border: 1.5px solid var(--border-color);
+  padding: 1.1rem 2rem;
+  border-radius: 14px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cancelBtn:hover:not(:disabled) {
+  border-color: var(--text-muted);
+  color: var(--text-main);
+  background-color: var(--bg-section);
+}
+
+.cancelBtn:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
@@ -406,6 +445,7 @@
   }
 
   .backButton {
-    top: 0.95rem; /* 5px higher than 1.25rem (20px -> 15px) */
+    top: 0.95rem;
+    /* 5px higher than 1.25rem (20px -> 15px) */
   }
 }

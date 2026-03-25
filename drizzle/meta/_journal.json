@@ -78,6 +78,13 @@
       "when": 1774445277413,
       "tag": "0010_creditCode",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1774454634288,
+      "tag": "0011_socialLinks",
+      "breakpoints": true
     }
   ]
 }

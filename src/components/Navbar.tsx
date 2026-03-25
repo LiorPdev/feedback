@@ -21,6 +21,7 @@ export default function Navbar() {
   const { user } = useUser();
   const [tokens, setTokens] = useState<number | null>(null);
   const [userGenre, setUserGenre] = useState<string>("");
+  const [userSocialLinks, setUserSocialLinks] = useState<string>("");
   const [displayedTokens, setDisplayedTokens] = useState<number | null>(null);
   const [glowMode, setGlowMode] = useState<"positive" | "negative" | null>(null);
   const [showTokensInfo, setShowTokensInfo] = useState(false);
@@ -42,6 +43,7 @@ export default function Navbar() {
           }
           setTokens(result.tokens);
           setUserGenre(result.userGenre || "");
+          setUserSocialLinks(result.socialLinks || "");
           if (displayedTokens === null) {
             setDisplayedTokens(result.tokens);
           }
@@ -55,7 +57,7 @@ export default function Navbar() {
     };
 
     window.addEventListener("tokens-updated", handleUpdate);
-    
+
     const handleOpenPrefs = (e: any) => {
       const redirectTo = e.detail?.redirectTo;
       redirectUrlRef.current = redirectTo || null;
@@ -79,7 +81,7 @@ export default function Navbar() {
   const handleClosePrefs = () => {
     const redirectTo = redirectUrlRef.current;
     setShowPreferencesModal(false);
-    
+
     if (redirectTo) {
       setPendingRedirect(redirectTo);
       redirectUrlRef.current = null;
@@ -209,7 +211,7 @@ export default function Navbar() {
                         </button>
                       </div>
                       <p>שליחת שיר מורידה מתווי הקרדיט שלך. כדי לצבור תווי קרדיט חדשים, פשוט תנו פידבק לשירים של יוצרים אחרים בקהילה.</p>
-                      <button 
+                      <button
                         className={styles.infoLink}
                         onClick={() => {
                           setShowTokensInfo(false);
@@ -227,7 +229,7 @@ export default function Navbar() {
             <UserButton afterSignOutUrl="/">
               <UserButton.MenuItems>
                 <UserButton.Action
-                  label="העדפות משתמש"
+                  label="כרטיס ביקור מוזיקלי"
                   labelIcon={<UserIcon size={16} />}
                   onClick={() => setShowPreferencesModal(true)}
                 />
@@ -266,6 +268,7 @@ export default function Navbar() {
         isOpen={showPreferencesModal}
         onClose={handleClosePrefs}
         initialGenre={userGenre}
+        initialSocialLinks={userSocialLinks}
       />
       <CreditTransferModal
         isOpen={showCreditModal}

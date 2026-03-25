@@ -108,6 +108,7 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
                   onChange={(e) => setTitle(e.target.value)}
                   required
                   placeholder="לדוגמה: השיר החדש שלי"
+                  maxLength={22}
                 />
               </div>
 

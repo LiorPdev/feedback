@@ -7,7 +7,7 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { logAction } from "./logs";
 
-export async function updateUserGenre(genre: string) {
+export async function updateUserProfile(genre: string, socialLinks: string | null) {
   try {
     const clerkUser = await currentUser();
     if (!clerkUser) {
@@ -16,25 +16,30 @@ export async function updateUserGenre(genre: string) {
 
     const db = await getDb();
 
-    // Update the user's genre
     await db
       .update(users)
-      .set({ userGenre: genre || null, updatedAt: new Date().toISOString() })
+      .set({
+        userGenre: genre || null,
+        socialLinks: socialLinks || null,
+        updatedAt: new Date().toISOString()
+      })
       .where(eq(users.id, clerkUser.id));
 
-    // Revalidate the dashboard to show changes immediately
     revalidatePath("/dashboard");
-
     return { success: true };
   } catch (error) {
     const err = error as Error;
     await logAction({
-      message: "Failed to update user genre",
-      data: { error: err.message, stack: err.stack, genre },
-      source: "actions/user.ts:updateUserGenre",
+      message: "Failed to update user profile",
+      data: { error: err.message, stack: err.stack, genre, socialLinks },
+      source: "actions/user.ts:updateUserProfile",
     });
-    return { success: false, error: "אירעה שגיאה בשמירת הסגנון המועדף" };
+    return { success: false, error: "אירעה שגיאה בשמירת הפרופיל" };
   }
+}
+
+export async function updateUserGenre(genre: string) {
+  return updateUserProfile(genre, null);
 }
 
 export async function getUserData(userId: string) {
@@ -42,12 +47,13 @@ export async function getUserData(userId: string) {
   try {
     const user = await db.query.users.findFirst({
       where: (users, { eq }) => eq(users.id, userId),
-      columns: { tokens: true, userGenre: true }
+      columns: { tokens: true, userGenre: true, socialLinks: true }
     });
     return {
       success: true,
       tokens: user?.tokens ?? 0,
-      userGenre: user?.userGenre ?? null
+      userGenre: user?.userGenre ?? null,
+      socialLinks: user?.socialLinks ?? null
     };
   } catch (error) {
     await logAction({
@@ -112,7 +118,7 @@ export async function redeemCreditCode(code: string) {
 
     if (!creditCode) return { success: false, error: "קוד לא תקין" };
     if (creditCode.isRedeemed) return { success: false, error: "הקוד כבר מומש" };
-    if (creditCode.senderId === clerkUser.id) return { success: false, error: "לא ניתן לממש קוד שאתה יצרת" };
+    if (creditCode.senderId === clerkUser.id) return { success: false, error: "לא ניתן לממש קוד שאתם יצרתם" };
 
     const redeemer = await db.query.users.findFirst({
       where: (users, { eq }) => eq(users.id, clerkUser.id),

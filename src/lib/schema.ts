@@ -10,6 +10,7 @@ export const users = sqliteTable('User', {
     tokens: integer('tokens').default(100).notNull(),
     userRank: integer('userRank').default(1).notNull(),
     userGenre: text('userGenre'),
+    socialLinks: text('socialLinks'), // JSON string: { spotify?: string, youtube?: string, appleMusic?: string, facebook?: string, instagram?: string, tiktok?: string }
     createdAt: text('createdAt').notNull().$defaultFn(() => new Date().toISOString()),
     updatedAt: text('updatedAt').notNull().$defaultFn(() => new Date().toISOString()),
 }, (table) => {

@@ -48,7 +48,7 @@
 
 .topHeader {
   width: 100%;
-  max-width: 600px;
+  max-width: 800px;
   position: relative;
   margin-bottom: 1rem;
 }
@@ -82,11 +82,123 @@
 }
 
 .genreInline {
-  font-size: 1rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: var(--text-muted);
   white-space: nowrap;
   flex-shrink: 0;
+}
+
+.headerSocialsContainer {
+  margin-right: 0.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.desktopSocials {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.mobileSocials {
+  display: none;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.headerSocialLink {
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.8;
+}
+
+.headerSocialLink:hover {
+  color: var(--brand-primary);
+  transform: scale(1.15);
+  opacity: 1;
+}
+
+.moreSocialsWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.moreSocialsBtn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  opacity: 0.8;
+}
+
+.moreSocialsBtn:hover {
+  color: var(--brand-primary);
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.socialsDropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  padding: 6px;
+  min-width: 150px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: slideIn 0.2s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdownSocialLink {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: var(--text-main);
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+  direction: ltr;
+}
+
+.dropdownSocialLink:hover {
+  background: var(--brand-bg);
+  color: var(--brand-primary);
+}
+
+.tiktokIconTiny {
+  font-family: serif;
+  font-weight: bold;
+  font-size: 1.1rem;
+  line-height: 1;
 }
 
 .playerSection {
@@ -363,7 +475,7 @@
   margin-bottom: 0.5rem;
 }
 
-@media (max-width: 600px),
+@media (max-width: 700px),
 (max-height: 820px) {
   .main {
     max-width: 100%;
@@ -417,10 +529,34 @@
 
   .backButton {
     right: 0;
+    top: -5px;
   }
 
   .headerRow {
-    padding: 0 2rem;
+    padding: 0 2.2rem 0 0.8rem;
+    gap: 0.3rem;
+  }
+
+  @media (max-width: 450px) {
+    .headerRow {
+      padding: 0 2.2rem 0 0.8rem;
+    }
+
+    .title {
+      font-size: 1.3rem;
+    }
+
+    .backButton {
+      top: -6px;
+    }
+  }
+
+  .desktopSocials {
+    display: none;
+  }
+
+  .mobileSocials {
+    display: flex;
   }
 
 }

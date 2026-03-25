@@ -80,6 +80,10 @@
   box-sizing: border-box;
 }
 
+.input[type="url"] {
+  direction: ltr;
+}
+
 .select {
   padding: 0.8rem 1rem;
   padding-left: 2.5rem;
