@@ -4,25 +4,29 @@
   left: 0;
   right: 0;
   bottom: 0;
+  height: 100dvh;
   background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 2000;
-  padding: 20px;
+  padding: 1.5rem;
 }
 
 .modalContent {
   background: var(--card-bg);
   width: 100%;
   max-width: 450px;
+  max-height: calc(100dvh - 3rem);
   border-radius: 24px;
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-xl);
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   position: relative;
   direction: rtl;
+  overflow: hidden;
 }
 
 .modalHeader {
@@ -88,6 +92,8 @@
 .tabContent {
   padding: 1.5rem;
   min-height: 250px;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .inputGroup {
