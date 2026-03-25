@@ -130,13 +130,16 @@ export default function UserPreferencesModal({
                         <div className={styles.socialInputGroup}>
                           <label htmlFor="pref-spotify">
                             <SocialIcon platform="spotify" size={16} />
-                            Spotify
+                            <span>Spotify</span>
                           </label>
                           <input
                             id="pref-spotify"
                             name="spotify"
                             type="url"
+                            inputMode="url"
                             autoComplete="url"
+                            spellCheck={false}
+                            aria-label="Spotify Link"
                             placeholder="https://open.spotify.com/artist/..."
                             value={socialLinks.spotify || ""}
                             onChange={(e) => updateSocialLink("spotify", e.target.value)}
@@ -145,13 +148,16 @@ export default function UserPreferencesModal({
                         <div className={styles.socialInputGroup}>
                           <label htmlFor="pref-youtube">
                             <SocialIcon platform="youtube" size={16} />
-                            YouTube
+                            <span>YouTube</span>
                           </label>
                           <input
                             id="pref-youtube"
                             name="youtube"
                             type="url"
+                            inputMode="url"
                             autoComplete="url"
+                            spellCheck={false}
+                            aria-label="YouTube Link"
                             placeholder="https://youtube.com/@..."
                             value={socialLinks.youtube || ""}
                             onChange={(e) => updateSocialLink("youtube", e.target.value)}
@@ -160,13 +166,16 @@ export default function UserPreferencesModal({
                         <div className={styles.socialInputGroup}>
                           <label htmlFor="pref-applemusic">
                             <SocialIcon platform="applemusic" size={16} />
-                            Apple Music
+                            <span>Apple Music</span>
                           </label>
                           <input
                             id="pref-applemusic"
                             name="applemusic"
                             type="url"
+                            inputMode="url"
                             autoComplete="url"
+                            spellCheck={false}
+                            aria-label="Apple Music Link"
                             placeholder="https://music.apple.com/artist/..."
                             value={socialLinks.appleMusic || ""}
                             onChange={(e) => updateSocialLink("appleMusic", e.target.value)}
@@ -175,13 +184,16 @@ export default function UserPreferencesModal({
                         <div className={styles.socialInputGroup}>
                           <label htmlFor="pref-facebook">
                             <SocialIcon platform="facebook" size={16} />
-                            Facebook
+                            <span>Facebook</span>
                           </label>
                           <input
                             id="pref-facebook"
                             name="facebook"
                             type="url"
+                            inputMode="url"
                             autoComplete="url"
+                            spellCheck={false}
+                            aria-label="Facebook Link"
                             placeholder="https://facebook.com/..."
                             value={socialLinks.facebook || ""}
                             onChange={(e) => updateSocialLink("facebook", e.target.value)}
@@ -190,13 +202,16 @@ export default function UserPreferencesModal({
                         <div className={styles.socialInputGroup}>
                           <label htmlFor="pref-instagram">
                             <SocialIcon platform="instagram" size={16} />
-                            Instagram
+                            <span>Instagram</span>
                           </label>
                           <input
                             id="pref-instagram"
                             name="instagram"
                             type="url"
+                            inputMode="url"
                             autoComplete="url"
+                            spellCheck={false}
+                            aria-label="Instagram Link"
                             placeholder="https://instagram.com/..."
                             value={socialLinks.instagram || ""}
                             onChange={(e) => updateSocialLink("instagram", e.target.value)}
@@ -205,13 +220,16 @@ export default function UserPreferencesModal({
                         <div className={styles.socialInputGroup}>
                           <label htmlFor="pref-tiktok">
                             <SocialIcon platform="tiktok" size={16} />
-                            TikTok
+                            <span>TikTok</span>
                           </label>
                           <input
                             id="pref-tiktok"
                             name="tiktok"
                             type="url"
+                            inputMode="url"
                             autoComplete="url"
+                            spellCheck={false}
+                            aria-label="TikTok Link"
                             placeholder="https://tiktok.com/@..."
                             value={socialLinks.tiktok || ""}
                             onChange={(e) => updateSocialLink("tiktok", e.target.value)}
