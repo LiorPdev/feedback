@@ -74,8 +74,7 @@ export default async function RootLayout({
       localization={heIL as unknown as typeof heIL}
       appearance={{
         elements: {
-          footerAction: { display: "none" },
-          socialButtonsBlockButton: { 
+          socialButtonsBlockButton: {
             marginBottom: "0.75rem",
             borderRadius: "12px",
             border: "1.5px solid #e5e7eb",
