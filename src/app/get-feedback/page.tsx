@@ -54,7 +54,7 @@ export default function GetFeedback() {
       try {
         const result = await getURLMetadata(songLink) as { success: boolean, title?: string, resolvedUrl?: string };
         if (result.success && result.title) {
-          setSongTitle(result.title);
+          setSongTitle(result.title.substring(0, 35));
           setLastFetchedLink(songLink);
 
           // SoundCloud resolution: if we got a better URL, use it
@@ -178,8 +178,8 @@ export default function GetFeedback() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <BackButton 
-          href={hasSongs ? "/dashboard" : "/"} 
+        <BackButton
+          href={hasSongs ? "/dashboard" : "/"}
           title={hasSongs ? "חזרה לאיזור האישי" : "חזרה לדף הבית"}
           className={styles.backButton}
         />
@@ -263,7 +263,7 @@ export default function GetFeedback() {
                                 className={styles.swapBtn}
                                 onClick={() => {
                                   setSongLink(youtubeAlternative.url);
-                                  if (!songTitle) setSongTitle(youtubeAlternative.title);
+                                  if (!songTitle) setSongTitle(youtubeAlternative.title.substring(0, 30));
                                   setYoutubeAlternative(null);
                                 }}
                               >
@@ -352,6 +352,7 @@ export default function GetFeedback() {
               value={songTitle}
               onChange={(e) => setSongTitle(e.target.value)}
               required
+              maxLength={30}
             />
           </div>
 

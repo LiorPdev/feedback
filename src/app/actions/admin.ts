@@ -3,7 +3,7 @@
 import { getDb } from '@/lib/db';
 import { currentUser } from '@clerk/nextjs/server';
 import { desc, eq, aliasedTable } from 'drizzle-orm';
-import { users, songs, feedbacks } from '@/lib/schema';
+import { users, songs, feedbacks, logs } from '@/lib/schema';
 import { ADMIN_EMAIL } from '@/lib/constants';
 
 async function isAdmin() {
@@ -48,7 +48,9 @@ export async function getAdminFeedbacksReport() {
             createdAt: feedbacks.createdAt,
             songTitle: songs.title,
             songCreatorName: songCreator.name,
+            songCreatorEmail: songCreator.email,
             authorName: rater.name,
+            authorEmail: rater.email,
             lyrics: feedbacks.lyrics,
             composition: feedbacks.composition,
             production: feedbacks.production,
@@ -87,5 +89,30 @@ export async function getAdminUsersReport() {
     } catch (error) {
         console.error("getAdminUsersReport error:", error);
         return { success: false, error: "Failed to fetch users report" };
+    }
+}
+
+export async function getAdminLogsReport() {
+    if (!await isAdmin()) return { success: false, error: "Unauthorized" };
+
+    const db = await getDb();
+    try {
+        const result = await db.select({
+            id: logs.id,
+            createdAt: logs.createdAt,
+            message: logs.message,
+            data: logs.data,
+            source: logs.source,
+            userName: users.name,
+            userEmail: users.email
+        })
+        .from(logs)
+        .leftJoin(users, eq(logs.userId, users.id))
+        .orderBy(desc(logs.createdAt));
+
+        return { success: true, data: result };
+    } catch (error) {
+        console.error("getAdminLogsReport error:", error);
+        return { success: false, error: "Failed to fetch logs report" };
     }
 }

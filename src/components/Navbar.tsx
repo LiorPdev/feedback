@@ -5,12 +5,13 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { ADMIN_EMAIL } from "@/lib/constants";
-import { Music, Home, HelpCircle, Share2, MessageCircle, BarChart, X, User as UserIcon } from "lucide-react";
+import { Music, Home, HelpCircle, Gift, MessageCircle, BarChart, X, User as UserIcon, Share2 } from "lucide-react";
 import ContactModal from "./ContactModal";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { getUserData } from "@/app/actions/user";
 import UserPreferencesModal from "./UserPreferencesModal";
+import CreditTransferModal from "./CreditTransferModal";
 import styles from "./Navbar.module.css";
 import AnimatedTokenCounter from "./AnimatedTokenCounter";
 import { getCookie, setCookie } from "@/lib/cookieUtils";
@@ -25,6 +26,7 @@ export default function Navbar() {
   const [showTokensInfo, setShowTokensInfo] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
   const [showPreferencesModal, setShowPreferencesModal] = useState(false);
+  const [showCreditModal, setShowCreditModal] = useState(false);
   const [pendingRedirect, setPendingRedirect] = useState<string | null>(null);
   const redirectUrlRef = useRef<string | null>(null);
   const infoRef = useRef<HTMLDivElement>(null);
@@ -207,6 +209,15 @@ export default function Navbar() {
                         </button>
                       </div>
                       <p>שליחת שיר מורידה מתווי הקרדיט שלך. כדי לצבור תווי קרדיט חדשים, פשוט תנו פידבק לשירים של יוצרים אחרים בקהילה.</p>
+                      <button 
+                        className={styles.infoLink}
+                        onClick={() => {
+                          setShowTokensInfo(false);
+                          setShowCreditModal(true);
+                        }}
+                      >
+                        שלח/קבל תווי קרדיט
+                      </button>
                       <div className={styles.popupArrow} />
                     </motion.div>
                   )}
@@ -219,6 +230,11 @@ export default function Navbar() {
                   label="העדפות משתמש"
                   labelIcon={<UserIcon size={16} />}
                   onClick={() => setShowPreferencesModal(true)}
+                />
+                <UserButton.Action
+                  label="שלח/קבל תווי קרדיט"
+                  labelIcon={<Gift size={16} />}
+                  onClick={() => setShowCreditModal(true)}
                 />
                 <UserButton.Action
                   label="שתפו עם חברים"
@@ -250,6 +266,11 @@ export default function Navbar() {
         isOpen={showPreferencesModal}
         onClose={handleClosePrefs}
         initialGenre={userGenre}
+      />
+      <CreditTransferModal
+        isOpen={showCreditModal}
+        onClose={() => setShowCreditModal(false)}
+        currentTokens={tokens ?? 0}
       />
     </nav>
   );

@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import { getAdminSongsReport, getAdminFeedbacksReport, getAdminUsersReport } from '@/app/actions/admin';
+import { getAdminSongsReport, getAdminFeedbacksReport, getAdminUsersReport, getAdminLogsReport } from '@/app/actions/admin';
 import styles from './reports.module.css';
 
-type ReportType = 'songs' | 'feedbacks' | 'users';
+type ReportType = 'songs' | 'feedbacks' | 'users' | 'logs';
 
 export function ReportsClient() {
     const [reportType, setReportType] = useState<ReportType>('songs');
@@ -19,6 +19,8 @@ export function ReportsClient() {
                 result = await getAdminSongsReport();
             } else if (reportType === 'feedbacks') {
                 result = await getAdminFeedbacksReport();
+            } else if (reportType === 'logs') {
+                result = await getAdminLogsReport();
             } else {
                 result = await getAdminUsersReport();
             }
@@ -57,6 +59,7 @@ export function ReportsClient() {
                     <option value="feedbacks">פידבקים</option>
                     <option value="songs">שירים</option>
                     <option value="users">משתמשים רשומים</option>
+                    <option value="logs">לוגים</option>
                 </select>
             </div>
 
@@ -85,12 +88,20 @@ export function ReportsClient() {
                                     <th>דירוגים</th>
                                     <th>הערה</th>
                                 </tr>
-                            ) : (
+                            ) : reportType === 'users' ? (
                                 <tr>
                                     <th>תאריך רישום</th>
                                     <th>מייל</th>
                                     <th>שם</th>
                                     <th>מספר טוקנים</th>
+                                </tr>
+                            ) : (
+                                <tr>
+                                    <th>תאריך</th>
+                                    <th>הודעה</th>
+                                    <th>מידע</th>
+                                    <th>מקור</th>
+                                    <th>שם משתמש</th>
                                 </tr>
                             )}
                         </thead>
@@ -101,14 +112,14 @@ export function ReportsClient() {
                                     {reportType === 'songs' && (
                                         <>
                                             <td>{item.title}</td>
-                                            <td>{item.creatorName}</td>
+                                            <td>{item.creatorName || item.creatorEmail}</td>
                                         </>
                                     )}
                                     {reportType === 'feedbacks' && (
                                         <>
                                             <td>{item.songTitle}</td>
-                                            <td>{item.songCreatorName}</td>
-                                            <td>{item.authorName}</td>
+                                            <td>{item.songCreatorName || item.songCreatorEmail}</td>
+                                            <td>{item.authorName || item.authorEmail}</td>
                                             <td>
                                                 <div className={styles.ratings}>
                                                     <span>מילים:{item.lyrics}</span>
@@ -129,6 +140,18 @@ export function ReportsClient() {
                                             <td>{item.email}</td>
                                             <td>{item.name}</td>
                                             <td>{item.tokens}</td>
+                                        </>
+                                    )}
+                                    {reportType === 'logs' && (
+                                        <>
+                                            <td>{item.message}</td>
+                                            <td>
+                                                <div className={styles.comment} title={item.data || ""}>
+                                                    {item.data}
+                                                </div>
+                                            </td>
+                                            <td>{item.source}</td>
+                                            <td>{item.userName || item.userEmail || "מערכת"}</td>
                                         </>
                                     )}
                                 </tr>

@@ -71,6 +71,13 @@
       "when": 1774371996126,
       "tag": "0009_addIndex",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1774445277413,
+      "tag": "0010_creditCode",
+      "breakpoints": true
     }
   ]
 }

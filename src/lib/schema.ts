@@ -89,3 +89,18 @@ export const logs = sqliteTable('Log', {
     };
 });
 
+export const creditCodes = sqliteTable('CreditCode', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    code: text('code').notNull().unique(),
+    amount: integer('amount').notNull(),
+    senderId: text('senderId').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    isRedeemed: integer('isRedeemed', { mode: 'boolean' }).default(false).notNull(),
+    redeemerId: text('redeemerId').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: text('createdAt').notNull().$defaultFn(() => new Date().toISOString()),
+    expiresAt: text('expiresAt'),
+}, (table) => {
+    return {
+        codeIdx: uniqueIndex('CreditCode_code_idx').on(table.code),
+        senderIdIdx: index('CreditCode_senderId_idx').on(table.senderId),
+    };
+});
