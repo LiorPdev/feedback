@@ -278,7 +278,7 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
                   onPlay={onPlayerPlay}
                   onPause={onPlayerPause}
                   onEnded={onPlayerEnded}
-                   onReady={() => setIsBuffering(false)}
+                  onReady={() => setIsBuffering(false)}
                   onError={onPlayerError}
                   isHidden={isHiddenPlayer}
                 />
@@ -432,9 +432,9 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
 
 function SocialsHeader({ socialLinks }: { socialLinks?: string | null }) {
   const [isOpen, setIsOpen] = useState(false);
-  
+
   if (!socialLinks) return null;
-  
+
   try {
     const links = JSON.parse(socialLinks);
     const platforms = [
@@ -443,7 +443,7 @@ function SocialsHeader({ socialLinks }: { socialLinks?: string | null }) {
       { id: "applemusic", name: "Apple Music", url: links.appleMusic },
       { id: "instagram", name: "Instagram", url: links.instagram },
       { id: "facebook", name: "Facebook", url: links.facebook },
-      { id: "tiktok", name: "TikTok", url: links.tiktok },
+      { id: "website", name: "Website", url: links.website },
     ].filter(p => p.url);
 
     if (platforms.length === 0) return null;
@@ -462,14 +462,14 @@ function SocialsHeader({ socialLinks }: { socialLinks?: string | null }) {
         {/* Mobile View: Single Toggle for ALL socials */}
         <div className={styles.mobileSocials}>
           <div className={styles.moreSocialsWrapper}>
-            <button 
+            <button
               className={styles.moreSocialsBtn}
               onClick={() => setIsOpen(!isOpen)}
               title="קישורי האמן"
             >
               <SocialIcon platform="spotify" size={16} />
             </button>
-            
+
             {isOpen && (
               <div className={styles.socialsDropdown}>
                 {platforms.map(p => (

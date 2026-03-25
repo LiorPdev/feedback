@@ -21,7 +21,7 @@ interface SocialLinks {
   appleMusic?: string;
   facebook?: string;
   instagram?: string;
-  tiktok?: string;
+  website?: string;
 }
 
 export default function UserPreferencesModal({
@@ -109,8 +109,8 @@ export default function UserPreferencesModal({
               </div>
 
               <div className={styles.formGroup}>
-                <div 
-                  className={styles.collapsibleHeader} 
+                <div
+                  className={styles.collapsibleHeader}
                   onClick={() => setIsSocialsOpen(!isSocialsOpen)}
                 >
                   <h3 className={styles.sectionTitleNoMargin}>המוזיקה שלי</h3>
@@ -138,6 +138,8 @@ export default function UserPreferencesModal({
                             type="url"
                             inputMode="url"
                             autoComplete="url"
+                            autoCorrect="off"
+                            autoCapitalize="none"
                             spellCheck={false}
                             aria-label="Spotify Link"
                             placeholder="https://open.spotify.com/artist/..."
@@ -156,6 +158,8 @@ export default function UserPreferencesModal({
                             type="url"
                             inputMode="url"
                             autoComplete="url"
+                            autoCorrect="off"
+                            autoCapitalize="none"
                             spellCheck={false}
                             aria-label="YouTube Link"
                             placeholder="https://youtube.com/@..."
@@ -174,6 +178,8 @@ export default function UserPreferencesModal({
                             type="url"
                             inputMode="url"
                             autoComplete="url"
+                            autoCorrect="off"
+                            autoCapitalize="none"
                             spellCheck={false}
                             aria-label="Apple Music Link"
                             placeholder="https://music.apple.com/artist/..."
@@ -192,6 +198,8 @@ export default function UserPreferencesModal({
                             type="url"
                             inputMode="url"
                             autoComplete="url"
+                            autoCorrect="off"
+                            autoCapitalize="none"
                             spellCheck={false}
                             aria-label="Facebook Link"
                             placeholder="https://facebook.com/..."
@@ -210,6 +218,8 @@ export default function UserPreferencesModal({
                             type="url"
                             inputMode="url"
                             autoComplete="url"
+                            autoCorrect="off"
+                            autoCapitalize="none"
                             spellCheck={false}
                             aria-label="Instagram Link"
                             placeholder="https://instagram.com/..."
@@ -218,21 +228,23 @@ export default function UserPreferencesModal({
                           />
                         </div>
                         <div className={styles.socialInputGroup}>
-                          <label htmlFor="pref-tiktok">
-                            <SocialIcon platform="tiktok" size={16} />
-                            <span>TikTok</span>
+                          <label htmlFor="pref-website">
+                            <SocialIcon platform="website" size={16} />
+                            <span>Website</span>
                           </label>
                           <input
-                            id="pref-tiktok"
-                            name="tiktok"
+                            id="pref-website"
+                            name="website"
                             type="url"
                             inputMode="url"
                             autoComplete="url"
+                            autoCorrect="off"
+                            autoCapitalize="none"
                             spellCheck={false}
-                            aria-label="TikTok Link"
-                            placeholder="https://tiktok.com/@..."
-                            value={socialLinks.tiktok || ""}
-                            onChange={(e) => updateSocialLink("tiktok", e.target.value)}
+                            aria-label="Artist Website"
+                            placeholder="https://www.yourwebsite.com"
+                            value={socialLinks.website || ""}
+                            onChange={(e) => updateSocialLink("website", e.target.value)}
                           />
                         </div>
                       </div>

@@ -194,13 +194,6 @@
   color: var(--brand-primary);
 }
 
-.tiktokIconTiny {
-  font-family: serif;
-  font-weight: bold;
-  font-size: 1.1rem;
-  line-height: 1;
-}
-
 .playerSection {
   width: 100%;
 }
