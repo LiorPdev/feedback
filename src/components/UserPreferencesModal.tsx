@@ -62,7 +62,12 @@ export default function UserPreferencesModal({
   };
 
   const updateSocialLink = (platform: keyof SocialLinks, value: string) => {
-    setSocialLinks(prev => ({ ...prev, [platform]: value }));
+    // If the value starts with http and contains a space, it's likely a messy paste containing following label text
+    let cleanedValue = value;
+    if (value.trim().startsWith('http') && value.includes(' ')) {
+      cleanedValue = value.split(/\s+/)[0];
+    }
+    setSocialLinks(prev => ({ ...prev, [platform]: cleanedValue }));
   };
 
   const handleConfirm = async () => {
@@ -137,7 +142,7 @@ export default function UserPreferencesModal({
                             name="spotify"
                             type="url"
                             inputMode="url"
-                            autoComplete="url"
+                            autoComplete="off"
                             autoCorrect="off"
                             autoCapitalize="none"
                             spellCheck={false}
@@ -157,7 +162,7 @@ export default function UserPreferencesModal({
                             name="youtube"
                             type="url"
                             inputMode="url"
-                            autoComplete="url"
+                            autoComplete="off"
                             autoCorrect="off"
                             autoCapitalize="none"
                             spellCheck={false}
@@ -177,7 +182,7 @@ export default function UserPreferencesModal({
                             name="applemusic"
                             type="url"
                             inputMode="url"
-                            autoComplete="url"
+                            autoComplete="off"
                             autoCorrect="off"
                             autoCapitalize="none"
                             spellCheck={false}
@@ -197,7 +202,7 @@ export default function UserPreferencesModal({
                             name="facebook"
                             type="url"
                             inputMode="url"
-                            autoComplete="url"
+                            autoComplete="off"
                             autoCorrect="off"
                             autoCapitalize="none"
                             spellCheck={false}
@@ -217,7 +222,7 @@ export default function UserPreferencesModal({
                             name="instagram"
                             type="url"
                             inputMode="url"
-                            autoComplete="url"
+                            autoComplete="off"
                             autoCorrect="off"
                             autoCapitalize="none"
                             spellCheck={false}
@@ -237,7 +242,7 @@ export default function UserPreferencesModal({
                             name="website"
                             type="url"
                             inputMode="url"
-                            autoComplete="url"
+                            autoComplete="off"
                             autoCorrect="off"
                             autoCapitalize="none"
                             spellCheck={false}

@@ -119,6 +119,12 @@
   user-select: none;
   -webkit-user-select: none;
   justify-content: flex-start;
+  pointer-events: none;
+}
+
+.socialInputGroup label span,
+.socialInputGroup label svg {
+  pointer-events: none;
 }
 
 .socialInputGroup input {
