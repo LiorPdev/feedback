@@ -33,6 +33,7 @@ export const songs = sqliteTable('Song', {
 }, (table) => {
     return {
         userIdIdx: index('Song_userId_idx').on(table.userId),
+        userIdCreatedAtIdx: index('Song_userId_createdAt_idx').on(table.userId, table.createdAt),
         createdAtIdx: index('Song_createdAt_idx').on(table.createdAt),
         isActiveIdx: index('Song_isActive_idx').on(table.isActive),
         genreIdx: index('Song_genre_idx').on(table.genre),
@@ -53,6 +54,7 @@ export const feedbacks = sqliteTable('Feedback', {
 }, (table) => {
     return {
         songIdAuthorIdUniqueIdx: uniqueIndex('Feedback_songId_authorId_idx').on(table.songId, table.authorId),
+        songIdCreatedAtIdx: index('Feedback_songId_createdAt_idx').on(table.songId, table.createdAt),
         authorIdIdx: index('Feedback_authorId_idx').on(table.authorId),
         createdAtIdx: index('Feedback_createdAt_idx').on(table.createdAt),
     };

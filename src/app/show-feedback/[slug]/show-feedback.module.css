@@ -253,6 +253,18 @@
   font-weight: 700;
 }
 
+.fbRaterGenre {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 1.1rem;
+  font-weight: 600;
+}
+
+.genreList {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
 .fbRatingsRow {
   display: flex;
   gap: 0.75rem;

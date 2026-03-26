@@ -8,6 +8,8 @@ import ShareSongButton from "@/components/ShareSongButton";
 import SongPlayer from "./SongPlayer";
 import { SignInButton } from "@clerk/nextjs";
 import { LogIn } from "lucide-react";
+import { users } from "@/lib/schema";
+import { inArray } from "drizzle-orm";
 
 interface ShowFeedbackPageProps {
   params: Promise<{
@@ -66,6 +68,17 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
   };
 
   const hasAnyAverage = Object.values(averages).some(v => v !== null);
+
+  // Fetch author genres for feedbacks
+  const authorIds = Array.from(new Set(song.feedbacks.map(f => f.authorId).filter(Boolean))) as string[];
+  const authors = authorIds.length > 0
+    ? await db.query.users.findMany({
+      where: (users, { inArray }) => inArray(users.id, authorIds),
+      columns: { id: true, userGenre: true }
+    })
+    : [];
+
+  const authorGenreMap = new Map(authors.map(a => [a.id, a.userGenre]));
 
   return (
     <div className={styles.container}>
@@ -140,6 +153,18 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
                       {new Date(fb.createdAt).toLocaleDateString('he-IL')}
                     </span>
                   </div>
+
+                  {(() => {
+                    const genreStr = fb.authorId ? authorGenreMap.get(fb.authorId) : null;
+                    if (!genreStr) return null;
+                    const genres = genreStr.split(',').map(g => g.trim()).filter(Boolean).slice(0, 3);
+                    if (genres.length === 0) return null;
+                    return (
+                      <div className={styles.fbRaterGenre}>
+                        סגנון מועדף של המדרג: <span className={styles.genreList}>{genres.join(', ')}</span>
+                      </div>
+                    );
+                  })()}
 
                   <div className={styles.fbRatingsRow}>
                     <span className={styles.fbRatingLabel}>דירוג:</span>
