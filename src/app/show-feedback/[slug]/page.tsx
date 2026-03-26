@@ -53,16 +53,15 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
     redirect(`/give-feedback/${slug}`);
   }
 
-  const getAverage = (key: 'lyrics' | 'composition' | 'production' | 'overall') => {
+  const getAverage = (key: 'cat2' | 'cat3' | 'overall') => {
     const ratings = song.feedbacks.map(f => f[key] as number).filter(r => r > 0);
     if (ratings.length === 0) return null;
     return (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1);
   };
 
   const averages = {
-    lyrics: getAverage('lyrics'),
-    composition: getAverage('composition'),
-    production: getAverage('production'),
+    cat2: getAverage('cat2'),
+    cat3: getAverage('cat3'),
     overall: getAverage('overall'),
   };
 
@@ -74,10 +73,10 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
 
       <main className={`${styles.main} ${!userId ? styles.blurred : ""}`}>
         <div className={styles.card}>
-          <BackButton 
-            href="/dashboard" 
-            title="חזרה לאיזור האישי" 
-            className={styles.backButton} 
+          <BackButton
+            href="/dashboard"
+            title="חזרה לאיזור האישי"
+            className={styles.backButton}
           />
           <SongPlayer url={song.url} />
 
@@ -92,22 +91,16 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
           {hasAnyAverage && (
             <div className={styles.averagesSection}>
               <div className={styles.averagesGrid}>
-                {averages.lyrics && (
+                {averages.cat2 && (
                   <div className={styles.averageItem}>
-                    <span className={styles.avgLabel}>מילים</span>
-                    <span className={styles.avgValue}>{averages.lyrics}</span>
+                    <span className={styles.avgLabel}>הפקה</span>
+                    <span className={styles.avgValue}>{averages.cat2}</span>
                   </div>
                 )}
-                {averages.composition && (
+                {averages.cat3 && (
                   <div className={styles.averageItem}>
-                    <span className={styles.avgLabel}>לחן</span>
-                    <span className={styles.avgValue}>{averages.composition}</span>
-                  </div>
-                )}
-                {averages.production && (
-                  <div className={styles.averageItem}>
-                    <span className={styles.avgLabel}>ביצוע</span>
-                    <span className={styles.avgValue}>{averages.production}</span>
+                    <span className={styles.avgLabel}>שירה</span>
+                    <span className={styles.avgValue}>{averages.cat3}</span>
                   </div>
                 )}
                 {averages.overall && (
@@ -150,9 +143,8 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
 
                   <div className={styles.fbRatingsRow}>
                     <span className={styles.fbRatingLabel}>דירוג:</span>
-                    <span>מילים: {fb.lyrics}</span>
-                    <span>לחן: {fb.composition}</span>
-                    <span>ביצוע: {fb.production}</span>
+                    <span>הפקה: {fb.cat2}</span>
+                    <span>שירה: {fb.cat3}</span>
                     <span className={styles.fbOverallBadge}>כללי: {fb.overall}</span>
                   </div>
                   <p className={styles.fbComment}>{fb.comment}</p>

@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { currentUser, auth } from '@clerk/nextjs/server';
 import { eq, sql } from 'drizzle-orm';
 import { users, songs, feedbacks } from '@/lib/schema';
-import { SONG_SUBMISSION_COST, REWARD_LYRICS, REWARD_COMPOSITION, REWARD_PRODUCTION, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH } from '@/lib/constants';
+import { SONG_SUBMISSION_COST, REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH } from '@/lib/constants';
 import { sendFeedbackNotification } from '@/lib/mail';
 import { logToDb } from "@/lib/logger";
 import { deleteFileFromR2 } from '@/app/actions/upload';
@@ -95,9 +95,8 @@ export async function createSong(formData: FormData) {
 
 export async function addFeedback(data: {
     songId: string;
-    lyrics: number;
-    composition: number;
-    production: number;
+    cat2: number;
+    cat3: number;
     overall: number;
     comment: string;
     playedSeconds?: number;
@@ -120,9 +119,9 @@ export async function addFeedback(data: {
         const [feedback] = await db.insert(feedbacks).values({
             songId: data.songId,
             authorId: clerkUser.id,
-            lyrics: data.lyrics,
-            composition: data.composition,
-            production: data.production,
+            cat1: 0, // FFU - Not used but required by schema
+            cat2: data.cat2,
+            cat3: data.cat3,
             overall: data.overall,
             comment: sanitizeInput(data.comment),
             playedSeconds: data.playedSeconds,
@@ -130,9 +129,8 @@ export async function addFeedback(data: {
 
         // Calculate rewards
         let reward = 0;
-        if (data.lyrics > 0) reward += REWARD_LYRICS;
-        if (data.composition > 0) reward += REWARD_COMPOSITION;
-        if (data.production > 0) reward += REWARD_PRODUCTION;
+        if (data.cat2 > 0) reward += REWARD_PRODUCTION;
+        if (data.cat3 > 0) reward += REWARD_VOCALS;
         if (data.overall > 0) reward += REWARD_OVERALL;
         if (data.comment.trim().length >= MIN_COMMENT_LENGTH) reward += REWARD_COMMENT;
         if (data.listenCredits) reward += data.listenCredits;
@@ -169,13 +167,13 @@ export async function addFeedback(data: {
         // Fetch averages for the song after the new feedback
         const allFeedbacks = await db.query.feedbacks.findMany({
             where: (feedbacks, { eq }) => eq(feedbacks.songId, data.songId),
-            columns: { lyrics: true, composition: true, production: true, overall: true }
+            columns: { cat2: true, cat3: true, overall: true }
         });
 
         const totalFeedbacks = allFeedbacks.length;
         const sumAll = allFeedbacks.reduce((acc, f) =>
-            acc + f.lyrics + f.composition + f.production + f.overall, 0);
-        const averageRating = sumAll / (totalFeedbacks * 4);
+            acc + f.cat2 + f.cat3 + f.overall, 0);
+        const averageRating = totalFeedbacks > 0 ? sumAll / (totalFeedbacks * 3) : 0;
 
         return { success: true, feedback, averageRating, totalFeedbacks };
     } catch (error) {
@@ -329,7 +327,7 @@ export async function getFeedSongs(firstSongSlug?: string) {
 
         // 3. Shuffle and Prioritize in JavaScript
         // This is more reliable for handling Hebrew strings and Cloudflare D1 environment nuances
-        const preferredGenres = preferredGenre 
+        const preferredGenres = preferredGenre
             ? preferredGenre.split(",").map(g => g.trim()).filter(Boolean)
             : [];
 
@@ -346,7 +344,7 @@ export async function getFeedSongs(firstSongSlug?: string) {
             });
 
         const finalSongs = firstSong ? [firstSong, ...sortedSongs] : sortedSongs;
-        
+
         // Calculate average ratings for the selected songs
         const songIds = finalSongs.map(s => s.id);
         let songsWithStats = finalSongs.map(s => ({ ...s, averageRating: 0, totalFeedbacks: 0 }));
@@ -356,7 +354,7 @@ export async function getFeedSongs(firstSongSlug?: string) {
             const stats = await db.select({
                 songId: feedbacks.songId,
                 total: sql<number>`count(${feedbacks.id})`,
-                avgRating: sql<number>`avg((${feedbacks.lyrics} + ${feedbacks.composition} + ${feedbacks.production} + ${feedbacks.overall}) / 4.0)`
+                avgRating: sql<number>`avg((${feedbacks.cat2} + ${feedbacks.cat3} + ${feedbacks.overall}) / 3.0)`
             })
                 .from(feedbacks)
                 .where(inArray(feedbacks.songId, songIds))

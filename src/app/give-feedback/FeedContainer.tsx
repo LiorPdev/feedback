@@ -27,9 +27,8 @@ interface Song {
 
 interface Feedback {
   id: string;
-  lyrics: number;
-  composition: number;
-  production: number;
+  cat2: number;
+  cat3: number;
   overall: number;
   comment: string;
   createdAt: string;
@@ -65,6 +64,7 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
       : null
   );
   const [justSubmitted, setJustSubmitted] = useState(false);
+  const [shouldAutoPlay, setShouldAutoPlay] = useState(false);
   const [playerError, setPlayerError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -183,6 +183,7 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
       });
     }
     resetSongState();
+    setShouldAutoPlay(true);
     setCurrentIndex((prev) => (prev + 1) % songs.length);
   };
 
@@ -193,6 +194,7 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
 
       // Update index if needed
       setCurrentIndex((prevIndex) => (prevIndex >= updatedSongs.length ? 0 : prevIndex));
+      setShouldAutoPlay(true);
       resetSongState();
       return updatedSongs;
     });
@@ -278,7 +280,13 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
                   onPlay={onPlayerPlay}
                   onPause={onPlayerPause}
                   onEnded={onPlayerEnded}
-                  onReady={() => setIsBuffering(false)}
+                  onReady={() => {
+                    setIsBuffering(false);
+                    if (shouldAutoPlay) {
+                      setShouldAutoPlay(false);
+                      playerRef.current?.play();
+                    }
+                  }}
                   onError={onPlayerError}
                   isHidden={isHiddenPlayer}
                 />
@@ -394,9 +402,8 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
               ) : (
                 <div className={styles.ratedGrid}>
                   {[
-                    { label: "מילים", value: userFeedback.lyrics },
-                    { label: "לחן", value: userFeedback.composition },
-                    { label: "ביצוע", value: userFeedback.production },
+                    { label: "הפקה", value: userFeedback.cat2 },
+                    { label: "שירה", value: userFeedback.cat3 },
                     { label: "כללי", value: userFeedback.overall },
                   ].map((item, idx) => (
                     <div key={idx} className={styles.ratedItem}>
@@ -424,7 +431,9 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
             </div>
           )}
         </div>
-        <DashboardLink href="/" text="חזרה לדף הבית" className={styles.dashboardLinkMargin} />
+        {!hasRatedCurrent && (
+          <DashboardLink href="/" text="חזרה לדף הבית" className={styles.dashboardLinkMargin} />
+        )}
       </div>
     </div>
   );

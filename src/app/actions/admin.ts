@@ -51,9 +51,8 @@ export async function getAdminFeedbacksReport() {
             songCreatorEmail: songCreator.email,
             authorName: rater.name,
             authorEmail: rater.email,
-            lyrics: feedbacks.lyrics,
-            composition: feedbacks.composition,
-            production: feedbacks.production,
+            cat2: feedbacks.cat2,
+            cat3: feedbacks.cat3,
             overall: feedbacks.overall,
             comment: feedbacks.comment
         })

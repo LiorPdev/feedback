@@ -1,19 +1,18 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Star, LogIn, CheckCircle2, X, AlertCircle } from "lucide-react";
+import { Star, LogIn, X, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUser, SignInButton } from "@clerk/nextjs";
 import { addFeedback } from "@/app/actions/songs";
-import { REWARD_LYRICS, REWARD_COMPOSITION, REWARD_PRODUCTION, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH, SUCCESS_MESSAGE_DURATION } from "@/lib/constants";
+import { REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH, SUCCESS_MESSAGE_DURATION } from "@/lib/constants";
 import styles from "./FeedbackForm.module.css";
 import AnimatedTokenCounter from "./AnimatedTokenCounter";
 
 interface SubmittedFeedback {
   id: string;
-  lyrics: number;
-  composition: number;
-  production: number;
+  cat2: number;
+  cat3: number;
   overall: number;
   comment: string;
   createdAt: string;
@@ -31,9 +30,8 @@ interface FeedbackFormProps {
 export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isPlaying, isDisabled, disabledMessage }: FeedbackFormProps) {
   const { isLoaded, isSignedIn } = useUser();
   const [ratings, setRatings] = useState({
-    lyrics: 0,
-    composition: 0,
-    production: 0,
+    cat2: 0,
+    cat3: 0,
     overall: 0,
   });
   const [comment, setComment] = useState("");
@@ -122,9 +120,8 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isPl
   }, [status]);
 
   const categories = [
-    { key: "lyrics" as const, name: "מילים", reward: REWARD_LYRICS },
-    { key: "composition" as const, name: "לחן", reward: REWARD_COMPOSITION },
-    { key: "production" as const, name: "ביצוע", reward: REWARD_PRODUCTION },
+    { key: "cat2" as const, name: "הפקה", reward: REWARD_PRODUCTION },
+    { key: "cat3" as const, name: "שירה", reward: REWARD_VOCALS },
     { key: "overall" as const, name: "ציון כללי", reward: REWARD_OVERALL },
   ];
 
@@ -143,7 +140,7 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isPl
 
     if (isGaining && e) {
       const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-      const reward = categories.find(c => c.key === key)?.reward || REWARD_LYRICS;
+      const reward = categories.find(c => c.key === key)?.reward || REWARD_PRODUCTION;
       triggerFlyer(rect.left + rect.width / 2, rect.top + rect.height / 2, reward);
     }
   };
@@ -173,7 +170,7 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isPl
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const hasRating = ratings.lyrics > 0 || ratings.composition > 0 || ratings.production > 0 || ratings.overall > 0;
+    const hasRating = ratings.cat2 > 0 || ratings.cat3 > 0 || ratings.overall > 0;
     const commentTrimmed = comment.trim();
     const hasComment = commentTrimmed.length > 0;
 
@@ -201,9 +198,8 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isPl
     try {
       const result = await addFeedback({
         songId,
-        lyrics: ratings.lyrics,
-        composition: ratings.composition,
-        production: ratings.production,
+        cat2: ratings.cat2,
+        cat3: ratings.cat3,
         overall: ratings.overall,
         comment: commentTrimmed,
         playedSeconds,
@@ -244,9 +240,8 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isPl
         }
         // Reset form immediately on success
         setRatings({
-          lyrics: 0,
-          composition: 0,
-          production: 0,
+          cat2: 0,
+          cat3: 0,
           overall: 0,
         });
         setComment("");
@@ -376,7 +371,7 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isPl
             <div className={styles.textareaWrapper}>
               <textarea
                 className={styles.textarea}
-                placeholder={`נסו להוסיף כמה מילים על מה שאהבתם או מה כדאי לשפר`}
+                placeholder={`נסו להוסיף כמה מילים על מה שאהבתם או מה אפשר לשפר.`}
                 value={comment}
                 onChange={(e) => {
                   const newValue = e.target.value;
@@ -482,7 +477,12 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isPl
         {flyers.map((flyer) => (
           <motion.div
             key={flyer.id}
-            initial={{ x: flyer.x, y: flyer.y, opacity: 1, scale: 0.5 }}
+            initial={{
+              x: flyer.x - 40,
+              y: flyer.y + 50,
+              opacity: 0,
+              scale: 0.5
+            }}
             animate={{
               x: flyer.tx,
               y: flyer.ty,

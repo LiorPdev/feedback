@@ -122,9 +122,8 @@ export function ReportsClient() {
                                             <td>{item.authorName || item.authorEmail}</td>
                                             <td>
                                                 <div className={styles.ratings}>
-                                                    <span>מילים:{item.lyrics}</span>
-                                                    <span>לחן:{item.composition}</span>
-                                                    <span>בצוע:{item.production}</span>
+                                                    <span>הפקה:{item.cat2}</span>
+                                                    <span>שירה:{item.cat3}</span>
                                                     <span>כללי:{item.overall}</span>
                                                 </div>
                                             </td>

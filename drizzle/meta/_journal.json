@@ -85,6 +85,13 @@
       "when": 1774454634288,
       "tag": "0011_socialLinks",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1774517116063,
+      "tag": "0012_catNames",
+      "breakpoints": true
     }
   ]
 }
