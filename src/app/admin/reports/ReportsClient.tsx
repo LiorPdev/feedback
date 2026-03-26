@@ -8,7 +8,7 @@ type ReportType = 'songs' | 'feedbacks' | 'users' | 'logs';
 
 export function ReportsClient() {
     const [reportType, setReportType] = useState<ReportType>('songs');
-    const [data, setData] = useState<any[]>([]);
+    const [data, setData] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {

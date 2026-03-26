@@ -27,7 +27,7 @@ export default function ToggleSongStatusButton({ songId, isActive: initialIsActi
       } else {
         alert(result.error || "שגיאה בעדכון השיר");
       }
-    } catch (err) {
+    } catch {
       alert("שגיאה בתקשורת עם השרת");
     } finally {
       setIsLoading(false);

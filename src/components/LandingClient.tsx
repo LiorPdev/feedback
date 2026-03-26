@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { SignInButton, SignedIn, SignedOut, useUser } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
+
 import { motion } from "framer-motion";
 import { CheckCircle } from "lucide-react";
 import Image from "next/image";
@@ -37,7 +37,6 @@ export default function LandingClient({
   const { user, isLoaded } = useUser();
   const [hasSongs, setHasSongs] = useState(initialHasSongs);
   const [userGenre, setUserGenre] = useState(initialGenre);
-  const router = useRouter();
 
   useEffect(() => {
     async function checkUserData() {

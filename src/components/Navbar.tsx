@@ -58,8 +58,9 @@ export default function Navbar() {
 
     window.addEventListener("tokens-updated", handleUpdate);
 
-    const handleOpenPrefs = (e: any) => {
-      const redirectTo = e.detail?.redirectTo;
+    const handleOpenPrefs = (e: Event) => {
+      const customEvent = e as CustomEvent<{ redirectTo?: string }>;
+      const redirectTo = customEvent.detail?.redirectTo;
       redirectUrlRef.current = redirectTo || null;
       setShowPreferencesModal(true);
     };
@@ -74,7 +75,7 @@ export default function Navbar() {
   useEffect(() => {
     if (pendingRedirect && !showPreferencesModal) {
       router.push(pendingRedirect);
-      setPendingRedirect(null);
+      setTimeout(() => setPendingRedirect(null), 0);
     }
   }, [pendingRedirect, showPreferencesModal, router]);
 
@@ -126,7 +127,7 @@ export default function Navbar() {
     if (user && pathname.startsWith("/give-feedback")) {
       const isExplained = getCookie("fbCreditExplained");
       if (!isExplained) {
-        setShowTokensInfo(true);
+        setTimeout(() => setShowTokensInfo(true), 0);
         setCookie("fbCreditExplained", "true", 365);
       }
     }
@@ -234,14 +235,14 @@ export default function Navbar() {
                   onClick={() => setShowPreferencesModal(true)}
                 />
                 <UserButton.Action
-                  label="שלח/קבל תווי קרדיט"
-                  labelIcon={<Gift size={16} />}
-                  onClick={() => setShowCreditModal(true)}
-                />
-                <UserButton.Action
                   label="שתפו עם חברים"
                   labelIcon={<Share2 size={16} />}
                   onClick={handleShare}
+                />
+                <UserButton.Action
+                  label="שלח/קבל תווי קרדיט"
+                  labelIcon={<Gift size={16} />}
+                  onClick={() => setShowCreditModal(true)}
                 />
                 <UserButton.Action
                   label="צרו איתנו קשר"
@@ -255,6 +256,7 @@ export default function Navbar() {
                     href="/admin/reports"
                   />
                 )}
+                <UserButton.Action label="manageAccount" />
               </UserButton.MenuItems>
             </UserButton>
           </SignedIn>

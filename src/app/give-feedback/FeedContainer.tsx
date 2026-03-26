@@ -7,9 +7,9 @@ import FeedbackForm from "@/components/FeedbackForm";
 import UrlPlayer, { getEmbedUrl, type UrlPlayerHandle } from "@/components/UrlPlayer";
 import DashboardLink from "@/components/DashboardLink";
 import BackButton from "@/components/BackButton";
-import { Play, Pause, CheckCircle2, Star, MoreHorizontal, Music2 } from "lucide-react";
+import { Play, Pause, CheckCircle2, Star } from "lucide-react";
 import SocialIcon from "@/components/SocialIcon";
-import Link from "next/link";
+
 import { MIN_LISTEN_TIME, MIN_LISTEN_TIME_SPOTIFY_MOBILE, SUCCESS_MESSAGE_DURATION } from "@/lib/constants";
 import { logAction } from "@/app/actions/logs";
 
@@ -57,10 +57,13 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
   const [isPlaying, setIsPlaying] = useState(false);
   const [isBuffering, setIsBuffering] = useState(false);
   const [hasRatedCurrent, setHasRatedCurrent] = useState(!!initialFeedback);
-  const [userFeedback, setUserFeedback] = useState<any>(initialFeedback || null);
+  const [userFeedback, setUserFeedback] = useState<Feedback | null>(initialFeedback || null);
   const [currentSongStats, setCurrentSongStats] = useState<{ averageRating: number; totalFeedbacks: number } | null>(
-    (currentSong as any)?.averageRating !== undefined
-      ? { averageRating: (currentSong as any).averageRating, totalFeedbacks: (currentSong as any).totalFeedbacks }
+    (currentSong as unknown as { averageRating?: number; totalFeedbacks?: number })?.averageRating !== undefined
+      ? { 
+          averageRating: (currentSong as unknown as { averageRating: number }).averageRating, 
+          totalFeedbacks: (currentSong as unknown as { totalFeedbacks: number }).totalFeedbacks 
+        }
       : null
   );
   const [justSubmitted, setJustSubmitted] = useState(false);
@@ -139,9 +142,10 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
     setHasRatedCurrent(false);
     setJustSubmitted(false);
     setUserFeedback(null);
+    const currentSongFromList = songs[currentIndex] as unknown as { averageRating?: number; totalFeedbacks?: number };
     setCurrentSongStats(
-      (songs[currentIndex] as any)?.averageRating !== undefined
-        ? { averageRating: (songs[currentIndex] as any).averageRating, totalFeedbacks: (songs[currentIndex] as any).totalFeedbacks }
+      currentSongFromList?.averageRating !== undefined
+        ? { averageRating: currentSongFromList.averageRating as number, totalFeedbacks: currentSongFromList.totalFeedbacks as number }
         : null
     );
     setPlayerError(null);
@@ -368,7 +372,7 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
               }
               onSuccess={(feedback, stats) => {
                 if (feedback) {
-                  setUserFeedback(feedback);
+                  setUserFeedback(feedback as Feedback);
                   if (stats) setCurrentSongStats(stats);
                   setJustSubmitted(true);
                 }
@@ -444,56 +448,60 @@ function SocialsHeader({ socialLinks }: { socialLinks?: string | null }) {
 
   if (!socialLinks) return null;
 
+  let links: Record<string, string | undefined> = {};
   try {
-    const links = JSON.parse(socialLinks);
-    const platforms = [
-      { id: "spotify", name: "Spotify", url: links.spotify },
-      { id: "youtube", name: "YouTube", url: links.youtube },
-      { id: "applemusic", name: "Apple Music", url: links.appleMusic },
-      { id: "instagram", name: "Instagram", url: links.instagram },
-      { id: "facebook", name: "Facebook", url: links.facebook },
-      { id: "website", name: "Website", url: links.website },
-    ].filter(p => p.url);
-
-    if (platforms.length === 0) return null;
-
-    return (
-      <div className={styles.headerSocialsContainer}>
-        {/* Desktop View: Show All inline */}
-        <div className={styles.desktopSocials}>
-          {platforms.map(p => (
-            <a key={p.id} href={p.url} target="_blank" rel="noopener noreferrer" title={p.name} className={styles.headerSocialLink}>
-              <SocialIcon platform={p.id} size={16} />
-            </a>
-          ))}
-        </div>
-
-        {/* Mobile View: Single Toggle for ALL socials */}
-        <div className={styles.mobileSocials}>
-          <div className={styles.moreSocialsWrapper}>
-            <button
-              className={styles.moreSocialsBtn}
-              onClick={() => setIsOpen(!isOpen)}
-              title="קישורי האמן"
-            >
-              <SocialIcon platform="spotify" size={16} />
-            </button>
-
-            {isOpen && (
-              <div className={styles.socialsDropdown}>
-                {platforms.map(p => (
-                  <a key={p.id} href={p.url} target="_blank" rel="noopener noreferrer" title={p.name} className={styles.dropdownSocialLink} onClick={() => setIsOpen(false)}>
-                    <SocialIcon platform={p.id} size={18} />
-                    <span>{p.name}</span>
-                  </a>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  } catch (e) {
+    links = JSON.parse(socialLinks) as Record<string, string | undefined>;
+  } catch {
     return null;
   }
+
+  if (!links) return null;
+
+  const platforms = [
+    { id: "spotify", name: "Spotify", url: links.spotify },
+    { id: "youtube", name: "YouTube", url: links.youtube },
+    { id: "applemusic", name: "Apple Music", url: links.appleMusic },
+    { id: "instagram", name: "Instagram", url: links.instagram },
+    { id: "facebook", name: "Facebook", url: links.facebook },
+    { id: "website", name: "Website", url: links.website },
+  ].filter(p => p.url);
+
+  if (platforms.length === 0) return null;
+
+  return (
+    <div className={styles.headerSocialsContainer}>
+      {/* Desktop View: Show All inline */}
+      <div className={styles.desktopSocials}>
+        {platforms.map(p => (
+          <a key={p.id} href={p.url} target="_blank" rel="noopener noreferrer" title={p.name} className={styles.headerSocialLink}>
+            <SocialIcon platform={p.id} size={16} />
+          </a>
+        ))}
+      </div>
+
+      {/* Mobile View: Single Toggle for ALL socials */}
+      <div className={styles.mobileSocials}>
+        <div className={styles.moreSocialsWrapper}>
+          <button
+            className={styles.moreSocialsBtn}
+            onClick={() => setIsOpen(!isOpen)}
+            title="קישורי האמן"
+          >
+            <SocialIcon platform="spotify" size={16} />
+          </button>
+
+          {isOpen && (
+            <div className={styles.socialsDropdown}>
+              {platforms.map(p => (
+                <a key={p.id} href={p.url} target="_blank" rel="noopener noreferrer" title={p.name} className={styles.dropdownSocialLink} onClick={() => setIsOpen(false)}>
+                  <SocialIcon platform={p.id} size={18} />
+                  <span>{p.name}</span>
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Gift, Download, Copy, Check, AlertCircle, Music, Loader2 } from "lucide-react";
 import { generateCreditCode, redeemCreditCode } from "@/app/actions/user";
@@ -25,6 +25,19 @@ export default function CreditTransferModal({
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
   const [copied, setCopied] = useState(false);
+
+  // Reset state when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setActiveTab("send");
+      setAmount("10");
+      setCode("");
+      setGeneratedCode(null);
+      setLoading(false);
+      setMessage(null);
+      setCopied(false);
+    }
+  }, [isOpen]);
 
   const handleGenerateCode = async () => {
     const numAmount = parseInt(amount);

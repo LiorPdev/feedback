@@ -5,7 +5,6 @@ import { Loader2, ChevronDown, ChevronUp } from "lucide-react";
 import SocialIcon from "./SocialIcon";
 import { motion, AnimatePresence } from "framer-motion";
 import { GENRES } from "@/lib/constants";
-import { updateUserGenre } from "@/app/actions/user";
 import styles from "./UserPreferencesModal.module.css";
 
 interface UserPreferencesModalProps {
@@ -45,7 +44,7 @@ export default function UserPreferencesModal({
     if (initialSocialLinks) {
       try {
         setSocialLinks(JSON.parse(initialSocialLinks));
-      } catch (e) {
+      } catch {
         setSocialLinks({});
       }
     } else {

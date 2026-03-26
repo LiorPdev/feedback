@@ -76,8 +76,23 @@ export default async function RootLayout({
         elements: {
           socialButtonsBlockButton: {
             marginBottom: "0.75rem",
-            borderRadius: "12px",
+            borderRadius: "14px",
             border: "1.5px solid #e5e7eb",
+            height: "54px",
+            fontSize: "1.1rem",
+            fontWeight: "600",
+            transition: "all 0.2s ease",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+            "&:hover": {
+              backgroundColor: "#f9fafb",
+              borderColor: "#d1d5db",
+              transform: "translateY(-1px)",
+              boxShadow: "0 4px 6px rgba(0,0,0,0.08)",
+            }
+          },
+          socialButtonsBlockButtonText: {
+             fontSize: "1.05rem",
+             fontWeight: "600",
           },
           card: {
             boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
@@ -86,11 +101,11 @@ export default async function RootLayout({
           headerTitle: {
             fontFamily: "var(--font-heebo)",
             fontWeight: "800",
-            fontSize: "1.5rem",
+            fontSize: "1.8rem",
+            marginBottom: "0.5rem",
           },
           headerSubtitle: {
-            fontFamily: "var(--font-heebo)",
-            fontSize: "1rem",
+            display: "none",
           }
         }
       }}

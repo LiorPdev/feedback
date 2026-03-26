@@ -9,18 +9,11 @@ import { REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_COMMENT, MIN_C
 import styles from "./FeedbackForm.module.css";
 import AnimatedTokenCounter from "./AnimatedTokenCounter";
 
-interface SubmittedFeedback {
-  id: string;
-  cat2: number;
-  cat3: number;
-  overall: number;
-  comment: string;
-  createdAt: string;
-}
+
 
 interface FeedbackFormProps {
   songId: string;
-  onSuccess?: (feedback: any, stats?: { averageRating: number; totalFeedbacks: number }) => void;
+  onSuccess?: (feedback: unknown, stats?: { averageRating: number; totalFeedbacks: number }) => void;
   getPlayedSeconds?: () => Promise<number>;
   isPlaying?: boolean;
   isDisabled?: boolean;
@@ -37,11 +30,11 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isPl
   const [comment, setComment] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
-  const [flyers, setFlyers] = useState<{ id: number; x: number; y: number; tx: number; ty: number; value: number }[]>([]);
+  const [flyers, setFlyers] = useState<{ id: number; x: number; y: number; tx: number; ty: number; value: number; ox?: number; oy?: number }[]>([]);
   const bucketRef = useRef<HTMLDivElement>(null);
   const flyerIdRef = useRef(0);
 
-  const triggerFlyer = useCallback((x: number, y: number, value: number, targetX?: number, targetY?: number) => {
+  const triggerFlyer = useCallback((x: number, y: number, value: number, targetX?: number, targetY?: number, initialOffsetX = 0, initialOffsetY = 0) => {
     let finalX = targetX;
     let finalY = targetY;
 
@@ -63,6 +56,8 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isPl
       y: y + jitter(),
       tx: finalX + jitter(),
       ty: finalY + jitter(),
+      ox: initialOffsetX,
+      oy: initialOffsetY,
       value
     }]);
 
@@ -79,11 +74,11 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isPl
   useEffect(() => {
     if (isPlaying && !playRewardGivenRef.current) {
       playRewardGivenRef.current = true;
-      setListenCredits(prev => prev + 1);
+      setTimeout(() => setListenCredits(prev => prev + 1), 0);
 
       if (bucketRef.current) {
         const bucketRect = bucketRef.current.getBoundingClientRect();
-        triggerFlyer(bucketRect.left + bucketRect.width / 2, bucketRect.top - 80, 1, bucketRect.left + bucketRect.width / 2, bucketRect.top + bucketRect.height / 2);
+        triggerFlyer(bucketRect.left + bucketRect.width / 2, bucketRect.top - 80, 1, bucketRect.left + bucketRect.width / 2, bucketRect.top + bucketRect.height / 2, -40, 50);
       }
     }
 
@@ -98,7 +93,7 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isPl
 
           if (bucketRef.current) {
             const bucketRect = bucketRef.current.getBoundingClientRect();
-            triggerFlyer(bucketRect.left + bucketRect.width / 2, bucketRect.top - 80, 1, bucketRect.left + bucketRect.width / 2, bucketRect.top + bucketRect.height / 2);
+            triggerFlyer(bucketRect.left + bucketRect.width / 2, bucketRect.top - 80, 1, bucketRect.left + bucketRect.width / 2, bucketRect.top + bucketRect.height / 2, -40, 50);
           }
         }
       }, 1000);
@@ -478,8 +473,8 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isPl
           <motion.div
             key={flyer.id}
             initial={{
-              x: flyer.x - 40,
-              y: flyer.y + 50,
+              x: flyer.x + (flyer.ox || 0),
+              y: flyer.y + (flyer.oy || 0),
               opacity: 0,
               scale: 0.5
             }}
