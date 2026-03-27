@@ -8,8 +8,6 @@ import ShareSongButton from "@/components/ShareSongButton";
 import SongPlayer from "./SongPlayer";
 import { SignInButton } from "@clerk/nextjs";
 import { LogIn } from "lucide-react";
-import { users } from "@/lib/schema";
-import { inArray } from "drizzle-orm";
 
 interface ShowFeedbackPageProps {
   params: Promise<{

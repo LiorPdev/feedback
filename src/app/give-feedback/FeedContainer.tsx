@@ -8,8 +8,7 @@ import UrlPlayer, { getEmbedUrl, type UrlPlayerHandle } from "@/components/UrlPl
 import DashboardLink from "@/components/DashboardLink";
 import BackButton from "@/components/BackButton";
 import { Play, Pause, CheckCircle2, Star } from "lucide-react";
-import SocialIcon from "@/components/SocialIcon";
-
+import ArtistSocials from "@/components/ArtistSocials";
 import { MIN_LISTEN_TIME, MIN_LISTEN_TIME_SPOTIFY_MOBILE, SUCCESS_MESSAGE_DURATION } from "@/lib/constants";
 import { logAction } from "@/app/actions/logs";
 
@@ -60,10 +59,10 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
   const [userFeedback, setUserFeedback] = useState<Feedback | null>(initialFeedback || null);
   const [currentSongStats, setCurrentSongStats] = useState<{ averageRating: number; totalFeedbacks: number } | null>(
     (currentSong as unknown as { averageRating?: number; totalFeedbacks?: number })?.averageRating !== undefined
-      ? { 
-          averageRating: (currentSong as unknown as { averageRating: number }).averageRating, 
-          totalFeedbacks: (currentSong as unknown as { totalFeedbacks: number }).totalFeedbacks 
-        }
+      ? {
+        averageRating: (currentSong as unknown as { averageRating: number }).averageRating,
+        totalFeedbacks: (currentSong as unknown as { totalFeedbacks: number }).totalFeedbacks
+      }
       : null
   );
   const [justSubmitted, setJustSubmitted] = useState(false);
@@ -263,8 +262,9 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
                 ({currentSong.genre})
               </span>
             )}
-
-            <SocialsHeader socialLinks={currentSong.user?.socialLinks} />
+            <div className={styles.headerSocialsContainer}>
+              <ArtistSocials socialLinks={currentSong.user?.socialLinks} />
+            </div>
           </div>
         </div>
 
@@ -435,73 +435,9 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
             </div>
           )}
         </div>
-        {!hasRatedCurrent && (
-          <DashboardLink href="/" text="חזרה לדף הבית" className={styles.dashboardLinkMargin} />
-        )}
       </div>
     </div>
   );
 }
 
-function SocialsHeader({ socialLinks }: { socialLinks?: string | null }) {
-  const [isOpen, setIsOpen] = useState(false);
 
-  if (!socialLinks) return null;
-
-  let links: Record<string, string | undefined> = {};
-  try {
-    links = JSON.parse(socialLinks) as Record<string, string | undefined>;
-  } catch {
-    return null;
-  }
-
-  if (!links) return null;
-
-  const platforms = [
-    { id: "spotify", name: "Spotify", url: links.spotify },
-    { id: "youtube", name: "YouTube", url: links.youtube },
-    { id: "applemusic", name: "Apple Music", url: links.appleMusic },
-    { id: "instagram", name: "Instagram", url: links.instagram },
-    { id: "facebook", name: "Facebook", url: links.facebook },
-    { id: "website", name: "Website", url: links.website },
-  ].filter(p => p.url);
-
-  if (platforms.length === 0) return null;
-
-  return (
-    <div className={styles.headerSocialsContainer}>
-      {/* Desktop View: Show All inline */}
-      <div className={styles.desktopSocials}>
-        {platforms.map(p => (
-          <a key={p.id} href={p.url} target="_blank" rel="noopener noreferrer" title={p.name} className={styles.headerSocialLink}>
-            <SocialIcon platform={p.id} size={16} />
-          </a>
-        ))}
-      </div>
-
-      {/* Mobile View: Single Toggle for ALL socials */}
-      <div className={styles.mobileSocials}>
-        <div className={styles.moreSocialsWrapper}>
-          <button
-            className={styles.moreSocialsBtn}
-            onClick={() => setIsOpen(!isOpen)}
-            title="קישורי האמן"
-          >
-            <SocialIcon platform="spotify" size={16} />
-          </button>
-
-          {isOpen && (
-            <div className={styles.socialsDropdown}>
-              {platforms.map(p => (
-                <a key={p.id} href={p.url} target="_blank" rel="noopener noreferrer" title={p.name} className={styles.dropdownSocialLink} onClick={() => setIsOpen(false)}>
-                  <SocialIcon platform={p.id} size={18} />
-                  <span>{p.name}</span>
-                </a>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}

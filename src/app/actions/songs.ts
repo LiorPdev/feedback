@@ -690,3 +690,49 @@ export async function getURLMetadata(url: string) {
         return { success: false, error: "שגיאה בגישה לקישור" };
     }
 }
+
+export async function getTopRatedSongs() {
+    const db = await getDb();
+    try {
+        // 1. Calculate the global average rating (C) and the minimum threshold (m)
+        const globalStats = await db.select({
+            avgRating: sql<number>`avg((${feedbacks.cat2} + ${feedbacks.cat3} + ${feedbacks.overall}) / 3.0)`
+        }).from(feedbacks);
+
+        const C = globalStats[0]?.avgRating || 0;
+        const m = 3; // Minimum ratings threshold
+
+        const topSongs = await db.select({
+            id: songs.id,
+            title: songs.title,
+            url: songs.url,
+            genre: songs.genre,
+            artist: songs.artist,
+            slug: songs.slug,
+            userId: songs.userId,
+            socialLinks: users.socialLinks,
+            averageRating: sql<number>`CAST(avg((${feedbacks.cat2} + ${feedbacks.cat3} + ${feedbacks.overall}) / 3.0) AS FLOAT)`,
+            totalFeedbacks: sql<number>`count(${feedbacks.id})`,
+            // Bayesian Average: (v*R + m*C) / (v+m)
+            weightedRating: sql<number>`
+                ( (count(${feedbacks.id}) * avg((${feedbacks.cat2} + ${feedbacks.cat3} + ${feedbacks.overall}) / 3.0)) + (${m} * ${C}) )
+                / (count(${feedbacks.id}) + ${m})
+            `
+        })
+        .from(songs)
+        .innerJoin(feedbacks, eq(songs.id, feedbacks.songId))
+        .innerJoin(users, eq(songs.userId, users.id))
+        .where(eq(songs.isActive, true))
+        .groupBy(songs.id)
+        .orderBy(sql`
+            ( (count(${feedbacks.id}) * avg((${feedbacks.cat2} + ${feedbacks.cat3} + ${feedbacks.overall}) / 3.0)) + (${m} * ${C}) )
+            / (count(${feedbacks.id}) + ${m}) DESC
+        `)
+        .limit(5);
+
+        return { success: true, songs: topSongs };
+    } catch (error) {
+        await logToDb({ message: "Failed to fetch top rated songs", data: error, source: "songs.ts:getTopRatedSongs" });
+        return { success: false, error: "שגיאה בטעינת השירים המדורגים" };
+    }
+}

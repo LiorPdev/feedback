@@ -76,8 +76,8 @@ export default function LandingClient({
 
   const handleGiveFeedbackClick = () => {
     if (user && !userGenre) {
-      window.dispatchEvent(new CustomEvent("open-preferences-modal", { 
-        detail: { redirectTo: "/give-feedback" } 
+      window.dispatchEvent(new CustomEvent("open-preferences-modal", {
+        detail: { redirectTo: "/give-feedback" }
       }));
     }
   };
@@ -107,7 +107,7 @@ export default function LandingClient({
             <SignedOut>
               <motion.div className={styles.howItWorks} variants={fadeInUp}>
                 <h3>איך זה עובד?</h3>
-                <p>אתם מעלים יצירה כדי לקבל משוב אמיתי מאנשי הקהילה וגם נותנים פידבק אנונימי לאחרים כדי לעזור להם להשתפר.</p>
+                <p>אתם מעלים יצירה כדי לקבל משוב מאנשי הקהילה וגם יכולים לתת פידבק אנונימי לאחרים כדי לעזור להם להשתפר.</p>
               </motion.div>
             </SignedOut>
             <motion.div className={styles.heroButtons} variants={fadeInUp}>
@@ -118,7 +118,7 @@ export default function LandingClient({
                   </button>
                 </SignInButton>
                 <SignInButton mode="modal" forceRedirectUrl="/give-feedback">
-                  <button 
+                  <button
                     className={styles.btnSecondary}
                     onClick={handleGiveFeedbackClick}
                   >
@@ -134,8 +134,8 @@ export default function LandingClient({
                   {hasSongs ? "האיזור האישי שלי" : "אני רוצה לקבל פידבק"}
                 </Link>
                 {userGenre ? (
-                  <Link 
-                    href="/give-feedback" 
+                  <Link
+                    href="/give-feedback"
                     className={styles.btnSecondary}
                   >
                     אני רוצה לתת פידבק
@@ -150,6 +150,13 @@ export default function LandingClient({
                 )}
               </SignedIn>
             </motion.div>
+
+            <motion.div variants={fadeInUp} className={styles.topRatedLinkWrapper}>
+              <Link href="/top-rated" className={styles.topRatedLink}>
+                5 השירים עם הדירוג הכי גבוה
+              </Link>
+            </motion.div>
+
           </motion.div>
 
           <motion.div
