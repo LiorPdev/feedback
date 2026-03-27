@@ -1,15 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { SignInButton, SignedIn, SignedOut, useUser } from "@clerk/nextjs";
-
-import { motion } from "framer-motion";
+import { SignedIn, SignedOut, useUser } from "@clerk/nextjs";
+import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle } from "lucide-react";
 import Image from "next/image";
 import styles from "@/app/landing.module.css";
 import { useState, useEffect } from "react";
 import { getUserSongCount } from "@/app/actions/songs";
 import Footer from "./Footer";
+import AuthOverlay from "./AuthOverlay";
 
 // Animation variants
 const fadeInUp = {
@@ -34,9 +34,13 @@ export default function LandingClient({
   initialHasSongs?: boolean,
   initialGenre?: string
 }) {
-  const { user, isLoaded } = useUser();
+  const { user, isLoaded, isSignedIn } = useUser();
   const [hasSongs, setHasSongs] = useState(initialHasSongs);
   const [userGenre, setUserGenre] = useState(initialGenre);
+  const [authOverlay, setAuthOverlay] = useState<{ isOpen: boolean; message: React.ReactNode; redirectUrl?: string }>({
+    isOpen: false,
+    message: "",
+  });
 
   useEffect(() => {
     async function checkUserData() {
@@ -74,7 +78,20 @@ export default function LandingClient({
     };
   }, [user, isLoaded]);
 
-  const handleGiveFeedbackClick = () => {
+  const handleGiveFeedbackClick = (e: React.MouseEvent) => {
+    if (!isSignedIn) {
+      e.preventDefault();
+      setAuthOverlay({
+        isOpen: true,
+        message: (
+          <>
+            <strong>התחברות קצרה בקליק</strong>{"\n\n"}
+            כדי שלא נציג לך שוב ושוב שירים שכבר דירגת וכדי לשמור על איכות הקהילה, יש לבצע התחברות קצרה למערכת. הדירוגים שלך אנונימיים לחלוטין.          </>
+        ),
+        redirectUrl: "/give-feedback"
+      });
+      return;
+    }
     if (user && !userGenre) {
       window.dispatchEvent(new CustomEvent("open-preferences-modal", {
         detail: { redirectTo: "/give-feedback" }
@@ -82,8 +99,35 @@ export default function LandingClient({
     }
   };
 
+  const handleGetFeedbackClick = (e: React.MouseEvent) => {
+    if (!isSignedIn) {
+      e.preventDefault();
+      setAuthOverlay({
+        isOpen: true,
+        message: (
+          <>
+            <strong>התחברות קצרה בקליק</strong>{"\n\n"}
+            כדי שנוכל ליצור לך מרחב אישי שבו כל הפידבקים יישמרו.
+          </>
+        ),
+        redirectUrl: "/dashboard"
+      });
+    }
+  };
+
   return (
     <div className={styles.landingPage}>
+      <AnimatePresence>
+        {authOverlay.isOpen && (
+          <AuthOverlay
+            isModal
+            message={authOverlay.message}
+            redirectUrl={authOverlay.redirectUrl}
+            onClose={() => setAuthOverlay(prev => ({ ...prev, isOpen: false }))}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Hero Section */}
       <header className={styles.hero}>
         <div className={styles.heroBackground}>
@@ -111,19 +155,15 @@ export default function LandingClient({
             </SignedOut>
             <motion.div className={styles.heroButtons} variants={fadeInUp}>
               <SignedOut>
-                <SignInButton mode="modal" forceRedirectUrl="/get-feedback">
-                  <button className={styles.btnPrimary}>
-                    אני רוצה לקבל פידבק
-                  </button>
-                </SignInButton>
-                <SignInButton mode="modal" forceRedirectUrl="/give-feedback">
-                  <button
-                    className={styles.btnSecondary}
-                    onClick={handleGiveFeedbackClick}
-                  >
-                    אני רוצה לתת פידבק
-                  </button>
-                </SignInButton>
+                <button className={styles.btnPrimary} onClick={handleGetFeedbackClick}>
+                  אני רוצה לקבל פידבק
+                </button>
+                <button
+                  className={styles.btnSecondary}
+                  onClick={handleGiveFeedbackClick}
+                >
+                  אני רוצה לתת פידבק
+                </button>
               </SignedOut>
               <SignedIn>
                 <Link

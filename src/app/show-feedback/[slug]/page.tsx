@@ -6,8 +6,8 @@ import { auth } from "@clerk/nextjs/server";
 import DashboardLink from "@/components/DashboardLink";
 import ShareSongButton from "@/components/ShareSongButton";
 import SongPlayer from "./SongPlayer";
-import { SignInButton } from "@clerk/nextjs";
-import { LogIn } from "lucide-react";
+import AuthOverlay from "@/components/AuthOverlay";
+
 
 interface ShowFeedbackPageProps {
   params: Promise<{
@@ -183,20 +183,14 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
       </main>
 
       {!userId && (
-        <div className={styles.authOverlay}>
-          <div className={styles.authContent}>
-            <p className={styles.subHeading}>
-              כדי לצפות בפידבקים ובתובנות על השיר שלך, יש להתחבר למערכת.
+        <AuthOverlay
+          message={(
+            <>
+              כדי לצפות בפידבקים ובתובנות על השיר שלך, יש להתחבר למערכת.{"\n\n"}
               הגישה לתוצאות מורשית לבעלי השיר בלבד.
-            </p>
-            <SignInButton mode="modal">
-              <button className={styles.loginBtn}>
-                <LogIn size={20} />
-                <span>התחברות למערכת</span>
-              </button>
-            </SignInButton>
-          </div>
-        </div>
+            </>
+          )}
+        />
       )}
     </div>
   );

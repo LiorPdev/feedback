@@ -2,7 +2,6 @@ import { getDb } from "@/lib/db";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Music } from "lucide-react";
 import SongCard from "@/components/SongCard";
 import styles from "./dashboard.module.css";
 import { logAction } from "@/app/actions/logs";
@@ -57,7 +56,7 @@ export default async function DashboardPage({
     );
   }
 
-  if (!user) {
+  if (!user || user.songs.length === 0) {
     redirect("/get-feedback");
   }
 
@@ -84,21 +83,11 @@ export default async function DashboardPage({
           </Link>
         </div>
 
-        {user.songs.length === 0 ? (
-          <div className={styles.emptyState}>
-            <Music size={48} className={styles.emptyIcon} />
-            <p>לא נשלח עדיין אף שיר לקבלת פידבק מהקהילה</p>
-            <Link href="/get-feedback" className={styles.emptyBtn}>
-              שלחו את השיר הראשון שלכם
-            </Link>
-          </div>
-        ) : (
-          <div className={styles.songGrid}>
-            {user.songs.map((song) => (
-              <SongCard key={song.id} song={song} isNew={song.slug === newSlug} />
-            ))}
-          </div>
-        )}
+        <div className={styles.songGrid}>
+          {user.songs.map((song) => (
+            <SongCard key={song.id} song={song} isNew={song.slug === newSlug} />
+          ))}
+        </div>
       </div>
     </div>
   );

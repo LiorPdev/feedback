@@ -1,15 +1,14 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Star, LogIn, X, AlertCircle } from "lucide-react";
+import { Star, X, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useUser, SignInButton } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import { addFeedback } from "@/app/actions/songs";
 import { REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH, SUCCESS_MESSAGE_DURATION } from "@/lib/constants";
 import styles from "./FeedbackForm.module.css";
 import AnimatedTokenCounter from "./AnimatedTokenCounter";
-
-
+import AuthOverlay from "./AuthOverlay";
 
 interface FeedbackFormProps {
   songId: string;
@@ -447,24 +446,9 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isPl
 
       {/* Overlay for unauthenticated users */}
       {!isSignedIn && (
-        <div className={styles.authOverlay}>
-          <motion.div
-            className={styles.authContent}
-            initial={{ opacity: 0, scale: 0.9, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 25 }}
-          >
-            <p className={styles.subHeading}>
-              כדי שלא נציג לך שוב ושוב שירים שכבר דירגת וכדי לשמור על איכות הקהילה, יש לבצע התחברות קצרה למערכת. אנחנו מתחייבים שהדירוגים שלך אנונימיים לחלוטין.
-            </p>
-            <SignInButton mode="modal">
-              <button className={styles.submitBtn}>
-                <LogIn size={18} />
-                <span>התחברות</span>
-              </button>
-            </SignInButton>
-          </motion.div>
-        </div>
+        <AuthOverlay
+          message="כדי שלא נציג לך שוב ושוב שירים שכבר דירגת וכדי לשמור על איכות הקהילה, יש לבצע התחברות קצרה למערכת. הדירוגים שלך אנונימיים לחלוטין."
+        />
       )}
 
       {/* Flying Numbers Portal-like overlay */}
