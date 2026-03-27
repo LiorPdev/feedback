@@ -2,9 +2,10 @@ import { getTopRatedSongs } from "@/app/actions/songs";
 import styles from "./top-rated.module.css";
 import BackButton from "@/components/BackButton";
 import ArtistSocials from "@/components/ArtistSocials";
+import Image from "next/image";
+import Link from "next/link";
 import ShareSongButton from "@/components/ShareSongButton";
 import TopRatedPlayer from "./TopRatedPlayer";
-import { Star } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -48,19 +49,24 @@ export default async function TopRatedPage() {
                   {/* title */}
                   <h2 className={styles.songTitle}>{song.title}</h2>
 
-                  {/* rating */}
-                  <div className={styles.ratingBadge}>
-                    <Star size={12} fill="currentColor" />
-                    <span>{song.averageRating.toFixed(1)}</span>
-                  </div>
+                  {/* share */}
 
                   {/* share */}
                   <div className={styles.actionsSection}>
+                    <Link
+                      href={`/give-feedback?song=${song.slug}`}
+                      className={styles.giveFeedbackBtn}
+                      title="תנו פידבק לשיר"
+                    >
+                      <Image
+                        src="/Logo.png"
+                        alt="פידבק ספייס"
+                        width={20}
+                        height={20}
+                        className={styles.miniLogo}
+                      />
+                    </Link>
                     <ShareSongButton slug={song.slug} />
-                  </div>
-
-                  {/* socials */}
-                  <div className={styles.socialsSection}>
                     <ArtistSocials socialLinks={song.socialLinks} />
                   </div>
 

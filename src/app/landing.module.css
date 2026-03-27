@@ -133,8 +133,9 @@
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   text-decoration: none;
-  display: inline-block;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btnPrimary:hover {
@@ -156,8 +157,9 @@
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   text-decoration: none;
-  display: inline-block;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btnSecondary:hover {

@@ -4,8 +4,13 @@ import styles from "./feed.module.css";
 import { auth } from "@clerk/nextjs/server";
 export const dynamic = "force-dynamic";
 
-export default async function GiveFeedbackFeedPage() {
-  const result = await getFeedSongs();
+export default async function GiveFeedbackFeedPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ song?: string }>;
+}) {
+  const { song: songSlug } = await searchParams;
+  const result = await getFeedSongs(songSlug);
   await auth();
 
   if (!result.success || !result.songs) {

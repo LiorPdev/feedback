@@ -61,7 +61,7 @@
 
 .songRow {
   display: grid;
-  grid-template-columns: 30px 40px 1fr 80px 40px 25px;
+  grid-template-columns: 30px 40px 1fr 120px;
   align-items: center;
   gap: 1.5rem;
   padding: 1.25rem;
@@ -96,18 +96,7 @@
   text-overflow: ellipsis;
 }
 
-.ratingBadge {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: var(--brand-light);
-  border: 1px solid var(--border-color);
-  border-radius: 100px;
-  color: var(--brand-primary);
-  font-weight: 800;
-  font-size: 1.05rem;
-}
+
 
 .playButton {
   width: 36px;
@@ -148,16 +137,43 @@
   color: var(--text-muted);
 }
 
-.socialsSection {
-  display: flex;
-  justify-content: flex-end;
-  width: 100%;
-}
-
 .actionsSection {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
+  gap: 15px;
+  /* The exact gap requested between the 3 icons */
+}
+
+.giveFeedbackBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
   justify-content: center;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  cursor: pointer;
+}
+
+.giveFeedbackBtn:hover {
+  background: var(--brand-light);
+  transform: scale(1.15);
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 15px var(--brand-primary-alpha);
+}
+
+.miniLogo {
+  opacity: 0.7;
+  filter: grayscale(0.2);
+  transition: all 0.2s ease;
+}
+
+.giveFeedbackBtn:hover .miniLogo {
+  opacity: 1;
+  filter: grayscale(0);
 }
 
 @media (max-width: 600px) {
@@ -176,8 +192,7 @@
     backdrop-filter: none !important;
   }
 
-  .rank,
-  .ratingBadge {
+  .rank {
     display: none;
   }
 
@@ -206,6 +221,18 @@
     padding: 0;
     border: none;
     margin: 0;
+  }
+
+}
+
+@media (max-width: 440px) {
+
+  .title {
+    font-size: 1.4rem;
+  }
+
+  .actionsSection {
+    gap: 8px;
   }
 
 }
