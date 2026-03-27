@@ -54,7 +54,7 @@ export default async function TopRatedPage() {
                   {/* share */}
                   <div className={styles.actionsSection}>
                     <Link
-                      href={`/give-feedback?song=${song.slug}`}
+                      href={`/give-feedback?song=${song.slug}&from=top-rated`}
                       className={styles.giveFeedbackBtn}
                       title="תנו פידבק לשיר"
                     >

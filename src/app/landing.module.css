@@ -118,6 +118,12 @@
 .heroButtons {
   display: flex;
   gap: 1rem;
+  width: 100%;
+  max-width: 500px;
+}
+
+.heroButtons > * {
+  flex: 1;
 }
 
 .btnPrimary {
@@ -325,7 +331,7 @@
 
   .heroButtons {
     width: 100%;
-    max-width: 400px;
+    max-width: 500px;
   }
 
   .heroButtons>* {

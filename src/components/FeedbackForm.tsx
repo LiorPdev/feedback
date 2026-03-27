@@ -17,9 +17,10 @@ interface FeedbackFormProps {
   isPlaying?: boolean;
   isDisabled?: boolean;
   disabledMessage?: string;
+  initialSource?: string;
 }
 
-export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isPlaying, isDisabled, disabledMessage }: FeedbackFormProps) {
+export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isPlaying, isDisabled, disabledMessage, initialSource }: FeedbackFormProps) {
   const { isLoaded, isSignedIn } = useUser();
   const [ratings, setRatings] = useState({
     cat2: 0,
@@ -112,6 +113,12 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isPl
       return () => clearTimeout(timer);
     }
   }, [status]);
+
+  useEffect(() => {
+    if (initialSource === "top-rated") {
+      setComment("שמעתי את השיר באיזור השירים המדורגים");
+    }
+  }, [initialSource]);
 
   const categories = [
     { key: "cat2" as const, name: "הפקה", reward: REWARD_PRODUCTION },

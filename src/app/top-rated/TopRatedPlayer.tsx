@@ -29,6 +29,19 @@ export default function TopRatedPlayer({ url }: TopRatedPlayerProps) {
     };
   }, [url]);
 
+  useEffect(() => {
+    const handleOtherPlay = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail?.id !== url) {
+        playerRef.current?.pause();
+        setIsPlaying(false);
+      }
+    };
+
+    window.addEventListener("top-rated-play", handleOtherPlay);
+    return () => window.removeEventListener("top-rated-play", handleOtherPlay);
+  }, [url]);
+
   const togglePlay = () => {
     if (isPlaying) {
       playerRef.current?.pause();
@@ -59,7 +72,10 @@ export default function TopRatedPlayer({ url }: TopRatedPlayerProps) {
         ref={playerRef}
         url={url}
         onReady={() => setIsReady(true)}
-        onPlay={() => setIsPlaying(true)}
+        onPlay={() => {
+          setIsPlaying(true);
+          window.dispatchEvent(new CustomEvent("top-rated-play", { detail: { id: url } }));
+        }}
         onPause={() => setIsPlaying(false)}
         onEnded={() => setIsPlaying(false)}
         onError={() => setIsReady(true)}

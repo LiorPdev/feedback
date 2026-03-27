@@ -36,9 +36,11 @@ interface Feedback {
 interface FeedContainerProps {
   initialSongs: Song[];
   initialFeedback?: Feedback | null;
+  from?: string;
+  initialSongSlug?: string;
 }
 
-export default function FeedContainer({ initialSongs, initialFeedback }: FeedContainerProps) {
+export default function FeedContainer({ initialSongs, initialFeedback, from, initialSongSlug }: FeedContainerProps) {
   const { isSignedIn, isLoaded } = useUser();
   const [songs, setSongs] = useState(initialSongs);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -244,7 +246,7 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
   const isYouTube = currentSong.url.includes("youtube.com") || currentSong.url.includes("youtu.be");
   const isSpotify = currentSong.url.includes("spotify.com");
   const isAudio = !!currentSong.url.match(/\.(mp3|wav|ogg|m4a|aac)(\?.*)?$/i) || currentSong.url.includes("r2.dev");
-  const isBypassTimer = false;
+  const isBypassTimer = from === "top-rated" && currentSong?.slug === initialSongSlug;
   const isHiddenPlayer = isYouTube || isSpotify || isAudio;
   const isProminentNext = !isPlaying && hasRatedCurrent;
 
@@ -363,6 +365,7 @@ export default function FeedContainer({ initialSongs, initialFeedback }: FeedCon
               getPlayedSeconds={getPlayedSeconds}
               isPlaying={isPlaying}
               isDisabled={!isBypassTimer && secondsRemaining > 0}
+              initialSource={from}
               disabledMessage={
                 isBypassTimer ? "" : (
                   secondsRemaining >= getRequiredTime()
