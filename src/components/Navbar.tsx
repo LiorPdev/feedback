@@ -146,10 +146,22 @@ export default function Navbar() {
     }
   };
 
+  const handleLogoClick = (e: React.MouseEvent) => {
+    if (pathname === "/") {
+      e.preventDefault();
+      const scrollContainer = document.querySelector(".scroll-container");
+      if (scrollContainer) {
+        scrollContainer.scrollTo({ top: 0, behavior: "smooth" });
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }
+  };
+
   return (
     <nav className={styles.navbar}>
       <div className={styles.navContent}>
-        <Link href="/" className={styles.logo}>
+        <Link href="/" className={styles.logo} onClick={handleLogoClick}>
           <Image
             src="/Logo.png"
             alt="פידבק ספייס"

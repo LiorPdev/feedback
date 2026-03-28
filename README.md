@@ -2,7 +2,7 @@
 # Feedback Space
 #
 
-## Run the development: 
+## Run the development:
 npm run dev
 
 ## Push your schema changes to the LOCAL DATABASE:

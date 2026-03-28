@@ -26,73 +26,19 @@
   flex-direction: column;
 }
 
-.closeButton {
-  position: absolute;
-  top: 1.25rem;
-  left: 1.25rem;
-  /* Moved to left */
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  z-index: 10;
-  transition: all 0.2s ease;
-  padding: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-}
-
-.closeButton:hover {
-  background-color: var(--brand-light);
-  color: var(--brand-primary);
-  transform: scale(1.1);
-}
-
 .content {
-  padding: 2.5rem 2.25rem;
+  padding: 2.2rem 2rem;
   text-align: right;
   direction: rtl;
   overflow-y: auto;
   flex: 1;
 }
 
-.title {
-  font-size: 1.75rem;
-  font-weight: 800;
-  margin-bottom: 0.5rem;
-  color: var(--text-main);
-  margin-bottom: 2rem;
-}
-
 .sectionTitle {
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   font-weight: 700;
-  margin-bottom: 1rem;
+  margin-bottom: 0.8rem;
   color: var(--text-main);
-}
-
-.sectionTitleNoMargin {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--text-main);
-  margin: 0;
-}
-
-.collapsibleHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  padding: 0.5rem 0;
-  color: var(--text-main);
-  transition: all 0.2s ease;
-  user-select: none;
-}
-
-.collapsibleHeader:hover {
-  color: var(--brand-primary);
 }
 
 .socialInputs {
@@ -152,6 +98,11 @@
   gap: 0.5rem;
 }
 
+.formGroupNoGap {
+  display: flex;
+  flex-direction: column;
+}
+
 .genreGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
@@ -190,32 +141,15 @@
   cursor: not-allowed;
 }
 
-@media (max-width: 480px) {
-  .genreGrid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.5rem;
-  }
-
-  .genreChip {
-    font-size: 0.85rem;
-    padding: 0.4rem 0.25rem;
-  }
-
-  .content {
-    padding: 2rem 1.25rem;
-  }
-
-  .title {
-    font-size: 1.5rem;
-    margin-bottom: 1.5rem;
-  }
-}
-
 .footer {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 1rem;
-  margin-top: 1rem;
+  padding: 1.5rem 2.25rem;
+  border-top: 1px solid var(--border-color);
+  background-color: var(--card-bg);
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
 }
 
 .confirmButton {
@@ -276,4 +210,21 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+@media (max-width: 480px) {
+  .genreGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+  }
+
+  .genreChip {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.25rem;
+  }
+
+  .content {
+    padding: 2rem 1.25rem;
+  }
+
 }
