@@ -424,6 +424,7 @@
 }
 
 .blurred {
+  filter: blur(1px);
   pointer-events: none;
   user-select: none;
   opacity: 0.9;

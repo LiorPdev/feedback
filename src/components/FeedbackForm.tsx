@@ -464,12 +464,12 @@ export default function FeedbackForm({
       </div>
 
       {/* Overlay for unauthenticated users */}
-      {/* Overlay for unauthenticated users */}
       {!isSignedIn && !isAuthDismissed && (
         <AuthOverlay
+          isModal={true}
           message={
             <>
-              <strong>הפידבק שלך מאוד חשוב</strong>{"\n\n"}
+              <strong>הפידבק שלך חשוב</strong>{"\n\n"}
               כדי שלא נציג לך שוב ושוב שירים שכבר דירגת וכדי לשמור על איכות הקהילה, בואו נתחבר.{"\n\n"}
               הדירוגים שלך אנונימיים לחלוטין.
             </>
