@@ -423,8 +423,18 @@
   color: #16A34A;
 }
 
+.blurred {
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.9;
+}
 
 @media (max-width: 600px) {
+
+  .container {
+    padding: 1rem;
+  }
+
   .radioGroup {
     gap: 1rem;
   }
@@ -436,6 +446,4 @@
   .alternativeTitle {
     display: none;
   }
-
-
 }

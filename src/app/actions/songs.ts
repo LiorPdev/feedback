@@ -103,22 +103,16 @@ export async function addFeedback(data: {
     listenCredits?: number;
 }) {
     const clerkUser = await currentUser();
-    if (!clerkUser) {
-        return { success: false, error: "חובה להתחבר כדי לתת פידבק" };
-    }
+    // Anonymous feedback is allowed, but no tokens are granted
 
     const db = await getDb();
     try {
         // Sync/get user to grant credits using shared utility
-        const dbUser = await syncUser();
-
-        if (!dbUser) {
-            return { success: false, error: "משתמש לא נמצא" };
-        }
+        const dbUser = clerkUser ? await syncUser() : null;
 
         const [feedback] = await db.insert(feedbacks).values({
             songId: data.songId,
-            authorId: clerkUser.id,
+            authorId: clerkUser?.id || null,
             cat1: 0, // FFU - Not used but required by schema
             cat2: data.cat2,
             cat3: data.cat3,
@@ -127,18 +121,20 @@ export async function addFeedback(data: {
             playedSeconds: data.playedSeconds,
         }).returning();
 
-        // Calculate rewards
-        let reward = 0;
-        if (data.cat2 > 0) reward += REWARD_PRODUCTION;
-        if (data.cat3 > 0) reward += REWARD_VOCALS;
-        if (data.overall > 0) reward += REWARD_OVERALL;
-        if (data.comment.trim().length >= MIN_COMMENT_LENGTH) reward += REWARD_COMMENT;
-        if (data.listenCredits) reward += data.listenCredits;
+        if (clerkUser && dbUser) {
+            // Calculate rewards (only for authenticated users)
+            let reward = 0;
+            if (data.cat2 > 0) reward += REWARD_PRODUCTION;
+            if (data.cat3 > 0) reward += REWARD_VOCALS;
+            if (data.overall > 0) reward += REWARD_OVERALL;
+            if (data.comment.trim().length >= MIN_COMMENT_LENGTH) reward += REWARD_COMMENT;
+            if (data.listenCredits) reward += data.listenCredits;
 
-        // Grant credits
-        await db.update(users)
-            .set({ tokens: (dbUser.tokens || 0) + reward })
-            .where(eq(users.id, clerkUser.id));
+            // Grant credits
+            await db.update(users)
+                .set({ tokens: (dbUser.tokens || 0) + reward })
+                .where(eq(users.id, clerkUser.id));
+        }
 
         // Revalidate both views to show the new feedback and updated tokens in dashboard
         revalidatePath('/dashboard');

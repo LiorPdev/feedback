@@ -187,7 +187,6 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
           message={(
             <>
               כדי לצפות בפידבקים ובתובנות על השיר שלך, יש להתחבר למערכת.{"\n\n"}
-              הגישה לתוצאות מורשית לבעלי השיר בלבד.
             </>
           )}
         />

@@ -81,19 +81,6 @@ export default function LandingClient({
   }, [user, isLoaded]);
 
   const handleGiveFeedbackClick = (e: React.MouseEvent) => {
-    if (!isSignedIn) {
-      e.preventDefault();
-      setAuthOverlay({
-        isOpen: true,
-        message: (
-          <>
-            <strong>התחברות קצרה בקליק</strong>{"\n\n"}
-            כדי שלא נציג לך שוב ושוב שירים שכבר דירגת וכדי לשמור על איכות הקהילה, יש לבצע התחברות קצרה למערכת. הדירוגים שלך אנונימיים לחלוטין.          </>
-        ),
-        redirectUrl: "/give-feedback"
-      });
-      return;
-    }
     if (user && !userGenre) {
       window.dispatchEvent(new CustomEvent("open-preferences-modal", {
         detail: { redirectTo: "/give-feedback" }
@@ -102,19 +89,6 @@ export default function LandingClient({
   };
 
   const handleGetFeedbackClick = (e: React.MouseEvent) => {
-    if (!isSignedIn) {
-      e.preventDefault();
-      setAuthOverlay({
-        isOpen: true,
-        message: (
-          <>
-            <strong>התחברות קצרה בקליק</strong>{"\n\n"}
-            כדי שנוכל ליצור לך מרחב אישי שבו כל הפידבקים יישמרו.
-          </>
-        ),
-        redirectUrl: "/dashboard"
-      });
-    }
   };
 
   return (
@@ -153,15 +127,15 @@ export default function LandingClient({
             </SignedOut>
             <motion.div className={styles.heroButtons} variants={fadeInUp}>
               <SignedOut>
-                <button className={styles.btnPrimary} onClick={handleGetFeedbackClick}>
+                <Link href="/get-feedback" className={styles.btnPrimary}>
                   אני רוצה לקבל פידבק
-                </button>
-                <button
+                </Link>
+                <Link
+                  href="/give-feedback"
                   className={styles.btnSecondary}
-                  onClick={handleGiveFeedbackClick}
                 >
                   אני רוצה לתת פידבק
-                </button>
+                </Link>
               </SignedOut>
               <SignedIn>
                 <Link

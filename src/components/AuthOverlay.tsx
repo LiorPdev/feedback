@@ -10,13 +10,17 @@ interface AuthOverlayProps {
   message: ReactNode;
   redirectUrl?: string;
   onClose?: () => void;
+  onDismiss?: () => void;
+  dismissLabel?: string;
   isModal?: boolean;
 }
 
 export default function AuthOverlay({ 
   message, 
   redirectUrl, 
-  onClose, 
+  onClose,
+  onDismiss,
+  dismissLabel,
   isModal = false 
 }: AuthOverlayProps) {
   return (
@@ -47,6 +51,12 @@ export default function AuthOverlay({
             <span>התחברות</span>
           </button>
         </SignInButton>
+
+        {onDismiss && (
+          <button className={styles.dismissBtn} onClick={onDismiss}>
+            {dismissLabel}
+          </button>
+        )}
       </motion.div>
     </div>
   );

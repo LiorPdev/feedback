@@ -72,6 +72,7 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
   const [playerError, setPlayerError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [isAuthDismissed, setIsAuthDismissed] = useState(false);
   const playerRef = useRef<UrlPlayerHandle>(null);
 
   const embedUrl = currentSong ? getEmbedUrl(currentSong.url) : null;
@@ -212,7 +213,7 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
   };
 
   const togglePlayback = () => {
-    if (!playerRef.current || !isSignedIn) return;
+    if (!playerRef.current || (!isSignedIn && !isAuthDismissed)) return;
 
     if (isPlaying) {
       playerRef.current.pause();
@@ -312,7 +313,7 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
               <button
                 className={isProminentNext ? styles.btnSkip : (isPlaying ? styles.btnPause : styles.btnPlay)}
                 onClick={togglePlayback}
-                disabled={!isSignedIn && isLoaded}
+                disabled={(!isSignedIn && !isAuthDismissed) && isLoaded}
               >
                 {isBuffering ? (
                   <>
@@ -337,16 +338,14 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
               </button>
             )}
 
-            <SignedIn>
-              {(songs.length > 1 || hasRatedCurrent) && (
-                <button
-                  className={isProminentNext ? styles.btnPlay : styles.btnSkip}
-                  onClick={hasRatedCurrent ? handleRemoveCurrent : handleSkip}
-                >
-                  {hasRatedCurrent ? "שיר הבא" : "שיר אחר"}
-                </button>
-              )}
-            </SignedIn>
+            {(isSignedIn || isAuthDismissed) && (songs.length > 1 || hasRatedCurrent) && (
+              <button
+                className={isProminentNext ? styles.btnPlay : styles.btnSkip}
+                onClick={hasRatedCurrent ? handleRemoveCurrent : handleSkip}
+              >
+                {hasRatedCurrent ? "שיר הבא" : "שיר אחר"}
+              </button>
+            )}
           </div>
 
           <div className={`${styles.progressContainer} ${duration > 0 ? styles.visible : ""}`}>
@@ -366,6 +365,8 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
               isPlaying={isPlaying}
               isDisabled={!isBypassTimer && secondsRemaining > 0}
               initialSource={from}
+              onAuthDismiss={() => setIsAuthDismissed(true)}
+              isAuthDismissed={isAuthDismissed}
               disabledMessage={
                 isBypassTimer ? "" : (
                   secondsRemaining >= getRequiredTime()

@@ -18,9 +18,21 @@ interface FeedbackFormProps {
   isDisabled?: boolean;
   disabledMessage?: string;
   initialSource?: string;
+  onAuthDismiss?: () => void;
+  isAuthDismissed?: boolean;
 }
 
-export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isPlaying, isDisabled, disabledMessage, initialSource }: FeedbackFormProps) {
+export default function FeedbackForm({
+  songId,
+  onSuccess,
+  getPlayedSeconds,
+  isPlaying,
+  isDisabled,
+  disabledMessage,
+  initialSource,
+  onAuthDismiss,
+  isAuthDismissed = false
+}: FeedbackFormProps) {
   const { isLoaded, isSignedIn } = useUser();
   const [ratings, setRatings] = useState({
     cat2: 0,
@@ -279,7 +291,7 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isPl
   return (
     <div className={styles.form}>
       {/* Container for the form that gets blurred when unauthenticated */}
-      <div className={!isSignedIn ? styles.blurred : ""}>
+      <div className={(!isSignedIn && !isAuthDismissed) ? styles.blurred : ""}>
         <AnimatePresence>
           {status === "success" && (
             <div className={styles.successOverlay} onClick={() => setStatus("idle")}>
@@ -452,9 +464,18 @@ export default function FeedbackForm({ songId, onSuccess, getPlayedSeconds, isPl
       </div>
 
       {/* Overlay for unauthenticated users */}
-      {!isSignedIn && (
+      {/* Overlay for unauthenticated users */}
+      {!isSignedIn && !isAuthDismissed && (
         <AuthOverlay
-          message="כדי שלא נציג לך שוב ושוב שירים שכבר דירגת וכדי לשמור על איכות הקהילה, יש לבצע התחברות קצרה למערכת. הדירוגים שלך אנונימיים לחלוטין."
+          message={
+            <>
+              <strong>הפידבק שלך מאוד חשוב</strong>{"\n\n"}
+              כדי שלא נציג לך שוב ושוב שירים שכבר דירגת וכדי לשמור על איכות הקהילה, בואו נתחבר.{"\n\n"}
+              הדירוגים שלך אנונימיים לחלוטין.
+            </>
+          }
+          onDismiss={onAuthDismiss}
+          dismissLabel="לא עכשיו, תודה"
         />
       )}
 

@@ -11,6 +11,7 @@ import { logAction } from "@/app/actions/logs";
 import { useRouter } from "next/navigation";
 import styles from "./get-feedback.module.css";
 import { GENRES, SONG_SUBMISSION_COST, MAX_FILE_SIZE, MAX_FILE_SIZE_MB } from "@/lib/constants";
+import AuthOverlay from "@/components/AuthOverlay";
 
 export default function GetFeedback() {
   const [songLink, setSongLink] = useState("");
@@ -26,7 +27,7 @@ export default function GetFeedback() {
   const [fileError, setFileError] = useState("");
   const [lastFetchedLink, setLastFetchedLink] = useState("");
   const [youtubeAlternative, setYoutubeAlternative] = useState<{ url: string, title: string } | null>(null);
-  const { user } = useUser();
+  const { user, isLoaded, isSignedIn } = useUser();
   const router = useRouter();
 
   useEffect(() => {
@@ -171,7 +172,7 @@ export default function GetFeedback() {
   return (
     <div className={styles.container}>
       <motion.div
-        className={styles.card}
+        className={`${styles.card} ${!isSignedIn && isLoaded ? styles.blurred : ""}`}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -395,7 +396,7 @@ export default function GetFeedback() {
               {status === "loading" ? (
                 <div className={styles.loadingSpinner} />
               ) : (
-                <>שליחה <span className={styles.tokenLabel}>({SONG_SUBMISSION_COST} <Music size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /> קרדיט)</span></>
+                <>שליחה {user && <span className={styles.tokenLabel}>({SONG_SUBMISSION_COST} <Music size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /> קרדיט)</span>}</>
               )}
             </button>
           </div>
@@ -427,7 +428,16 @@ export default function GetFeedback() {
           </AnimatePresence>
         </form>
       </motion.div>
-
+      {!isSignedIn && isLoaded && (
+        <AuthOverlay
+          message={
+            <>
+              <strong>אנחנו יודעים, להירשם זה מבאס...</strong>{"\n\n"}
+              אבל בלי זה, אין לנו דרך לשייך את השיר אליך או לשלוח לך את התגובות שהקהילה תכתוב. מתחברים בקליק אחד וממשיכים.
+            </>
+          }
+        />
+      )}
     </div>
   );
 }
