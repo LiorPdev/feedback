@@ -1,5 +1,5 @@
 .navbar {
-  height: 55px;
+  height: var(--navbar-height);
   background: color-mix(in srgb, var(--card-bg), transparent 15%);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);

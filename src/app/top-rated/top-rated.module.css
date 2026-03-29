@@ -1,5 +1,5 @@
 .container {
-  min-height: calc(100vh - 55px);
+  min-height: calc(100vh - var(--navbar-height));
   background-color: var(--bg-deep);
   color: var(--text-base);
   position: relative;

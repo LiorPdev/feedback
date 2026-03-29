@@ -24,7 +24,7 @@
   overflow: hidden;
   position: relative;
   scroll-snap-align: start;
-  min-height: calc(100vh - 55px);
+  min-height: calc(100vh - var(--navbar-height));
   display: flex;
   align-items: center;
 }
@@ -182,7 +182,7 @@
   padding: 80px 5vw 0;
   background: var(--bg-section);
   scroll-snap-align: start;
-  min-height: calc(100vh - 55px);
+  min-height: calc(100vh - var(--navbar-height));
   display: flex;
   flex-direction: column;
 }

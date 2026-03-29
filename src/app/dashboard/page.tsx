@@ -64,10 +64,10 @@ export default async function DashboardPage({
     <div className={styles.container}>
       <div className={styles.header}>
         <div className={styles.welcomeContainer}>
-          <BackButton 
-            href="/" 
-            title="חזרה לדף הבית" 
-            style={{ transform: 'translateY(-3px)' }} 
+          <BackButton
+            href="/"
+            title="חזרה לדף הבית"
+            style={{ transform: 'translateY(-3px)' }}
           />
           <div className={styles.welcome}>
             <h1>שלום{user.name ? `, ${user.name.split(" ")[0]}` : ""}</h1>

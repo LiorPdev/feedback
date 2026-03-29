@@ -13,7 +13,7 @@ export default function HeroGallery() {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % IMAGES.length);
-    }, 10000);
+    }, 6000);
     return () => clearInterval(timer);
   }, []);
 
