@@ -142,7 +142,6 @@
   align-items: center;
   justify-content: flex-end;
   gap: 15px;
-  /* The exact gap requested between the 3 icons */
 }
 
 .giveFeedbackBtn {
@@ -177,12 +176,9 @@
 }
 
 @media (max-width: 600px) {
-  .backButton {
-    display: none !important;
-  }
 
   .title {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
   }
 
   .listCard {
@@ -227,8 +223,12 @@
 
 @media (max-width: 440px) {
 
+  .header {
+    gap: 0rem;
+  }
+
   .title {
-    font-size: 1.4rem;
+    font-size: 1.1rem;
   }
 
   .actionsSection {

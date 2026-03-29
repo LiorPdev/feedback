@@ -1,6 +1,5 @@
 .container {
-  min-height: 100%;
-  background-color: var(--bg-section);
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -8,6 +7,8 @@
   padding: 1.5rem;
   font-family: var(--font-heebo), sans-serif;
   color: var(--text-main);
+  position: relative;
+  overflow: hidden;
 }
 
 .card {
@@ -20,18 +21,13 @@
   display: flex;
   flex-direction: column;
   position: relative;
+  z-index: 2;
 }
 
 .header {
   text-align: center;
 }
 
-.backButton {
-  position: absolute;
-  top: 1.25rem;
-  right: 1.25rem;
-  z-index: 10;
-}
 
 .form {
   display: flex;
@@ -108,7 +104,6 @@
   background-size: 1.2rem;
   transition: all 0.2s ease;
   padding-left: 3rem;
-  /* Space for the arrow */
 }
 
 .select:hover {
@@ -363,9 +358,6 @@
   }
 }
 
-.dashboardLinkMargin {
-  margin-top: 2.5rem;
-}
 
 .radioGroup {
   display: flex;
@@ -431,6 +423,7 @@
   color: #16A34A;
 }
 
+
 @media (max-width: 600px) {
   .radioGroup {
     gap: 1rem;
@@ -444,8 +437,5 @@
     display: none;
   }
 
-  .backButton {
-    top: 0.95rem;
-    /* 5px higher than 1.25rem (20px -> 15px) */
-  }
+
 }

@@ -49,10 +49,10 @@ export default async function TopRatedPage() {
                   {/* title */}
                   <h2 className={styles.songTitle}>{song.title}</h2>
 
-                  {/* share */}
-
-                  {/* share */}
                   <div className={styles.actionsSection}>
+                    {/* social links */}
+                    <ArtistSocials socialLinks={song.socialLinks} />
+                    {/* give feedback */}
                     <Link
                       href={`/give-feedback?song=${song.slug}&from=top-rated`}
                       className={styles.giveFeedbackBtn}
@@ -66,8 +66,8 @@ export default async function TopRatedPage() {
                         className={styles.miniLogo}
                       />
                     </Link>
+                    {/* share */}
                     <ShareSongButton slug={song.slug} />
-                    <ArtistSocials socialLinks={song.socialLinks} />
                   </div>
 
                 </div>
@@ -77,7 +77,7 @@ export default async function TopRatedPage() {
         </div>
 
         <p className={styles.footerNote}>
-          * הדירוג מבוסס על ממוצע כלל הפידבקים שהתקבלו בקהילה
+          * הדירוג מבוסס על ממוצע וכמות כלל הפידבקים שהתקבלו בקהילה
         </p>
       </main>
     </div>

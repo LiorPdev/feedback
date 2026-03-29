@@ -11,6 +11,8 @@ import { getUserSongCount } from "@/app/actions/songs";
 import Footer from "./Footer";
 import AuthOverlay from "./AuthOverlay";
 
+import HeroGallery from "./HeroGallery";
+
 // Animation variants
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -130,10 +132,6 @@ export default function LandingClient({
 
       {/* Hero Section */}
       <header className={styles.hero}>
-        <div className={styles.heroBackground}>
-          <div className={`${styles.blob} ${styles.blob1}`} />
-          <div className={`${styles.blob} ${styles.blob2}`} />
-        </div>
         <div className={styles.heroWrapper}>
           <motion.div
             className={styles.heroContent}
@@ -204,15 +202,7 @@ export default function LandingClient({
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.4 }}
           >
-            <div className={styles.mockupImage} style={{ position: "relative", width: "100%", aspectRatio: "16/10", overflow: "hidden", borderRadius: "20px" }}>
-              <Image
-                src="/mockup.webp"
-                alt="Feedback Flow Dashboard"
-                fill
-                style={{ objectFit: "cover" }}
-                priority
-              />
-            </div>
+            <HeroGallery />
           </motion.div>
         </div>
 

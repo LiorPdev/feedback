@@ -149,8 +149,7 @@
   border-color: var(--border-color);
 }
 
-.paused .songMain,
-.paused .viewLink {
+.paused .songMain {
   opacity: 0.3;
   filter: grayscale(1);
   pointer-events: none;

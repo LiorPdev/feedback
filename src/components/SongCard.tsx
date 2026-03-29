@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Eye } from "lucide-react";
 import Link from "next/link";
 import DeleteSongButton from "@/components/DeleteSongButton";
 import EditSongButton from "@/components/EditSongButton";
@@ -57,10 +56,10 @@ export default function SongCard({ song, isNew: propIsNew }: SongCardProps) {
 
       <div className={styles.songActions}>
         <Link href={`/show-feedback/${song.slug}`} className={styles.viewLink}>
-          <Eye size={16} /> פידבקים ({song.feedbacks?.length || 0})
+          פידבקים ({song.feedbacks?.length || 0})
         </Link>
         <div className={styles.adminActions}>
-          <ShareSongButton slug={song.slug} isNew={propIsNew} />
+          <ShareSongButton slug={song.slug} isNew={propIsNew} disabled={!song.isActive} />
           <EditSongButton song={song} />
           <ToggleSongStatusButton songId={song.id} isActive={song.isActive} />
           <DeleteSongButton songId={song.id} songTitle={song.title} />

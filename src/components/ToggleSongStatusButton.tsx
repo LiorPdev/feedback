@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Play, Pause, Loader2 } from "lucide-react";
 import { toggleSongStatus } from "@/app/actions/songs";
 import styles from "./ToggleSongStatusButton.module.css";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface ToggleSongStatusButtonProps {
   songId: string;
@@ -13,6 +14,7 @@ interface ToggleSongStatusButtonProps {
 export default function ToggleSongStatusButton({ songId, isActive: initialIsActive }: ToggleSongStatusButtonProps) {
   const [isActive, setIsActive] = useState(initialIsActive);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPausedTooltip, setShowPausedTooltip] = useState(false);
 
   const handleToggle = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -24,6 +26,10 @@ export default function ToggleSongStatusButton({ songId, isActive: initialIsActi
       const result = await toggleSongStatus(songId, newStatus);
       if (result.success) {
         setIsActive(newStatus);
+        if (!newStatus) {
+          setShowPausedTooltip(true);
+          setTimeout(() => setShowPausedTooltip(false), 5000);
+        }
       } else {
         alert(result.error || "שגיאה בעדכון השיר");
       }
@@ -37,20 +43,35 @@ export default function ToggleSongStatusButton({ songId, isActive: initialIsActi
   const title = isActive ? "עצור את קבלת הפידבקים" : "הפעל מחדש את קבלת הפידבקים";
 
   return (
-    <button
-      className={styles.toggleBtn}
-      onClick={handleToggle}
-      disabled={isLoading}
-      title={title}
-      type="button"
-    >
-      {isLoading ? (
-        <Loader2 size={16} className={styles.spin} />
-      ) : isActive ? (
-        <Pause size={16} fill="currentColor" />
-      ) : (
-        <Play size={16} fill="currentColor" />
-      )}
-    </button>
+    <div className={styles.toggleBtnContainer}>
+      <button
+        className={styles.toggleBtn}
+        onClick={handleToggle}
+        disabled={isLoading}
+        title={title}
+        type="button"
+      >
+        {isLoading ? (
+          <Loader2 size={16} className={styles.spin} />
+        ) : isActive ? (
+          <Pause size={16} fill="currentColor" />
+        ) : (
+          <Play size={16} fill="currentColor" />
+        )}
+      </button>
+
+      <AnimatePresence>
+        {showPausedTooltip && (
+          <motion.div
+            className={styles.tooltip}
+            initial={{ opacity: 0, y: 5, x: "-50%" }}
+            animate={{ opacity: 1, y: 0, x: "-50%" }}
+            exit={{ opacity: 0, y: 5, x: "-50%" }}
+          >
+            השיר הוסר זמנית מאזור הפידבקים
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }

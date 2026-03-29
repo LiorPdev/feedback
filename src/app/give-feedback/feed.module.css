@@ -1,9 +1,10 @@
 .container {
-  min-height: 100%;
-  background-color: #ffffff;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   direction: rtl;
+  position: relative;
+  overflow: hidden;
 }
 
 .main {
@@ -16,6 +17,8 @@
   width: 100%;
   max-width: 800px;
   margin: 0 auto;
+  position: relative;
+  z-index: 2;
 }
 
 .feedWrapper {
@@ -95,104 +98,6 @@
   align-items: center;
 }
 
-.desktopSocials {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.mobileSocials {
-  display: none;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.headerSocialLink {
-  color: var(--text-muted);
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0.8;
-}
-
-.headerSocialLink:hover {
-  color: var(--brand-primary);
-  transform: scale(1.15);
-  opacity: 1;
-}
-
-.moreSocialsWrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.moreSocialsBtn {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  padding: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  opacity: 0.8;
-}
-
-.moreSocialsBtn:hover {
-  color: var(--brand-primary);
-  opacity: 1;
-  transform: scale(1.1);
-}
-
-.socialsDropdown {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  box-shadow: var(--shadow-lg);
-  padding: 6px;
-  min-width: 150px;
-  z-index: 100;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  animation: slideIn 0.2s ease-out;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.dropdownSocialLink {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  border-radius: 8px;
-  color: var(--text-main);
-  text-decoration: none;
-  font-size: 0.85rem;
-  transition: all 0.2s;
-  direction: ltr;
-}
-
-.dropdownSocialLink:hover {
-  background: var(--brand-bg);
-  color: var(--brand-primary);
-}
 
 .playerSection {
   width: 100%;
@@ -319,23 +224,12 @@
   box-shadow: none !important;
 }
 
-
 .feedbackSection {
   width: 100%;
   max-width: 600px;
   margin: 0.5rem auto 0 auto;
 }
 
-.successMessageInline {
-  background: rgba(34, 197, 94, 0.1);
-  border: 1px solid rgba(34, 197, 94, 0.2);
-  color: #166534;
-  padding: 1rem;
-  border-radius: 12px;
-  font-weight: 600;
-  margin-top: 1rem;
-  animation: fadeIn 0.3s ease-out;
-}
 
 @keyframes fadeIn {
   from {
@@ -447,7 +341,6 @@
   color: var(--text-main);
 }
 
-
 .loadingSpinner {
   width: 18px;
   height: 18px;
@@ -468,6 +361,7 @@
   margin-bottom: 0.5rem;
 }
 
+
 @media (max-width: 700px),
 (max-height: 820px) {
   .main {
@@ -486,11 +380,12 @@
   }
 
   .songCard {
+    background: transparent;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     border-radius: 0;
     box-shadow: none;
-    border-left: none;
-    border-right: none;
-    border-top: none;
+    border: none;
     padding: 1.5rem 1rem;
     margin-bottom: 0rem;
   }
@@ -543,13 +438,4 @@
       top: -6px;
     }
   }
-
-  .desktopSocials {
-    display: none;
-  }
-
-  .mobileSocials {
-    display: flex;
-  }
-
 }

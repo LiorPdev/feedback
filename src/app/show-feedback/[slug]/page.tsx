@@ -123,7 +123,7 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
                   </div>
                 )}
               </div>
-              <p className={styles.weightedNote}>* ממוצע משוקלל של הדירוגים</p>
+              <p className={styles.weightedNote}>* ממוצע משוקלל של כל הדירוגים</p>
             </div>
           )}
 

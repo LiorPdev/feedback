@@ -18,9 +18,15 @@
   position: relative;
 }
 
-.shareBtn:hover {
+.shareBtn:hover:not(:disabled) {
   color: var(--brand-primary);
   background: var(--brand-bg);
+}
+
+.shareBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: grayscale(1);
 }
 
 .large {

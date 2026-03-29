@@ -33,7 +33,7 @@ body {
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-heebo), sans-serif;
   display: flex;
@@ -46,4 +46,49 @@ body {
   overflow-y: auto;
   position: relative;
   scroll-snap-type: y mandatory;
+  z-index: 2;
+  background: transparent;
+  /* Allow the global background to show through */
+}
+
+.heroBackground {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.blob {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  filter: blur(100px);
+  border-radius: 50%;
+  opacity: 0.15;
+}
+
+.blob1 {
+  top: -150px;
+  right: -150px;
+  background: var(--brand-primary);
+}
+
+.blob2 {
+  bottom: -150px;
+  left: -150px;
+  background: color-mix(in srgb, #c026d3, transparent 50%);
+}
+
+@media (max-width: 600px) {
+  .blob1 {
+    background: color-mix(in srgb, var(--brand-primary), transparent 60%);
+  }
+
+  .blob2 {
+    background: color-mix(in srgb, #c026d3, transparent 80%);
+  }
 }

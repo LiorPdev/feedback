@@ -110,10 +110,14 @@ export default async function RootLayout({
         }
       }}
     >
-      <html lang="he" dir="rtl">
+      <html lang="he" dir="rtl" suppressHydrationWarning>
         <body
           className={`${geistSans.variable} ${geistMono.variable} ${heebo.variable} antialiased`}
         >
+          <div className="heroBackground">
+            <div className="blob blob1" />
+            <div className="blob blob2" />
+          </div>
           <Navbar />
           <div className="scroll-container">
             {children}

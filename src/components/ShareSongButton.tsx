@@ -9,9 +9,10 @@ interface ShareSongButtonProps {
   slug: string;
   isNew?: boolean;
   variant?: "standard" | "large";
+  disabled?: boolean;
 }
 
-export default function ShareSongButton({ slug, isNew, variant = "standard" }: ShareSongButtonProps) {
+export default function ShareSongButton({ slug, isNew, variant = "standard", disabled }: ShareSongButtonProps) {
   const [copied, setCopied] = useState(false);
   const [showAutoTooltip, setShowAutoTooltip] = useState(false);
 
@@ -42,8 +43,9 @@ export default function ShareSongButton({ slug, isNew, variant = "standard" }: S
       <button
         className={`${styles.shareBtn} ${variant === "large" ? styles.large : ""}`}
         onClick={handleCopy}
-        title="שיתוף קישור לקבלת פידבק"
+        title={disabled ? "" : "שיתוף קישור לקבלת פידבק"}
         type="button"
+        disabled={disabled}
       >
         <AnimatePresence mode="wait">
           {copied ? (
