@@ -472,6 +472,32 @@ function cleanTitle(title: string) {
         .trim();
 }
 
+export async function searchYouTubeVideos(query: string) {
+    const apiKey = process.env.YOUTUBE_API_KEY;
+    if (!apiKey) return { success: false, error: "Missing API Key" };
+    if (!query || query.length < 2) return { success: true, results: [] };
+
+    try {
+        const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=5&key=${apiKey}`;
+        const searchRes = await fetch(searchUrl);
+        if (!searchRes.ok) return { success: false, error: "Search failed" };
+
+        const searchData = await searchRes.json();
+        if (!searchData.items) return { success: true, results: [] };
+
+        const results = searchData.items.map((item: { id: { videoId: string }, snippet: { title: string, thumbnails: { default: { url: string }, medium: { url: string } } } }) => ({
+            id: item.id.videoId,
+            url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
+            title: decodeHtmlEntities(item.snippet.title),
+            thumbnail: item.snippet.thumbnails.default?.url || item.snippet.thumbnails.medium?.url
+        }));
+
+        return { success: true, results };
+    } catch {
+        return { success: false, error: "Search error" };
+    }
+}
+
 async function searchYouTube(query: string, targetDuration?: number) {
     const apiKey = process.env.YOUTUBE_API_KEY;
     if (!apiKey) return null;

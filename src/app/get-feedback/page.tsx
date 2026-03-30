@@ -4,8 +4,9 @@ import { useState, useEffect, Fragment } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Music } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useUser } from "@clerk/nextjs";
-import { createSong, getUserSongCount, getURLMetadata } from "@/app/actions/songs";
+import { createSong, getUserSongCount, getURLMetadata, searchYouTubeVideos } from "@/app/actions/songs";
 import { getPresignedUploadUrl } from "@/app/actions/upload";
 import { logAction } from "@/app/actions/logs";
 import { useRouter } from "next/navigation";
@@ -27,6 +28,9 @@ export default function GetFeedback() {
   const [fileError, setFileError] = useState("");
   const [lastFetchedLink, setLastFetchedLink] = useState("");
   const [youtubeAlternative, setYoutubeAlternative] = useState<{ url: string, title: string } | null>(null);
+  const [searchResults, setSearchResults] = useState<{ id: string, url: string, title: string, thumbnail: string }[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
   const { user, isLoaded, isSignedIn } = useUser();
   const router = useRouter();
 
@@ -79,6 +83,35 @@ export default function GetFeedback() {
     const timer = setTimeout(fetchMetadata, 1000);
     return () => clearTimeout(timer);
   }, [songLink, submissionType, lastFetchedLink]);
+
+  useEffect(() => {
+    const performSearch = async () => {
+      if (!songLink || songLink.includes("://") || songLink.length < 2) {
+        setSearchResults([]);
+        setShowDropdown(false);
+        return;
+      }
+      if (submissionType !== "link") return;
+
+      setIsSearching(true);
+      setShowDropdown(true);
+      try {
+        const result = await searchYouTubeVideos(songLink);
+        if (result.success && result.results) {
+          setSearchResults(result.results);
+        } else {
+          setSearchResults([]);
+        }
+      } catch {
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+
+    const timer = setTimeout(performSearch, 800);
+    return () => clearTimeout(timer);
+  }, [songLink, submissionType]);
 
   const isSupportedLink = songLink.trim() !== "" && (
     songLink.includes("youtube.com") ||
@@ -210,9 +243,9 @@ export default function GetFeedback() {
               <>
                 <div className={styles.inputWrapper}>
                   <input
-                    type="url"
+                    type="text"
                     className={styles.input}
-                    placeholder="https://..."
+                    placeholder="הדביקו קישור או הקלידו שם שיר לחיפוש..."
                     value={songLink}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                       const val = e.target.value;
@@ -220,17 +253,56 @@ export default function GetFeedback() {
                       if (!val) {
                         setSongTitle("");
                         setYoutubeAlternative(null);
+                        setSearchResults([]);
+                        setShowDropdown(false);
                       } else {
                         // If link changed and we have a previous YouTube alternative, clear it
                         setYoutubeAlternative(null);
                       }
                     }}
+                    onFocus={() => {
+                      if (searchResults.length > 0) setShowDropdown(true);
+                    }}
                     required={submissionType === "link"}
-                    style={{ paddingLeft: isFetchingMetadata ? '2.5rem' : '1.25rem' }}
+                    style={{ paddingLeft: isFetchingMetadata || isSearching ? '2.5rem' : '1.25rem' }}
                   />
-                  {isFetchingMetadata && (
+                  {(isFetchingMetadata || isSearching) && (
                     <div className={styles.inputSpinner}>
                       <div className={styles.spinnerSmall} />
+                    </div>
+                  )}
+                  {showDropdown && (songLink && !songLink.includes("://")) && (
+                    <div className={styles.searchResultsDropdown}>
+                      {isSearching && searchResults.length === 0 ? (
+                        <div className={styles.searchingIndicator}>מחפש ביוטיוב...</div>
+                      ) : searchResults.length > 0 ? (
+                        searchResults.map((result) => (
+                          <div
+                            key={result.id}
+                            className={styles.searchResultItem}
+                            onClick={() => {
+                              setSongLink(result.url);
+                              setSongTitle(result.title.substring(0, 35));
+                              setSearchResults([]);
+                              setShowDropdown(false);
+                            }}
+                          >
+                            <Image
+                              src={result.thumbnail}
+                              alt=""
+                              className={styles.resultThumbnail}
+                              width={50}
+                              height={38}
+                              unoptimized
+                            />
+                            <div className={styles.resultInfo}>
+                              <span className={styles.resultTitle}>{result.title}</span>
+                            </div>
+                          </div>
+                        ))
+                      ) : !isSearching && songLink.length >= 2 && (
+                        <div className={styles.searchingIndicator}>לא נמצאו תוצאות</div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -278,6 +350,7 @@ export default function GetFeedback() {
                     </motion.div>
                   )}
                   {songLink.trim() !== "" &&
+                    songLink.includes("://") &&
                     !songLink.includes("youtube.com") &&
                     !songLink.includes("youtu.be") &&
                     !songLink.includes("spotify.com") && (
@@ -288,7 +361,7 @@ export default function GetFeedback() {
                         exit={{ opacity: 0, height: 0 }}
                       >
                         <p className={styles.infoMsg}>
-                          חלק מהנגנים מגבילים האזנה ממקורות חיצוניים. כדי להבטיח זמינות לכל המאזינים, חשוב לשתף קישורים מיוטיוב בלבד או להעלות קובץ.
+                          חלק מהנגנים מגבילים האזנה ממקורות חיצוניים. כדי להבטיח זמינות לכל המאזינים, יש לשתף קישורים מיוטיוב בלבד או להעלות קובץ.
                         </p>
                       </motion.div>
                     )}
