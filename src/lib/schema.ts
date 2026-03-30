@@ -60,6 +60,20 @@ export const feedbacks = sqliteTable('Feedback', {
     };
 });
 
+export const listenEvents = sqliteTable('ListenEvent', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    songId: text('songId').notNull().references(() => songs.id, { onDelete: 'cascade' }),
+    userId: text('userId').references(() => users.id, { onDelete: 'set null' }),
+    playedSeconds: integer('playedSeconds').notNull(),
+    createdAt: text('createdAt').notNull().$defaultFn(() => new Date().toISOString()),
+}, (table) => {
+    return {
+        songIdIdx: index('ListenEvent_songId_idx').on(table.songId),
+        userIdIdx: index('ListenEvent_userId_idx').on(table.userId),
+        songIdCreatedAtIdx: index('ListenEvent_songId_createdAt_idx').on(table.songId, table.createdAt),
+    };
+});
+
 export const usersRelations = relations(users, ({ many }) => ({
     songs: many(songs),
 }));
@@ -70,12 +84,24 @@ export const songsRelations = relations(songs, ({ one, many }) => ({
         references: [users.id],
     }),
     feedbacks: many(feedbacks),
+    listenEvents: many(listenEvents),
 }));
 
 export const feedbacksRelations = relations(feedbacks, ({ one }) => ({
     song: one(songs, {
         fields: [feedbacks.songId],
         references: [songs.id],
+    }),
+}));
+
+export const listenEventsRelations = relations(listenEvents, ({ one }) => ({
+    song: one(songs, {
+        fields: [listenEvents.songId],
+        references: [songs.id],
+    }),
+    user: one(users, {
+        fields: [listenEvents.userId],
+        references: [users.id],
     }),
 }));
 
