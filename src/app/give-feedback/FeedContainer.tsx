@@ -10,7 +10,7 @@ import DashboardLink from "@/components/DashboardLink";
 import BackButton from "@/components/BackButton";
 import { Play, Pause, CheckCircle2, Star, Coins } from "lucide-react";
 import ArtistSocials from "@/components/ArtistSocials";
-import { MIN_LISTEN_TIME, MIN_LISTEN_TIME_SPOTIFY_MOBILE, SUCCESS_MESSAGE_DURATION } from "@/lib/constants";
+import { MIN_LISTEN_TIME, SUCCESS_MESSAGE_DURATION } from "@/lib/constants";
 import { logAction } from "@/app/actions/logs";
 import PopupMsg from "@/components/PopupMsg";
 
@@ -52,16 +52,12 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
   const currentSong = songs[currentIndex];
 
   const getRequiredTime = useCallback(() => {
-    if (typeof window === 'undefined') return MIN_LISTEN_TIME;
-    const isMobile = window.innerWidth < 600 || window.innerHeight < 820;
-    const isSpotify = currentSong?.url.includes("spotify.com");
-    return (isSpotify && isMobile) ? MIN_LISTEN_TIME_SPOTIFY_MOBILE : MIN_LISTEN_TIME;
-  }, [currentSong?.url]);
+    return MIN_LISTEN_TIME;
+  }, []);
 
-  const [secondsRemaining, setSecondsRemaining] = useState(getRequiredTime());
+  const [secondsRemaining, setSecondsRemaining] = useState<number>(getRequiredTime());
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isBuffering, setIsBuffering] = useState(false);
   const [hasRatedCurrent, setHasRatedCurrent] = useState(!!initialFeedback);
   const [userFeedback, setUserFeedback] = useState<Feedback | null>(initialFeedback || null);
   const [currentSongStats, setCurrentSongStats] = useState<{ averageRating: number; totalFeedbacks: number } | null>(
@@ -74,6 +70,7 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
   );
   const [justSubmitted, setJustSubmitted] = useState(false);
   const [shouldAutoPlay, setShouldAutoPlay] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [playerError, setPlayerError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -134,7 +131,7 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
   const onPlayerPlay = useCallback(() => {
     setIsTimerActive(true);
     setIsPlaying(true);
-    setIsBuffering(false);
+    setIsTransitioning(false);
     setPlayerError(null);
   }, []);
 
@@ -152,11 +149,6 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
   const resetSongState = useCallback(() => {
     setSecondsRemaining(getRequiredTime());
     setIsTimerActive(false);
-    setIsPlaying(false);
-    setIsBuffering(false);
-    setHasRatedCurrent(false);
-    setJustSubmitted(false);
-    setUserFeedback(null);
     const currentSongFromList = songs[currentIndex] as unknown as { averageRating?: number; totalFeedbacks?: number };
     setCurrentSongStats(
       currentSongFromList?.averageRating !== undefined
@@ -178,8 +170,9 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
       },
       source: "FeedContainer.tsx:onPlayerError"
     });
-    setIsBuffering(false);
     setIsPlaying(false);
+    setIsTransitioning(false);
+    setShouldAutoPlay(false);
 
     // Provide a human-readable error based on typical browser NotSupported/NotAllowed errors
     const errStr = (error as Error)?.message || String(error);
@@ -192,17 +185,14 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
 
   const handleSkip = () => {
     if (songs.length <= 1) return;
-    try {
-      playerRef.current?.pause();
-    } catch (err) {
-      logAction({
-        message: "Failed to pause before skip",
-        data: { error: (err as Error)?.message || String(err) },
-        source: "FeedContainer.tsx:handleSkip"
-      });
-    }
     resetSongState();
+    setHasRatedCurrent(false);
+    setJustSubmitted(false);
+    setUserFeedback(null);
+    setIsPlaying(false);
     setShouldAutoPlay(true);
+    setShouldAutoPlay(true);
+    setIsTransitioning(true);
     setCurrentIndex((prev) => (prev + 1) % songs.length);
   };
 
@@ -212,9 +202,13 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
       if (updatedSongs.length === 0) return [];
 
       // Update index if needed
-      setCurrentIndex((prevIndex) => (prevIndex >= updatedSongs.length ? 0 : prevIndex));
-      setShouldAutoPlay(true);
       resetSongState();
+      setHasRatedCurrent(false);
+      setJustSubmitted(false);
+      setUserFeedback(null);
+      setIsPlaying(false);
+      setShouldAutoPlay(true);
+      setIsTransitioning(true);
       return updatedSongs;
     });
   };
@@ -228,15 +222,20 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
   const togglePlayback = () => {
     if (!playerRef.current || (!isSignedIn && !isAuthDismissed)) return;
 
-    if (isPlaying) {
-      playerRef.current.pause();
+    if (isPlaying || isTransitioning) {
+      if (playerRef.current?.pause) {
+        playerRef.current.pause();
+      }
+      setIsPlaying(false);
+      setIsTransitioning(false);
+      setShouldAutoPlay(false);
     } else {
-      setIsBuffering(true);
+      setIsPlaying(true);
       playerRef.current.play();
 
-      // Fallback: clear buffering state after 3 seconds if play doesn't start
+      // Fallback: clear transitioning state after 3 seconds if play doesn't start
       setTimeout(() => {
-        setIsBuffering(false);
+        setIsTransitioning(false);
       }, 3000);
     }
   };
@@ -258,10 +257,9 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
   }
 
   const isYouTube = currentSong.url.includes("youtube.com") || currentSong.url.includes("youtu.be");
-  const isSpotify = currentSong.url.includes("spotify.com");
   const isAudio = !!currentSong.url.match(/\.(mp3|wav|ogg|m4a|aac)(\?.*)?$/i) || currentSong.url.includes("r2.dev");
   const isBypassTimer = from === "top-rated" && currentSong?.slug === initialSongSlug;
-  const isHiddenPlayer = isYouTube || isSpotify || isAudio;
+  const isHiddenPlayer = isYouTube || isAudio;
   const isProminentNext = !isPlaying && hasRatedCurrent;
 
   return (
@@ -285,7 +283,7 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
         </div>
 
         <div className={styles.playerSection}>
-          <AnimatePresence mode="wait">
+          <AnimatePresence>
             <motion.div
               key={currentSong.id + "-player"}
               initial={{ opacity: 0, x: 20 }}
@@ -301,14 +299,12 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
                   onPause={onPlayerPause}
                   onEnded={onPlayerEnded}
                   onReady={() => {
-                    setIsBuffering(false);
-                    if (shouldAutoPlay) {
-                      setShouldAutoPlay(false);
-                      playerRef.current?.play();
-                    }
+                    setShouldAutoPlay(false);
+                    setIsTransitioning(false);
                   }}
                   onError={onPlayerError}
                   isHidden={isHiddenPlayer}
+                  autoPlay={shouldAutoPlay}
                 />
               )}
             </motion.div>
@@ -328,12 +324,7 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
                 onClick={togglePlayback}
                 disabled={(!isSignedIn && !isAuthDismissed) && isLoaded}
               >
-                {isBuffering ? (
-                  <>
-                    <div className={styles.loadingSpinner} />
-                    <span>טוען...</span>
-                  </>
-                ) : isPlaying ? (
+                {isPlaying || isTransitioning ? (
                   <>
                     <Pause size={20} fill="currentColor" />
                     <span>עצור</span>

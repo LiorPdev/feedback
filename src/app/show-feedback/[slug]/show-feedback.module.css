@@ -55,7 +55,11 @@
 }
 
 .playerContainer {
-  margin-bottom: 1rem;
+  margin-bottom: 2rem;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .playButton {

@@ -1,23 +1,11 @@
 /**
- * ⚠️ WARNING: CRITICAL COMPONENT - EXTREMELY DELICATE ⚠️
+ * This module manages YouTube APIs inside an Iframe.
  * 
- * This module manages multiple external APIs (YouTube, SoundCloud, Spotify) inside an Iframe.
- * The initialization timing of these APIs is highly sensitive to the React lifecycle (Mount)
- * and DOM availability.
- * 
- * 1. DO NOT SPLIT: Previous attempts to extract Spotify or other player logic into separate 
- *    files (e.g., SpotifyPlayer.tsx) caused playback failures and synchronization issues. 
- *    Keeping everything in one file ensures all APIs are available and synchronization between 
- *    songs works perfectly.
- * 2. LIFECYCLE GUARDS: The use of `isUnmountingRef` and the `guard` function is critical!
- *    They prevent "ghost events" from an exiting song (e.g., during a Skip) from affecting 
- *    the player state of the new song.
- * 3. LINT OVERRIDES: `eslint-disable` comments were added intentionally. Do not change them 
+ * LINT OVERRIDES: `eslint-disable` comments were added intentionally. Do not change them 
  *    if it requires changing the code flow (e.g., switching from `mounted` to `useSyncExternalStore`), 
  *    as this might break the player loading timing.
  * 
- * DEAR DEVELOPERS (AND AIs): Do not attempt to refactor or "clean up" this code unless you 
- * are prepared to verify that all player types work after at least 10 consecutive skips.
+ * DEAR DEVELOPERS (AND AIs): Change this code carefully!
  */
 
 "use client";
@@ -31,11 +19,8 @@ declare global {
   interface Window {
     onYouTubeIframeAPIReady: () => void;
     YT: any; // eslint-disable-line @typescript-eslint/no-explicit-any
-    SpotifyIFrameApi: any; // eslint-disable-line @typescript-eslint/no-explicit-any
-    onSpotifyIframeApiReady: (IFrameAPI: any) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
   }
 }
-
 interface UrlPlayerProps {
   url: string;
   onPlay?: () => void;
@@ -44,6 +29,7 @@ interface UrlPlayerProps {
   onError?: (error: unknown) => void;
   onEnded?: () => void;
   isHidden?: boolean;
+  autoPlay?: boolean;
 }
 
 export const getEmbedUrl = (url: string) => {
@@ -58,16 +44,6 @@ export const getEmbedUrl = (url: string) => {
     return `https://www.youtube.com/embed/${videoId}?enablejsapi=1`;
   }
 
-  // Spotify
-  if (url.includes("spotify.com")) {
-    const spotifyMatch = url.match(/spotify\.com\/(track|album|playlist)\/([a-zA-Z0-9]+)/);
-    if (spotifyMatch) {
-      const type = spotifyMatch[1];
-      const id = spotifyMatch[2];
-      return `https://open.spotify.com/embed/${type}/${id}?utm_source=oembed`;
-    }
-  }
-
   // Audio files
   if (url.match(/\.(mp3|wav|ogg|m4a|aac)(\?.*)?$/i) || url.includes("r2.dev")) {
     return url;
@@ -76,13 +52,6 @@ export const getEmbedUrl = (url: string) => {
   return null;
 };
 
-export const getSpotifyUri = (url: string) => {
-  const match = url.match(/spotify\.com\/(track|album|playlist)\/([a-zA-Z0-9]+)/);
-  if (match) {
-    return `spotify:${match[1]}:${match[2]}`;
-  }
-  return null;
-};
 
 export interface UrlPlayerHandle {
   getPlaybackTime: () => Promise<number>;
@@ -91,11 +60,10 @@ export interface UrlPlayerHandle {
   pause: () => void;
 }
 
-const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, onPause, onReady, onError, onEnded, isHidden = false }, ref) => {
+const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, onPause, onReady, onError, onEnded, isHidden = false, autoPlay = false }, ref) => {
   const isUnmountingRef = useRef(false);
   const [mounted, setMounted] = useState(false);
   const [origin, setOrigin] = useState("");
-  const isPausedRef = useRef(true);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -104,7 +72,6 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
   }, []);
 
   const isYouTube = url.includes("youtube.com") || url.includes("youtu.be");
-  const isSpotify = url.includes("spotify.com");
   const isAudio = url.match(/\.(mp3|wav|ogg|m4a|aac)(\?.*)?$/i) || url.includes("r2.dev");
 
   const embedUrl = getEmbedUrl(url);
@@ -112,19 +79,13 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
   const audioRef = useRef<HTMLAudioElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const playerRef = useRef<any>(null);
-  const spotifyPositionRef = useRef(0);
-  const spotifyDurationRef = useRef(0);
-  const hasAutoPausedAtCutoffRef = useRef(false);
   const onPlayRef = useRef(onPlay);
   const onPauseRef = useRef(onPause);
   const onReadyRef = useRef(onReady);
   const onErrorRef = useRef(onError);
   const onEndedRef = useRef(onEnded);
+  const autoPlayRef = useRef(autoPlay);
 
-  useEffect(() => {
-    spotifyPositionRef.current = 0;
-    hasAutoPausedAtCutoffRef.current = false;
-  }, [url]);
 
   useEffect(() => {
     onPlayRef.current = onPlay;
@@ -132,7 +93,8 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
     onReadyRef.current = onReady;
     onErrorRef.current = onError;
     onEndedRef.current = onEnded;
-  }, [onPlay, onPause, onReady, onError, onEnded]);
+    autoPlayRef.current = autoPlay;
+  }, [onPlay, onPause, onReady, onError, onEnded, autoPlay]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const guard = (fn: ((...args: any[]) => void) | undefined) => (...args: any[]) => {
@@ -146,8 +108,6 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
         if (typeof playerRef.current.getCurrentTime === 'function') {
           return Math.floor(playerRef.current.getCurrentTime());
         }
-      } else if (isSpotify) {
-        return Math.floor(spotifyPositionRef.current / 1000);
       } else if (isAudio && audioRef.current) {
         return Math.floor(audioRef.current.currentTime);
       }
@@ -158,8 +118,6 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
         if (typeof playerRef.current.getDuration === 'function') {
           return Math.floor(playerRef.current.getDuration());
         }
-      } else if (isSpotify) {
-        return Math.floor(spotifyDurationRef.current / 1000);
       } else if (isAudio && audioRef.current) {
         return Math.floor(audioRef.current.duration || 0);
       }
@@ -169,13 +127,6 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
       try {
         if (isYouTube && playerRef.current?.playVideo) {
           playerRef.current.playVideo();
-        } else if (isSpotify) {
-          const controller = playerRef.current;
-          if (controller?.resume) {
-            controller.resume();
-          } else if (controller?.togglePlay) {
-            controller.togglePlay();
-          }
         } else if (isAudio && audioRef.current) {
           const playPromise = audioRef.current.play();
           if (playPromise !== undefined) {
@@ -193,13 +144,6 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
       try {
         if (isYouTube && playerRef.current?.pauseVideo) {
           playerRef.current.pauseVideo();
-        } else if (isSpotify) {
-          const controller = playerRef.current;
-          if (controller?.pause) {
-            controller.pause();
-          } else if (controller?.togglePlay) {
-            controller.togglePlay();
-          }
         } else if (isAudio && audioRef.current) {
           audioRef.current.pause();
         }
@@ -212,7 +156,6 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
   useEffect(() => {
     if (!mounted || !embedUrl || !iframeRef.current) return;
 
-
     if (isYouTube) {
       const initYT = () => {
         if (!window.YT || !window.YT.Player) {
@@ -223,10 +166,10 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
 
         try {
           if (!iframeRef.current) {
-            logAction({ 
-              message: "YouTube Init: No iframe ref", 
-              data: { url, origin }, 
-              source: "UrlPlayer.tsx:initYT" 
+            logAction({
+              message: "YouTube Init: No iframe ref",
+              data: { url, origin },
+              source: "UrlPlayer.tsx:initYT"
             });
             return;
           }
@@ -238,22 +181,27 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
             events: {
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               onStateChange: (event: any) => {
-                  if (event.data === window.YT.PlayerState.PLAYING) {
-                    guard(onPlayRef.current)();
-                  } else if (event.data === window.YT.PlayerState.PAUSED) {
-                    guard(onPauseRef.current)();
-                  } else if (event.data === window.YT.PlayerState.ENDED) {
-                    guard(onPauseRef.current)();
-                    guard(onEndedRef.current)();
-                  }
-                },
-              onReady: () => guard(onReadyRef.current)(),
+                if (event.data === window.YT.PlayerState.PLAYING) {
+                  guard(onPlayRef.current)();
+                } else if (event.data === window.YT.PlayerState.PAUSED) {
+                  guard(onPauseRef.current)();
+                } else if (event.data === window.YT.PlayerState.ENDED) {
+                  guard(onPauseRef.current)();
+                  guard(onEndedRef.current)();
+                }
+              },
+              onReady: () => {
+                guard(onReadyRef.current)();
+                if (autoPlayRef.current && playerRef.current?.playVideo) {
+                  playerRef.current.playVideo();
+                }
+              },
             },
           });
         } catch (e) {
           guard(onErrorRef.current)(e);
-          logAction({ 
-            message: "YouTube Player Init Error", 
+          logAction({
+            message: "YouTube Player Init Error",
             data: {
               url: url,
               origin: origin,
@@ -263,8 +211,8 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
                 stack: e.stack,
                 name: e.name
               } : String(e)
-            }, 
-            source: "UrlPlayer.tsx:initYT" 
+            },
+            source: "UrlPlayer.tsx:initYT"
           });
         }
       };
@@ -287,79 +235,6 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
       } else {
         initYT();
       }
-    } else if (isSpotify) {
-      const initSpotify = () => {
-        if (!window.SpotifyIFrameApi || !iframeRef.current) {
-          setTimeout(initSpotify, 100);
-          return;
-        }
-
-        try {
-          const spotifyUri = getSpotifyUri(url);
-          window.SpotifyIFrameApi.createController(
-            iframeRef.current,
-            {
-              uri: spotifyUri,
-            },
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (EmbedController: any) => {
-              // Set ref immediately as a backup
-              playerRef.current = EmbedController;
-
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              EmbedController.on("playback_update", (e: any) => {
-                const { isPaused, duration, position } = e.data;
-                spotifyPositionRef.current = position;
-                spotifyDurationRef.current = duration;
-                isPausedRef.current = isPaused;
-                
-                const isMobile = typeof window !== 'undefined' && window.innerWidth < 600;
-                const isAtCutoff = isMobile && position >= 23000 && position < (duration - 1000);
-                const shouldAutoPause = isAtCutoff && !hasAutoPausedAtCutoffRef.current;
-
-                if (!isPaused && position > 0 && !shouldAutoPause) {
-                  guard(onPlayRef.current)();
-                } else if (isPaused || shouldAutoPause) {
-                  guard(onPauseRef.current)();
-                  if (shouldAutoPause && !isPaused) {
-                    hasAutoPausedAtCutoffRef.current = true;
-                    EmbedController.pause();
-                  }
-                } else if (position > 0 && position === duration) {
-                  guard(onPauseRef.current)();
-                  guard(onEndedRef.current)();
-                }
-              });
-              EmbedController.on("ready", () => guard(onReadyRef.current)());
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              EmbedController.on("error", (e: any) => guard(onErrorRef.current)(e));
-            }
-          );
-        } catch (e) {
-          guard(onErrorRef.current)(e);
-          logAction({ message: "Spotify Embed Init Error", data: e, source: "UrlPlayer.tsx:initSpotify" });
-        }
-      };
-
-      if (!window.SpotifyIFrameApi) {
-        if (!document.querySelector('script[src*="spotify.com/embed/iframe-api/v1"]')) {
-          const tag = document.createElement("script");
-          tag.src = "https://open.spotify.com/embed/iframe-api/v1";
-          tag.async = true;
-          document.head.appendChild(tag);
-        }
-
-        const previousSpotifyCallback = window.onSpotifyIframeApiReady;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        window.onSpotifyIframeApiReady = (IFrameAPI: any) => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          if (previousSpotifyCallback) (previousSpotifyCallback as any)(IFrameAPI);
-          window.SpotifyIFrameApi = IFrameAPI;
-          initSpotify();
-        };
-      } else {
-        initSpotify();
-      }
     }
 
     return () => {
@@ -379,11 +254,11 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
       }
       playerRef.current = null;
     };
-  }, [embedUrl, url, mounted, origin, isSpotify, isYouTube]);
+  }, [embedUrl, url, mounted, origin, isYouTube]);
 
   if (!mounted) {
     return (
-      <div className={`${styles.playerWrapper} ${isHidden ? styles.hidden : ""}`} style={{ minHeight: isSpotify ? "80px" : "152px" }}>
+      <div className={`${styles.playerWrapper} ${isHidden ? styles.hidden : ""}`} style={{ minHeight: "152px" }}>
         <div style={{ padding: "1rem", textAlign: "center", color: "var(--text-muted)" }}>
           טוען נגן...
         </div>
@@ -405,10 +280,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
 
   return (
     <div className={`${styles.playerWrapper} ${isHidden ? styles.hidden : ""}`}>
-      {isSpotify ? (
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        <div ref={iframeRef as any} id="spotify-player-container" />
-      ) : isAudio ? (
+      {isAudio ? (
         <audio
           ref={audioRef}
           src={url}
@@ -418,7 +290,14 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
             guard(onPauseRef.current)();
             guard(onEndedRef.current)();
           }}
-          onCanPlay={() => guard(onReadyRef.current)()}
+          onCanPlay={() => {
+            guard(onReadyRef.current)();
+            if (autoPlayRef.current && audioRef.current) {
+              audioRef.current.play().catch(e => {
+                logAction({ message: "AutoPlay rejected", data: e?.message, source: "UrlPlayer.tsx:onCanPlay" });
+              });
+            }
+          }}
           className={styles.audio}
           controls={!isHidden}
         />
@@ -426,7 +305,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
         <iframe
           ref={iframeRef}
           width="100%"
-          height={isSpotify ? "80" : "152"}
+          height="152"
           scrolling="no"
           frameBorder="no"
           allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

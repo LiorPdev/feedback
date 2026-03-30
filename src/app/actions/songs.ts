@@ -19,13 +19,12 @@ export async function createSong(formData: FormData) {
     const title = sanitizeInput(formData.get('title') as string);
     const genre = sanitizeInput(formData.get('genre') as string);
 
-    // Strict URL validation: Only YouTube, Spotify, or internal R2 uploads
+    // Strict URL validation: Only YouTube or internal R2 uploads
     const isYouTube = url.includes("youtube.com") || url.includes("youtu.be");
-    const isSpotify = url.includes("spotify.com");
     const isR2 = url.includes("r2.dev");
 
-    if (url && !isYouTube && !isSpotify && !isR2) {
-        return { success: false, error: "ניתן לשתף קישורים מיוטיוב או ספוטיפיי בלבד" };
+    if (url && !isYouTube && !isR2) {
+        return { success: false, error: "ניתן לשתף קישורים מיוטיוב בלבד" };
     }
 
     // Create random slug
@@ -37,7 +36,7 @@ export async function createSong(formData: FormData) {
         const clerkUser = await currentUser();
         if (!clerkUser) {
             await logToDb({ message: "createSong: No clerk user found", source: "songs.ts:createSong" });
-            return { success: false, error: "חובה להתחבר כדי לשלוח שיר" };
+            return { success: false, error: "יש להתחבר כדי לשלוח שיר" };
         }
 
         // Sync user with Clerk to DB using shared utility
@@ -385,6 +384,13 @@ export async function updateSong(songId: string, data: { title: string, url: str
             return { success: false, error: "לא מורשה" };
         }
 
+        const isYouTube = data.url.includes("youtube.com") || data.url.includes("youtu.be");
+        const isR2 = data.url.includes("r2.dev");
+
+        if (data.url && !isYouTube && !isR2) {
+            return { success: false, error: "ניתן לשתף קישורים מיוטיוב בלבד" };
+        }
+
         await db.update(songs)
             .set({
                 title: sanitizeInput(data.title),
@@ -659,14 +665,6 @@ export async function getURLMetadata(url: string) {
         }
 
         // Support YouTube OEmbed
-        if (url.includes('youtube.com') || url.includes('youtu.be')) {
-            const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`;
-            const res = await fetch(oembedUrl);
-            if (res.ok) {
-                const data = await res.json();
-                return { success: true, title: cleanTitle(decodeHtmlEntities(data.title)) };
-            }
-        }
         if (url.includes('youtube.com') || url.includes('youtu.be')) {
             const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`;
             const res = await fetch(oembedUrl);

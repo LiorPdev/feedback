@@ -245,8 +245,8 @@
 
 @media (max-width: 640px) {
   .tokenInfoPopup {
-    left: -10px;
-    width: 275px;
+    left: -15px;
+    width: 270px;
   }
 
   .popupHeader h3 {

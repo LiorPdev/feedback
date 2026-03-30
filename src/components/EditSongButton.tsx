@@ -33,14 +33,28 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
     return () => setMounted(false);
   }, []);
 
+  // Reset local state to original song data when modal opens
+  useEffect(() => {
+    if (showModal) {
+      setTitle(song.title);
+      setUrl(song.url);
+      setGenre(song.genre);
+    }
+  }, [showModal, song]);
+
   useEffect(() => {
     const fetchMetadata = async () => {
       // Only attempt resolution if modal is open and it's a valid URL
       if (!showModal || !url || !url.includes("://") || url.length < 10) return;
 
       try {
-        const result = await getURLMetadata(url) as { success: boolean, title?: string, resolvedUrl?: string };
+        const result = await getURLMetadata(url) as { 
+          success: boolean, 
+          title?: string, 
+          resolvedUrl?: string 
+        };
         if (result.success) {
+          // Automatic resolution for SoundCloud
           if (result.resolvedUrl && result.resolvedUrl !== url) {
             setUrl(result.resolvedUrl);
           }
@@ -53,6 +67,8 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
     const timer = setTimeout(fetchMetadata, 1000);
     return () => clearTimeout(timer);
   }, [url, song.url, showModal]);
+
+  const isUnsupportedLink = url.trim() !== "" && !url.includes("youtube.com") && !url.includes("youtu.be") && !url.includes("r2.dev");
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,8 +136,13 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
                   required
-                  placeholder="קישור ל-Spotify, YouTube וכו'"
+                  placeholder="קישור ל-YouTube"
                 />
+                {isUnsupportedLink && (
+                  <p className={styles.errorText} style={{ color: 'var(--status-error)', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                    חלק מהנגנים מגבילים האזנה ממקורות חיצוניים. יש לשתף קישורים מיוטיוב בלבד.
+                  </p>
+                )}
               </div>
 
               <div className={styles.field}>
@@ -150,7 +171,7 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
                 <button
                   type="submit"
                   className={styles.saveBtn}
-                  disabled={isUpdating}
+                  disabled={isUpdating || isUnsupportedLink}
                 >
                   {isUpdating ? (
                     <>

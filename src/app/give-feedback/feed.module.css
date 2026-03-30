@@ -194,7 +194,7 @@
 .btnSkip {
   padding: 0.8rem 1.5rem;
   background: var(--bg-section);
-  color: var(--text-muted);
+  color: var(--text-main);
   border: 1px solid var(--border-color);
   border-radius: 100px;
   font-size: 0.95rem;
@@ -209,10 +209,7 @@
 }
 
 .btnSkip:hover {
-  background: var(--border-color);
-  color: var(--text-main);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-sm);
 }
 
 .btnPlay:disabled,

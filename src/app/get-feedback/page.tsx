@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import styles from "./get-feedback.module.css";
 import { GENRES, SONG_SUBMISSION_COST, MAX_FILE_SIZE, MAX_FILE_SIZE_MB } from "@/lib/constants";
 import AuthOverlay from "@/components/AuthOverlay";
+import BackButton from "@/components/BackButton";
 
 export default function GetFeedback() {
   const [songLink, setSongLink] = useState("");
@@ -122,10 +123,11 @@ export default function GetFeedback() {
     return () => clearTimeout(timer);
   }, [songLink, submissionType]);
 
+  const isPotentialLink = songLink.includes(".") || songLink.includes("://");
+
   const isSupportedLink = songLink.trim() !== "" && (
     songLink.includes("youtube.com") ||
-    songLink.includes("youtu.be") ||
-    songLink.includes("spotify.com")
+    songLink.includes("youtu.be")
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -220,6 +222,7 @@ export default function GetFeedback() {
         transition={{ duration: 0.5 }}
       >
         <div className={styles.header}>
+          <BackButton href="/" title="חזרה לדף הבית" className={styles.backButton} />
           <h1>שליחת שיר</h1>
         </div>
 
@@ -254,7 +257,7 @@ export default function GetFeedback() {
                   <input
                     type="text"
                     className={styles.input}
-                    placeholder="הדביקו קישור או הקלידו שם שיר לחיפוש..."
+                    placeholder="הדביקו קישור מיוטיוב או הקלידו טקסט לחיפוש..."
                     value={songLink}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                       const val = e.target.value;
@@ -316,7 +319,7 @@ export default function GetFeedback() {
                   )}
                 </div>
                 <AnimatePresence>
-                  {songLink.trim() !== "" && songLink.includes("spotify.com") && (
+                  {songLink.trim() !== "" && isPotentialLink && !isSupportedLink && (
                     <motion.div
                       className={styles.infoWarning}
                       initial={{ opacity: 0, height: 0 }}
@@ -324,10 +327,10 @@ export default function GetFeedback() {
                       exit={{ opacity: 0, height: 0 }}
                     >
                       <p className={styles.infoMsg}>
-                        לתשומת לבכם: ספוטיפי מגבילה האזנה בנגנים חיצוניים ל-25 שניות בלבד בנייד. להבטחת חוויית האזנה מלאה, העדיפו יוטיוב או העלאת קובץ.
+                        חלק מהנגנים מגבילים האזנה ממקורות חיצוניים. כדי להבטיח זמינות לכל המאזינים, יש לשתף קישורים מיוטיוב בלבד או להעלות קובץ.
                       </p>
 
-                      {youtubeAlternative && (
+                      {songLink.includes("spotify.com") && youtubeAlternative && (
                         <div className={styles.youtubeAlternative}>
                           <p>מצאנו גרסה אפשרית של השיר ביוטיוב:</p>
                           <div className={styles.alternativeCard}>
@@ -358,22 +361,6 @@ export default function GetFeedback() {
                       )}
                     </motion.div>
                   )}
-                  {songLink.trim() !== "" &&
-                    songLink.includes("://") &&
-                    !songLink.includes("youtube.com") &&
-                    !songLink.includes("youtu.be") &&
-                    !songLink.includes("spotify.com") && (
-                      <motion.div
-                        className={styles.infoWarning}
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                      >
-                        <p className={styles.infoMsg}>
-                          חלק מהנגנים מגבילים האזנה ממקורות חיצוניים. כדי להבטיח זמינות לכל המאזינים, יש לשתף קישורים מיוטיוב בלבד או להעלות קובץ.
-                        </p>
-                      </motion.div>
-                    )}
                 </AnimatePresence>
               </>
             ) : (

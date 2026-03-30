@@ -26,6 +26,18 @@
 
 .header {
   text-align: center;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.backButton {
+  position: absolute;
+  right: -0.5rem;
+  top: -1.1rem;
+  z-index: 10;
 }
 
 
@@ -427,25 +439,6 @@
   opacity: 0.9;
 }
 
-@media (max-width: 600px) {
-
-  .container {
-    padding: 1rem;
-  }
-
-  .radioGroup {
-    gap: 1rem;
-  }
-
-  .card {
-    padding: 2rem;
-  }
-
-  .alternativeTitle {
-    display: none;
-  }
-}
-
 .searchResultsDropdown {
   position: absolute;
   top: calc(100% + 4px);
@@ -509,4 +502,29 @@
   text-align: center;
   color: var(--text-muted);
   font-size: 0.85rem;
+}
+
+@media (max-width: 600px) {
+
+  .container {
+    padding: 1rem;
+  }
+
+  .radioGroup {
+    gap: 1rem;
+  }
+
+  .card {
+    padding: 2rem;
+  }
+
+  .alternativeTitle {
+    display: none;
+  }
+}
+
+@media (max-width: 400px) {
+  .backButton {
+    display: none !important;
+  }
 }

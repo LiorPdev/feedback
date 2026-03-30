@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Play, Pause, Loader2 } from "lucide-react";
-import UrlPlayer, { UrlPlayerHandle } from "@/components/UrlPlayer";
+import UrlPlayer, { UrlPlayerHandle, getEmbedUrl } from "@/components/UrlPlayer";
 import styles from "./show-feedback.module.css";
 
 interface SongPlayerProps {
@@ -41,23 +41,27 @@ export default function SongPlayer({ url }: SongPlayerProps) {
     }
   };
 
+  const embedUrl = getEmbedUrl(url);
+
   return (
     <div className={styles.playerContainer}>
-      <button 
-        className={`${styles.playButton} ${isPlaying ? styles.isPlaying : ""}`} 
-        onClick={togglePlay}
-        title={isPlaying ? "הפסקה" : "השמעה"}
-      >
-        {!isReady ? (
-          <div className={styles.loadingSpinnerBasic}>
-            <Loader2 size={24} className={styles.spinningIcon} />
-          </div>
-        ) : isPlaying ? (
-          <Pause size={24} fill="currentColor" />
-        ) : (
-          <Play size={24} fill="currentColor" style={{ marginLeft: '2px' }} />
-        )}
-      </button>
+      {embedUrl && (
+        <button 
+          className={`${styles.playButton} ${isPlaying ? styles.isPlaying : ""}`} 
+          onClick={togglePlay}
+          title={isPlaying ? "הפסקה" : "השמעה"}
+        >
+          {!isReady ? (
+            <div className={styles.loadingSpinnerBasic}>
+              <Loader2 size={24} className={styles.spinningIcon} />
+            </div>
+          ) : isPlaying ? (
+            <Pause size={24} fill="currentColor" />
+          ) : (
+            <Play size={24} fill="currentColor" style={{ marginLeft: '2px' }} />
+          )}
+        </button>
+      )}
 
       {/* 
         Standard hidden player: Matches GiveFeedback logic perfectly. 
