@@ -2,15 +2,17 @@
 import { useUser } from "@clerk/nextjs";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
 import styles from "./feed.module.css";
 import FeedbackForm from "@/components/FeedbackForm";
 import UrlPlayer, { getEmbedUrl, type UrlPlayerHandle } from "@/components/UrlPlayer";
 import DashboardLink from "@/components/DashboardLink";
 import BackButton from "@/components/BackButton";
-import { Play, Pause, CheckCircle2, Star } from "lucide-react";
+import { Play, Pause, CheckCircle2, Star, Coins } from "lucide-react";
 import ArtistSocials from "@/components/ArtistSocials";
 import { MIN_LISTEN_TIME, MIN_LISTEN_TIME_SPOTIFY_MOBILE, SUCCESS_MESSAGE_DURATION } from "@/lib/constants";
 import { logAction } from "@/app/actions/logs";
+import PopupMsg from "@/components/PopupMsg";
 
 interface Song {
   id: string;
@@ -38,10 +40,13 @@ interface FeedContainerProps {
   initialFeedback?: Feedback | null;
   from?: string;
   initialSongSlug?: string;
+  showInsufficientCredits?: boolean;
 }
 
-export default function FeedContainer({ initialSongs, initialFeedback, from, initialSongSlug }: FeedContainerProps) {
+export default function FeedContainer({ initialSongs, initialFeedback, from, initialSongSlug, showInsufficientCredits = false }: FeedContainerProps) {
   const { isSignedIn, isLoaded } = useUser();
+  const router = useRouter();
+  const [showCreditPopup, setShowCreditPopup] = useState(showInsufficientCredits);
   const [songs, setSongs] = useState(initialSongs);
   const [currentIndex, setCurrentIndex] = useState(0);
   const currentSong = songs[currentIndex];
@@ -115,6 +120,14 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
 
     return () => clearInterval(interval);
   }, [isPlaying]);
+
+  const closeCreditPopup = () => {
+    setShowCreditPopup(false);
+    // Cleanup URL to avoid showing popup again on refresh
+    const url = new URL(window.location.href);
+    url.searchParams.delete('insufficient_credits');
+    router.replace(url.pathname + url.search, { scroll: false });
+  };
 
 
 
@@ -440,6 +453,19 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
           )}
         </div>
       </div>
+
+      <PopupMsg
+        isOpen={showCreditPopup}
+        onClose={closeCreditPopup}
+        title="נגמרו תווי הקרדיט"
+        message={
+          <div>
+            <div>החדשות הטובות: על כל פידבק שתיתנו כאן, תקבלו את תווי קרדיט נוספים!</div>
+          </div>
+        }
+        icon={<Coins size={48} />}
+        buttonText="הבנתי, בואו ניתן קצת פידבק לאחרים"
+      />
     </div>
   );
 }

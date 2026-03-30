@@ -70,9 +70,6 @@
   box-sizing: border-box;
 }
 
-.input[type="url"] {
-  direction: ltr;
-}
 
 .input:focus {
   outline: none;

@@ -6,7 +6,7 @@ import { Music } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useUser } from "@clerk/nextjs";
-import { createSong, getUserSongCount, getURLMetadata, searchYouTubeVideos } from "@/app/actions/songs";
+import { createSong, getUserSongCount, getUserTokens, getURLMetadata, searchYouTubeVideos } from "@/app/actions/songs";
 import { getPresignedUploadUrl } from "@/app/actions/upload";
 import { logAction } from "@/app/actions/logs";
 import { useRouter } from "next/navigation";
@@ -35,16 +35,25 @@ export default function GetFeedback() {
   const router = useRouter();
 
   useEffect(() => {
-    async function checkSongs() {
+    async function checkAccountStatus() {
       if (user?.id) {
-        const result = await getUserSongCount(user.id);
-        if (result.success && result.count > 0) {
+        // Check song count
+        const songCountResult = await getUserSongCount(user.id);
+        if (songCountResult.success && songCountResult.count > 0) {
           setHasSongs(true);
+        }
+
+        // Check tokens
+        const tokenResult = await getUserTokens(user.id);
+        if (tokenResult.success && typeof tokenResult.tokens === 'number') {
+          if (tokenResult.tokens < SONG_SUBMISSION_COST) {
+            router.push('/give-feedback?insufficient_credits=true');
+          }
         }
       }
     }
-    checkSongs();
-  }, [user?.id]);
+    checkAccountStatus();
+  }, [user?.id, router]);
 
   useEffect(() => {
     const fetchMetadata = async () => {

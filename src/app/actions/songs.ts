@@ -58,11 +58,7 @@ export async function createSong(formData: FormData) {
 
         // Check tokens
         if (dbUser.tokens < SONG_SUBMISSION_COST) {
-            return {
-                success: false,
-                error: `אין לך מספיק קרדיט לשליחת השיר. עלות שליחה היא ${SONG_SUBMISSION_COST} [MUSIC_ICON]. ניתן לקבל קרדיט על ידי מתן פידבק לשירים אחרים!`,
-                type: 'insufficient_tokens'
-            };
+            return { success: false, error: "יתרת קרדיט נמוכה מדי" };
         }
 
         const [newSong] = await db.insert(songs).values({
@@ -741,16 +737,16 @@ export async function getTopRatedSongs() {
                 / (count(${feedbacks.id}) + ${m})
             `
         })
-        .from(songs)
-        .innerJoin(feedbacks, eq(songs.id, feedbacks.songId))
-        .innerJoin(users, eq(songs.userId, users.id))
-        .where(eq(songs.isActive, true))
-        .groupBy(songs.id)
-        .orderBy(sql`
+            .from(songs)
+            .innerJoin(feedbacks, eq(songs.id, feedbacks.songId))
+            .innerJoin(users, eq(songs.userId, users.id))
+            .where(eq(songs.isActive, true))
+            .groupBy(songs.id)
+            .orderBy(sql`
             ( (count(${feedbacks.id}) * avg((${feedbacks.cat2} + ${feedbacks.cat3} + ${feedbacks.overall}) / 3.0)) + (${m} * ${C}) )
             / (count(${feedbacks.id}) + ${m}) DESC
         `)
-        .limit(5);
+            .limit(5);
 
         return { success: true, songs: topSongs };
     } catch (error) {

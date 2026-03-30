@@ -7,9 +7,9 @@ export const dynamic = "force-dynamic";
 export default async function GiveFeedbackFeedPage({
   searchParams,
 }: {
-  searchParams: Promise<{ song?: string; from?: string }>;
+  searchParams: Promise<{ song?: string; from?: string; insufficient_credits?: string }>;
 }) {
-  const { song: songSlug, from } = await searchParams;
+  const { song: songSlug, from, insufficient_credits } = await searchParams;
   const result = await getFeedSongs(songSlug);
   await auth();
 
@@ -29,7 +29,12 @@ export default async function GiveFeedbackFeedPage({
   return (
     <div className={styles.container}>
       <main className={styles.main}>
-        <FeedContainer initialSongs={result.songs} from={from} initialSongSlug={songSlug} />
+        <FeedContainer 
+          initialSongs={result.songs} 
+          from={from} 
+          initialSongSlug={songSlug} 
+          showInsufficientCredits={insufficient_credits === 'true'}
+        />
       </main>
     </div>
   );
