@@ -4,13 +4,11 @@ import Link from "next/link";
 import { SignedIn, SignedOut, useUser } from "@clerk/nextjs";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle } from "lucide-react";
-import Image from "next/image";
 import styles from "@/app/landing.module.css";
 import { useState, useEffect } from "react";
 import { getUserSongCount } from "@/app/actions/songs";
 import Footer from "./Footer";
 import AuthOverlay from "./AuthOverlay";
-
 import HeroGallery from "./HeroGallery";
 
 // Animation variants
@@ -36,7 +34,7 @@ export default function LandingClient({
   initialHasSongs?: boolean,
   initialGenre?: string
 }) {
-  const { user, isLoaded, isSignedIn } = useUser();
+  const { user, isLoaded } = useUser();
   const [hasSongs, setHasSongs] = useState(initialHasSongs);
   const [userGenre, setUserGenre] = useState(initialGenre);
   const [authOverlay, setAuthOverlay] = useState<{ isOpen: boolean; message: React.ReactNode; redirectUrl?: string }>({
@@ -80,7 +78,7 @@ export default function LandingClient({
     };
   }, [user, isLoaded]);
 
-  const handleGiveFeedbackClick = (e: React.MouseEvent) => {
+  const handleGiveFeedbackClick = () => {
     if (user && !userGenre) {
       window.dispatchEvent(new CustomEvent("open-preferences-modal", {
         detail: { redirectTo: "/give-feedback" }
@@ -88,8 +86,6 @@ export default function LandingClient({
     }
   };
 
-  const handleGetFeedbackClick = (e: React.MouseEvent) => {
-  };
 
   return (
     <div className={styles.landingPage}>

@@ -1,5 +1,5 @@
 "use client";
-import { SignedIn, useUser } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "./feed.module.css";

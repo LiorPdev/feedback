@@ -39,7 +39,7 @@ export default function FeedbackForm({
     cat3: 0,
     overall: 0,
   });
-  const [comment, setComment] = useState("");
+  const [comment, setComment] = useState(initialSource === "top-rated" ? "שמעתי את השיר באיזור השירים המדורגים" : "");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [flyers, setFlyers] = useState<{ id: number; x: number; y: number; tx: number; ty: number; value: number; ox?: number; oy?: number }[]>([]);
@@ -126,11 +126,6 @@ export default function FeedbackForm({
     }
   }, [status]);
 
-  useEffect(() => {
-    if (initialSource === "top-rated") {
-      setComment("שמעתי את השיר באיזור השירים המדורגים");
-    }
-  }, [initialSource]);
 
   const categories = [
     { key: "cat2" as const, name: "הפקה", reward: REWARD_PRODUCTION },

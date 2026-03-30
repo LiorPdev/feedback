@@ -97,6 +97,11 @@
 }
 
 
+.playerContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
 .playButton {
   width: 36px;
@@ -210,8 +215,7 @@
     text-overflow: ellipsis;
   }
 
-  .actionsSection,
-  .socialsSection {
+  .actionsSection {
     width: auto;
     justify-content: center;
     padding: 0;

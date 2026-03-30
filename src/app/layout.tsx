@@ -71,7 +71,13 @@ export default async function RootLayout({
   return (
     <ClerkProvider
       publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
-      localization={heIL as unknown as typeof heIL}
+      localization={{
+        ...heIL,
+        unstable__errors: {
+          ...heIL.unstable__errors,
+          form_identifier_not_found: 'לא מצאנו חשבון שמחובר למייל הזה. ניתן להירשם בקלות על ידי לחיצה על כפתור הרשמה למטה.',
+        },
+      } as unknown as typeof heIL}
       appearance={{
         elements: {
           socialButtonsBlockButton: {
@@ -91,8 +97,8 @@ export default async function RootLayout({
             }
           },
           socialButtonsBlockButtonText: {
-             fontSize: "1.05rem",
-             fontWeight: "600",
+            fontSize: "1.05rem",
+            fontWeight: "600",
           },
           card: {
             boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
@@ -106,6 +112,28 @@ export default async function RootLayout({
           },
           headerSubtitle: {
             display: "none",
+          },
+          formFieldErrorText: {
+            textAlign: "right",
+            width: "100%",
+          },
+          formButtonPrimary: {
+            "& svg": {
+              display: "none",
+            },
+            "& .cl-formButtonPrimaryIcon": {
+              display: "none",
+            }
+          },
+          formButtonPrimaryIcon: {
+            display: "none",
+          },
+          footerActionText: {
+            fontSize: "1.02rem",
+          },
+          footerActionLink: {
+            fontSize: "1.02rem",
+            fontWeight: "700",
           }
         }
       }}
