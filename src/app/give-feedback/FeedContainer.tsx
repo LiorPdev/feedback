@@ -1,14 +1,14 @@
 "use client";
 import { useUser } from "@clerk/nextjs";
 import { useState, useEffect, useCallback, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import styles from "./feed.module.css";
 import FeedbackForm from "@/components/FeedbackForm";
 import UrlPlayer, { getEmbedUrl, type UrlPlayerHandle } from "@/components/UrlPlayer";
 import DashboardLink from "@/components/DashboardLink";
 import BackButton from "@/components/BackButton";
-import { Play, Pause, CheckCircle2, Star, Coins } from "lucide-react";
+import { Play, Pause, CheckCircle2, Star, Coins, Loader2 } from "lucide-react";
 import ArtistSocials from "@/components/ArtistSocials";
 import { MIN_LISTEN_TIME, SUCCESS_MESSAGE_DURATION } from "@/lib/constants";
 import { logAction } from "@/app/actions/logs";
@@ -69,8 +69,7 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
       : null
   );
   const [justSubmitted, setJustSubmitted] = useState(false);
-  const [shouldAutoPlay, setShouldAutoPlay] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(true); // true until player fires onReady
   const [playerError, setPlayerError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -172,7 +171,6 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
     });
     setIsPlaying(false);
     setIsTransitioning(false);
-    setShouldAutoPlay(false);
 
     // Provide a human-readable error based on typical browser NotSupported/NotAllowed errors
     const errStr = (error as Error)?.message || String(error);
@@ -190,8 +188,6 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
     setJustSubmitted(false);
     setUserFeedback(null);
     setIsPlaying(false);
-    setShouldAutoPlay(true);
-    setShouldAutoPlay(true);
     setIsTransitioning(true);
     setCurrentIndex((prev) => (prev + 1) % songs.length);
   };
@@ -207,7 +203,6 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
       setJustSubmitted(false);
       setUserFeedback(null);
       setIsPlaying(false);
-      setShouldAutoPlay(true);
       setIsTransitioning(true);
       return updatedSongs;
     });
@@ -221,22 +216,10 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
 
   const togglePlayback = () => {
     if (!playerRef.current || (!isSignedIn && !isAuthDismissed)) return;
-
-    if (isPlaying || isTransitioning) {
-      if (playerRef.current?.pause) {
-        playerRef.current.pause();
-      }
-      setIsPlaying(false);
-      setIsTransitioning(false);
-      setShouldAutoPlay(false);
+    if (isPlaying) {
+      playerRef.current.pause();
     } else {
-      setIsPlaying(true);
       playerRef.current.play();
-
-      // Fallback: clear transitioning state after 3 seconds if play doesn't start
-      setTimeout(() => {
-        setIsTransitioning(false);
-      }, 3000);
     }
   };
 
@@ -283,32 +266,25 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
         </div>
 
         <div className={styles.playerSection}>
-          <AnimatePresence>
-            <motion.div
-              key={currentSong.id + "-player"}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-            >
-              {showPlayer && (
-                <UrlPlayer
-                  ref={playerRef}
-                  url={currentSong.url}
-                  onPlay={onPlayerPlay}
-                  onPause={onPlayerPause}
-                  onEnded={onPlayerEnded}
-                  onReady={() => {
-                    setShouldAutoPlay(false);
-                    setIsTransitioning(false);
-                  }}
-                  onError={onPlayerError}
-                  isHidden={isHiddenPlayer}
-                  autoPlay={shouldAutoPlay}
-                />
-              )}
-            </motion.div>
-          </AnimatePresence>
+          <motion.div
+            key={currentSong.id + "-player"}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            {showPlayer && (
+              <UrlPlayer
+                ref={playerRef}
+                url={currentSong.url}
+                onPlay={onPlayerPlay}
+                onPause={onPlayerPause}
+                onEnded={onPlayerEnded}
+                onReady={() => setIsTransitioning(false)}
+                onError={onPlayerError}
+                isHidden={isHiddenPlayer}
+              />
+            )}
+          </motion.div>
           {playerError && (
             <div className={styles.errorMsg} style={{ marginTop: '0.5rem', textAlign: 'center' }}>
               {playerError}
@@ -322,9 +298,14 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
               <button
                 className={isProminentNext ? styles.btnSkip : (isPlaying ? styles.btnPause : styles.btnPlay)}
                 onClick={togglePlayback}
-                disabled={(!isSignedIn && !isAuthDismissed) && isLoaded}
+                disabled={((!isSignedIn && !isAuthDismissed) && isLoaded) || isTransitioning}
               >
-                {isPlaying || isTransitioning ? (
+                {isTransitioning ? (
+                  <>
+                    <Loader2 size={20} className={styles.spinIcon} />
+                    <span>טוען...</span>
+                  </>
+                ) : isPlaying ? (
                   <>
                     <Pause size={20} fill="currentColor" />
                     <span>עצור</span>

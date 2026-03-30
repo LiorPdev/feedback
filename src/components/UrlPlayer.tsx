@@ -29,7 +29,6 @@ interface UrlPlayerProps {
   onError?: (error: unknown) => void;
   onEnded?: () => void;
   isHidden?: boolean;
-  autoPlay?: boolean;
 }
 
 export const getEmbedUrl = (url: string) => {
@@ -60,7 +59,7 @@ export interface UrlPlayerHandle {
   pause: () => void;
 }
 
-const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, onPause, onReady, onError, onEnded, isHidden = false, autoPlay = false }, ref) => {
+const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, onPause, onReady, onError, onEnded, isHidden = false }, ref) => {
   const isUnmountingRef = useRef(false);
   const [mounted, setMounted] = useState(false);
   const [origin, setOrigin] = useState("");
@@ -84,7 +83,6 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
   const onReadyRef = useRef(onReady);
   const onErrorRef = useRef(onError);
   const onEndedRef = useRef(onEnded);
-  const autoPlayRef = useRef(autoPlay);
 
 
   useEffect(() => {
@@ -93,8 +91,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
     onReadyRef.current = onReady;
     onErrorRef.current = onError;
     onEndedRef.current = onEnded;
-    autoPlayRef.current = autoPlay;
-  }, [onPlay, onPause, onReady, onError, onEnded, autoPlay]);
+  }, [onPlay, onPause, onReady, onError, onEnded]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const guard = (fn: ((...args: any[]) => void) | undefined) => (...args: any[]) => {
@@ -192,9 +189,6 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
               },
               onReady: () => {
                 guard(onReadyRef.current)();
-                if (autoPlayRef.current && playerRef.current?.playVideo) {
-                  playerRef.current.playVideo();
-                }
               },
             },
           });
@@ -292,11 +286,6 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
           }}
           onCanPlay={() => {
             guard(onReadyRef.current)();
-            if (autoPlayRef.current && audioRef.current) {
-              audioRef.current.play().catch(e => {
-                logAction({ message: "AutoPlay rejected", data: e?.message, source: "UrlPlayer.tsx:onCanPlay" });
-              });
-            }
           }}
           className={styles.audio}
           controls={!isHidden}
