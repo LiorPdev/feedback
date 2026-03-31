@@ -24,7 +24,7 @@ export default function TopRatedFooter() {
           isOpen={showInfo}
           onClose={() => setShowInfo(false)}
           title="איך מחשבים את הדירוג?"
-          arrowPosition="left"
+          arrowPosition="center"
           align="center"
           triggerRef={triggerRef}
           className={styles.ratingTooltip}
