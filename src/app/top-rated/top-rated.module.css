@@ -303,6 +303,10 @@
     font-size: 1.1rem;
   }
 
+  .spotifyLink {
+    margin-right: 30px;
+  }
+
   .actionsSection {
     gap: 8px;
   }

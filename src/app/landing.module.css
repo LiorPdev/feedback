@@ -152,8 +152,8 @@
 
 .topRatedLink {
   color: var(--brand-contrast);
-  font-size: 1rem;
-  background: color-mix(in srgb, var(--brand-contrast), transparent 98%);
+  font-size: 1.2rem;
+  background: color-mix(in srgb, var(--brand-contrast), transparent 96%);
   padding: 6px 16px;
   border-radius: 100px;
   border: 1px solid color-mix(in srgb, var(--brand-contrast), transparent 94%);
@@ -380,7 +380,7 @@
   }
 
   .topRatedLink {
-    font-size: 0.9rem;
+    font-size: 1rem;
   }
 
   .sectionTitle {
