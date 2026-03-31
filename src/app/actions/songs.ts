@@ -795,7 +795,7 @@ export async function getTopRatedSongs() {
             ( (count(${feedbacks.id}) * avg((${feedbacks.cat2} + ${feedbacks.cat3} + ${feedbacks.overall}) / 3.0)) + (${m} * ${C}) )
             / (count(${feedbacks.id}) + ${m}) DESC
         `)
-            .limit(5);
+            .limit(10);
 
         return { success: true, songs: topSongs };
     } catch (error) {

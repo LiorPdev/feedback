@@ -1,0 +1,174 @@
+.popup {
+  position: absolute;
+  /* Basic positioning - will be overridden by pos-* classes */
+  width: 280px;
+  background: color-mix(in srgb, var(--card-bg), transparent 2%);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 1.25rem;
+  box-shadow: var(--shadow-lg), 0 10px 40px rgba(0, 0, 0, 0.3);
+  z-index: 1001;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  direction: rtl !important;
+  text-align: right;
+}
+
+.pos-top {
+  bottom: calc(100% + 12px);
+  top: auto;
+}
+
+.pos-bottom {
+  top: calc(100% + 12px);
+  bottom: auto;
+}
+
+.pos-centered {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: 90%;
+  max-width: 320px;
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.6);
+}
+
+.align-left {
+  left: 0;
+  right: auto;
+}
+
+.align-right {
+  right: 0;
+  left: auto;
+}
+
+.align-center {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+
+.popupHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  color: var(--brand-primary);
+}
+
+.headerTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.popupHeader h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.closePopupButton {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.content {
+  font-size: 0.9rem;
+  line-height: 1.8;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.footer {
+  margin-top: 1rem;
+}
+
+.popupArrow {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: var(--card-bg);
+}
+
+/* Arrow for Above the trigger (Tooltip is at the top, arrow at its bottom) */
+.pos-top .popupArrow {
+  bottom: -6px;
+  border-bottom: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+  transform: rotate(45deg);
+}
+
+/* Arrow for Below the trigger (Tooltip is at the bottom, arrow at its top) */
+.pos-bottom .popupArrow {
+  top: -6px;
+  border-top: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+  /* Corrected border sides */
+  transform: rotate(-135deg);
+}
+
+.pos-centered .popupArrow {
+  display: none;
+}
+
+.arrow-left {
+  left: 34px;
+}
+
+.arrow-right {
+  right: 34px;
+}
+
+.arrow-center {
+  left: 50%;
+  margin-left: -6px;
+}
+
+@media (min-width: 640px) {
+  .closePopupButton {
+    display: none;
+  }
+}
+
+@media (max-width: 360px) {
+  .popup {
+    position: fixed;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 90%;
+    max-width: 320px;
+    margin: 0;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  }
+
+  .popupArrow {
+    display: none;
+  }
+
+  .closePopupButton {
+    display: flex;
+  }
+
+  .content {
+    font-size: 0.9rem;
+  }
+}

@@ -5,9 +5,9 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { ADMIN_EMAIL } from "@/lib/constants";
-import { Music, Home, HelpCircle, Gift, MessageCircle, BarChart, X, User as UserIcon, Share2 } from "lucide-react";
+import { Music, Home, Gift, MessageCircle, BarChart, User as UserIcon, Share2 } from "lucide-react";
 import ContactModal from "./ContactModal";
-import { motion, AnimatePresence } from "framer-motion";
+import InfoTooltip from "./InfoTooltip";
 import Image from "next/image";
 import { getUserData } from "@/app/actions/user";
 import UserPreferencesModal from "./UserPreferencesModal";
@@ -30,7 +30,7 @@ export default function Navbar() {
   const [showCreditModal, setShowCreditModal] = useState(false);
   const [pendingRedirect, setPendingRedirect] = useState<string | null>(null);
   const redirectUrlRef = useRef<string | null>(null);
-  const infoRef = useRef<HTMLDivElement>(null);
+  const tokenTriggerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -89,17 +89,6 @@ export default function Navbar() {
     }
   };
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (infoRef.current && !infoRef.current.contains(event.target as Node)) {
-        setShowTokensInfo(false);
-      }
-    };
-    if (showTokensInfo) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showTokensInfo]);
 
   useEffect(() => {
     if (tokens !== null && displayedTokens !== null && tokens !== displayedTokens) {
@@ -191,6 +180,7 @@ export default function Navbar() {
                   className={`${styles.tokenDisplay} ${glowMode === "positive" ? styles.glowingPositive : glowMode === "negative" ? styles.glowingNegative : ""}`}
                   title="לחצו להסבר על הקרדיטים"
                   onClick={() => setShowTokensInfo(!showTokensInfo)}
+                  ref={tokenTriggerRef}
                 >
                   <div className={styles.tokenIcon}>
                     <Music size={14} />
@@ -198,45 +188,28 @@ export default function Navbar() {
                   <AnimatedTokenCounter value={displayedTokens ?? 0} />
                 </div>
 
-                <AnimatePresence>
-                  {showTokensInfo && (
-                    <motion.div
-                      ref={infoRef}
-                      initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                      className={styles.tokenInfoPopup}
+                <InfoTooltip
+                  isOpen={showTokensInfo}
+                  onClose={() => setShowTokensInfo(false)}
+                  title="איך עובד מנגנון הקרדיטים?"
+                  content={
+                    <p>שליחת שיר מורידה מתווי הקרדיט שלך. כדי לצבור תווי קרדיט חדשים, פשוט תנו פידבק לשירים של יוצרים אחרים בקהילה.</p>
+                  }
+                  footer={
+                    <button
+                      className={styles.infoLink}
+                      onClick={() => {
+                        setShowTokensInfo(false);
+                        setShowCreditModal(true);
+                      }}
                     >
-                      <div className={styles.popupHeader}>
-                        <div className={styles.headerTitleGroup}>
-                          <HelpCircle size={18} className={styles.helpIcon} />
-                          <h3>איך עובד מנגנון הקרדיטים?</h3>
-                        </div>
-                        <button
-                          className={styles.closePopupButton}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowTokensInfo(false);
-                          }}
-                          aria-label="סגור"
-                        >
-                          <X size={16} />
-                        </button>
-                      </div>
-                      <p>שליחת שיר מורידה מתווי הקרדיט שלך. כדי לצבור תווי קרדיט חדשים, פשוט תנו פידבק לשירים של יוצרים אחרים בקהילה.</p>
-                      <button
-                        className={styles.infoLink}
-                        onClick={() => {
-                          setShowTokensInfo(false);
-                          setShowCreditModal(true);
-                        }}
-                      >
-                        שלח/קבל תווי קרדיט
-                      </button>
-                      <div className={styles.popupArrow} />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                      שלח/קבל תווי קרדיט
+                    </button>
+                  }
+                  arrowPosition="left"
+                  align="left"
+                  triggerRef={tokenTriggerRef}
+                />
               </div>
             )}
             <UserButton afterSignOutUrl="/">

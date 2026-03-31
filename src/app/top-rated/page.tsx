@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import ShareSongButton from "@/components/ShareSongButton";
 import TopRatedPlayer from "./TopRatedPlayer";
+import TopRatedFooter from "./TopRatedFooter";
 
 export const dynamic = "force-dynamic";
 
@@ -28,8 +29,8 @@ export default async function TopRatedPage() {
 
       <main className={styles.main}>
         <div className={styles.header}>
-          <BackButton href="/" title="חזרה לדף הבית" className={styles.backButton} />
-          <h1 className={styles.title}>5 השירים עם הדירוג הכי גבוה</h1>
+          <BackButton href="/" title="חזרה לדף הבית" />
+          <h1 className={styles.title}>10 השירים עם הדירוג הכי גבוה</h1>
         </div>
 
         <div className={styles.listCard}>
@@ -76,9 +77,7 @@ export default async function TopRatedPage() {
           )}
         </div>
 
-        <p className={styles.footerNote}>
-          * הדירוג מבוסס על ממוצע וכמות כלל הפידבקים שהתקבלו בקהילה
-        </p>
+        <TopRatedFooter />
       </main>
     </div>
   );

@@ -160,7 +160,7 @@ export default function LandingClient({
 
             <motion.div variants={fadeInUp} className={styles.topRatedLinkWrapper}>
               <Link href="/top-rated" className={styles.topRatedLink}>
-                5 השירים עם הדירוג הכי גבוה
+                10 השירים עם הדירוג הכי גבוה
               </Link>
             </motion.div>
 

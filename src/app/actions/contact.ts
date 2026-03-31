@@ -23,11 +23,6 @@ export async function submitContactMessage(message: string) {
     });
 
     if (result.success) {
-      await logToDb({
-        message: "Contact message sent",
-        source: "contact.ts:submitContactMessage",
-        userId,
-      });
       return { success: true };
     } else {
       return { success: false, error: result.error };
