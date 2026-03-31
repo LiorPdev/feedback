@@ -16,6 +16,7 @@ export const GENRES = [
 
 export const INITIAL_TOKENS = 100;
 export const SONG_SUBMISSION_COST = 50;
+export const UNLOCK_FEEDBACK_COST = 20;
 
 export const REWARD_PRODUCTION = 2;
 export const REWARD_VOCALS = 2;

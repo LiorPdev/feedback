@@ -63,6 +63,7 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
     playedSeconds: fb.playedSeconds,
     createdAt: fb.createdAt,
     authorGenre: fb.authorId ? (authorGenreMap.get(fb.authorId) ?? null) : null,
+    isUnlocked: fb.isUnlocked,
     cat2: fb.cat2,
     cat3: fb.cat3,
     overall: fb.overall,
@@ -71,6 +72,14 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
 
   // Listen events
   const listenData = await getListenTimeEvents(song.id);
+
+  // Fetch current user tokens
+  const currentUserRecord = userId 
+    ? await db.query.users.findFirst({
+        where: (users, { eq }) => eq(users.id, userId),
+        columns: { tokens: true }
+      })
+    : null;
 
   return (
     <div className={styles.container}>
@@ -125,6 +134,7 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
           feedbacks={feedbacks}
           listenEvents={listenData.events ?? []}
           listenAvgSeconds={listenData.avgSeconds ?? 0}
+          currentTokens={currentUserRecord?.tokens ?? 0}
         />
 
         <DashboardLink />

@@ -1,14 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import styles from "@/app/show-feedback/[slug]/show-feedback.module.css";
 import ListenTimeTab from "@/components/ListenTimeTab";
+import { Lock, Loader2 } from "lucide-react";
+import { unlockFeedback } from "@/app/actions/feedback";
+import { UNLOCK_FEEDBACK_COST } from "@/lib/constants";
+import Link from "next/link";
 
 interface FeedbackItem {
   id: string;
   playedSeconds: number | null;
   createdAt: string;
   authorGenre: string | null;
+  isUnlocked: boolean;
   cat2: number | null;
   cat3: number | null;
   overall: number | null;
@@ -26,6 +31,7 @@ interface FeedbackTabsProps {
   feedbacks: FeedbackItem[];
   listenEvents: ListenEvent[];
   listenAvgSeconds: number;
+  currentTokens: number;
   initialTab?: string;
 }
 
@@ -41,9 +47,38 @@ export default function FeedbackTabs({
   feedbacks,
   listenEvents,
   listenAvgSeconds,
+  currentTokens,
   initialTab = "feedbacks",
 }: FeedbackTabsProps) {
   const [activeTab, setActiveTab] = useState(initialTab);
+  const [isPending, startTransition] = useTransition();
+  const [errorIds, setErrorIds] = useState<Record<string, string>>({});
+  const [optimisticUnlocked, setOptimisticUnlocked] = useState<Set<string>>(new Set());
+
+  const handleUnlock = async (feedbackId: string) => {
+    if (isPending) return;
+
+    startTransition(async () => {
+      try {
+        const result = await unlockFeedback(feedbackId);
+        if (result.success) {
+          // Trigger navbar update
+          window.dispatchEvent(new CustomEvent("tokens-updated"));
+          setOptimisticUnlocked(prev => new Set(prev).add(feedbackId));
+        } else {
+          if (result.error === 'INSUFFICIENT_CREDITS') {
+            setErrorIds(prev => ({ ...prev, [feedbackId]: result.error }));
+          } else {
+            // "Fail open" - if it's a system error, just unlock it locally
+            setOptimisticUnlocked(prev => new Set(prev).add(feedbackId));
+          }
+        }
+      } catch {
+        // "Fail open" for server actions failures
+        setOptimisticUnlocked(prev => new Set(prev).add(feedbackId));
+      }
+    });
+  };
 
   return (
     <>
@@ -76,36 +111,72 @@ export default function FeedbackTabs({
                   ? fb.authorGenre.split(",").map((g) => g.trim()).filter(Boolean).slice(0, 3)
                   : [];
 
+                const isActuallyUnlocked = fb.isUnlocked || optimisticUnlocked.has(fb.id);
+
                 return (
-                  <div key={fb.id} className={styles.feedbackItem}>
-                    <div className={styles.fbHeader}>
-                      {(() => {
-                        const formatted = formatSeconds(fb.playedSeconds);
-                        return formatted ? (
-                          <span className={styles.fbPlaytime}>{formatted}</span>
+                  <div key={fb.id} className={`${styles.feedbackItem} ${!isActuallyUnlocked ? styles.lockedFeedback : ""}`}>
+                    <div className={!isActuallyUnlocked ? styles.lockedContent : ""}>
+                      <div className={styles.fbHeader}>
+                        {(() => {
+                          const formatted = formatSeconds(fb.playedSeconds);
+                          return formatted ? (
+                            <span className={styles.fbPlaytime}>{formatted}</span>
+                          ) : (
+                            <span />
+                          );
+                        })()}
+                        <span className={styles.fbDate}>
+                          {new Date(fb.createdAt).toLocaleDateString("he-IL")}
+                        </span>
+                      </div>
+
+                      <div className={styles.fbRaterGenre}>
+                        סגנון מאזין:{" "}
+                        <span className={styles.genreList}>
+                          {genres.length > 0 ? genres.join(", ") : "לא הוגדר"}
+                        </span>
+                      </div>
+
+                      <div className={styles.fbRatingsRow}>
+                        <span className={styles.fbRatingLabel}>דירוג:</span>
+                        <span>הפקה: {fb.cat2}</span>
+                        <span>שירה: {fb.cat3}</span>
+                        <span className={styles.fbOverallBadge}>כללי: {fb.overall}</span>
+                      </div>
+                      <p className={styles.fbComment}>{fb.comment}</p>
+                    </div>
+
+                    {!isActuallyUnlocked && (
+                      <div className={styles.unlockOverlay}>
+                        {errorIds[fb.id] === 'INSUFFICIENT_CREDITS' ? (
+                          <div style={{ color: 'var(--text-main)', fontSize: '0.95rem', fontWeight: 800, textAlign: 'center', lineHeight: 1.6 }}>
+                            <div>לצפיה בפידבק נדרשים {UNLOCK_FEEDBACK_COST} תווי קרדיט (יש לך {currentTokens}).</div>
+                            <Link
+                              href="/give-feedback"
+                              style={{ textDecoration: 'underline', color: 'var(--brand-primary)', display: 'block', marginTop: '0.5rem' }}
+                            >
+                              לחצו כאן לתת פידבק לאחרים ולקבל קרדיטים
+                            </Link>
+                          </div>
                         ) : (
-                          <span />
-                        );
-                      })()}
-                      <span className={styles.fbDate}>
-                        {new Date(fb.createdAt).toLocaleDateString("he-IL")}
-                      </span>
-                    </div>
-
-                    <div className={styles.fbRaterGenre}>
-                      סגנון מאזין:{" "}
-                      <span className={styles.genreList}>
-                        {genres.length > 0 ? genres.join(", ") : "לא הוגדר"}
-                      </span>
-                    </div>
-
-                    <div className={styles.fbRatingsRow}>
-                      <span className={styles.fbRatingLabel}>דירוג:</span>
-                      <span>הפקה: {fb.cat2}</span>
-                      <span>שירה: {fb.cat3}</span>
-                      <span className={styles.fbOverallBadge}>כללי: {fb.overall}</span>
-                    </div>
-                    <p className={styles.fbComment}>{fb.comment}</p>
+                          <>
+                            <h4 className={styles.unlockTitle}>פידבק חדש</h4>
+                            <button
+                              className={styles.unlockBtn}
+                              onClick={() => handleUnlock(fb.id)}
+                              disabled={isPending}
+                            >
+                              {isPending ? (
+                                <Loader2 className={`${styles.lockIcon} animate-spin`} />
+                              ) : (
+                                <Lock className={styles.lockIcon} />
+                              )}
+                              הצגת הפידבק
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               })}
