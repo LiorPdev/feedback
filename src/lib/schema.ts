@@ -32,11 +32,9 @@ export const songs = sqliteTable('Song', {
     updatedAt: text('updatedAt').notNull().$defaultFn(() => new Date().toISOString()),
 }, (table) => {
     return {
-        userIdIdx: index('Song_userId_idx').on(table.userId),
         userIdCreatedAtIdx: index('Song_userId_createdAt_idx').on(table.userId, table.createdAt),
         createdAtIdx: index('Song_createdAt_idx').on(table.createdAt),
         isActiveIdx: index('Song_isActive_idx').on(table.isActive),
-        genreIdx: index('Song_genre_idx').on(table.genre),
     };
 });
 
@@ -69,7 +67,6 @@ export const listenEvents = sqliteTable('ListenEvent', {
     createdAt: text('createdAt').notNull().$defaultFn(() => new Date().toISOString()),
 }, (table) => {
     return {
-        songIdIdx: index('ListenEvent_songId_idx').on(table.songId),
         userIdIdx: index('ListenEvent_userId_idx').on(table.userId),
         songIdCreatedAtIdx: index('ListenEvent_songId_createdAt_idx').on(table.songId, table.createdAt),
     };
