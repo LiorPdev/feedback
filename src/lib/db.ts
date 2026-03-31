@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/d1';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
-import { users, songs, feedbacks, logs, creditCodes, usersRelations, songsRelations, feedbacksRelations } from './schema';
+import { users, songs, feedbacks, logs, creditCodes, listenEvents, usersRelations, songsRelations, feedbacksRelations, listenEventsRelations } from './schema';
 
 const drizzleSchema = {
     users,
@@ -8,9 +8,11 @@ const drizzleSchema = {
     feedbacks,
     logs,
     creditCodes,
+    listenEvents,
     usersRelations,
     songsRelations,
     feedbacksRelations,
+    listenEventsRelations,
 };
 
 /**

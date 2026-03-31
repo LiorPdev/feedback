@@ -5,7 +5,7 @@ import { nanoid } from 'nanoid';
 import { revalidatePath } from 'next/cache';
 import { currentUser, auth } from '@clerk/nextjs/server';
 import { eq, sql } from 'drizzle-orm';
-import { users, songs, feedbacks } from '@/lib/schema';
+import { users, songs, feedbacks, listenEvents } from '@/lib/schema';
 import { SONG_SUBMISSION_COST, REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH } from '@/lib/constants';
 import { sendFeedbackNotification } from '@/lib/mail';
 import { logToDb } from "@/lib/logger";
@@ -170,6 +170,57 @@ export async function addFeedback(data: {
     } catch (error) {
         await logToDb({ message: "Failed to add feedback details", data: error, source: "songs.ts:addFeedback" });
         return { success: false, error: "שגיאה בשמירת הפידבק" };
+    }
+}
+
+export async function recordListenEvent(data: {
+    songId: string;
+    playedSeconds: number;
+}) {
+    // Ignore very short listens (< 2 seconds) — noise filter
+    if (!data.playedSeconds || data.playedSeconds < 2) {
+        return { success: true, skipped: true };
+    }
+
+    const db = await getDb();
+    try {
+        const { userId } = await auth();
+
+        await db.insert(listenEvents).values({
+            songId: data.songId,
+            userId: userId || null,
+            playedSeconds: data.playedSeconds,
+        });
+
+        return { success: true };
+    } catch (error) {
+        await logToDb({ message: "Failed to record listen event", data: error, source: "songs.ts:recordListenEvent" });
+        return { success: false };
+    }
+}
+
+export async function getListenTimeEvents(songId: string) {
+    const db = await getDb();
+    try {
+        const events = await db.query.listenEvents.findMany({
+            where: (listenEvents, { eq }) => eq(listenEvents.songId, songId),
+            orderBy: (listenEvents, { desc }) => [desc(listenEvents.createdAt)],
+            with: {
+                user: {
+                    columns: { userGenre: true }
+                }
+            }
+        });
+
+        // Calculate average listen time
+        const avgSeconds = events.length > 0
+            ? Math.round(events.reduce((sum, e) => sum + e.playedSeconds, 0) / events.length)
+            : 0;
+
+        return { success: true, events, avgSeconds };
+    } catch (error) {
+        await logToDb({ message: "Failed to get listen events", data: error, source: "songs.ts:getListenEvents" });
+        return { success: false, events: [], avgSeconds: 0 };
     }
 }
 

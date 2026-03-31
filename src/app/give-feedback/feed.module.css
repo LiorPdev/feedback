@@ -167,7 +167,7 @@
   background: var(--brand-hover);
 }
 
-.btnPause {
+.btnStop {
   padding: 0.8rem 1.5rem;
   background: var(--bg-section);
   color: var(--text-main);
@@ -185,7 +185,7 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-.btnPause:hover {
+.btnStop:hover {
   transform: translateY(-2px);
   background: var(--border-color);
   box-shadow: var(--shadow-md);
@@ -213,7 +213,7 @@
 }
 
 .btnPlay:disabled,
-.btnPause:disabled,
+.btnStop:disabled,
 .btnSkip:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -399,7 +399,7 @@
   }
 
   .btnPlay,
-  .btnPause,
+  .btnStop,
   .btnSkip {
     flex: initial;
     width: auto;

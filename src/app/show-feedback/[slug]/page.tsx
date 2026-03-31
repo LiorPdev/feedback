@@ -7,20 +7,11 @@ import DashboardLink from "@/components/DashboardLink";
 import ShareSongButton from "@/components/ShareSongButton";
 import SongPlayer from "./SongPlayer";
 import AuthOverlay from "@/components/AuthOverlay";
-
+import { getListenTimeEvents } from "@/app/actions/songs";
+import FeedbackTabs from "@/components/FeedbackTabs";
 
 interface ShowFeedbackPageProps {
-  params: Promise<{
-    slug: string;
-  }>;
-}
-
-function formatSeconds(seconds: number | null | undefined) {
-  if (!seconds || isNaN(seconds) || seconds <= 0) return null;
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  if (m === 0) return `זמן נגינה: ${s} שנ'`;
-  return `זמן נגינה: ${m}:${s.toString().padStart(2, '0')}`;
+  params: Promise<{ slug: string }>;
 }
 
 export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps) {
@@ -31,52 +22,55 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
   const song = await db.query.songs.findFirst({
     where: (songs, { eq }) => eq(songs.slug, slug),
     with: {
-      user: {
-        columns: {
-          name: true,
-        },
-      },
+      user: { columns: { name: true } },
       feedbacks: {
         orderBy: (feedbacks, { desc }) => [desc(feedbacks.createdAt)]
       }
     },
   });
 
-  if (!song) {
-    notFound();
-  }
+  if (!song) notFound();
 
   const isOwner = userId === song.userId;
+  if (userId && !isOwner) redirect(`/give-feedback/${slug}`);
 
-  // If AUTHENTICATED but NOT owner, send them to give feedback
-  if (userId && !isOwner) {
-    redirect(`/give-feedback/${slug}`);
-  }
-
+  // Averages
   const getAverage = (key: 'cat2' | 'cat3' | 'overall') => {
     const ratings = song.feedbacks.map(f => f[key] as number).filter(r => r > 0);
     if (ratings.length === 0) return null;
     return (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1);
   };
-
   const averages = {
     cat2: getAverage('cat2'),
     cat3: getAverage('cat3'),
     overall: getAverage('overall'),
   };
-
   const hasAnyAverage = Object.values(averages).some(v => v !== null);
 
-  // Fetch author genres for feedbacks
+  // Resolve author genres for feedbacks
   const authorIds = Array.from(new Set(song.feedbacks.map(f => f.authorId).filter(Boolean))) as string[];
   const authors = authorIds.length > 0
     ? await db.query.users.findMany({
-      where: (users, { inArray }) => inArray(users.id, authorIds),
-      columns: { id: true, userGenre: true }
-    })
+        where: (users, { inArray }) => inArray(users.id, authorIds),
+        columns: { id: true, userGenre: true }
+      })
     : [];
-
   const authorGenreMap = new Map(authors.map(a => [a.id, a.userGenre]));
+
+  // Prepare serializable feedbacks (resolve genre inline)
+  const feedbacks = song.feedbacks.map(fb => ({
+    id: fb.id,
+    playedSeconds: fb.playedSeconds,
+    createdAt: fb.createdAt,
+    authorGenre: fb.authorId ? (authorGenreMap.get(fb.authorId) ?? null) : null,
+    cat2: fb.cat2,
+    cat3: fb.cat3,
+    overall: fb.overall,
+    comment: fb.comment,
+  }));
+
+  // Listen events
+  const listenData = await getListenTimeEvents(song.id);
 
   return (
     <div className={styles.container}>
@@ -84,11 +78,7 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
 
       <main className={`${styles.main} ${!userId ? styles.blurred : ""}`}>
         <div className={styles.card}>
-          <BackButton
-            href="/dashboard"
-            title="חזרה לאיזור האישי"
-            className={styles.backButton}
-          />
+          <BackButton href="/dashboard" title="חזרה לאיזור האישי" className={styles.backButton} />
           <SongPlayer url={song.url} />
 
           <div className={styles.titleRow}>
@@ -97,7 +87,6 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
               {new Date(song.createdAt).toLocaleDateString('he-IL')}
             </span>
           </div>
-
 
           {hasAnyAverage && (
             <div className={styles.averagesSection}>
@@ -132,63 +121,22 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
           </div>
         </div>
 
-        <section className={styles.feedbackSection}>
-          {song.feedbacks.length > 0 ? (
-            <div className={styles.feedbacksList}>
-              <h3 className={styles.listHeading}>
-                דירוגים שהתקבלו ({song.feedbacks.length})
-              </h3>
-              {song.feedbacks.map((fb) => (
-                <div key={fb.id} className={styles.feedbackItem}>
-                  <div className={styles.fbHeader}>
-                    {(() => {
-                      const formatted = formatSeconds(fb.playedSeconds);
-                      return formatted ? (
-                        <span className={styles.fbPlaytime}>{formatted}</span>
-                      ) : <span />;
-                    })()}
-                    <span className={styles.fbDate}>
-                      {new Date(fb.createdAt).toLocaleDateString('he-IL')}
-                    </span>
-                  </div>
-
-                  {(() => {
-                    const genreStr = fb.authorId ? authorGenreMap.get(fb.authorId) : null;
-                    if (!genreStr) return null;
-                    const genres = genreStr.split(',').map(g => g.trim()).filter(Boolean).slice(0, 3);
-                    if (genres.length === 0) return null;
-                    return (
-                      <div className={styles.fbRaterGenre}>
-                        סגנון מועדף של המדרג: <span className={styles.genreList}>{genres.join(', ')}</span>
-                      </div>
-                    );
-                  })()}
-
-                  <div className={styles.fbRatingsRow}>
-                    <span className={styles.fbRatingLabel}>דירוג:</span>
-                    <span>הפקה: {fb.cat2}</span>
-                    <span>שירה: {fb.cat3}</span>
-                    <span className={styles.fbOverallBadge}>כללי: {fb.overall}</span>
-                  </div>
-                  <p className={styles.fbComment}>{fb.comment}</p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className={styles.noFeedback}>עדיין אין פידבקים לשיר זה.</div>
-          )}
-        </section>
+        <FeedbackTabs
+          feedbacks={feedbacks}
+          listenEvents={listenData.events ?? []}
+          listenAvgSeconds={listenData.avgSeconds ?? 0}
+        />
 
         <DashboardLink />
       </main>
 
       {!userId && (
         <AuthOverlay
-          message={(
+          message={
             <>
               כדי לצפות בפידבקים ובתובנות על השיר שלך, יש להתחבר למערכת.{"\n\n"}
             </>
-          )}
+          }
         />
       )}
     </div>

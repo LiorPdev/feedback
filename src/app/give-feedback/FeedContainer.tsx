@@ -1,18 +1,20 @@
 "use client";
-import { useUser } from "@clerk/nextjs";
+
 import { useState, useEffect, useCallback, useRef } from "react";
-import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import styles from "./feed.module.css";
+import { useUser } from "@clerk/nextjs";
+import { motion } from "framer-motion";
+import { Play, SquareStop, CheckCircle2, Star, Coins, Loader2 } from "lucide-react";
 import FeedbackForm from "@/components/FeedbackForm";
 import UrlPlayer, { getEmbedUrl, type UrlPlayerHandle } from "@/components/UrlPlayer";
 import DashboardLink from "@/components/DashboardLink";
 import BackButton from "@/components/BackButton";
-import { Play, Pause, CheckCircle2, Star, Coins, Loader2 } from "lucide-react";
 import ArtistSocials from "@/components/ArtistSocials";
+import PopupMsg from "@/components/PopupMsg";
 import { MIN_LISTEN_TIME, SUCCESS_MESSAGE_DURATION } from "@/lib/constants";
 import { logAction } from "@/app/actions/logs";
-import PopupMsg from "@/components/PopupMsg";
+import { recordListenEvent } from "@/app/actions/songs";
+import styles from "./feed.module.css";
 
 interface Song {
   id: string;
@@ -50,11 +52,7 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
   const [songs, setSongs] = useState(initialSongs);
   const [currentIndex, setCurrentIndex] = useState(0);
   const currentSong = songs[currentIndex];
-
-  const getRequiredTime = useCallback(() => {
-    return MIN_LISTEN_TIME;
-  }, []);
-
+  const getRequiredTime = useCallback(() => { return MIN_LISTEN_TIME; }, []);
   const [secondsRemaining, setSecondsRemaining] = useState<number>(getRequiredTime());
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -75,14 +73,35 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
   const [duration, setDuration] = useState(0);
   const [isAuthDismissed, setIsAuthDismissed] = useState(false);
   const playerRef = useRef<UrlPlayerHandle>(null);
+  const currentSongIdRef = useRef<string | null>(currentSong?.id ?? null);
+  const currentTimeRef = useRef<number>(0);
+
+  useEffect(() => {
+    currentSongIdRef.current = currentSong?.id ?? null;
+  }, [currentSong?.id]);
+
+  // Flush on unmount/route change
+  useEffect(() => {
+    return () => {
+      if (currentSongIdRef.current && currentTimeRef.current >= 2) {
+        recordListenEvent({
+          songId: currentSongIdRef.current,
+          playedSeconds: Math.floor(currentTimeRef.current)
+        }).catch(() => null);
+      }
+    };
+  }, []);
+
+  // Flushes the listen event for a given song — fire-and-forget
+  const flushListenEvent = useCallback(async (songId: string) => {
+    if (!songId) return;
+    // Prefer the ref as it's updated every 500ms and doesn't rely on the player being mounted
+    const secs = Math.floor(currentTimeRef.current);
+    recordListenEvent({ songId, playedSeconds: secs }).catch(() => null);
+  }, []);
 
   const embedUrl = currentSong ? getEmbedUrl(currentSong.url) : null;
   const showPlayer = !!embedUrl;
-
-  // Reset state when song changes can also be done via key, but we handle it here
-  // or by reset function called by event handlers.
-  // We'll keep the effect but move it to a more standard pattern if possible,
-  // or just move the resets to the events.
 
   useEffect(() => {
     if (!isTimerActive) return;
@@ -110,6 +129,7 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
           playerRef.current.getDuration()
         ]);
         setCurrentTime(time);
+        currentTimeRef.current = time;
         if (dur > 0) setDuration(dur);
       }
     }, 500);
@@ -125,8 +145,6 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
     router.replace(url.pathname + url.search, { scroll: false });
   };
 
-
-
   const onPlayerPlay = useCallback(() => {
     setIsTimerActive(true);
     setIsPlaying(true);
@@ -134,16 +152,17 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
     setPlayerError(null);
   }, []);
 
-  const onPlayerPause = useCallback(() => {
+  const onPlayerStop = useCallback(() => {
     setIsTimerActive(false);
     setIsPlaying(false);
   }, []);
 
   const onPlayerEnded = useCallback(() => {
+    if (currentSongIdRef.current) flushListenEvent(currentSongIdRef.current);
     setIsTimerActive(false);
     setIsPlaying(false);
     setSecondsRemaining(0);
-  }, []);
+  }, [flushListenEvent]);
 
   const resetSongState = useCallback(() => {
     setSecondsRemaining(getRequiredTime());
@@ -156,6 +175,7 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
     );
     setPlayerError(null);
     setCurrentTime(0);
+    currentTimeRef.current = 0;
     setDuration(0);
   }, [getRequiredTime, currentIndex, songs]);
 
@@ -183,6 +203,8 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
 
   const handleSkip = () => {
     if (songs.length <= 1) return;
+    // Record listen event before moving to next song
+    if (currentSongIdRef.current) flushListenEvent(currentSongIdRef.current);
     resetSongState();
     setHasRatedCurrent(false);
     setJustSubmitted(false);
@@ -193,6 +215,8 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
   };
 
   const handleRemoveCurrent = () => {
+    // Record listen event before removing current song
+    if (currentSongIdRef.current) flushListenEvent(currentSongIdRef.current);
     setSongs((prevSongs) => {
       const updatedSongs = prevSongs.filter((_, i) => i !== currentIndex);
       if (updatedSongs.length === 0) return [];
@@ -217,8 +241,12 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
   const togglePlayback = () => {
     if (!playerRef.current || (!isSignedIn && !isAuthDismissed)) return;
     if (isPlaying) {
+      setIsPlaying(false); // Optimistic UI update
+      setIsTimerActive(false);
       playerRef.current.pause();
     } else {
+      setIsPlaying(true); // Optimistic UI update
+      setIsTimerActive(true);
       playerRef.current.play();
     }
   };
@@ -277,7 +305,7 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
                 ref={playerRef}
                 url={currentSong.url}
                 onPlay={onPlayerPlay}
-                onPause={onPlayerPause}
+                onPause={onPlayerStop}
                 onEnded={onPlayerEnded}
                 onReady={() => setIsTransitioning(false)}
                 onError={onPlayerError}
@@ -296,23 +324,18 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
           <div className={styles.actions}>
             {isHiddenPlayer ? (
               <button
-                className={isProminentNext ? styles.btnSkip : (isPlaying ? styles.btnPause : styles.btnPlay)}
+                className={isProminentNext ? styles.btnSkip : (isPlaying ? styles.btnStop : styles.btnPlay)}
                 onClick={togglePlayback}
                 disabled={((!isSignedIn && !isAuthDismissed) && isLoaded) || isTransitioning}
               >
-                {isTransitioning ? (
+                {isPlaying ? (
                   <>
-                    <Loader2 size={20} className={styles.spinIcon} />
-                    <span>טוען...</span>
-                  </>
-                ) : isPlaying ? (
-                  <>
-                    <Pause size={20} fill="currentColor" />
+                    {isTransitioning ? <Loader2 size={20} className={styles.spinIcon} /> : <SquareStop size={20} fill="currentColor" />}
                     <span>עצור</span>
                   </>
                 ) : (
                   <>
-                    <Play size={20} fill="currentColor" />
+                    {isTransitioning ? <Loader2 size={20} className={styles.spinIcon} /> : <Play size={20} fill="currentColor" />}
                     <span>נגן</span>
                   </>
                 )}
@@ -432,7 +455,7 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
         title="נגמרו תווי הקרדיט"
         message={
           <div>
-            <div>החדשות הטובות: על כל פידבק שתיתנו כאן, תקבלו את תווי קרדיט נוספים!</div>
+            <div>החדשות הטובות: על כל פידבק שתיתנו כאן, תקבלו תווי קרדיט נוספים!</div>
           </div>
         }
         icon={<Coins size={48} />}
