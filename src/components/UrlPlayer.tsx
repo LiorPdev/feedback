@@ -10,8 +10,9 @@
 
 "use client";
 
-import { useEffect, useRef, forwardRef, useImperativeHandle, useState } from "react";
+import { useEffect, useRef, forwardRef, useImperativeHandle, useState, useCallback } from "react";
 import { logAction } from "@/app/actions/logs";
+import { recordListenEvent } from "@/app/actions/songs";
 import styles from "./UrlPlayer.module.css";
 
 // Declare global types for APIs
@@ -23,6 +24,7 @@ declare global {
 }
 interface UrlPlayerProps {
   url: string;
+  songId?: string;
   onPlay?: () => void;
   onPause?: () => void;
   onReady?: () => void;
@@ -59,7 +61,7 @@ export interface UrlPlayerHandle {
   pause: () => void;
 }
 
-const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, onPause, onReady, onError, onEnded, isHidden = false }, ref) => {
+const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, onPlay, onPause, onReady, onError, onEnded, isHidden = false }, ref) => {
   const isUnmountingRef = useRef(false);
   const [mounted, setMounted] = useState(false);
   const [origin, setOrigin] = useState("");
@@ -83,6 +85,12 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
   const onReadyRef = useRef(onReady);
   const onErrorRef = useRef(onError);
   const onEndedRef = useRef(onEnded);
+  const songIdRef = useRef(songId);
+
+  // Tracking refs
+  const startTimeRef = useRef<number>(0);
+  const currentTimeRef = useRef<number>(0);
+  const isPlayingRef = useRef<boolean>(false);
 
 
   useEffect(() => {
@@ -91,13 +99,51 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
     onReadyRef.current = onReady;
     onErrorRef.current = onError;
     onEndedRef.current = onEnded;
-  }, [onPlay, onPause, onReady, onError, onEnded]);
+    songIdRef.current = songId;
+  }, [onPlay, onPause, onReady, onError, onEnded, songId]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const guard = (fn: ((...args: any[]) => void) | undefined) => (...args: any[]) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (!isUnmountingRef.current && fn) (fn as any)(...args);
   };
+
+  const flushListenEvent = useCallback(async () => {
+    if (!songIdRef.current || !isPlayingRef.current) return;
+
+    const endTime = currentTimeRef.current;
+    const delta = Math.floor(endTime - startTimeRef.current);
+
+    if (delta >= 2) { // 2000ms
+      const id = songIdRef.current;
+      recordListenEvent({ songId: id, playedSeconds: delta }).catch(() => null);
+    }
+
+    // Reset tracking for next session
+    startTimeRef.current = endTime;
+  }, []);
+
+  const handlePlayStart = useCallback(async () => {
+    if (isPlayingRef.current) return;
+
+    // Get current playback time to set as start point
+    let time = 0;
+    if (isYouTube && playerRef.current?.getCurrentTime) {
+      time = playerRef.current.getCurrentTime();
+    } else if (isAudio && audioRef.current) {
+      time = audioRef.current.currentTime;
+    }
+
+    startTimeRef.current = time;
+    currentTimeRef.current = time;
+    isPlayingRef.current = true;
+  }, [isYouTube, isAudio]);
+
+  const handlePlayStop = useCallback(() => {
+    if (!isPlayingRef.current) return;
+    flushListenEvent();
+    isPlayingRef.current = false;
+  }, [flushListenEvent]);
 
   useImperativeHandle(ref, () => ({
     getPlaybackTime: async () => {
@@ -150,6 +196,23 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
     }
   }));
 
+  // Management of tracking interval
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      if (!isPlayingRef.current) return;
+
+      let time = 0;
+      if (isYouTube && playerRef.current?.getCurrentTime) {
+        time = playerRef.current.getCurrentTime();
+      } else if (isAudio && audioRef.current) {
+        time = audioRef.current.currentTime;
+      }
+      currentTimeRef.current = time;
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, [isYouTube, isAudio]);
+
   useEffect(() => {
     if (!mounted || !embedUrl || !iframeRef.current) return;
 
@@ -179,10 +242,13 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               onStateChange: (event: any) => {
                 if (event.data === window.YT.PlayerState.PLAYING) {
+                  handlePlayStart();
                   guard(onPlayRef.current)();
                 } else if (event.data === window.YT.PlayerState.PAUSED) {
+                  handlePlayStop();
                   guard(onPauseRef.current)();
                 } else if (event.data === window.YT.PlayerState.ENDED) {
+                  handlePlayStop();
                   guard(onPauseRef.current)();
                   guard(onEndedRef.current)();
                 }
@@ -234,6 +300,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
     return () => {
       // Cleanup
       isUnmountingRef.current = true;
+      handlePlayStop(); // Record final session before unmount
       const player = playerRef.current;
       if (player) {
         try {
@@ -248,7 +315,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
       }
       playerRef.current = null;
     };
-  }, [embedUrl, url, mounted, origin, isYouTube]);
+  }, [embedUrl, url, mounted, origin, isYouTube, handlePlayStart, handlePlayStop]);
 
   if (!mounted) {
     return (
@@ -278,9 +345,16 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, onPlay, on
         <audio
           ref={audioRef}
           src={url}
-          onPlay={() => guard(onPlayRef.current)()}
-          onPause={() => guard(onPauseRef.current)()}
+          onPlay={() => {
+            handlePlayStart();
+            guard(onPlayRef.current)();
+          }}
+          onPause={() => {
+            handlePlayStop();
+            guard(onPauseRef.current)();
+          }}
           onEnded={() => {
+            handlePlayStop();
             guard(onPauseRef.current)();
             guard(onEndedRef.current)();
           }}

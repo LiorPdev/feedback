@@ -60,6 +60,9 @@ export default function ListenTimeTab({ events, avgSeconds }: ListenTimeTabProps
         <h3 className={styles.listHeading}>
           פירוט השמעות ({events.length})
         </h3>
+        <p className={styles.weightedNote} style={{ marginTop: '-1.3rem' }}>
+          חשוב לזכור שזמן ההאזנה באתר נועד לגיבוש חוות דעת, ולא להאזנה מלאה לשיר.
+        </p>
         {events.map((ev) => {
           const genres = ev.user?.userGenre
             ? ev.user.userGenre.split(',').map((g: string) => g.trim()).filter(Boolean).slice(0, 3)

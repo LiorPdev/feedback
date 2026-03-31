@@ -13,7 +13,6 @@ import ArtistSocials from "@/components/ArtistSocials";
 import PopupMsg from "@/components/PopupMsg";
 import { MIN_LISTEN_TIME, SUCCESS_MESSAGE_DURATION } from "@/lib/constants";
 import { logAction } from "@/app/actions/logs";
-import { recordListenEvent } from "@/app/actions/songs";
 import styles from "./feed.module.css";
 
 interface Song {
@@ -73,32 +72,6 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
   const [duration, setDuration] = useState(0);
   const [isAuthDismissed, setIsAuthDismissed] = useState(false);
   const playerRef = useRef<UrlPlayerHandle>(null);
-  const currentSongIdRef = useRef<string | null>(currentSong?.id ?? null);
-  const currentTimeRef = useRef<number>(0);
-
-  useEffect(() => {
-    currentSongIdRef.current = currentSong?.id ?? null;
-  }, [currentSong?.id]);
-
-  // Flush on unmount/route change
-  useEffect(() => {
-    return () => {
-      if (currentSongIdRef.current && currentTimeRef.current >= 2) {
-        recordListenEvent({
-          songId: currentSongIdRef.current,
-          playedSeconds: Math.floor(currentTimeRef.current)
-        }).catch(() => null);
-      }
-    };
-  }, []);
-
-  // Flushes the listen event for a given song — fire-and-forget
-  const flushListenEvent = useCallback(async (songId: string) => {
-    if (!songId) return;
-    // Prefer the ref as it's updated every 500ms and doesn't rely on the player being mounted
-    const secs = Math.floor(currentTimeRef.current);
-    recordListenEvent({ songId, playedSeconds: secs }).catch(() => null);
-  }, []);
 
   const embedUrl = currentSong ? getEmbedUrl(currentSong.url) : null;
   const showPlayer = !!embedUrl;
@@ -129,7 +102,6 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
           playerRef.current.getDuration()
         ]);
         setCurrentTime(time);
-        currentTimeRef.current = time;
         if (dur > 0) setDuration(dur);
       }
     }, 500);
@@ -158,11 +130,10 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
   }, []);
 
   const onPlayerEnded = useCallback(() => {
-    if (currentSongIdRef.current) flushListenEvent(currentSongIdRef.current);
     setIsTimerActive(false);
     setIsPlaying(false);
     setSecondsRemaining(0);
-  }, [flushListenEvent]);
+  }, []);
 
   const resetSongState = useCallback(() => {
     setSecondsRemaining(getRequiredTime());
@@ -175,7 +146,6 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
     );
     setPlayerError(null);
     setCurrentTime(0);
-    currentTimeRef.current = 0;
     setDuration(0);
   }, [getRequiredTime, currentIndex, songs]);
 
@@ -203,8 +173,6 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
 
   const handleSkip = () => {
     if (songs.length <= 1) return;
-    // Record listen event before moving to next song
-    if (currentSongIdRef.current) flushListenEvent(currentSongIdRef.current);
     resetSongState();
     setHasRatedCurrent(false);
     setJustSubmitted(false);
@@ -215,8 +183,6 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
   };
 
   const handleRemoveCurrent = () => {
-    // Record listen event before removing current song
-    if (currentSongIdRef.current) flushListenEvent(currentSongIdRef.current);
     setSongs((prevSongs) => {
       const updatedSongs = prevSongs.filter((_, i) => i !== currentIndex);
       if (updatedSongs.length === 0) return [];
@@ -304,6 +270,7 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
               <UrlPlayer
                 ref={playerRef}
                 url={currentSong.url}
+                songId={currentSong.id}
                 onPlay={onPlayerPlay}
                 onPause={onPlayerStop}
                 onEnded={onPlayerEnded}

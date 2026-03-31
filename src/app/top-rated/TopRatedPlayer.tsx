@@ -7,9 +7,10 @@ import styles from "./top-rated.module.css";
 
 interface TopRatedPlayerProps {
   url: string;
+  songId: string;
 }
 
-export default function TopRatedPlayer({ url }: TopRatedPlayerProps) {
+export default function TopRatedPlayer({ url, songId }: TopRatedPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const playerRef = useRef<UrlPlayerHandle>(null);
@@ -71,6 +72,7 @@ export default function TopRatedPlayer({ url }: TopRatedPlayerProps) {
       <UrlPlayer 
         ref={playerRef}
         url={url}
+        songId={songId}
         onReady={() => setIsReady(true)}
         onPlay={() => {
           setIsPlaying(true);

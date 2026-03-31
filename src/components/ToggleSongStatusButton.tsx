@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Play, Pause, Loader2 } from "lucide-react";
+import { RefreshCcw, OctagonPause, Loader2 } from "lucide-react";
 import { toggleSongStatus } from "@/app/actions/songs";
 import styles from "./ToggleSongStatusButton.module.css";
 import { motion, AnimatePresence } from "framer-motion";
@@ -54,9 +54,9 @@ export default function ToggleSongStatusButton({ songId, isActive: initialIsActi
         {isLoading ? (
           <Loader2 size={16} className={styles.spin} />
         ) : isActive ? (
-          <Pause size={16} fill="currentColor" />
+          <OctagonPause size={16} />
         ) : (
-          <Play size={16} fill="currentColor" />
+          <RefreshCcw size={16} />
         )}
       </button>
 
