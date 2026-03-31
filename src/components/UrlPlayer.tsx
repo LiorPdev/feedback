@@ -114,7 +114,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
     const endTime = currentTimeRef.current;
     const delta = Math.floor(endTime - startTimeRef.current);
 
-    if (delta >= 2) { // 2000ms
+    if (delta >= 5) { // 5000ms
       const id = songIdRef.current;
       recordListenEvent({ songId: id, playedSeconds: delta }).catch(() => null);
     }

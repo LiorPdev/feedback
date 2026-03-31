@@ -30,7 +30,7 @@ export default async function TopRatedPage() {
       <main className={styles.main}>
         <div className={styles.header}>
           <BackButton href="/" title="חזרה לדף הבית" />
-          <h1 className={styles.title}>10 השירים עם הדירוג הכי גבוה</h1>
+          <h1 className={styles.title}>10 השירים המובילים</h1>
         </div>
 
         <div className={styles.listCard}>

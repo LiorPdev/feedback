@@ -48,6 +48,8 @@ export default function TopRatedPlayer({ url, songId }: TopRatedPlayerProps) {
       playerRef.current?.pause();
       setIsPlaying(false);
     } else {
+      // Dispatch immediately to stop other players without delay
+      window.dispatchEvent(new CustomEvent("top-rated-play", { detail: { id: url } }));
       playerRef.current?.play();
       setIsPlaying(true);
     }
