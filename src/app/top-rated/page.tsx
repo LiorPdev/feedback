@@ -7,6 +7,7 @@ import Link from "next/link";
 import ShareSongButton from "@/components/ShareSongButton";
 import TopRatedPlayer from "./TopRatedPlayer";
 import TopRatedFooter from "./TopRatedFooter";
+import SocialIcon from "@/components/SocialIcon";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +32,15 @@ export default async function TopRatedPage() {
         <div className={styles.header}>
           <BackButton href="/" title="חזרה לדף הבית" />
           <h1 className={styles.title}>10 השירים המובילים</h1>
+          <a
+            href="https://open.spotify.com/playlist/0qYgjCnqOmG1WyJ3nZf841?si=86614b338dab4324"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.spotifyLink}
+            title="פלייליסט בספוטיפיי"
+          >
+            <SocialIcon platform="spotify" size={24} />
+          </a>
         </div>
 
         <div className={styles.listCard}>

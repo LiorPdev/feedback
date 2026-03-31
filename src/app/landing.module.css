@@ -166,9 +166,8 @@
 
 .topRatedLink:hover {
   opacity: 1;
-  background: color-mix(in srgb, var(--brand-contrast), transparent 85%);
+  background: color-mix(in srgb, var(--brand-contrast), transparent 91%);
   border-color: color-mix(in srgb, var(--brand-contrast), transparent 70%);
-  text-shadow: 0 0 15px color-mix(in srgb, var(--brand-contrast), transparent 40%);
 }
 
 .heroMockup {
