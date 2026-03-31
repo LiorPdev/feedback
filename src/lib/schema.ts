@@ -50,6 +50,7 @@ export const feedbacks = sqliteTable('Feedback', {
     overall: integer('overall').notNull(),
     comment: text('comment').notNull(),
     playedSeconds: integer('playedSeconds'),
+    isUnlocked: integer('isUnlocked', { mode: 'boolean' }).default(false).notNull(),
     createdAt: text('createdAt').notNull().$defaultFn(() => new Date().toISOString()),
 }, (table) => {
     return {

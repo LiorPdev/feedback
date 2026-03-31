@@ -1,0 +1,1 @@
+ALTER TABLE `Feedback` ADD `isUnlocked` integer DEFAULT false NOT NULL;
