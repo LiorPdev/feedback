@@ -195,17 +195,7 @@ export default function Navbar() {
                   content={
                     <p>שליחת שיר וצפיה בפידבק מורידה מתווי הקרדיט. כדי לצבור תווי קרדיט חדשים, פשוט תנו פידבק לשירים של יוצרים אחרים בקהילה.</p>
                   }
-                  footer={
-                    <button
-                      className={styles.infoLink}
-                      onClick={() => {
-                        setShowTokensInfo(false);
-                        setShowCreditModal(true);
-                      }}
-                    >
-                      שלח/קבל תווי קרדיט
-                    </button>
-                  }
+
                   arrowPosition="left"
                   align="left"
                   triggerRef={tokenTriggerRef}

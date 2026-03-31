@@ -240,11 +240,6 @@ export default function LandingClient({
                 title: "לבחור את השיר הנכון",
                 desc: "מתלבטים איזה שיר להוציא כסינגל? לא בטוחים איזה עיבוד עובד טוב יותר? העלו מספר שירים או גרסאות וגלו מה אחרים חושבים. הפידבקים יעזרו לכם להחליט במה להשקיע ואיזה שיר הכי כדאי לקדם.",
                 icon: <CheckCircle />
-              },
-              {
-                title: "חשיפה בפלייליסטים",
-                desc: "השירים שיקבלו את הדירוגים הגבוהים ביותר מהקהילה, יוכלו לזכות בחשיפה בפלייליסטים עם אלפי עוקבים.",
-                icon: <CheckCircle />
               }
             ].map((feature, idx) => (
               <motion.div key={idx} className={styles.featureCard} variants={fadeInUp}>
