@@ -183,6 +183,17 @@
   z-index: 2;
 }
 
+.mockupStatic {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/10;
+  border-radius: 20px;
+  box-shadow: var(--shadow-xl);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  background: var(--card-bg);
+}
+
 /* Features Section */
 .features {
   padding: 80px 5vw 0;

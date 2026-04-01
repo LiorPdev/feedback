@@ -4,6 +4,7 @@ import Link from "next/link";
 import { SignedIn, SignedOut, useUser } from "@clerk/nextjs";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle } from "lucide-react";
+import Image from "next/image";
 import styles from "@/app/landing.module.css";
 import { useState, useEffect } from "react";
 import { getUserSongCount } from "@/app/actions/songs";
@@ -174,7 +175,19 @@ export default function LandingClient({
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.4 }}
           >
-            <HeroGallery />
+            {user ? (
+              <div className={styles.mockupStatic}>
+                <Image
+                  src="/mockup1.webp"
+                  alt="Feedback Space Mockup"
+                  fill
+                  style={{ objectFit: "cover" }}
+                  priority
+                />
+              </div>
+            ) : (
+              <HeroGallery />
+            )}
           </motion.div>
         </div>
 
