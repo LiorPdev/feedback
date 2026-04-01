@@ -30,7 +30,7 @@
 }
 
 .large {
-  background: color-mix(in srgb, var(--brand-primary), transparent 25%);
+  background: color-mix(in srgb, var(--brand-primary), transparent 35%);
   color: white !important;
   padding: 12px 24px;
   border-radius: 100px;
@@ -40,10 +40,10 @@
   box-shadow: 0 4px 12px rgba(0, 102, 255, 0.2);
 }
 
-.large:hover {
-  background: #0056e0;
+.shareBtn.large:hover:not(:disabled) {
+  background: var(--brand-primary);
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 102, 255, 0.3);
+  box-shadow: 0 6px 20px rgba(0, 102, 255, 0.4);
 }
 
 .iconBox {

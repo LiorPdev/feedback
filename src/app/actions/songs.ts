@@ -4,10 +4,10 @@ import { getDb } from '@/lib/db';
 import { nanoid } from 'nanoid';
 import { revalidatePath } from 'next/cache';
 import { currentUser, auth } from '@clerk/nextjs/server';
-import { eq, sql } from 'drizzle-orm';
+import { eq, sql, and, notInArray } from 'drizzle-orm';
 import { users, songs, feedbacks, listenEvents } from '@/lib/schema';
-import { SONG_SUBMISSION_COST, REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH } from '@/lib/constants';
-import { sendFeedbackNotification } from '@/lib/mail';
+import { SONG_SUBMISSION_COST, REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH, TOP_RATED_MIN_RATINGS_THRESHOLD, TOP_RATED_NOTIFICATION_COOLDOWN_DAYS, TOP_RATED_DECAY_FACTOR } from '@/lib/constants';
+import { sendFeedbackNotification, sendTopRatedNotification } from '@/lib/mail';
 import { logToDb } from "@/lib/logger";
 import { deleteFileFromR2 } from '@/app/actions/upload';
 import { syncUser } from '@/lib/user-auth';
@@ -166,7 +166,16 @@ export async function addFeedback(data: {
             acc + f.cat2 + f.cat3 + f.overall, 0);
         const averageRating = totalFeedbacks > 0 ? sumAll / (totalFeedbacks * 3) : 0;
 
+        // Revalidate top-rated as well since it might change
+        revalidatePath('/top-rated');
+
+        // Check and notify for Top-Rated status (asynchronously)
+        checkAndNotifyTopRated().catch(err =>
+            logToDb({ message: "Async checkAndNotifyTopRated failed", data: err, source: "songs.ts:addFeedback" })
+        );
+
         return { success: true, feedback, averageRating, totalFeedbacks };
+
     } catch (error) {
         await logToDb({ message: "Failed to add feedback details", data: error, source: "songs.ts:addFeedback" });
         return { success: false, error: "שגיאה בשמירת הפידבק" };
@@ -758,6 +767,28 @@ export async function getURLMetadata(url: string) {
     }
 }
 
+/**
+ * Bayesian Rating Formula: (v*R + m*C) / (v+m)
+ * v = number of ratings for the song
+ * R = average rating of the song
+ * m = minimum ratings threshold
+ * C = global average rating
+ */
+function getBayesianRatingSql(m: number, C: number) {
+    const bayesianAvg = sql<number>`
+        ( (count(${feedbacks.id}) * avg((${feedbacks.cat2} + ${feedbacks.cat3} + ${feedbacks.overall}) / 3.0)) + (${m} * ${C}) )
+        / (count(${feedbacks.id}) + ${m})
+    `;
+
+    // Final score = Bayesian Average - (Days since entry * Decay Factor)
+    return sql<number>`
+        ${bayesianAvg} - (CASE 
+            WHEN ${songs.topRatedLastNotified} IS NULL THEN 0 
+            ELSE (julianday('now') - julianday(${songs.topRatedLastNotified})) * ${TOP_RATED_DECAY_FACTOR} 
+        END)
+    `;
+}
+
 export async function getTopRatedSongs() {
     const db = await getDb();
     try {
@@ -767,7 +798,9 @@ export async function getTopRatedSongs() {
         }).from(feedbacks);
 
         const C = globalStats[0]?.avgRating || 0;
-        const m = 3; // Minimum ratings threshold
+        const m = TOP_RATED_MIN_RATINGS_THRESHOLD;
+
+        const weightedRatingSql = getBayesianRatingSql(m, C);
 
         const topSongs = await db.select({
             id: songs.id,
@@ -777,29 +810,133 @@ export async function getTopRatedSongs() {
             artist: songs.artist,
             slug: songs.slug,
             userId: songs.userId,
+            topRatedLastNotified: songs.topRatedLastNotified,
             socialLinks: users.socialLinks,
             averageRating: sql<number>`CAST(avg((${feedbacks.cat2} + ${feedbacks.cat3} + ${feedbacks.overall}) / 3.0) AS FLOAT)`,
             totalFeedbacks: sql<number>`count(${feedbacks.id})`,
-            // Bayesian Average: (v*R + m*C) / (v+m)
-            weightedRating: sql<number>`
-                ( (count(${feedbacks.id}) * avg((${feedbacks.cat2} + ${feedbacks.cat3} + ${feedbacks.overall}) / 3.0)) + (${m} * ${C}) )
-                / (count(${feedbacks.id}) + ${m})
-            `
+            weightedRating: weightedRatingSql
         })
             .from(songs)
             .innerJoin(feedbacks, eq(songs.id, feedbacks.songId))
             .innerJoin(users, eq(songs.userId, users.id))
             .where(eq(songs.isActive, true))
             .groupBy(songs.id)
-            .orderBy(sql`
-            ( (count(${feedbacks.id}) * avg((${feedbacks.cat2} + ${feedbacks.cat3} + ${feedbacks.overall}) / 3.0)) + (${m} * ${C}) )
-            / (count(${feedbacks.id}) + ${m}) DESC
-        `)
+            .orderBy(sql`${weightedRatingSql} DESC`)
             .limit(10);
 
         return { success: true, songs: topSongs };
     } catch (error) {
         await logToDb({ message: "Failed to fetch top rated songs", data: error, source: "songs.ts:getTopRatedSongs" });
         return { success: false, error: "שגיאה בטעינת השירים המדורגים" };
+    }
+}
+
+/**
+ * Checks if any song in the current Top 10 should receive a notification.
+ * Logic for non-developers:
+ * 1. Calculate the current Top 10 songs on the site.
+ * 2. If a song just entered the Top 10 (wasn't there before):
+ *    - Check if we already sent them an email in the last 7 days (to avoid spam).
+ *    - If not, send a celebratory email and mark them as "In Top 10".
+ * 3. If a song is no longer in the Top 10, mark it as "Out" so we can detect its next entry.
+ * Runs asynchronously to avoid blocking the main feedback submission flow.
+ */
+export async function checkAndNotifyTopRated() {
+    const db = await getDb();
+    try {
+        // 1. Get current Top 10 using the shared Bayesian logic
+        const globalStats = await db.select({
+            avgRating: sql<number>`avg((${feedbacks.cat2} + ${feedbacks.cat3} + ${feedbacks.overall}) / 3.0)`
+        }).from(feedbacks);
+
+        const C = globalStats[0]?.avgRating || 0;
+        const m = TOP_RATED_MIN_RATINGS_THRESHOLD;
+        const weightedRatingSql = getBayesianRatingSql(m, C);
+
+        const currentTop10 = await db.select({
+            id: songs.id,
+            title: songs.title,
+            slug: songs.slug,
+            userId: songs.userId,
+            topRatedLastNotified: songs.topRatedLastNotified,
+            isInTopRated: songs.isInTopRated,
+        })
+            .from(songs)
+            .innerJoin(feedbacks, eq(songs.id, feedbacks.songId))
+            .where(eq(songs.isActive, true))
+            .groupBy(songs.id)
+            .orderBy(sql`${weightedRatingSql} DESC`)
+            .limit(10);
+
+        const currentTop10Ids = currentTop10.map(s => s.id);
+        const now = new Date();
+        const cooldownMs = TOP_RATED_NOTIFICATION_COOLDOWN_DAYS * 24 * 60 * 60 * 1000;
+
+        // 2. Handle Entries (songs in Top 10 but flag is false)
+        for (let i = 0; i < currentTop10.length; i++) {
+            const song = currentTop10[i];
+
+            if (!song.isInTopRated) {
+                // ENTRY EVENT!
+                const lastNotified = song.topRatedLastNotified ? new Date(song.topRatedLastNotified) : null;
+
+                // Check if never notified OR cooldown passed
+                if (!lastNotified || (now.getTime() - lastNotified.getTime() >= cooldownMs)) {
+                    // Fetch user email
+                    const user = await db.query.users.findFirst({
+                        where: (users, { eq }) => eq(users.id, song.userId),
+                        columns: { email: true }
+                    });
+
+                    if (user?.email) {
+                        const result = await sendTopRatedNotification({
+                            to: user.email,
+                            songTitle: song.title,
+                        });
+
+                        if (result.success) {
+                            // Update last notified date
+                            await db.update(songs)
+                                .set({
+                                    topRatedLastNotified: now.toISOString(),
+                                    isInTopRated: true
+                                })
+                                .where(eq(songs.id, song.id));
+                        } else {
+                            await logToDb({
+                                message: `Top-Rated notification failed for song: ${song.title}`,
+                                data: result.error,
+                                source: "songs.ts:checkAndNotifyTopRated"
+                            });
+                            // Still set the flag to true so we don't keep trying to send email on every feedback
+                            // if it's already in the top 10 (we'll try again next time it "enters").
+                            await db.update(songs).set({ isInTopRated: true }).where(eq(songs.id, song.id));
+                        }
+                    } else {
+                        // Mark as In even if no email found
+                        await db.update(songs).set({ isInTopRated: true }).where(eq(songs.id, song.id));
+                    }
+                } else {
+                    // Re-entered before cooldown. Mark as In but don't send mail.
+                    await db.update(songs).set({ isInTopRated: true }).where(eq(songs.id, song.id));
+                }
+            }
+        }
+
+        // 3. Handle Exits (songs marked as In but not in the current IDs)
+        if (currentTop10Ids.length > 0) {
+            await db.update(songs)
+                .set({ isInTopRated: false })
+                .where(and(
+                    eq(songs.isInTopRated, true),
+                    notInArray(songs.id, currentTop10Ids)
+                ));
+        } else {
+            // If Top 10 is somehow empty, clear all flags
+            await db.update(songs).set({ isInTopRated: false }).where(eq(songs.isInTopRated, true));
+        }
+
+    } catch (error) {
+        await logToDb({ message: "Failed in checkAndNotifyTopRated", data: error, source: "songs.ts:checkAndNotifyTopRated" });
     }
 }

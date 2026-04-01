@@ -171,7 +171,7 @@ export default function FeedbackTabs({
                               ) : (
                                 <Lock className={styles.lockIcon} />
                               )}
-                              הצגת הפידבק
+                              לחצו כאן לצפיה בפידבק
                             </button>
                           </>
                         )}

@@ -1,0 +1,1 @@
+ALTER TABLE `Song` ADD `isInTopRated` integer DEFAULT false NOT NULL;

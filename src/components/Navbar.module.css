@@ -39,6 +39,7 @@
   font-weight: 900;
   color: var(--text-main);
   letter-spacing: -0.02em;
+  transform: translateY(3px);
 }
 
 .logoImage {
@@ -82,6 +83,12 @@
   font-weight: 700;
   font-size: 0.95rem;
   transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+}
+
+.homeLink {
+  transform: translateY(2px);
 }
 
 .navLink:hover {
@@ -143,26 +150,20 @@
   }
 
   .logo span {
-    font-size: 1.1rem;
+    font-size: 0.9rem;
   }
 }
 
-@media (max-width: 400px) {
+@media (max-width: 420px) {
   .logo {
     gap: 6px;
   }
 
   .logo span {
-    font-size: 0.85rem;
+    display: none;
   }
 
   .navContent {
     padding: 0 0.75rem;
-  }
-}
-
-@media (max-width: 360px) {
-  .logo span {
-    display: none;
   }
 }

@@ -29,6 +29,7 @@ export const songs = sqliteTable('Song', {
     isActive: integer('isActive', { mode: 'boolean' }).default(true).notNull(),
     slug: text('slug').notNull().unique(),
     topRatedLastNotified: text('topRatedLastNotified'),
+    isInTopRated: integer('isInTopRated', { mode: 'boolean' }).default(false).notNull(),
     createdAt: text('createdAt').notNull().$defaultFn(() => new Date().toISOString()),
     updatedAt: text('updatedAt').notNull().$defaultFn(() => new Date().toISOString()),
 }, (table) => {

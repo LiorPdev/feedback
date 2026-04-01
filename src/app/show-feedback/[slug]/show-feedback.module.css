@@ -443,7 +443,7 @@
 }
 
 .unlockBtn {
-  background: var(--brand-primary);
+  background: color-mix(in srgb, var(--brand-primary), transparent 25%);
   color: white;
   border: none;
   padding: 0.85rem 1.75rem;
@@ -461,7 +461,7 @@
 .unlockBtn:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(30, 58, 138, 0.35);
-  background: var(--brand-hover);
+  background: var(--brand-primary);
 }
 
 .unlockBtn:active {
@@ -474,9 +474,18 @@
 }
 
 @media (max-width: 600px) {
+
+  .title {
+    font-size: 1.6rem;
+  }
+
+  .averagesSection {
+    margin-bottom: 1rem;
+  }
+
   .averagesGrid {
     gap: 1rem;
-    padding: 1.25rem 1rem;
+    padding: 0.8rem;
   }
 
   .avgValue {

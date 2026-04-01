@@ -15,6 +15,7 @@ import CreditTransferModal from "./CreditTransferModal";
 import styles from "./Navbar.module.css";
 import AnimatedTokenCounter from "./AnimatedTokenCounter";
 import { getCookie, setCookie } from "@/lib/cookieUtils";
+import { GiPodium } from "react-icons/gi";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -162,10 +163,13 @@ export default function Navbar() {
         </Link>
         <div className={styles.navLinks}>
           {pathname !== "/" && (
-            <Link href="/" className={styles.navLink} title="דף הבית">
+            <Link href="/" className={`${styles.navLink} ${styles.homeLink}`} title="דף הבית">
               <Home size={24} />
             </Link>
           )}
+          <Link href="/top-rated" className={styles.navLink} title="היכל התהילה">
+            <GiPodium size={24} />
+          </Link>
           <SignedOut>
             <SignInButton mode="modal">
               <button className={styles.btnGoogle}>

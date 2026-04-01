@@ -10,6 +10,7 @@ import { getUserSongCount } from "@/app/actions/songs";
 import Footer from "./Footer";
 import AuthOverlay from "./AuthOverlay";
 import HeroGallery from "./HeroGallery";
+import { GiPodium } from "react-icons/gi";
 
 // Animation variants
 const fadeInUp = {
@@ -160,7 +161,8 @@ export default function LandingClient({
 
             <motion.div variants={fadeInUp} className={styles.topRatedLinkWrapper}>
               <Link href="/top-rated" className={styles.topRatedLink}>
-                10 השירים המובילים
+                <GiPodium size={20} />
+                <span>היכל התהילה</span>
               </Link>
             </motion.div>
 

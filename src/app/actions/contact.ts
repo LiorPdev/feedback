@@ -1,7 +1,7 @@
 "use server";
 
 import { auth, currentUser } from "@clerk/nextjs/server";
-import { sendContactEmail } from "@/lib/mail";
+import { sendContactUsEmail } from "@/lib/mail";
 import { logToDb } from "@/lib/logger";
 
 export async function submitContactMessage(message: string) {
@@ -16,7 +16,7 @@ export async function submitContactMessage(message: string) {
   const userName = user.firstName ? `${user.firstName} ${user.lastName || ""}` : userEmail;
 
   try {
-    const result = await sendContactEmail({
+    const result = await sendContactUsEmail({
       fromEmail: userEmail,
       fromName: userName,
       message,

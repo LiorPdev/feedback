@@ -154,14 +154,16 @@
   color: var(--brand-contrast);
   font-size: 1.2rem;
   background: color-mix(in srgb, var(--brand-contrast), transparent 96%);
-  padding: 6px 16px;
+  padding: 10px 20px;
   border-radius: 100px;
   border: 1px solid color-mix(in srgb, var(--brand-contrast), transparent 94%);
-  display: inline-block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   text-decoration: none;
   font-weight: 800;
   transition: all 0.2s ease;
-  opacity: 0.9;
 }
 
 .topRatedLink:hover {
@@ -169,6 +171,11 @@
   background: color-mix(in srgb, var(--brand-contrast), transparent 91%);
   border-color: color-mix(in srgb, var(--brand-contrast), transparent 70%);
 }
+
+.topRatedLink svg {
+  transform: translateY(-3px);
+}
+
 
 .heroMockup {
   flex: 1;

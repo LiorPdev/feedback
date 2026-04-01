@@ -27,15 +27,26 @@ export async function sendFeedbackNotification({
   const body = {
     sender: { name: "Feedback Space", email: "contact@feedback.activitywiz.com" },
     to: [{ email: to }],
-    subject: "פידבק חדש מחכה לך ב-Feedback Space!",
+    subject: "פידבק חדש מחכה לך בפידבק-ספייס!",
     htmlContent: `
-      <div dir="rtl" style="font-family: sans-serif; line-height: 1.6; text-align: right;">
-        <p>היי,</p>
-        <p>השיר <strong>${songTitle}</strong> קיבל פידבק חדש בקהילה.</p>
-        <p>לצפייה בפידבק לחץ כאן:</p>
-        <p><a href="${songUrl}" style="background: #2563eb; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; display: inline-block; font-weight: bold;">צפייה בפידבק</a></p>
-        <br />
-        <p>בהצלחה,<br />צוות Feedback Space</p>
+      <div dir="rtl" style="font-family: sans-serif; line-height: 1.6; text-align: right; background-color: #f8fafc; padding: 20px; border-radius: 12px;">
+        <div style="background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
+          <p style="font-size: 18px; color: #475569;">
+            היי! השיר שלך <strong>${songTitle}</strong> קיבל פידבק חדש בקהילה.
+          </p>
+          <p style="font-size: 16px; color: #475569; margin-top: 24px;">
+            לצפייה בפידבק לחץ כאן:
+          </p>
+          <p>
+            <a href="${songUrl}" style="background: #2563eb; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; display: inline-block; font-weight: bold;">צפייה בפידבק</a>
+          </p>
+          <br />
+          <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
+          <p style="font-size: 14px; color: #94a3b8; margin-bottom: 0;">
+            בברכה,<br />
+            <strong>צוות Feedback Space</strong>
+          </p>
+        </div>
       </div>
     `,
   };
@@ -72,7 +83,7 @@ export async function sendFeedbackNotification({
   }
 }
 
-export async function sendContactEmail({
+export async function sendContactUsEmail({
   fromEmail,
   fromName,
   message,
@@ -85,7 +96,7 @@ export async function sendContactEmail({
   if (!BREVO_API_KEY) {
     await logToDb({
       message: "BREVO_API_KEY is missing, skipping contact email",
-      source: "mail.ts:sendContactEmail",
+      source: "mail.ts:sendContactUsEmail",
     });
     return { success: false, error: "Email service not configured" };
   }
@@ -125,7 +136,7 @@ export async function sendContactEmail({
       await logToDb({
         message: "Brevo API error (contact email)",
         data: errorData,
-        source: "mail.ts:sendContactEmail",
+        source: "mail.ts:sendContactUsEmail",
       });
       return { success: false, error: "Failed to send contact email" };
     }
@@ -135,8 +146,91 @@ export async function sendContactEmail({
     await logToDb({
       message: "Error sending contact email",
       data: error,
-      source: "mail.ts:sendContactEmail",
+      source: "mail.ts:sendContactUsEmail",
     });
     return { success: false, error: "Contact email sending error" };
+  }
+}
+
+export async function sendTopRatedNotification({
+  to,
+  songTitle,
+}: {
+  to: string;
+  songTitle: string;
+}) {
+  const BREVO_API_KEY = process.env.BREVO_API_KEY;
+  if (!BREVO_API_KEY) {
+    await logToDb({
+      message: "BREVO_API_KEY is missing, skipping top-rated notification",
+      source: "mail.ts:sendTopRatedNotification",
+    });
+    return { success: false, error: "Email service not configured" };
+  }
+
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const songUrl = `${baseUrl}/top-rated`;
+
+  const url = "https://api.brevo.com/v3/smtp/email";
+
+  const body = {
+    sender: { name: "Feedback Space", email: "contact@feedback.activitywiz.com" },
+    to: [{ email: to }],
+    bcc: [{ email: "feedback.space.app@gmail.com" }],
+    subject: `מזל טוב! השיר שלך נכנס ל-10 הגדולים בפידבק-ספייס! 🏆`,
+    htmlContent: `
+      <div dir="rtl" style="font-family: sans-serif; line-height: 1.6; text-align: right; background-color: #f8fafc; padding: 20px; border-radius: 12px;">
+        <div style="background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
+          <p style="font-size: 18px; color: #475569;">
+            איזה כיף! השיר שלך <strong>${songTitle}</strong> נכנס לרשימת 10 השירים המובילים של הקהילה!
+          </p>
+          <p style="font-size: 16px; color: #475569; margin-top: 24px;">
+            לצפייה בדירוג המלא לחץ כאן:
+          </p>
+          <p>
+            <a href="${songUrl}" style="background: #2563eb; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; display: inline-block; font-weight: bold;">לצפייה בדירוג המלא</a>
+          </p>
+          <p style="font-size: 16px; color: #64748b;">
+            המוזיקה שלך נוגעת באנשים. המשך ליצור ולשתף!
+          </p>
+          <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
+          <p style="font-size: 14px; color: #94a3b8; margin-bottom: 0;">
+            בברכה,<br />
+            <strong>צוות Feedback Space</strong>
+          </p>
+        </div>
+      </div>
+    `,
+  };
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "api-key": BREVO_API_KEY,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      await logToDb({
+        message: "Brevo API error (top-rated notification)",
+        data: errorData,
+        source: "mail.ts:sendTopRatedNotification",
+      });
+      return { success: false, error: "Failed to send top-rated notification" };
+    }
+
+    return { success: true };
+  } catch (error) {
+    await logToDb({
+      message: "Error sending top-rated notification",
+      data: error,
+      source: "mail.ts:sendTopRatedNotification",
+    });
+    return { success: false, error: "Top-rated notification sending error" };
   }
 }
