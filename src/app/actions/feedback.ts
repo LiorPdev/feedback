@@ -8,7 +8,6 @@ import { revalidatePath } from "next/cache";
 import { logAction } from "./logs";
 import { UNLOCK_FEEDBACK_COST } from "@/lib/constants";
 
-
 export async function unlockFeedback(feedbackId: string) {
   try {
     const clerkUser = await currentUser();
@@ -79,20 +78,6 @@ export async function unlockFeedback(feedbackId: string) {
         })
         .where(eq(users.id, clerkUser.id))
     ]);
-
-    // 4. Log the action
-    await logAction({
-      message: `User unlocked feedback ${feedbackId}`,
-      data: {
-        feedbackId,
-        songId: feedback.songId,
-        cost: UNLOCK_FEEDBACK_COST,
-        prevTokens: user.tokens,
-        newTokens: user.tokens - UNLOCK_FEEDBACK_COST
-      },
-      source: "actions/feedback:unlockFeedback",
-      userId: clerkUser.id
-    });
 
     revalidatePath(`/show-feedback/${feedback.song.slug}`);
 
