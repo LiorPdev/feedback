@@ -149,13 +149,14 @@ export default function FeedbackTabs({
                     {!isActuallyUnlocked && (
                       <div className={styles.unlockOverlay}>
                         {errorIds[fb.id] === 'INSUFFICIENT_CREDITS' ? (
-                          <div style={{ color: 'var(--text-main)', fontSize: '0.95rem', fontWeight: 800, textAlign: 'center', lineHeight: 1.6 }}>
-                            <div>חסר לכם קצת קרדיט ({UNLOCK_FEEDBACK_COST - currentTokens}) לצפיה בפידבק.</div>
+                          <div>
                             <Link
                               href="/give-feedback"
-                              style={{ textDecoration: 'underline', color: 'var(--brand-primary)', display: 'block', marginTop: '1.5rem' }}
+                              style={{ textDecoration: 'underline', color: 'var(--brand-primary)', display: 'block', textAlign: 'center', fontSize: '0.95rem', fontWeight: 800 }}
                             >
-                              תנו פידבק לאחרים וחיזרו לכאן שוב
+                              <div style={{ marginBottom: '1rem' }}>להצגת הפידבק דרושים {UNLOCK_FEEDBACK_COST} תווי קרדיט</div>
+                              <div style={{ marginBottom: '1rem' }}>יש לכם {currentTokens}</div>
+                              <div>תנו פידבק לאחרים כדי לקבל עוד קרדיט</div>
                             </Link>
                           </div>
                         ) : (
