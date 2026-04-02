@@ -2,7 +2,7 @@
 
 import { getDb } from '@/lib/db';
 import { currentUser } from '@clerk/nextjs/server';
-import { desc, eq, aliasedTable } from 'drizzle-orm';
+import { desc, eq, aliasedTable, sql } from 'drizzle-orm';
 import { users, songs, feedbacks, logs } from '@/lib/schema';
 import { ADMIN_EMAIL } from '@/lib/constants';
 
@@ -74,14 +74,37 @@ export async function getAdminUsersReport() {
 
     const db = await getDb();
     try {
+        // Subquery for last feedback GIVEN
+        const givenSubquery = db.select({
+            authorId: feedbacks.authorId,
+            lastGiven: sql<string>`MAX(${feedbacks.createdAt})`.as('lastGiven'),
+        })
+        .from(feedbacks)
+        .groupBy(feedbacks.authorId)
+        .as('givenFeedbacks');
+
+        // Subquery for last feedback RECEIVED
+        const receivedSubquery = db.select({
+            songUserId: songs.userId,
+            lastReceived: sql<string>`MAX(${feedbacks.createdAt})`.as('lastReceived'),
+        })
+        .from(feedbacks)
+        .innerJoin(songs, eq(feedbacks.songId, songs.id))
+        .groupBy(songs.userId)
+        .as('receivedFeedbacks');
+
         const result = await db.select({
             id: users.id,
             createdAt: users.createdAt,
             email: users.email,
             name: users.name,
-            tokens: users.tokens
+            tokens: users.tokens,
+            lastFeedbackGiven: givenSubquery.lastGiven,
+            lastFeedbackReceived: receivedSubquery.lastReceived
         })
         .from(users)
+        .leftJoin(givenSubquery, eq(givenSubquery.authorId, users.id))
+        .leftJoin(receivedSubquery, eq(receivedSubquery.songUserId, users.id))
         .orderBy(desc(users.createdAt));
 
         return { success: true, data: result };

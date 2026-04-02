@@ -19,7 +19,7 @@ import { GiPodium } from "react-icons/gi";
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
   const [tokens, setTokens] = useState<number | null>(null);
   const [userGenre, setUserGenre] = useState<string>("");
   const [userSocialLinks, setUserSocialLinks] = useState<string>("");
@@ -162,83 +162,89 @@ export default function Navbar() {
           <span>פידבק-ספייס</span>
         </Link>
         <div className={styles.navLinks}>
-          {pathname !== "/" && (
-            <Link href="/" className={`${styles.navLink} ${styles.homeLink}`} title="דף הבית">
-              <Home size={24} />
-            </Link>
-          )}
-          <Link href="/top-rated" className={styles.navLink} title="היכל התהילה">
-            <GiPodium size={24} />
-          </Link>
-          <SignedOut>
-            <SignInButton mode="modal">
-              <button className={styles.btnGoogle}>
-                התחברות
-              </button>
-            </SignInButton>
-          </SignedOut>
-          <SignedIn>
-            {tokens !== null && (
-              <div className={styles.tokenWrapper}>
-                <div
-                  className={`${styles.tokenDisplay} ${glowMode === "positive" ? styles.glowingPositive : glowMode === "negative" ? styles.glowingNegative : ""}`}
-                  title="לחצו להסבר על הקרדיטים"
-                  onClick={() => setShowTokensInfo(!showTokensInfo)}
-                  ref={tokenTriggerRef}
-                >
-                  <div className={styles.tokenIcon}>
-                    <Music size={14} />
+          {isLoaded ? (
+            <>
+              {pathname !== "/" && (
+                <Link href="/" className={`${styles.navLink} ${styles.homeLink}`} title="דף הבית">
+                  <Home size={24} />
+                </Link>
+              )}
+              <Link href="/top-rated" className={styles.navLink} title="היכל התהילה">
+                <GiPodium size={24} />
+              </Link>
+              <SignedOut>
+                <SignInButton mode="modal">
+                  <button className={styles.btnGoogle}>
+                    התחברות
+                  </button>
+                </SignInButton>
+              </SignedOut>
+              <SignedIn>
+                {tokens !== null && (
+                  <div className={styles.tokenWrapper}>
+                    <div
+                      className={`${styles.tokenDisplay} ${glowMode === "positive" ? styles.glowingPositive : glowMode === "negative" ? styles.glowingNegative : ""}`}
+                      title="לחצו להסבר על הקרדיטים"
+                      onClick={() => setShowTokensInfo(!showTokensInfo)}
+                      ref={tokenTriggerRef}
+                    >
+                      <div className={styles.tokenIcon}>
+                        <Music size={14} />
+                      </div>
+                      <AnimatedTokenCounter value={displayedTokens ?? 0} />
+                    </div>
+
+                    <InfoTooltip
+                      isOpen={showTokensInfo}
+                      onClose={() => setShowTokensInfo(false)}
+                      title="איך עובד מנגנון הקרדיטים?"
+                      content={
+                        <p>שליחת שיר וצפיה בפידבק מורידה מתווי הקרדיט. כדי לצבור תווי קרדיט חדשים, פשוט תנו פידבק לשירים של יוצרים אחרים בקהילה.</p>
+                      }
+
+                      arrowPosition="left"
+                      align="left"
+                      triggerRef={tokenTriggerRef}
+                    />
                   </div>
-                  <AnimatedTokenCounter value={displayedTokens ?? 0} />
-                </div>
-
-                <InfoTooltip
-                  isOpen={showTokensInfo}
-                  onClose={() => setShowTokensInfo(false)}
-                  title="איך עובד מנגנון הקרדיטים?"
-                  content={
-                    <p>שליחת שיר וצפיה בפידבק מורידה מתווי הקרדיט. כדי לצבור תווי קרדיט חדשים, פשוט תנו פידבק לשירים של יוצרים אחרים בקהילה.</p>
-                  }
-
-                  arrowPosition="left"
-                  align="left"
-                  triggerRef={tokenTriggerRef}
-                />
-              </div>
-            )}
-            <UserButton afterSignOutUrl="/">
-              <UserButton.MenuItems>
-                <UserButton.Action
-                  label="כרטיס ביקור מוזיקלי"
-                  labelIcon={<UserIcon size={16} />}
-                  onClick={() => setShowPreferencesModal(true)}
-                />
-                <UserButton.Action
-                  label="שתפו עם חברים"
-                  labelIcon={<Share2 size={16} />}
-                  onClick={handleShare}
-                />
-                <UserButton.Action
-                  label="שלח/קבל תווי קרדיט"
-                  labelIcon={<Gift size={16} />}
-                  onClick={() => setShowCreditModal(true)}
-                />
-                <UserButton.Action
-                  label="צרו איתנו קשר"
-                  labelIcon={<MessageCircle size={16} />}
-                  onClick={() => setShowContactModal(true)}
-                />
-                {user?.primaryEmailAddress?.emailAddress === ADMIN_EMAIL && (
-                  <UserButton.Link
-                    label="דוחות מנהל"
-                    labelIcon={<BarChart size={16} />}
-                    href="/admin/reports"
-                  />
                 )}
-                <UserButton.Action label="manageAccount" />
-              </UserButton.MenuItems>
-            </UserButton>
-          </SignedIn>
+                <UserButton afterSignOutUrl="/">
+                  <UserButton.MenuItems>
+                    <UserButton.Action
+                      label="כרטיס ביקור מוזיקלי"
+                      labelIcon={<UserIcon size={16} />}
+                      onClick={() => setShowPreferencesModal(true)}
+                    />
+                    <UserButton.Action
+                      label="שתפו עם חברים"
+                      labelIcon={<Share2 size={16} />}
+                      onClick={handleShare}
+                    />
+                    <UserButton.Action
+                      label="שלח/קבל תווי קרדיט"
+                      labelIcon={<Gift size={16} />}
+                      onClick={() => setShowCreditModal(true)}
+                    />
+                    <UserButton.Action
+                      label="צרו איתנו קשר"
+                      labelIcon={<MessageCircle size={16} />}
+                      onClick={() => setShowContactModal(true)}
+                    />
+                    {user?.primaryEmailAddress?.emailAddress === ADMIN_EMAIL && (
+                      <UserButton.Link
+                        label="דוחות מנהל"
+                        labelIcon={<BarChart size={16} />}
+                        href="/admin/reports"
+                      />
+                    )}
+                    <UserButton.Action label="manageAccount" />
+                  </UserButton.MenuItems>
+                </UserButton>
+              </SignedIn>
+            </>
+          ) : (
+            <div style={{ width: '100px' }} /> // Placeholder while loading
+          )}
         </div>
       </div>
       <ContactModal

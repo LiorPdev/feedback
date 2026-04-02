@@ -218,6 +218,15 @@
   border: none;
 }
 
+.heroPlaceholder {
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+  aspect-ratio: 9/16;
+  background: color-mix(in srgb, var(--text-main), transparent 95%);
+  border-radius: 28px;
+}
+
 /* Features Section */
 .features {
   padding: 80px 5vw 0;

@@ -94,6 +94,8 @@ export function ReportsClient() {
                                     <th>מייל</th>
                                     <th>שם</th>
                                     <th>מספר טוקנים</th>
+                                    <th>לאחרונה נתן פידבק</th>
+                                    <th>לאחרונה קיבל פידבק</th>
                                 </tr>
                             ) : (
                                 <tr>
@@ -139,6 +141,8 @@ export function ReportsClient() {
                                             <td>{item.email}</td>
                                             <td>{item.name}</td>
                                             <td>{item.tokens}</td>
+                                            <td>{item.lastFeedbackGiven ? formatDate(item.lastFeedbackGiven) : '-'}</td>
+                                            <td>{item.lastFeedbackReceived ? formatDate(item.lastFeedbackReceived) : '-'}</td>
                                         </>
                                     )}
                                     {reportType === 'logs' && (

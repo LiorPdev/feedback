@@ -174,22 +174,26 @@ export default function LandingClient({
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.4 }}
           >
-            {user ? (
-              <HeroGallery />
+            {isLoaded ? (
+              user ? (
+                <HeroGallery />
+              ) : (
+                <div className={styles.videoWrapper}>
+                  <iframe
+                    src="https://www.youtube.com/embed/4kxbf8gNDzk?autoplay=1&mute=1&loop=1&playlist=4kxbf8gNDzk"
+                    title="מישהו מקשיב לך"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                  ></iframe>
+                </div>
+              )
             ) : (
-              <div className={styles.videoWrapper}>
-                <iframe
-                  src="https://www.youtube.com/embed/4kxbf8gNDzk?autoplay=1&mute=1&loop=1&playlist=4kxbf8gNDzk"
-                  title="מישהו מקשיב לך"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                ></iframe>
-              </div>
+              <div className={styles.heroPlaceholder} style={{ height: '300px' }} />
             )}
           </motion.div>
         </div>
 
-        {!user && (
+        {isLoaded && !user && (
           <motion.button
             className={styles.scrollDownFab}
             onClick={() => {
