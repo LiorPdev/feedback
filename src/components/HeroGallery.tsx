@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import styles from "./HeroGallery.module.css";
 
-const IMAGES = ["/mockup1.webp", "/mockup2.webp", "/mockup3.webp", "/mockup4.webp"];
+const IMAGES = ["/mockup1.webp", "/mockup2.webp", "/mockup3.webp"];
 
 export default function HeroGallery() {
   const [currentIndex, setCurrentIndex] = useState(0);

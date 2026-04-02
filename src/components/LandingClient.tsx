@@ -176,17 +176,16 @@ export default function LandingClient({
             transition={{ duration: 0.8, delay: 0.4 }}
           >
             {user ? (
-              <div className={styles.mockupStatic}>
-                <Image
-                  src="/mockup1.webp"
-                  alt="Feedback Space"
-                  fill
-                  style={{ objectFit: "cover" }}
-                  priority
-                />
-              </div>
-            ) : (
               <HeroGallery />
+            ) : (
+              <div className={styles.videoWrapper}>
+                <iframe
+                  src="https://www.youtube.com/embed/4kxbf8gNDzk?autoplay=1&mute=1&loop=1&playlist=4kxbf8gNDzk"
+                  title="מישהו מקשיב לך"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                ></iframe>
+              </div>
             )}
           </motion.div>
         </div>
