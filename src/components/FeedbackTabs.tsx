@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import styles from "@/app/show-feedback/[slug]/show-feedback.module.css";
 import ListenTimeTab from "@/components/ListenTimeTab";
-import { Lock, Loader2 } from "lucide-react";
+import { Eye, Loader2 } from "lucide-react";
 import { unlockFeedback } from "@/app/actions/feedback";
 import { UNLOCK_FEEDBACK_COST } from "@/lib/constants";
 import Link from "next/link";
@@ -150,12 +150,12 @@ export default function FeedbackTabs({
                       <div className={styles.unlockOverlay}>
                         {errorIds[fb.id] === 'INSUFFICIENT_CREDITS' ? (
                           <div>
+                            <div style={{ marginBottom: '1rem', fontWeight: 800 }}>להצגת הפידבק דרושים {UNLOCK_FEEDBACK_COST} תווי קרדיט</div>
+                            <div style={{ marginBottom: '1rem', fontWeight: 800 }}>יש לכם {currentTokens}</div>
                             <Link
                               href="/give-feedback"
                               style={{ textDecoration: 'underline', color: 'var(--brand-primary)', display: 'block', textAlign: 'center', fontSize: '0.95rem', fontWeight: 800 }}
                             >
-                              <div style={{ marginBottom: '1rem' }}>להצגת הפידבק דרושים {UNLOCK_FEEDBACK_COST} תווי קרדיט</div>
-                              <div style={{ marginBottom: '1rem' }}>יש לכם {currentTokens}</div>
                               <div>תנו פידבק לאחרים כדי לקבל עוד קרדיט</div>
                             </Link>
                           </div>
@@ -170,7 +170,7 @@ export default function FeedbackTabs({
                               {isPending ? (
                                 <Loader2 className={`${styles.lockIcon} animate-spin`} />
                               ) : (
-                                <Lock className={styles.lockIcon} />
+                                <Eye className={styles.lockIcon} />
                               )}
                               לחצו כאן לצפיה בפידבק
                             </button>

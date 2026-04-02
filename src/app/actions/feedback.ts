@@ -1,12 +1,12 @@
 "use server";
 
 import { getDb } from "@/lib/db";
-import { feedbacks, users } from "@/lib/schema";
+import { feedbacks, users, songs } from "@/lib/schema";
 import { currentUser } from "@clerk/nextjs/server";
-import { eq } from "drizzle-orm";
+import { and, eq, lt, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { logAction } from "./logs";
-import { UNLOCK_FEEDBACK_COST } from "@/lib/constants";
+import { UNLOCK_FEEDBACK_COST, FREE_FEEDBACKS_FOR_ARTIST } from "@/lib/constants";
 
 export async function unlockFeedback(feedbackId: string) {
   try {
@@ -53,31 +53,41 @@ export async function unlockFeedback(feedbackId: string) {
       return { success: true };
     }
 
-    // 2. Get user token balance
-    const user = await db.query.users.findFirst({
-      where: (u, { eq }) => eq(u.id, clerkUser.id),
-      columns: { tokens: true }
-    });
+    // 2. Check if this is one of the artist's first 2 (FREE_FEEDBACKS_FOR_ARTIST) feedbacks ever received (Artist-wide)
+    const prevFeedbacksCount = await db.select({ value: sql<number>`count(*)` })
+      .from(feedbacks)
+      .innerJoin(songs, eq(feedbacks.songId, songs.id))
+      .where(and(
+        eq(songs.userId, feedback.song.userId),
+        lt(feedbacks.createdAt, feedback.createdAt)
+      ));
 
-    if (!user || user.tokens < UNLOCK_FEEDBACK_COST) {
-      return { success: false, error: 'INSUFFICIENT_CREDITS' };
-    }
+    const isFree = (prevFeedbacksCount[0]?.value ?? 0) < FREE_FEEDBACKS_FOR_ARTIST;
 
-    // 3. Perform the transaction
-    await db.batch([
-      // Update feedback status
-      db.update(feedbacks)
-        .set({ isUnlocked: true })
-        .where(eq(feedbacks.id, feedbackId)),
+    if (!isFree) {
+      // Get user token balance
+      const user = await db.query.users.findFirst({
+        where: (u, { eq }) => eq(u.id, clerkUser.id),
+        columns: { tokens: true }
+      });
+
+      if (!user || user.tokens < UNLOCK_FEEDBACK_COST) {
+        return { success: false, error: 'INSUFFICIENT_CREDITS' };
+      }
 
       // Deduct tokens
-      db.update(users)
+      await db.update(users)
         .set({
           tokens: user.tokens - UNLOCK_FEEDBACK_COST,
           updatedAt: new Date().toISOString()
         })
-        .where(eq(users.id, clerkUser.id))
-    ]);
+        .where(eq(users.id, clerkUser.id));
+    }
+
+    // 3. Mark as unlocked (Deduction happened above if not free)
+    await db.update(feedbacks)
+      .set({ isUnlocked: true })
+      .where(eq(feedbacks.id, feedbackId));
 
     revalidatePath(`/show-feedback/${feedback.song.slug}`);
 

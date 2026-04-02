@@ -179,7 +179,7 @@ export default function LandingClient({
               <div className={styles.mockupStatic}>
                 <Image
                   src="/mockup1.webp"
-                  alt="Feedback Space Mockup"
+                  alt="Feedback Space"
                   fill
                   style={{ objectFit: "cover" }}
                   priority
@@ -191,30 +191,32 @@ export default function LandingClient({
           </motion.div>
         </div>
 
-        <motion.button
-          className={styles.scrollDownFab}
-          onClick={() => {
-            const featuresSection = document.querySelector(`.${styles.features}`);
-            featuresSection?.scrollIntoView({ behavior: 'smooth' });
-          }}
-          initial={{ opacity: 0, y: -20, x: "-50%" }}
-          animate={{
-            opacity: 1,
-            y: [0, 15, 0],
-            scale: [1, 1.1, 1],
-            x: "-50%"
-          }}
-          transition={{
-            opacity: { duration: 0.5, delay: 1 },
-            y: { repeat: Infinity, duration: 2, ease: "easeInOut" },
-            scale: { repeat: Infinity, duration: 2, ease: "easeInOut" }
-          }}
-          aria-label="גלול למטה"
-        >
-          <svg stroke="currentColor" fill="currentColor" strokeWidth="0" viewBox="0 0 512 512" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
-            <path fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="48" d="m112 184 144 144 144-144"></path>
-          </svg>
-        </motion.button>
+        {!user && (
+          <motion.button
+            className={styles.scrollDownFab}
+            onClick={() => {
+              const featuresSection = document.querySelector(`.${styles.features}`);
+              featuresSection?.scrollIntoView({ behavior: 'smooth' });
+            }}
+            initial={{ opacity: 0, y: -20, x: "-50%" }}
+            animate={{
+              opacity: 1,
+              y: [0, 15, 0],
+              scale: [1, 1.1, 1],
+              x: "-50%"
+            }}
+            transition={{
+              opacity: { duration: 0.5, delay: 1 },
+              y: { repeat: Infinity, duration: 2, ease: "easeInOut" },
+              scale: { repeat: Infinity, duration: 2, ease: "easeInOut" }
+            }}
+            aria-label="גלול למטה"
+          >
+            <svg stroke="currentColor" fill="currentColor" strokeWidth="0" viewBox="0 0 512 512" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
+              <path fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="48" d="m112 184 144 144 144-144"></path>
+            </svg>
+          </motion.button>
+        )}
       </header>
 
       {/* Features Section */}

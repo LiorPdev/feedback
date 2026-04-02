@@ -51,9 +51,9 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
   const authorIds = Array.from(new Set(song.feedbacks.map(f => f.authorId).filter(Boolean))) as string[];
   const authors = authorIds.length > 0
     ? await db.query.users.findMany({
-        where: (users, { inArray }) => inArray(users.id, authorIds),
-        columns: { id: true, userGenre: true }
-      })
+      where: (users, { inArray }) => inArray(users.id, authorIds),
+      columns: { id: true, userGenre: true }
+    })
     : [];
   const authorGenreMap = new Map(authors.map(a => [a.id, a.userGenre]));
 
@@ -74,13 +74,12 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
   const listenData = await getListenTimeEvents(song.id);
 
   // Fetch current user tokens
-  const currentUserRecord = userId 
+  const currentUserRecord = userId
     ? await db.query.users.findFirst({
-        where: (users, { eq }) => eq(users.id, userId),
-        columns: { tokens: true }
-      })
+      where: (users, { eq }) => eq(users.id, userId),
+      columns: { tokens: true }
+    })
     : null;
-
   return (
     <div className={styles.container}>
       <div className={styles.blob} />
