@@ -1,6 +1,7 @@
 "use client";
 
-import { ReactNode } from "react";
+import { ReactNode, useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "./PopupMsg.module.css";
 
@@ -21,7 +22,14 @@ export default function PopupMsg({
   icon,
   buttonText,
 }: PopupMsgProps) {
-  return (
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
+  const content = (
     <AnimatePresence>
       {isOpen && (
         <motion.div
@@ -50,4 +58,8 @@ export default function PopupMsg({
       )}
     </AnimatePresence>
   );
+
+  if (!mounted) return null;
+
+  return createPortal(content, document.body);
 }

@@ -1,3 +1,4 @@
+import { auth } from "@clerk/nextjs/server";
 import { getTopRatedSongs } from "@/app/actions/songs";
 import styles from "./top-rated.module.css";
 import BackButton from "@/components/BackButton";
@@ -7,11 +8,12 @@ import Link from "next/link";
 import ShareSongButton from "@/components/ShareSongButton";
 import TopRatedPlayer from "./TopRatedPlayer";
 import TopRatedFooter from "./TopRatedFooter";
-// import SocialIcon from "@/components/SocialIcon";
+import TopRatedFeedbackButton from "./TopRatedFeedbackButton";
 
 export const dynamic = "force-dynamic";
 
 export default async function TopRatedPage() {
+  const { userId: currentUserId } = await auth();
   const result = await getTopRatedSongs();
 
   if (!result.success || !result.songs) {
@@ -66,19 +68,11 @@ export default async function TopRatedPage() {
                     {/* social links */}
                     <ArtistSocials socialLinks={song.socialLinks} />
                     {/* give feedback */}
-                    <Link
-                      href={`/give-feedback?song=${song.slug}&from=top-rated`}
-                      className={styles.giveFeedbackBtn}
-                      title="תנו פידבק לשיר"
-                    >
-                      <Image
-                        src="/Logo.png"
-                        alt="פידבק ספייס"
-                        width={20}
-                        height={20}
-                        className={styles.miniLogo}
-                      />
-                    </Link>
+                    <TopRatedFeedbackButton
+                      songSlug={song.slug}
+                      songUserId={song.userId}
+                      currentUserId={currentUserId}
+                    />
                     {/* share */}
                     <ShareSongButton slug={song.slug} />
                   </div>
