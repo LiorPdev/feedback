@@ -3,8 +3,6 @@ import { getTopRatedSongs } from "@/app/actions/songs";
 import styles from "./top-rated.module.css";
 import BackButton from "@/components/BackButton";
 import ArtistSocials from "@/components/ArtistSocials";
-import Image from "next/image";
-import Link from "next/link";
 import ShareSongButton from "@/components/ShareSongButton";
 import TopRatedPlayer from "./TopRatedPlayer";
 import TopRatedFooter from "./TopRatedFooter";
@@ -32,7 +30,7 @@ export default async function TopRatedPage() {
 
       <main className={styles.main}>
         <div className={styles.header}>
-          <BackButton href="/" title="חזרה לדף הבית" />
+          <BackButton />
           <h1 className={styles.title}>10 השירים המובילים</h1>
           {/* 
           <a

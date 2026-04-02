@@ -86,7 +86,7 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
 
       <main className={`${styles.main} ${!userId ? styles.blurred : ""}`}>
         <div className={styles.card}>
-          <BackButton href="/dashboard" title="חזרה לאיזור האישי" className={styles.backButton} />
+          <BackButton className={styles.backButton} />
           <SongPlayer url={song.url} />
 
           <div className={styles.titleRow}>

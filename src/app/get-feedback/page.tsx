@@ -222,7 +222,7 @@ export default function GetFeedback() {
         transition={{ duration: 0.5 }}
       >
         <div className={styles.header}>
-          <BackButton href="/" title="חזרה לדף הבית" className={styles.backButton} />
+          <BackButton className={styles.backButton} />
           <h1>שליחת שיר</h1>
         </div>
 

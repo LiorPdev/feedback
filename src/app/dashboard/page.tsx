@@ -65,8 +65,6 @@ export default async function DashboardPage({
       <div className={styles.header}>
         <div className={styles.welcomeContainer}>
           <BackButton
-            href="/"
-            title="חזרה לדף הבית"
             style={{ transform: 'translateY(-3px)' }}
           />
           <div className={styles.welcome}>

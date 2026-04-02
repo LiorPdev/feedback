@@ -243,7 +243,7 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
     <div className={styles.feedWrapper}>
       <div className={styles.songCard}>
         <div className={styles.topHeader}>
-          <BackButton href="/" title="חזרה לדף הבית" className={styles.backButton} />
+          <BackButton className={styles.backButton} />
           <div className={styles.headerRow}>
             <h2 className={styles.title}>
               {currentSong.title}

@@ -1,26 +1,31 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import styles from "./BackButton.module.css";
 
 interface BackButtonProps {
-  href: string;
-  title: string;
   className?: string;
   style?: React.CSSProperties;
   iconSize?: number;
 }
 
-export default function BackButton({ href, title, className = "", style, iconSize = 22 }: BackButtonProps) {
+export default function BackButton({ className = "", style, iconSize = 22 }: BackButtonProps) {
+  const router = useRouter();
+
+  const handleBack = (e: React.MouseEvent) => {
+    e.preventDefault();
+    router.back();
+  };
+
   return (
-    <Link 
-      href={href} 
+    <button 
+      onClick={handleBack}
       className={`${styles.backButton} ${className}`} 
-      title={title}
       style={style}
+      type="button"
     >
       <ArrowRight size={iconSize} />
-    </Link>
+    </button>
   );
 }

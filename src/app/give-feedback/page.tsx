@@ -2,6 +2,8 @@ import { getFeedSongs } from "@/app/actions/songs";
 import FeedContainer from "./FeedContainer";
 import styles from "./feed.module.css";
 import { auth } from "@clerk/nextjs/server";
+import { getDb } from "@/lib/db";
+
 export const dynamic = "force-dynamic";
 
 export default async function GiveFeedbackFeedPage({
@@ -11,9 +13,9 @@ export default async function GiveFeedbackFeedPage({
 }) {
   const { song: songSlug, from, insufficient_credits } = await searchParams;
   const result = await getFeedSongs(songSlug);
-  await auth();
+  const { userId } = await auth();
 
-  if (!result.success || !result.songs) {
+  if (!result.success || !result.songs || result.songs.length === 0) {
     return (
       <div className={styles.container}>
         <div className={styles.main}>
@@ -26,11 +28,32 @@ export default async function GiveFeedbackFeedPage({
     );
   }
 
+  interface Feedback {
+    id: string;
+    cat2: number;
+    cat3: number;
+    overall: number;
+    comment: string;
+    createdAt: string;
+  }
+
+  let initialFeedback: Feedback | null = null;
+  if (userId) {
+    const db = await getDb();
+    const existingFeedback = await db.query.feedbacks.findFirst({
+      where: (f, { eq, and }) => and(eq(f.authorId, userId), eq(f.songId, result.songs[0].id))
+    });
+    if (existingFeedback) {
+      initialFeedback = existingFeedback as unknown as Feedback;
+    }
+  }
+
   return (
     <div className={styles.container}>
       <main className={styles.main}>
         <FeedContainer 
           initialSongs={result.songs} 
+          initialFeedback={initialFeedback}
           from={from} 
           initialSongSlug={songSlug} 
           showInsufficientCredits={insufficient_credits === 'true'}

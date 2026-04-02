@@ -4,7 +4,6 @@ import Link from "next/link";
 import { SignedIn, SignedOut, useUser } from "@clerk/nextjs";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle } from "lucide-react";
-import Image from "next/image";
 import styles from "@/app/landing.module.css";
 import { useState, useEffect } from "react";
 import { getUserSongCount } from "@/app/actions/songs";
