@@ -3,7 +3,8 @@
   width: 100%;
   aspect-ratio: 16/10;
   border-radius: 20px;
-  overflow: visible; /* Let the dots and shadows breathe */
+  overflow: visible;
+  opacity: 0.7;
 }
 
 .mockupImageWrapper {
@@ -25,7 +26,8 @@
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  flex-direction: row; /* In RTL, this naturally goes Right-to-Left */
+  flex-direction: row;
+  /* In RTL, this naturally goes Right-to-Left */
   direction: rtl;
   gap: 12px;
   z-index: 10;
