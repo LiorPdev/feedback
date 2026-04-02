@@ -37,15 +37,19 @@ export async function syncUser() {
     }).returning();
     return newUser;
   } else {
-    // Existing user: check if we should update metadata (optional but good for syncing name/email changes)
-    if (dbUser.email !== email || dbUser.name !== name) {
-        await db.update(users)
-            .set({ email, name, provider, providerId, updatedAt: new Date().toISOString() })
-            .where(eq(users.id, clerkUser.id));
-        
-        // Refresh local object
-        dbUser = { ...dbUser, email, name, provider, providerId };
-    }
+    // Existing user: update activity and check if we should update metadata
+    await db.update(users)
+        .set({ 
+            email, 
+            name, 
+            provider, 
+            providerId, 
+            updatedAt: new Date().toISOString() 
+        })
+        .where(eq(users.id, clerkUser.id));
+    
+    // Refresh local object
+    dbUser = { ...dbUser, email, name, provider, providerId };
   }
 
   return dbUser;

@@ -100,12 +100,13 @@ export async function getAdminUsersReport() {
             name: users.name,
             tokens: users.tokens,
             lastFeedbackGiven: givenSubquery.lastGiven,
-            lastFeedbackReceived: receivedSubquery.lastReceived
+            lastFeedbackReceived: receivedSubquery.lastReceived,
+            lastVisit: users.updatedAt
         })
         .from(users)
         .leftJoin(givenSubquery, eq(givenSubquery.authorId, users.id))
         .leftJoin(receivedSubquery, eq(receivedSubquery.songUserId, users.id))
-        .orderBy(desc(users.createdAt));
+        .orderBy(desc(users.updatedAt));
 
         return { success: true, data: result };
     } catch (error) {
