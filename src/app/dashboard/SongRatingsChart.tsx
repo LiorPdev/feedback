@@ -50,21 +50,21 @@ const CustomLegend = (props: CustomLegendProps) => {
   const sortedPayload = [...payload].sort((a, b) => order.indexOf(a.value) - order.indexOf(b.value));
 
   return (
-    <div style={{ 
-      display: 'flex', 
-      justifyContent: 'center', 
-      gap: '24px', 
+    <div style={{
+      display: 'flex',
+      justifyContent: 'center',
+      gap: '24px',
       marginTop: '20px',
       direction: 'rtl',
       flexWrap: 'wrap'
     }}>
       {sortedPayload.map((entry, index) => (
         <div key={`item-${index}`} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{ 
-            width: '14px', 
-            height: '14px', 
-            backgroundColor: entry.color, 
-            borderRadius: '3px' 
+          <div style={{
+            width: '14px',
+            height: '14px',
+            backgroundColor: entry.color,
+            borderRadius: '3px'
           }} />
           <span style={{ fontSize: '14px', color: '#444', fontWeight: 700 }}>{entry.value}</span>
         </div>
@@ -103,7 +103,7 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
       .map((song) => {
         const fbs = (song.feedbacks || []) as Feedback[];
         const events = (song.listenEvents || []) as { playedSeconds: number }[];
-        
+
         if (fbs.length === 0 && events.length === 0) return null;
 
         const count = fbs.length;
@@ -112,8 +112,8 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
         const avgCat3 = count > 0 ? fbs.reduce((sum, fb) => sum + (fb.cat3 || 0), 0) / count : 0;
 
         // Current song average (average of all 3 categories across all reviews)
-        const songAvgRating = count > 0 
-          ? (fbs.reduce((sum, fb) => sum + fb.cat2 + fb.cat3 + fb.overall, 0) / (count * 3)) 
+        const songAvgRating = count > 0
+          ? (fbs.reduce((sum, fb) => sum + fb.cat2 + fb.cat3 + fb.overall, 0) / (count * 3))
           : 0;
 
         // Bayesian Rating: (v*R + m*C) / (v+m)
@@ -121,7 +121,7 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
         const R = songAvgRating;
         const m = minThreshold;
         const C = userAverage; // Now using the user's personal context
-        
+
         const trueRating = ((v * R) + (m * C)) / (v + m);
 
         // Retention calculation
@@ -129,9 +129,9 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
           ...fbs.map(fb => fb.playedSeconds || 0).filter(s => s > 0),
           ...events.map(ev => ev.playedSeconds || 0).filter(s => s > 0)
         ];
-        
-        const avgListenTime = allPlayTimes.length > 0 
-          ? allPlayTimes.reduce((sum, t) => sum + t, 0) / allPlayTimes.length 
+
+        const avgListenTime = allPlayTimes.length > 0
+          ? allPlayTimes.reduce((sum, t) => sum + t, 0) / allPlayTimes.length
           : 0;
 
         return {
@@ -201,25 +201,41 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
           <YAxis
             dataKey="songTitle"
             type="category"
-            width={isMobile ? 45 : 100}
+            width={isMobile ? 55 : 80}
             interval={0}
             tick={(props) => {
               const { x, y, payload } = props;
               const name = payload.value;
-              const limit = isMobile ? 6 : 15;
-              const truncated = name.length > limit ? name.substring(0, limit - 2) + '..' : name;
+              const limit = isMobile ? 10 : 18;
+
+              if (name.length <= limit) {
+                return (
+                  <g transform={`translate(${x},${y})`}>
+                    <text x={-2} y={0} dy={4} textAnchor="end" fill="#333" fontSize={isMobile ? 9 : 12} fontWeight={500}>
+                      {name}
+                    </text>
+                  </g>
+                );
+              }
+
+              // Split logic: find space near midpoint or force split
+              const mid = Math.floor(name.length / 2);
+              const spaceBefore = name.lastIndexOf(' ', mid);
+              const spaceAfter = name.indexOf(' ', mid);
+
+              let splitIdx = mid;
+              if (spaceBefore !== -1 && (mid - spaceBefore < 5)) splitIdx = spaceBefore;
+              else if (spaceAfter !== -1 && (spaceAfter - mid < 5)) splitIdx = spaceAfter;
+
+              const line1 = name.substring(0, splitIdx).trim();
+              const line2 = name.substring(splitIdx).trim();
+              const truncated2 = line2.length > limit ? line2.substring(0, limit - 2) + '..' : line2;
+
               return (
                 <g transform={`translate(${x},${y})`}>
-                  <text
-                    x={-8}
-                    y={0}
-                    dy={4}
-                    textAnchor="end"
-                    fill="#333"
-                    fontSize={isMobile ? 9 : 12}
-                    fontWeight={500}
-                  >
-                    {truncated}
+                  <text x={-4} y={-6} textAnchor="end" fill="#333" fontSize={isMobile ? 9 : 12} fontWeight={500}>
+                    <tspan x={-4} dy="0">{line1}</tspan>
+                    <tspan x={-4} dy="1.2em">{truncated2}</tspan>
                   </text>
                 </g>
               );
