@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import SongCard from "@/components/SongCard";
-import styles from "./dashboard-client.module.css";
 import { BarChart3, Music } from "lucide-react";
+import SongCard from "@/components/SongCard";
 import SongRatingsChart from "./SongRatingsChart";
+import styles from "./DashboardClient.module.css";
 
 interface DashboardSong {
   id: string;
@@ -83,7 +83,10 @@ export default function DashboardClient({ songs, newSlug, globalAverage = 0, min
             <select
               className={styles.chartSelector}
               value={chartType}
-              onChange={(e) => setChartType(e.target.value as "general" | "categories" | "retention" | "trueRating")}
+              onChange={(e) => {
+                setChartType(e.target.value as "general" | "categories" | "retention" | "trueRating");
+                e.target.blur();
+              }}
             >
               <option value="trueRating">מדד איכות משוקלל</option>
               <option value="general">ציון ממוצע (כוכבים)</option>

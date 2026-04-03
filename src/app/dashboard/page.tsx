@@ -1,14 +1,14 @@
-import { getDb } from "@/lib/db";
+import { sql } from "drizzle-orm";
 import { currentUser } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
 import Link from "next/link";
-import styles from "./dashboard.module.css";
+import { redirect } from "next/navigation";
 import { logAction } from "@/app/actions/logs";
 import BackButton from "@/components/BackButton";
-import DashboardClient from "./DashboardClient";
-import { feedbacks } from "@/lib/schema";
-import { sql } from "drizzle-orm";
 import { TOP_RATED_MIN_RATINGS_THRESHOLD } from "@/lib/constants";
+import { getDb } from "@/lib/db";
+import { feedbacks } from "@/lib/schema";
+import DashboardClient from "./DashboardClient";
+import styles from "./dashboard.module.css";
 
 export default async function DashboardPage({
   searchParams
@@ -60,40 +60,40 @@ export default async function DashboardPage({
     );
   }
 
-    if (!user || user.songs.length === 0) {
-      redirect("/get-feedback");
-    }
+  if (!user || user.songs.length === 0) {
+    redirect("/get-feedback");
+  }
 
-    // Calculate global average rating (C) for Bayesian True Rating
-    const globalStats = await db.select({
-      avgRating: sql<number>`avg((${feedbacks.cat2} + ${feedbacks.cat3} + ${feedbacks.overall}) / 3.0)`
-    }).from(feedbacks);
-    const globalAverage = globalStats[0]?.avgRating || 0;
+  // Calculate global average rating (C) for Bayesian True Rating
+  const globalStats = await db.select({
+    avgRating: sql<number>`avg((${feedbacks.cat2} + ${feedbacks.cat3} + ${feedbacks.overall}) / 3.0)`
+  }).from(feedbacks);
+  const globalAverage = globalStats[0]?.avgRating || 0;
 
-    return (
-      <div className={styles.container}>
-        <div className={styles.header}>
-          <div className={styles.welcomeContainer}>
-            <BackButton
-              style={{ transform: 'translateY(-3px)' }}
-            />
-            <div className={styles.welcome}>
-              <h1><span className={styles.welcomeText}>שלום, </span>{user.name ? user.name.split(" ")[0] : ""}</h1>
-            </div>
-          </div>
-          <Link href="/get-feedback" className={styles.mobileActionBtn}>
-            שליחת שיר נוסף
-          </Link>
-        </div>
-
-        <div className={styles.content}>
-          <DashboardClient
-            songs={user.songs}
-            newSlug={newSlug}
-            globalAverage={globalAverage}
-            minThreshold={TOP_RATED_MIN_RATINGS_THRESHOLD}
+  return (
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <div className={styles.welcomeContainer}>
+          <BackButton
+            style={{ transform: 'translateY(-3px)' }}
           />
+          <div className={styles.welcome}>
+            <h1><span className={styles.welcomeText}>שלום, </span>{user.name ? user.name.split(" ")[0] : ""}</h1>
+          </div>
         </div>
+        <Link href="/get-feedback" className={styles.mobileActionBtn}>
+          שליחת שיר נוסף
+        </Link>
       </div>
-    );
+
+      <div className={styles.content}>
+        <DashboardClient
+          songs={user.songs}
+          newSlug={newSlug}
+          globalAverage={globalAverage}
+          minThreshold={TOP_RATED_MIN_RATINGS_THRESHOLD}
+        />
+      </div>
+    </div>
+  );
 }

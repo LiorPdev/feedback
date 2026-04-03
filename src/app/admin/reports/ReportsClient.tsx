@@ -7,35 +7,42 @@ import styles from './reports.module.css';
 
 type ReportType = 'songs' | 'feedbacks' | 'users' | 'logs';
 
+interface SortHeaderProps {
+    label: string;
+    sortKey: string;
+    sortConfig: { key: string; direction: 'asc' | 'desc' } | null;
+    onSort: (key: string) => void;
+}
+
+const SortHeader = ({ label, sortKey, sortConfig, onSort }: SortHeaderProps) => {
+    const isActive = sortConfig?.key === sortKey;
+    return (
+        <th 
+            className={styles.sortable} 
+            onClick={() => onSort(sortKey)}
+            title={`מיין לפי ${label}`}
+        >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '4px' }}>
+                <span>{label}</span>
+                <div className={`${styles.sortIcon} ${isActive ? styles.active : ''}`}>
+                    {!isActive ? (
+                        <ArrowUpDown size={14} opacity={0.3} />
+                    ) : sortConfig.direction === 'asc' ? (
+                        <ArrowUp size={14} />
+                    ) : (
+                        <ArrowDown size={14} />
+                    )}
+                </div>
+            </div>
+        </th>
+    );
+};
+
 export function ReportsClient() {
     const [reportType, setReportType] = useState<ReportType>('songs');
     const [data, setData] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
     const [loading, setLoading] = useState(true);
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({ key: 'createdAt', direction: 'desc' });
-
-    const SortHeader = ({ label, sortKey }: { label: string; sortKey: string }) => {
-        const isActive = sortConfig?.key === sortKey;
-        return (
-            <th 
-                className={styles.sortable} 
-                onClick={() => handleSort(sortKey)}
-                title={`מיין לפי ${label}`}
-            >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
-                    <span>{label}</span>
-                    <div className={`${styles.sortIcon} ${isActive ? styles.active : ''}`}>
-                        {!isActive ? (
-                            <ArrowUpDown size={14} opacity={0.3} />
-                        ) : sortConfig.direction === 'asc' ? (
-                            <ArrowUp size={14} />
-                        ) : (
-                            <ArrowDown size={14} />
-                        )}
-                    </div>
-                </div>
-            </th>
-        );
-    };
 
     const handleSort = (key: string) => {
         let direction: 'asc' | 'desc' = 'asc';
@@ -130,36 +137,36 @@ export function ReportsClient() {
                 <thead>
                     {reportType === 'songs' ? (
                         <tr>
-                            <SortHeader label="תאריך העלאה" sortKey="createdAt" />
-                            <SortHeader label="שם השיר" sortKey="title" />
-                            <SortHeader label="משתמש" sortKey="creatorName" />
+                            <SortHeader label="תאריך העלאה" sortKey="createdAt" sortConfig={sortConfig} onSort={handleSort} />
+                            <SortHeader label="שם השיר" sortKey="title" sortConfig={sortConfig} onSort={handleSort} />
+                            <SortHeader label="משתמש" sortKey="creatorName" sortConfig={sortConfig} onSort={handleSort} />
                         </tr>
                     ) : reportType === 'feedbacks' ? (
                         <tr>
-                            <SortHeader label="תאריך" sortKey="createdAt" />
-                            <SortHeader label="שם השיר" sortKey="songTitle" />
-                            <SortHeader label="מעלה השיר" sortKey="songCreatorName" />
-                            <SortHeader label="שם המדרג" sortKey="authorName" />
-                            <SortHeader label="דירוגים" sortKey="overall" />
-                            <SortHeader label="הערה" sortKey="comment" />
+                            <SortHeader label="תאריך" sortKey="createdAt" sortConfig={sortConfig} onSort={handleSort} />
+                            <SortHeader label="שם השיר" sortKey="songTitle" sortConfig={sortConfig} onSort={handleSort} />
+                            <SortHeader label="מעלה השיר" sortKey="songCreatorName" sortConfig={sortConfig} onSort={handleSort} />
+                            <SortHeader label="שם המדרג" sortKey="authorName" sortConfig={sortConfig} onSort={handleSort} />
+                            <SortHeader label="דירוגים" sortKey="overall" sortConfig={sortConfig} onSort={handleSort} />
+                            <SortHeader label="הערה" sortKey="comment" sortConfig={sortConfig} onSort={handleSort} />
                         </tr>
                     ) : reportType === 'users' ? (
                         <tr>
-                            <SortHeader label="מייל" sortKey="email" />
-                            <SortHeader label="שם" sortKey="name" />
-                            <SortHeader label="מספר טוקנים" sortKey="tokens" />
-                            <SortHeader label="תאריך רישום" sortKey="createdAt" />
-                            <SortHeader label="כניסה אחרונה" sortKey="lastVisit" />
-                            <SortHeader label="לאחרונה נתן פידבק" sortKey="lastFeedbackGiven" />
-                            <SortHeader label="לאחרונה קיבל פידבק" sortKey="lastFeedbackReceived" />
+                            <SortHeader label="מייל" sortKey="email" sortConfig={sortConfig} onSort={handleSort} />
+                            <SortHeader label="שם" sortKey="name" sortConfig={sortConfig} onSort={handleSort} />
+                            <SortHeader label="מספר טוקנים" sortKey="tokens" sortConfig={sortConfig} onSort={handleSort} />
+                            <SortHeader label="תאריך רישום" sortKey="createdAt" sortConfig={sortConfig} onSort={handleSort} />
+                            <SortHeader label="כניסה אחרונה" sortKey="lastVisit" sortConfig={sortConfig} onSort={handleSort} />
+                            <SortHeader label="לאחרונה נתן פידבק" sortKey="lastFeedbackGiven" sortConfig={sortConfig} onSort={handleSort} />
+                            <SortHeader label="לאחרונה קיבל פידבק" sortKey="lastFeedbackReceived" sortConfig={sortConfig} onSort={handleSort} />
                         </tr>
                     ) : (
                         <tr>
-                            <SortHeader label="תאריך" sortKey="createdAt" />
-                            <SortHeader label="הודעה" sortKey="message" />
-                            <SortHeader label="מידע" sortKey="data" />
-                            <SortHeader label="מקור" sortKey="source" />
-                            <SortHeader label="שם משתמש" sortKey="userName" />
+                            <SortHeader label="תאריך" sortKey="createdAt" sortConfig={sortConfig} onSort={handleSort} />
+                            <SortHeader label="הודעה" sortKey="message" sortConfig={sortConfig} onSort={handleSort} />
+                            <SortHeader label="מידע" sortKey="data" sortConfig={sortConfig} onSort={handleSort} />
+                            <SortHeader label="מקור" sortKey="source" sortConfig={sortConfig} onSort={handleSort} />
+                            <SortHeader label="שם משתמש" sortKey="userName" sortConfig={sortConfig} onSort={handleSort} />
                         </tr>
                     )}
                 </thead>

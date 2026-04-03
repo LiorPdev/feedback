@@ -1,16 +1,7 @@
 "use client";
 
 import React, { useMemo } from 'react';
-import {
-  ResponsiveContainer,
-  BarChart,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Bar,
-  Legend
-} from 'recharts';
+import { ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Bar, Legend } from 'recharts';
 
 interface Feedback {
   cat2: number;
@@ -163,18 +154,22 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
 
   if (chartData.length === 0) return null;
 
-  const chartHeight = Math.max(isMobile ? 200 : 300, Math.min(400, chartData.length * (isMobile ? 50 : 80)));
-
   return (
-    <div style={{ direction: 'ltr', width: '100%', height: chartHeight }}>
-      <ResponsiveContainer width="100%" height="100%">
+    <div style={{
+      direction: 'ltr',
+      width: '100%',
+      height: '100%',
+      position: 'relative',
+      overflow: 'hidden'
+    }}>
+      <ResponsiveContainer width="100%" height="100%" minHeight={0}>
         <BarChart
           layout="vertical"
           data={chartData}
           margin={{
             top: 5,
-            right: 30,
-            left: isMobile ? 10 : 50,
+            right: isMobile ? 10 : 30,
+            left: isMobile ? 40 : 50,
             bottom: 5,
           }}
         >
@@ -203,63 +198,28 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
           <YAxis
             dataKey="songTitle"
             type="category"
-            width={isMobile ? 55 : 80}
+            width={isMobile ? 45 : 80}
             interval={0}
             tickLine={false}
             tick={(props) => {
               const { x, y, payload } = props;
               const name = payload.value;
-              const limit = isMobile ? 10 : 18;
-
-              if (name.length <= limit) {
-                return (
-                  <g transform={`translate(${x},${y})`}>
-                    <text
-                      x={-2}
-                      y={0}
-                      dy={4}
-                      textAnchor="start"
-                      fill="#333"
-                      fontSize={isMobile ? 9 : 12}
-                      fontWeight={500}
-                      style={{ direction: 'rtl' }}
-                    >
-                      {name}
-                    </text>
-                  </g>
-                );
-              }
-
-              // Robust split logic for RTL and word-safety
-              const mid = Math.floor(name.length / 2);
-              let splitIdx = name.lastIndexOf(' ', limit);
-
-              // If no space before limit, try any space closest to middle
-              if (splitIdx === -1) {
-                const spaceBeforeMid = name.lastIndexOf(' ', mid);
-                const spaceAfterMid = name.indexOf(' ', mid);
-                if (spaceBeforeMid !== -1) splitIdx = spaceBeforeMid;
-                else if (spaceAfterMid !== -1) splitIdx = spaceAfterMid;
-                else splitIdx = mid; // Fallback to character split
-              }
-
-              const line1 = name.substring(0, splitIdx).trim();
-              const line2 = name.substring(splitIdx).trim();
-              const truncated2 = line2.length > limit ? line2.substring(0, limit - 2) + '..' : line2;
+              const limit = isMobile ? 15 : 20;
+              const displayName = name.length > limit ? name.substring(0, limit - 1) + '...' : name;
 
               return (
                 <g transform={`translate(${x},${y})`}>
                   <text
-                    x={-4}
+                    x={0}
                     y={0}
+                    dy={4}
                     textAnchor="start"
                     fill="#333"
-                    fontSize={isMobile ? 9 : 12}
+                    fontSize={isMobile ? 10 : 12}
                     fontWeight={500}
                     style={{ direction: 'rtl' }}
                   >
-                    <tspan x={-4} dy="-0.5em">{line1}</tspan>
-                    <tspan x={-4} dy="1.2em">{truncated2}</tspan>
+                    {displayName}
                   </text>
                 </g>
               );
@@ -300,7 +260,9 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
                       </div>
                     )}
                     {type === 'retention' && (
-                      <p style={{ margin: '0 0 5px', color: '#0891b2', fontWeight: 'bold' }}>מדד האזנה: {data.avgListenTime} שניות</p>
+                      <p style={{ margin: '0 0 5px', color: '#0891b2', fontWeight: 'bold' }}>
+                        ממוצע האזנה: {Math.floor(data.avgListenTime / 60)}:{String(data.avgListenTime % 60).padStart(2, '0')} דקות
+                      </p>
                     )}
                     {type === 'categories' && (
                       <>
@@ -342,7 +304,7 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
 
           {type === 'retention' && (
             <Bar
-              name="מדד האזנה"
+              name="ממוצע האזנה"
               dataKey="avgListenTime"
               fill="url(#colorRetentionGradient)"
               radius={[0, 4, 4, 0]}

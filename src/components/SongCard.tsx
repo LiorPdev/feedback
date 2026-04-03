@@ -45,9 +45,6 @@ export default function SongCard({ song, isNew: propIsNew }: SongCardProps) {
       <div className={styles.songMain}>
         <div className={styles.songHeader}>
           <h3 className={styles.songTitle}>{song.title}</h3>
-          <div className={styles.songStatus}>
-            <span className={styles.genreTag}>{song.genre}</span>
-          </div>
         </div>
         <div className={styles.songDate}>
           {new Date(song.createdAt).toLocaleDateString("he-IL")}

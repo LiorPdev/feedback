@@ -2,7 +2,7 @@
   position: relative;
   background: var(--card-bg);
   padding: 1.5rem;
-  border-radius: 20px;
+  border-radius: 18px;
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
   display: flex;
@@ -27,7 +27,7 @@
 .songHeader {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 4px;
   min-width: 0;
   flex: 1;
 }
@@ -96,7 +96,6 @@
   transition: opacity 0.2s;
 }
 
-/* Ensure the link covers the whole card but admin actions are clickable */
 .viewLink::after {
   content: "";
   position: absolute;
@@ -106,11 +105,6 @@
   left: 0;
   z-index: 1;
 }
-
-/* Wait, the ::after trick depends on the songCard being relative. 
-   In SongCard.tsx, the link is only part of songActions. 
-   If we want the whole card clickable, it should be structured differently. 
-   But I'll keep the current logic for now. */
 
 .viewLink:hover {
   opacity: 0.8;
@@ -122,11 +116,13 @@
     border-color: var(--brand-primary);
     opacity: 0.4;
   }
+
   50% {
     box-shadow: 0 0 25px 5px var(--brand-light);
     border-color: var(--brand-primary);
     transform: scale(1.02);
   }
+
   100% {
     box-shadow: 0 0 0 0 transparent;
     border-color: var(--border-color);
