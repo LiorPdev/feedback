@@ -163,14 +163,16 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
 
   if (chartData.length === 0) return null;
 
+  const chartHeight = Math.max(isMobile ? 200 : 300, Math.min(400, chartData.length * (isMobile ? 50 : 80)));
+
   return (
-    <div style={{ direction: 'ltr', width: '100%', height: Math.max(isMobile ? 250 : 380, chartData.length * (isMobile ? 65 : 100)) }}>
+    <div style={{ direction: 'ltr', width: '100%', height: chartHeight }}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           layout="vertical"
           data={chartData}
           margin={{
-            top: 20,
+            top: 5,
             right: 30,
             left: isMobile ? 10 : 50,
             bottom: 5,
@@ -203,6 +205,7 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
             type="category"
             width={isMobile ? 55 : 80}
             interval={0}
+            tickLine={false}
             tick={(props) => {
               const { x, y, payload } = props;
               const name = payload.value;
@@ -211,21 +214,34 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
               if (name.length <= limit) {
                 return (
                   <g transform={`translate(${x},${y})`}>
-                    <text x={-2} y={0} dy={4} textAnchor="end" fill="#333" fontSize={isMobile ? 9 : 12} fontWeight={500}>
+                    <text
+                      x={-2}
+                      y={0}
+                      dy={4}
+                      textAnchor="start"
+                      fill="#333"
+                      fontSize={isMobile ? 9 : 12}
+                      fontWeight={500}
+                      style={{ direction: 'rtl' }}
+                    >
                       {name}
                     </text>
                   </g>
                 );
               }
 
-              // Split logic: find space near midpoint or force split
+              // Robust split logic for RTL and word-safety
               const mid = Math.floor(name.length / 2);
-              const spaceBefore = name.lastIndexOf(' ', mid);
-              const spaceAfter = name.indexOf(' ', mid);
+              let splitIdx = name.lastIndexOf(' ', limit);
 
-              let splitIdx = mid;
-              if (spaceBefore !== -1 && (mid - spaceBefore < 5)) splitIdx = spaceBefore;
-              else if (spaceAfter !== -1 && (spaceAfter - mid < 5)) splitIdx = spaceAfter;
+              // If no space before limit, try any space closest to middle
+              if (splitIdx === -1) {
+                const spaceBeforeMid = name.lastIndexOf(' ', mid);
+                const spaceAfterMid = name.indexOf(' ', mid);
+                if (spaceBeforeMid !== -1) splitIdx = spaceBeforeMid;
+                else if (spaceAfterMid !== -1) splitIdx = spaceAfterMid;
+                else splitIdx = mid; // Fallback to character split
+              }
 
               const line1 = name.substring(0, splitIdx).trim();
               const line2 = name.substring(splitIdx).trim();
@@ -233,8 +249,16 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
 
               return (
                 <g transform={`translate(${x},${y})`}>
-                  <text x={-4} y={-6} textAnchor="end" fill="#333" fontSize={isMobile ? 9 : 12} fontWeight={500}>
-                    <tspan x={-4} dy="0">{line1}</tspan>
+                  <text
+                    x={-4}
+                    y={0}
+                    textAnchor="start"
+                    fill="#333"
+                    fontSize={isMobile ? 9 : 12}
+                    fontWeight={500}
+                    style={{ direction: 'rtl' }}
+                  >
+                    <tspan x={-4} dy="-0.5em">{line1}</tspan>
                     <tspan x={-4} dy="1.2em">{truncated2}</tspan>
                   </text>
                 </g>
@@ -243,6 +267,8 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
           />
           <Tooltip
             cursor={{ fill: 'transparent' }}
+            allowEscapeViewBox={{ x: true, y: true }}
+            wrapperStyle={{ zIndex: 1000 }}
             content={({ active, payload }) => {
               if (active && payload && payload.length) {
                 const data = payload[0].payload;
@@ -250,9 +276,16 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
                   <div style={{
                     backgroundColor: '#fff',
                     border: '1px solid #ccc',
-                    padding: '10px',
+                    padding: isMobile ? '10px' : '12px',
                     borderRadius: '8px',
-                    direction: 'rtl'
+                    direction: 'rtl',
+                    maxWidth: isMobile ? '220px' : '300px',
+                    fontSize: isMobile ? '13px' : '15px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    whiteSpace: 'normal',
+                    wordBreak: 'break-word',
+                    lineHeight: '1.6',
+                    pointerEvents: 'none'
                   }}>
                     <p style={{ margin: '0 0 5px', fontWeight: 'bold' }}>{data.songTitle}</p>
                     {type === 'general' && (
@@ -261,7 +294,7 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
                     {type === 'trueRating' && (
                       <div style={{ marginBottom: '10px' }}>
                         <p style={{ margin: '0 0 2px', color: '#4f46e5', fontWeight: 'bold' }}>מדד איכות משוקלל: {data.trueRating}</p>
-                        <p style={{ margin: '0', fontSize: '0.75em', color: '#666', lineHeight: 1.2 }}>
+                        <p style={{ margin: '0', fontSize: '0.85em', color: '#666', lineHeight: 1.6 }}>
                           זהו דירוג המשקלל את ממוצע השיר מול הממוצע הכללי של השירים שלך ({data.userAverage}) כדי למנוע הטיות בשירים עם מעט מדרגים.
                         </p>
                       </div>
@@ -293,7 +326,7 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
               dataKey="averageRating"
               fill="url(#colorRetentionGradient)"
               radius={[0, 4, 4, 0]}
-              barSize={isMobile ? 40 : 70}
+              maxBarSize={isMobile ? 40 : 70}
             />
           )}
 
@@ -303,7 +336,7 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
               dataKey="trueRating"
               fill="url(#colorRetentionGradient)"
               radius={[0, 4, 4, 0]}
-              barSize={isMobile ? 40 : 70}
+              maxBarSize={isMobile ? 40 : 70}
             />
           )}
 
@@ -313,15 +346,15 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
               dataKey="avgListenTime"
               fill="url(#colorRetentionGradient)"
               radius={[0, 4, 4, 0]}
-              barSize={isMobile ? 40 : 70}
+              maxBarSize={isMobile ? 40 : 70}
             />
           )}
 
           {type === 'categories' && (
             <>
-              <Bar name="הפקה" dataKey="avgProduction" stackId="a" fill="#1e3a8a" barSize={70} />
-              <Bar name="שירה" dataKey="avgSinging" stackId="a" fill="#10b981" barSize={70} />
-              <Bar name="כללי" dataKey="avgOverall" stackId="a" fill="#f59e0b" radius={[0, 4, 4, 0]} barSize={70} />
+              <Bar name="הפקה" dataKey="avgProduction" stackId="a" fill="#1e3a8a" maxBarSize={70} />
+              <Bar name="שירה" dataKey="avgSinging" stackId="a" fill="#10b981" maxBarSize={70} />
+              <Bar name="כללי" dataKey="avgOverall" stackId="a" fill="#f59e0b" radius={[0, 4, 4, 0]} maxBarSize={70} />
             </>
           )}
         </BarChart>
