@@ -1,0 +1,197 @@
+.container {
+  display: flex;
+  flex-direction: column;
+}
+
+.tabsContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  margin-bottom: 2rem;
+  padding-bottom: 0.25rem;
+  gap: 1rem;
+}
+
+.tabs {
+  display: flex;
+  gap: 2.5rem;
+}
+
+.tab {
+  background: none;
+  border: none;
+  padding: 0.75rem 0.25rem 1rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.tab:hover {
+  color: var(--text-main);
+}
+
+.activeTab {
+  color: var(--brand-primary);
+}
+
+.activeTab::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--brand-primary);
+  border-radius: 3px 3px 0 0;
+}
+
+.tabContent {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.chartSelector {
+  appearance: none;
+  background-color: #fff;
+  border: 2px solid rgba(0, 45, 77, 0.1);
+  border-radius: 12px;
+  padding: 0.7rem 1.2rem 0.7rem 2.8rem;
+  font-size: 1rem;
+  color: var(--text-main);
+  cursor: pointer;
+  margin-bottom: 2rem;
+  transition: all 0.3s ease;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23002D4D' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: left 0.8rem center;
+  outline: none;
+  box-shadow: var(--shadow-sm);
+  width: 100%;
+  max-width: 220px;
+  text-align: right;
+  direction: rtl;
+}
+
+.chartSelector:hover {
+  border-color: color-mix(in srgb, var(--brand-primary), transparent 75%);
+  box-shadow: 0 4px 12px var(--brand-light);
+}
+
+.submitNewBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 8px;
+  padding: 0.75rem 1.5rem;
+  background: color-mix(in srgb, var(--brand-primary), transparent 15%);
+  color: white;
+  text-decoration: none;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px var(--brand-light);
+}
+
+.submitNewBtn:hover {
+  background: var(--brand-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px var(--brand-light);
+}
+
+.songGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.insightsContainer {
+  padding: 4rem 2rem;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 24px;
+  border: 1px dashed rgba(0, 0, 0, 0.1);
+  color: var(--text-muted);
+}
+
+.chartWrapper {
+  height: 400px;
+  width: 100%;
+  margin-top: 1.5rem;
+  background: #fff;
+  border-radius: 16px;
+  padding: 1.5rem;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-sm);
+}
+
+.insightsContainer h3 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  color: var(--text-main);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .chartSelector {
+    border: none;
+    background-color: transparent;
+    box-shadow: none;
+    padding: 0.5rem 0.5rem 0.5rem 2rem;
+    font-weight: 700;
+    font-size: 1.1rem;
+    background-position: left 0.2rem center;
+    margin-bottom: 0.5rem;
+  }
+
+  .chartSelector:hover,
+  .chartSelector:focus {
+    box-shadow: none;
+    border-color: transparent;
+  }
+
+  .chartWrapper {
+    margin-top: 0;
+    padding: 0.5rem 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    height: auto;
+    min-height: 250px;
+  }
+
+  .submitNewBtn {
+    width: 100%;
+  }
+
+  .tabsContainer {
+    gap: 1.5rem;
+    justify-content: flex-start;
+    margin-bottom: 1rem;
+  }
+
+  .tab {
+    font-size: 1rem;
+    padding: 0.5rem 0 0.8rem;
+  }
+
+  .hideOnMobile {
+    display: none;
+  }
+}

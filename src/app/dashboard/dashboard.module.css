@@ -1,5 +1,5 @@
 .container {
-  min-height: 100vh;
+  min-height: calc(100vh - var(--navbar-height));
   padding: 1.5rem 5vw 4rem;
   color: var(--text-main);
   direction: rtl;
@@ -30,62 +30,11 @@
   margin: 0 0 0.5rem 0;
 }
 
-
-
 .content {
   max-width: 1000px;
   margin: 0 auto;
   position: relative;
   z-index: 2;
-}
-
-.sectionHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  gap: 1rem;
-}
-
-.sectionHeader h2 {
-  font-size: 1.5rem;
-  font-weight: 800;
-}
-
-.submitNewBtn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  gap: 8px;
-  padding: 0.75rem 1.5rem;
-  background: color-mix(in srgb, var(--brand-primary), transparent 15%);
-  color: white;
-  text-decoration: none;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 0.95rem;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px var(--brand-light);
-}
-
-.submitNewBtn:hover {
-  background: var(--brand-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 15px var(--brand-light);
-}
-
-.songGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
-}
-
-.emptyBtn {
-  color: var(--brand-contrast);
-  text-decoration: underline;
-  font-weight: 700;
-  font-size: 1rem;
 }
 
 .dbError {
@@ -118,27 +67,63 @@
 }
 
 
+.mobileActionBtn {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .header {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
     text-align: right;
     position: relative;
-    padding-top: 0.5rem;
+    padding: 0.5rem 0 1.5rem 0;
     gap: 1rem;
-  }
-
-  .welcome h1 {
-    font-size: 1.8rem;
-    margin-bottom: 0.25rem;
+    width: 100%;
   }
 
   .welcomeContainer {
     gap: 0.3rem;
     margin-right: -1rem;
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
   }
 
-  .hideOnMobile {
+  .welcome {
+    overflow: hidden;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .welcome h1 {
+    font-size: 1.45rem;
+    margin-bottom: 0px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mobileActionBtn {
+    display: flex;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.85rem;
+    background: var(--brand-primary);
+    color: white;
+    text-decoration: none;
+    border-radius: 12px;
+    font-weight: 700;
+    box-shadow: 0 4px 12px var(--brand-light);
+    white-space: nowrap;
+    margin-left: 0;
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 350px) {
+  .welcomeText {
     display: none;
   }
 }

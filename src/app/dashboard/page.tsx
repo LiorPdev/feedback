@@ -2,10 +2,13 @@ import { getDb } from "@/lib/db";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import SongCard from "@/components/SongCard";
 import styles from "./dashboard.module.css";
 import { logAction } from "@/app/actions/logs";
 import BackButton from "@/components/BackButton";
+import DashboardClient from "./DashboardClient";
+import { feedbacks } from "@/lib/schema";
+import { sql } from "drizzle-orm";
+import { TOP_RATED_MIN_RATINGS_THRESHOLD } from "@/lib/constants";
 
 export default async function DashboardPage({
   searchParams
@@ -20,8 +23,8 @@ export default async function DashboardPage({
   const { new: newSlug } = await searchParams;
 
   let user;
+  const db = await getDb();
   try {
-    const db = await getDb();
     user = await db.query.users.findFirst({
       where: (users, { eq }) => eq(users.id, clerkUser.id),
       with: {
@@ -29,6 +32,7 @@ export default async function DashboardPage({
           orderBy: (songs, { desc }) => [desc(songs.createdAt)],
           with: {
             feedbacks: true,
+            listenEvents: true,
           },
         },
       },
@@ -56,37 +60,40 @@ export default async function DashboardPage({
     );
   }
 
-  if (!user || user.songs.length === 0) {
-    redirect("/get-feedback");
-  }
+    if (!user || user.songs.length === 0) {
+      redirect("/get-feedback");
+    }
 
-  return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <div className={styles.welcomeContainer}>
-          <BackButton
-            style={{ transform: 'translateY(-3px)' }}
-          />
-          <div className={styles.welcome}>
-            <h1>שלום{user.name ? `, ${user.name.split(" ")[0]}` : ""}</h1>
+    // Calculate global average rating (C) for Bayesian True Rating
+    const globalStats = await db.select({
+      avgRating: sql<number>`avg((${feedbacks.cat2} + ${feedbacks.cat3} + ${feedbacks.overall}) / 3.0)`
+    }).from(feedbacks);
+    const globalAverage = globalStats[0]?.avgRating || 0;
+
+    return (
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <div className={styles.welcomeContainer}>
+            <BackButton
+              style={{ transform: 'translateY(-3px)' }}
+            />
+            <div className={styles.welcome}>
+              <h1><span className={styles.welcomeText}>שלום, </span>{user.name ? user.name.split(" ")[0] : ""}</h1>
+            </div>
           </div>
-        </div>
-      </div>
-
-      <div className={styles.content}>
-        <div className={styles.sectionHeader}>
-          <h2>השירים ששלחתי <span className={styles.hideOnMobile}>לקבל פידבק</span></h2>
-          <Link href="/get-feedback" className={styles.submitNewBtn}>
+          <Link href="/get-feedback" className={styles.mobileActionBtn}>
             שליחת שיר נוסף
           </Link>
         </div>
 
-        <div className={styles.songGrid}>
-          {user.songs.map((song) => (
-            <SongCard key={song.id} song={song} isNew={song.slug === newSlug} />
-          ))}
+        <div className={styles.content}>
+          <DashboardClient
+            songs={user.songs}
+            newSlug={newSlug}
+            globalAverage={globalAverage}
+            minThreshold={TOP_RATED_MIN_RATINGS_THRESHOLD}
+          />
         </div>
       </div>
-    </div>
-  );
+    );
 }

@@ -11,7 +11,7 @@ import DashboardLink from "@/components/DashboardLink";
 import BackButton from "@/components/BackButton";
 import ArtistSocials from "@/components/ArtistSocials";
 import PopupMsg from "@/components/PopupMsg";
-import { MIN_LISTEN_TIME, SUCCESS_MESSAGE_DURATION } from "@/lib/constants";
+import { MIN_LISTEN_TIME } from "@/lib/constants";
 import { logAction } from "@/app/actions/logs";
 import styles from "./feed.module.css";
 
@@ -57,15 +57,6 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasRatedCurrent, setHasRatedCurrent] = useState(!!initialFeedback);
   const [userFeedback, setUserFeedback] = useState<Feedback | null>(initialFeedback || null);
-  const [currentSongStats, setCurrentSongStats] = useState<{ averageRating: number; totalFeedbacks: number } | null>(
-    (currentSong as unknown as { averageRating?: number; totalFeedbacks?: number })?.averageRating !== undefined
-      ? {
-        averageRating: (currentSong as unknown as { averageRating: number }).averageRating,
-        totalFeedbacks: (currentSong as unknown as { totalFeedbacks: number }).totalFeedbacks
-      }
-      : null
-  );
-  const [justSubmitted, setJustSubmitted] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(true); // true until player fires onReady
   const [playerError, setPlayerError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
@@ -138,16 +129,10 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
   const resetSongState = useCallback(() => {
     setSecondsRemaining(getRequiredTime());
     setIsTimerActive(false);
-    const currentSongFromList = songs[currentIndex] as unknown as { averageRating?: number; totalFeedbacks?: number };
-    setCurrentSongStats(
-      currentSongFromList?.averageRating !== undefined
-        ? { averageRating: currentSongFromList.averageRating as number, totalFeedbacks: currentSongFromList.totalFeedbacks as number }
-        : null
-    );
     setPlayerError(null);
     setCurrentTime(0);
     setDuration(0);
-  }, [getRequiredTime, currentIndex, songs]);
+  }, [getRequiredTime]);
 
   const onPlayerError = useCallback((error: unknown) => {
     logAction({
@@ -175,7 +160,6 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
     if (songs.length <= 1) return;
     resetSongState();
     setHasRatedCurrent(false);
-    setJustSubmitted(false);
     setUserFeedback(null);
     setIsPlaying(false);
     setIsTransitioning(true);
@@ -190,7 +174,6 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
       // Update index if needed
       resetSongState();
       setHasRatedCurrent(false);
-      setJustSubmitted(false);
       setUserFeedback(null);
       setIsPlaying(false);
       setIsTransitioning(true);
@@ -349,22 +332,11 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
                     : `ניתן לשלוח פידבק בעוד ${secondsRemaining} שניות${!isTimerActive ? " (מושהה)" : "..."}`
                 )
               }
-              onSuccess={(feedback, stats) => {
-                if (feedback) {
-                  setUserFeedback(feedback as Feedback);
-                  if (stats) setCurrentSongStats(stats);
-                  setJustSubmitted(true);
-                }
-
-                if (isPlaying) {
-                  // Transition immediately while song plays
-                  setHasRatedCurrent(true);
-                } else {
-                  // Wait for the success popup to finish
-                  setTimeout(() => {
-                    handleRemoveCurrent();
-                  }, SUCCESS_MESSAGE_DURATION);
-                }
+              onSuccess={(feedback) => {
+                setUserFeedback(feedback as Feedback);
+              }}
+              onPopupClose={() => {
+                handleRemoveCurrent();
               }}
             />
           )}
@@ -373,38 +345,30 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
             <div className={styles.ratedContainer}>
               <div className={styles.ratedHeader}>
                 <CheckCircle2 size={18} />
-                <span>{justSubmitted ? "תודה! הפידבק שלך נשמר" : "כבר נתת פידבק על השיר 👑"}</span>
+                <span>כבר נתת פידבק על השיר 👑</span>
               </div>
 
-              {justSubmitted && currentSongStats ? (
-                <div className={styles.ratedStatsContainer}>
-                  <p className={styles.ratedStatsTitle}>
-                    דירוג מאזינים ממוצע: <span className={styles.ratedStatsValue}>{currentSongStats.averageRating.toFixed(1)}</span>
-                  </p>
-                </div>
-              ) : (
-                <div className={styles.ratedGrid}>
-                  {[
-                    { label: "הפקה", value: userFeedback.cat2 },
-                    { label: "שירה", value: userFeedback.cat3 },
-                    { label: "כללי", value: userFeedback.overall },
-                  ].map((item, idx) => (
-                    <div key={idx} className={styles.ratedItem}>
-                      <span className={styles.ratedLabel}>{item.label}</span>
-                      <div className={styles.ratedStars}>
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <Star
-                            key={star}
-                            size={14}
-                            fill={item.value >= star ? "currentColor" : "none"}
-                            strokeWidth={2}
-                          />
-                        ))}
-                      </div>
+              <div className={styles.ratedGrid}>
+                {[
+                  { label: "הפקה", value: userFeedback.cat2 },
+                  { label: "שירה", value: userFeedback.cat3 },
+                  { label: "כללי", value: userFeedback.overall },
+                ].map((item, idx) => (
+                  <div key={idx} className={styles.ratedItem}>
+                    <span className={styles.ratedLabel}>{item.label}</span>
+                    <div className={styles.ratedStars}>
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          size={14}
+                          fill={item.value >= star ? "currentColor" : "none"}
+                          strokeWidth={2}
+                        />
+                      ))}
                     </div>
-                  ))}
-                </div>
-              )}
+                  </div>
+                ))}
+              </div>
 
               {userFeedback.comment && (
                 <div className={styles.ratedComment}>
@@ -416,16 +380,15 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
         </div>
       </div>
 
+      {/* This popup is shown when the user attempts to submit a new song but has insufficient credits. */}
       <PopupMsg
         isOpen={showCreditPopup}
         onClose={closeCreditPopup}
+        icon={<Coins size={48} />}
         title="נגמרו תווי הקרדיט"
         message={
-          <div>
-            <div>החדשות הטובות: על כל פידבק שתיתנו כאן, תקבלו תווי קרדיט נוספים!</div>
-          </div>
+          <div>החדשות הטובות: על כל פידבק שתיתנו כאן, תקבלו תווי קרדיט נוספים!</div>
         }
-        icon={<Coins size={48} />}
         buttonText="הבנתי, בואו ניתן קצת פידבק לאחרים"
       />
     </div>

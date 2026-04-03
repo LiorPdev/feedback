@@ -51,9 +51,9 @@ export default function TopRatedFeedbackButton({
       <PopupMsg
         isOpen={showPopup}
         onClose={() => setShowPopup(false)}
+        icon={<AlertCircle size={40} color="var(--brand-primary)" />}
         title="המממ..."
         message="אי אפשר לדרג שיר שאתם העלתם :)"
-        icon={<AlertCircle size={40} color="var(--brand-primary)" />}
         buttonText="הבנתי"
       />
     </>

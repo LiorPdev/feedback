@@ -207,8 +207,8 @@
 
 .fbRatingLabel {
   font-size: 0.85rem;
-  font-weight: 800;
-  color: var(--text-main);
+  font-weight: 700;
+  color: var(--text-muted);
   margin-left: 0.25rem;
 }
 
@@ -231,6 +231,7 @@
 .fbPlaytime {
   font-size: 0.85rem !important;
   font-weight: 800 !important;
+  margin-bottom: 0.5rem;
   color: var(--text-muted) !important;
   display: flex !important;
   align-items: center !important;
@@ -491,4 +492,14 @@
   .avgValue {
     font-size: 1.2rem;
   }
+
+  .feedbackItem {
+    padding: 1.2rem;
+  }
+
+  .fbRatingsRow {
+    display: flex;
+    gap: 0.4rem;
+  }
+
 }

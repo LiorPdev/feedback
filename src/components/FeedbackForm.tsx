@@ -5,10 +5,11 @@ import { Star, X, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUser } from "@clerk/nextjs";
 import { addFeedback } from "@/app/actions/songs";
-import { REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH, SUCCESS_MESSAGE_DURATION } from "@/lib/constants";
+import { REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH } from "@/lib/constants";
 import styles from "./FeedbackForm.module.css";
 import AnimatedTokenCounter from "./AnimatedTokenCounter";
 import AuthOverlay from "./AuthOverlay";
+import PopupMsg from "./PopupMsg";
 
 interface FeedbackFormProps {
   songId: string;
@@ -20,6 +21,7 @@ interface FeedbackFormProps {
   initialSource?: string;
   onAuthDismiss?: () => void;
   isAuthDismissed?: boolean;
+  onPopupClose?: () => void;
 }
 
 export default function FeedbackForm({
@@ -31,7 +33,8 @@ export default function FeedbackForm({
   disabledMessage,
   initialSource,
   onAuthDismiss,
-  isAuthDismissed = false
+  isAuthDismissed = false,
+  onPopupClose
 }: FeedbackFormProps) {
   const { isLoaded, isSignedIn } = useUser();
   const [ratings, setRatings] = useState({
@@ -113,19 +116,6 @@ export default function FeedbackForm({
 
     return () => clearInterval(interval);
   }, [isPlaying, triggerFlyer]);
-
-  // Form resets automatically when song changes because key={songId} is used in parent
-
-  // Handle success auto-hide
-  useEffect(() => {
-    if (status === "success") {
-      const timer = setTimeout(() => {
-        setStatus("idle");
-      }, SUCCESS_MESSAGE_DURATION);
-      return () => clearTimeout(timer);
-    }
-  }, [status]);
-
 
   const categories = [
     { key: "cat2" as const, name: "הפקה", reward: REWARD_PRODUCTION },
@@ -237,22 +227,8 @@ export default function FeedbackForm({
           });
         }
 
-        if (!isPlaying) {
-          setStatus("success");
-          setTimeout(() => {
-            setStatus("idle");
-            setSongStats(null);
-          }, SUCCESS_MESSAGE_DURATION);
-        } else {
-          setStatus("idle");
-        }
-        // Reset form immediately on success
-        setRatings({
-          cat2: 0,
-          cat3: 0,
-          overall: 0,
-        });
-        setComment("");
+        setStatus("success");
+        // Reset happens in PopupMsg onClose
         onSuccess?.(result.feedback, {
           averageRating: result.averageRating as number,
           totalFeedbacks: result.totalFeedbacks as number
@@ -288,36 +264,39 @@ export default function FeedbackForm({
       {/* Container for the form that gets blurred when unauthenticated */}
       <div className={(!isSignedIn && !isAuthDismissed) ? styles.blurred : ""}>
         <AnimatePresence>
-          {status === "success" && (
-            <div className={styles.successOverlay} onClick={() => setStatus("idle")}>
-              <motion.div
-                className={styles.successPopup}
-                initial={{ opacity: 0, y: 20, scale: 0.8 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <button
-                  className={styles.closeBtn}
-                  onClick={() => setStatus("idle")}
-                  aria-label="סגור"
-                >
-                  <X size={20} />
-                </button>
-                <div className={`${styles.successHeader} ${songStats ? styles.successHeaderWithStats : ""}`}>
-                  <span className={styles.successTitle}>תודה על הפידבק!</span>
+          <PopupMsg
+            isOpen={status === "success"}
+            onClose={() => {
+              setStatus("idle");
+              setSongStats(null);
+              setRatings({
+                cat2: 0,
+                cat3: 0,
+                overall: 0,
+              });
+              setComment("");
+              onPopupClose?.();
+            }}
+            icon={<div style={{ color: '#16A34A', fontSize: '2rem', fontWeight: 800 }}>✓</div>}
+            title="תודה על הפידבק!"
+            buttonText="המשך"
+            message={
+              songStats && (
+                <div className={styles.successStats}>
+                  <p className={styles.successScoreLabel}>
+                    <span className={styles.successScoreText}>הדירוג שלי לשיר:</span>
+                    <span className={styles.successScoreValue}>
+                      {((ratings.cat2 + ratings.cat3 + ratings.overall) / 3).toFixed(1)}
+                    </span>
+                  </p>
+                  <p className={styles.successScoreLabel}>
+                    <span className={styles.successScoreText}>דירוג הקהילה לשיר:</span>
+                    <span className={styles.successScoreValue}>{songStats.averageRating.toFixed(1)}</span>
+                  </p>
                 </div>
-
-                {songStats && (
-                  <div className={styles.successStats}>
-                    <p className={styles.successScoreLabel}>
-                      דירוג מאזינים ממוצע: <span className={styles.successScoreValue}>{songStats.averageRating.toFixed(1)}</span>
-                    </p>
-                  </div>
-                )}
-              </motion.div>
-            </div>
-          )}
+              )
+            }
+          />
 
           {status === "error" && (
             <div className={styles.errorOverlay} onClick={() => setStatus("idle")}>
@@ -395,9 +374,9 @@ export default function FeedbackForm({
                   if (status === "error") setStatus("idle");
                 }}
               />
-              <div className={`${styles.charCounter} ${comment.length === 0 ? "" : (comment.length < MIN_COMMENT_LENGTH ? styles.charCounterLow : styles.charCounterValid)}`}>
-                ({comment.length}/{MIN_COMMENT_LENGTH})
-              </div>
+            </div>
+            <div className={`${styles.charCounter} ${comment.length === 0 ? "" : (comment.length < MIN_COMMENT_LENGTH ? styles.charCounterLow : styles.charCounterValid)}`}>
+              ({comment.length}/{MIN_COMMENT_LENGTH})
             </div>
           </div>
 
