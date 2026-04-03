@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import styles from "@/app/show-feedback/[slug]/show-feedback.module.css";
 import ListenTimeTab from "@/components/ListenTimeTab";
 import { Eye, Loader2 } from "lucide-react";
 import { unlockFeedback } from "@/app/actions/feedback";
 import { UNLOCK_FEEDBACK_COST } from "@/lib/constants";
 import Link from "next/link";
+import styles from "@/app/show-feedback/[slug]/show-feedback.module.css";
 
 interface FeedbackItem {
   id: string;
@@ -103,9 +103,6 @@ export default function FeedbackTabs({
         <section className={styles.feedbackSection}>
           {feedbacks.length > 0 ? (
             <div className={styles.feedbacksList}>
-              <h3 className={styles.listHeading}>
-                דירוגים שהתקבלו ({feedbacks.length})
-              </h3>
               {feedbacks.map((fb) => {
                 const genres = fb.authorGenre
                   ? fb.authorGenre.split(",").map((g) => g.trim()).filter(Boolean).slice(0, 3)
