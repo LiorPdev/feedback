@@ -157,13 +157,6 @@
   gap: 1.5rem;
 }
 
-.listHeading {
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: var(--text-main);
-  margin-bottom: 0.5rem;
-}
-
 .feedbackItem {
   background: var(--bg-section);
   padding: 1.5rem;

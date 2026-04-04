@@ -37,3 +37,8 @@ export const TOP_RATED_MIN_RATINGS_THRESHOLD = 3;
 // and fresh talent to be discovered while rewarding consistent high performance.
 // Lower value (e.g. 0.005) means songs stay longer; higher value (e.g. 0.05) means faster turnover.
 export const TOP_RATED_DECAY_FACTOR = 0.01;
+
+// Rating Weights (Must sum to 1.0)
+export const WEIGHT_PRODUCTION = 0.3;
+export const WEIGHT_SINGING = 0.3;
+export const WEIGHT_OVERALL = 0.4;
