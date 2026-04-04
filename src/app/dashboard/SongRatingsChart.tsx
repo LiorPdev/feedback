@@ -129,7 +129,20 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
           listenersCount: allPlayTimes.length,
         };
       })
-      .filter(Boolean) as {
+      .filter(Boolean)
+      .sort((a, b) => {
+        if (!a || !b) return 0;
+        if (type === 'trueRating') return b.trueRating - a.trueRating;
+        if (type === 'retention') return b.avgListenTime - a.avgListenTime;
+        if (type === 'categories') {
+          // For stacked bars, sort by the total height (sum of categories)
+          const totalA = a.avgProduction + a.avgSinging + a.avgOverall;
+          const totalB = b.avgProduction + b.avgSinging + b.avgOverall;
+          return totalB - totalA;
+        }
+        // Default to avgOverall for 'general'
+        return b.avgOverall - a.avgOverall;
+      }) as {
         songTitle: string;
         avgProduction: number;
         avgSinging: number;
@@ -140,7 +153,7 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
         feedbacksCount: number;
         listenersCount: number;
       }[];
-  }, [songs, globalAverage, minThreshold]);
+  }, [songs, globalAverage, minThreshold, type]);
 
   if (chartData.length === 0) return null;
 
@@ -150,7 +163,7 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
         <BarChart
           layout="vertical"
           data={chartData}
-          margin={{ top: 0, right: 10, left: 50, bottom: 0 }}
+          margin={{ top: 0, right: 10, left: 0, bottom: 0 }}
         >
           <defs>
             <linearGradient id="colorRetentionGradient" x1="0" y1="0" x2="1" y2="0">
@@ -158,39 +171,43 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
               <stop offset="100%" stopColor="#06b6d4" stopOpacity={1} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+          <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f0f0f0" />
           <XAxis
             type="number"
-            domain={type === 'categories' || type === 'retention' ? [0, 'dataMax'] : [0, 5]}
-            ticks={type === 'general' || type === 'trueRating' ? [0, 1, 2, 3, 4, 5] : undefined}
+            domain={type === 'general' ? [0, 5] : [0, 'dataMax']}
+            ticks={type === 'general' ? [0, 1, 2, 3, 4, 5] : undefined}
             allowDecimals={true}
-            tick={type === 'general' || type === 'trueRating'}
+            tick={false}
+            axisLine={false}
+            tickLine={false}
           />
           <YAxis
             dataKey="songTitle"
             type="category"
-            width={isMobile ? 60 : 80}
+            width={10}
             interval={0}
+            axisLine={false}
             tickLine={false}
             tick={(props) => {
               const { x, y, payload } = props;
               const name = payload.value;
-              const limit = 20;
-              const displayName = name.length > limit ? name.substring(0, limit - 1) + '...' : name;
+              const xOffset = 30;
 
               return (
-                <g transform={`translate(${x},${y})`}>
+                <g transform={`translate(${Number(x) + xOffset},${Number(y)})`}>
                   <text
                     x={0}
                     y={0}
                     dy={4}
                     textAnchor="start"
-                    fill="#333"
-                    fontSize={isMobile ? 10 : 12}
-                    fontWeight={500}
-                    style={{ direction: 'rtl' }}
+                    fill="#fff"
+                    stroke="#000"
+                    strokeWidth={1}
+                    fontSize={isMobile ? 11 : 14}
+                    fontWeight={700}
+                    style={{ direction: 'ltr', paintOrder: 'stroke' }}
                   >
-                    {displayName}
+                    {name}
                   </text>
                 </g>
               );
