@@ -4,7 +4,7 @@ import { getDb } from '@/lib/db';
 import { nanoid } from 'nanoid';
 import { revalidatePath } from 'next/cache';
 import { currentUser, auth } from '@clerk/nextjs/server';
-import { eq, sql, and, notInArray, inArray } from 'drizzle-orm';
+import { eq, sql, and, notInArray, inArray, gt } from 'drizzle-orm';
 import { users, songs, feedbacks, listenEvents } from '@/lib/schema';
 import { SONG_SUBMISSION_COST, REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH, TOP_RATED_MIN_RATINGS_THRESHOLD, TOP_RATED_NOTIFICATION_COOLDOWN_DAYS, TOP_RATED_DECAY_FACTOR, WEIGHT_PRODUCTION, WEIGHT_SINGING, WEIGHT_OVERALL } from '@/lib/constants';
 import { sendFeedbackNotification, sendTopRatedNotification } from '@/lib/mail';
@@ -155,15 +155,18 @@ export async function addFeedback(data: {
             await logToDb({ message: "Email notification failed", data: emailError, source: "songs.ts:addFeedback" });
         }
 
-        // Fetch averages for the song after the new feedback
+        // Fetch averages for the song after the new feedback (ignoring 0 ratings)
         const allFeedbacks = await db.query.feedbacks.findMany({
-            where: (feedbacks, { eq }) => eq(feedbacks.songId, data.songId),
+            where: (feedbacks, { eq, and, gt }) => and(
+                eq(feedbacks.songId, data.songId),
+                gt(feedbacks.overall, 0)
+            ),
             columns: { cat2: true, cat3: true, overall: true }
         });
 
-        const totalFeedbacks = allFeedbacks.length;
-        const averageRating = totalFeedbacks > 0
-            ? allFeedbacks.reduce((acc, f) => acc + (f.cat2 * WEIGHT_PRODUCTION + f.cat3 * WEIGHT_SINGING + f.overall * WEIGHT_OVERALL), 0) / totalFeedbacks
+        const totalRatedFeedbacks = allFeedbacks.length;
+        const averageRating = totalRatedFeedbacks > 0
+            ? allFeedbacks.reduce((acc, f) => acc + (f.cat2 * WEIGHT_PRODUCTION + f.cat3 * WEIGHT_SINGING + f.overall * WEIGHT_OVERALL), 0) / totalRatedFeedbacks
             : 0;
 
         // Revalidate top-rated as well since it might change
@@ -174,7 +177,7 @@ export async function addFeedback(data: {
             logToDb({ message: "Async checkAndNotifyTopRated failed", data: err, source: "songs.ts:addFeedback" })
         );
 
-        return { success: true, feedback, averageRating, totalFeedbacks };
+        return { success: true, feedback, averageRating, totalFeedbacks: totalRatedFeedbacks };
 
     } catch (error) {
         await logToDb({ message: "Failed to add feedback details", data: error, source: "songs.ts:addFeedback" });
@@ -407,7 +410,7 @@ export async function getFeedSongs(firstSongSlug?: string) {
                 avgRating: sql<number>`avg(${feedbacks.cat2} * ${WEIGHT_PRODUCTION} + ${feedbacks.cat3} * ${WEIGHT_SINGING} + ${feedbacks.overall} * ${WEIGHT_OVERALL})`
             })
                 .from(feedbacks)
-                .where(inArray(feedbacks.songId, songIds))
+                .where(and(inArray(feedbacks.songId, songIds), gt(feedbacks.overall, 0)))
                 .groupBy(feedbacks.songId);
 
             const statsMap = new Map(stats.map(s => [s.songId, s]));
@@ -775,8 +778,8 @@ export async function getURLMetadata(url: string) {
  */
 function getBayesianRatingSql(m: number, C: number) {
     const bayesianAvg = sql<number>`
-        ( (count(${feedbacks.id}) * avg(${feedbacks.cat2} * ${WEIGHT_PRODUCTION} + ${feedbacks.cat3} * ${WEIGHT_SINGING} + ${feedbacks.overall} * ${WEIGHT_OVERALL})) + (${m} * ${C}) )
-        / (count(${feedbacks.id}) + ${m})
+        ( (count(CASE WHEN ${feedbacks.overall} > 0 THEN ${feedbacks.id} END) * avg(CASE WHEN ${feedbacks.overall} > 0 THEN ${feedbacks.cat2} * ${WEIGHT_PRODUCTION} + ${feedbacks.cat3} * ${WEIGHT_SINGING} + ${feedbacks.overall} * ${WEIGHT_OVERALL} END)) + (${m} * ${C}) )
+        / (count(CASE WHEN ${feedbacks.overall} > 0 THEN ${feedbacks.id} END) + ${m})
     `;
 
     // Final score = Bayesian Average - (Days since entry * Decay Factor)

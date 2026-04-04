@@ -1,3 +1,6 @@
+/**
+ * FFU - Infrastructure for AI features
+ */
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { logToDb } from "./logger";
 

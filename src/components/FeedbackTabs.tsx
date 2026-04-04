@@ -127,20 +127,30 @@ export default function FeedbackTabs({
                         </span>
                       </div>
 
-                      <div className={styles.fbRaterGenre}>
-                        סגנון מאזין:{" "}
-                        <span className={styles.genreList}>
-                          {genres.length > 0 ? genres.join(", ") : "לא הוגדר"}
-                        </span>
-                      </div>
+                      {genres.length > 0 && (
+                        <div className={styles.fbRaterGenre}>
+                          סגנון מאזין:{" "}
+                          <span className={styles.genreList}>
+                            {genres.join(", ")}
+                          </span>
+                        </div>
+                      )}
 
-                      <div className={styles.fbRatingsRow}>
-                        <span className={styles.fbRatingLabel}>דירוג:</span>
-                        <span>הפקה: {fb.cat2}</span>
-                        <span>שירה: {fb.cat3}</span>
-                        <span className={styles.fbOverallBadge}>כללי: {fb.overall}</span>
-                      </div>
-                      <p className={styles.fbComment}>{fb.comment}</p>
+                      {((fb.cat2 || 0) > 0 || (fb.cat3 || 0) > 0 || (fb.overall || 0) > 0) && (
+                        <div className={styles.fbRatingsRow}>
+                          <span className={styles.fbRatingLabel}>דירוג:</span>
+                          <span>הפקה: {fb.cat2}</span>
+                          <span>שירה: {fb.cat3}</span>
+                          <span className={styles.fbOverallBadge}>כללי: {fb.overall}</span>
+                        </div>
+                      )}
+                      <p className={styles.fbComment}>
+                        {fb.comment?.split(/(\*\*.*?\*\*)/g).map((part, i) => (
+                          part.startsWith('**') && part.endsWith('**') 
+                            ? <strong key={i}>{part.slice(2, -2)}</strong> 
+                            : part
+                        ))}
+                      </p>
                     </div>
 
                     {!isActuallyUnlocked && (
