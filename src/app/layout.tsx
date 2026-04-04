@@ -56,18 +56,16 @@ export const viewport: Viewport = {
   ],
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
 };
+
+import { Suspense } from "react";
+import SyncUser from "@/components/SyncUser";
 
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Sync user with DB on every request (server-side)
-  await syncUser();
-
   return (
     <ClerkProvider
       publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
@@ -142,6 +140,9 @@ export default async function RootLayout({
         <body
           className={`${geistSans.variable} ${geistMono.variable} ${heebo.variable} antialiased`}
         >
+          <Suspense fallback={null}>
+            <SyncUser />
+          </Suspense>
           <div className="heroBackground">
             <div className="blob blob1" />
             <div className="blob blob2" />

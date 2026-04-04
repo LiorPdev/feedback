@@ -218,6 +218,49 @@
   border: none;
 }
 
+.videoThumbnail {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.thumbnailImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+}
+
+.videoThumbnail:hover .thumbnailImage {
+  opacity: 0.6;
+}
+
+.playButton {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  background: rgba(0, 0, 0, 0.65);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(4px);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+}
+
+.videoThumbnail:hover .playButton {
+  transform: scale(1.1);
+  background: var(--brand-primary);
+  border-color: #fff;
+}
+
 .heroPlaceholder {
   width: 100%;
   max-width: 320px;

@@ -87,6 +87,7 @@ export default function LandingClient({
     }
   };
 
+  const [showVideo, setShowVideo] = useState(false);
 
   return (
     <div className={styles.landingPage}>
@@ -179,12 +180,31 @@ export default function LandingClient({
                 <HeroGallery />
               ) : (
                 <div className={styles.videoWrapper}>
-                  <iframe
-                    src="https://www.youtube.com/embed/4kxbf8gNDzk?autoplay=1&mute=1&loop=1&playlist=4kxbf8gNDzk"
-                    title="מישהו מקשיב לך"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                  ></iframe>
+                  {!showVideo ? (
+                    <div
+                      className={styles.videoThumbnail}
+                      onClick={() => setShowVideo(true)}
+                    >
+                      <img
+                        src="https://img.youtube.com/vi/4kxbf8gNDzk/maxresdefault.jpg"
+                        alt="Play Video"
+                        className={styles.thumbnailImage}
+                        loading="eager"
+                      />
+                      <div className={styles.playButton}>
+                        <svg viewBox="0 0 24 24" width="48" height="48" fill="white">
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                      </div>
+                    </div>
+                  ) : (
+                    <iframe
+                      src="https://www.youtube.com/embed/4kxbf8gNDzk?autoplay=1&mute=0&loop=1&playlist=4kxbf8gNDzk"
+                      title="מישהו מקשיב לך"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                    ></iframe>
+                  )}
                 </div>
               )
             ) : (
