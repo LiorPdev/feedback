@@ -15,7 +15,7 @@ export default async function GiveFeedbackFeedPage({
   const result = await getFeedSongs(songSlug);
   const { userId } = await auth();
 
-  if (!result.success || !result.songs || result.songs.length === 0) {
+  if (!result.success || !result.songs) {
     return (
       <div className={styles.container}>
         <div className={styles.main}>
@@ -38,7 +38,7 @@ export default async function GiveFeedbackFeedPage({
   }
 
   let initialFeedback: Feedback | null = null;
-  if (userId) {
+  if (userId && result.songs.length > 0) {
     const db = await getDb();
     const existingFeedback = await db.query.feedbacks.findFirst({
       where: (f, { eq, and }) => and(eq(f.authorId, userId), eq(f.songId, result.songs[0].id))

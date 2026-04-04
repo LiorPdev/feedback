@@ -4,7 +4,7 @@ import { getDb } from '@/lib/db';
 import { nanoid } from 'nanoid';
 import { revalidatePath } from 'next/cache';
 import { currentUser, auth } from '@clerk/nextjs/server';
-import { eq, sql, and, notInArray } from 'drizzle-orm';
+import { eq, sql, and, notInArray, inArray } from 'drizzle-orm';
 import { users, songs, feedbacks, listenEvents } from '@/lib/schema';
 import { SONG_SUBMISSION_COST, REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH, TOP_RATED_MIN_RATINGS_THRESHOLD, TOP_RATED_NOTIFICATION_COOLDOWN_DAYS, TOP_RATED_DECAY_FACTOR, WEIGHT_PRODUCTION, WEIGHT_SINGING, WEIGHT_OVERALL } from '@/lib/constants';
 import { sendFeedbackNotification, sendTopRatedNotification } from '@/lib/mail';
@@ -401,7 +401,6 @@ export async function getFeedSongs(firstSongSlug?: string) {
         let songsWithStats = finalSongs.map(s => ({ ...s, averageRating: 0, totalFeedbacks: 0 }));
 
         if (songIds.length > 0) {
-            const { inArray } = await import('drizzle-orm');
             const stats = await db.select({
                 songId: feedbacks.songId,
                 total: sql<number>`count(${feedbacks.id})`,

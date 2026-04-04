@@ -50,7 +50,7 @@ export default async function GiveFeedbackPage({ params }: GiveFeedbackPageProps
 
   const result = await getFeedSongs(slug);
 
-  if (!result.success || !result.songs || result.songs.length === 0) {
+  if (!result.success || !result.songs) {
     return (
       <div className={styles.container}>
         <div className={styles.main}>
@@ -65,7 +65,7 @@ export default async function GiveFeedbackPage({ params }: GiveFeedbackPageProps
 
   // Check for existing feedback
   let initialFeedback = null;
-  if (userId) {
+  if (userId && result.songs.length > 0) {
     const existingFeedback = await db.query.feedbacks.findFirst({
       where: (f, { eq, and }) => and(eq(f.songId, result.songs[0].id), eq(f.authorId, userId))
     });
