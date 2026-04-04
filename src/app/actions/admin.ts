@@ -139,3 +139,30 @@ export async function getAdminLogsReport() {
         return { success: false, error: "Failed to fetch logs report" };
     }
 }
+
+export async function deleteAdminFeedback(id: string) {
+    if (!await isAdmin()) return { success: false, error: "Unauthorized" };
+
+    const db = await getDb();
+    try {
+        await db.delete(feedbacks).where(eq(feedbacks.id, id));
+        return { success: true };
+    } catch (error) {
+        console.error("deleteAdminFeedback error:", error);
+        return { success: false, error: "Failed to delete feedback" };
+    }
+}
+
+export async function deleteAdminSong(id: string) {
+    if (!await isAdmin()) return { success: false, error: "Unauthorized" };
+
+    const db = await getDb();
+    try {
+        // Cascading deletes are handled by SQLite because of the schema definitions
+        await db.delete(songs).where(eq(songs.id, id));
+        return { success: true };
+    } catch (error) {
+        console.error("deleteAdminSong error:", error);
+        return { success: false, error: "Failed to delete song" };
+    }
+}

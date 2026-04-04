@@ -166,3 +166,45 @@
     font-size: 1.8rem;
   }
 }
+
+.selected {
+  background: rgba(37, 99, 235, 0.1) !important;
+}
+
+.trashBtn {
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.trashBtn:hover {
+  background: #dc2626;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
+.trashBtn:active {
+  transform: scale(0.95);
+}
+
+.checkboxCol {
+  width: 40px;
+  text-align: center !important;
+  padding: 0.5rem !important;
+}
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--brand-primary);
+}
