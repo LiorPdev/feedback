@@ -18,9 +18,9 @@ export async function callGemini(systemPrompt: string, userText: string): Promis
 
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    
+
     const prompt = `${systemPrompt}\n\nText to analyze:\n"${userText}"`;
-    
+
     // Using a timeout to ensure we don't block the user too long
     const result = await Promise.race([
       model.generateContent(prompt),

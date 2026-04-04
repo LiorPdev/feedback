@@ -162,8 +162,8 @@ export async function addFeedback(data: {
         });
 
         const totalFeedbacks = allFeedbacks.length;
-        const averageRating = totalFeedbacks > 0 
-            ? allFeedbacks.reduce((acc, f) => acc + (f.cat2 * WEIGHT_PRODUCTION + f.cat3 * WEIGHT_SINGING + f.overall * WEIGHT_OVERALL), 0) / totalFeedbacks 
+        const averageRating = totalFeedbacks > 0
+            ? allFeedbacks.reduce((acc, f) => acc + (f.cat2 * WEIGHT_PRODUCTION + f.cat3 * WEIGHT_SINGING + f.overall * WEIGHT_OVERALL), 0) / totalFeedbacks
             : 0;
 
         // Revalidate top-rated as well since it might change

@@ -3,7 +3,6 @@ import { Geist, Geist_Mono, Heebo } from "next/font/google";
 import { ClerkProvider } from '@clerk/nextjs'
 import { heIL } from '@clerk/localizations'
 import Navbar from "@/components/Navbar";
-import { syncUser } from "@/lib/user-auth";
 import "./globals.css";
 import Script from "next/script";
 

@@ -11,6 +11,7 @@ import Footer from "./Footer";
 import AuthOverlay from "./AuthOverlay";
 import HeroGallery from "./HeroGallery";
 import { GiPodium } from "react-icons/gi";
+import Image from "next/image";
 
 // Animation variants
 const fadeInUp = {
@@ -185,11 +186,14 @@ export default function LandingClient({
                       className={styles.videoThumbnail}
                       onClick={() => setShowVideo(true)}
                     >
-                      <img
+                      <Image
                         src="https://img.youtube.com/vi/4kxbf8gNDzk/maxresdefault.jpg"
                         alt="Play Video"
                         className={styles.thumbnailImage}
+                        width={1280}
+                        height={720}
                         loading="eager"
+                        unoptimized
                       />
                       <div className={styles.playButton}>
                         <svg viewBox="0 0 24 24" width="48" height="48" fill="white">

@@ -1,6 +1,6 @@
 .container {
   padding: 2rem;
-  max-width: 1200px;
+  max-width: 95%;
   margin: 0 auto;
   direction: rtl;
 }
@@ -125,17 +125,13 @@
 }
 
 .comment {
-  max-width: 300px;
+  max-width: 400px;
+  min-width: 250px;
   font-size: 0.9rem;
   color: var(--text-main);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.comment:hover {
-  white-space: normal;
-  overflow: visible;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .loading {

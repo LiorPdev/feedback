@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { getAdminSongsReport, getAdminFeedbacksReport, getAdminUsersReport, getAdminLogsReport, deleteAdminFeedback, deleteAdminSong } from '@/app/actions/admin';
 import { ArrowUpDown, ArrowUp, ArrowDown, Trash2 } from 'lucide-react';
 import styles from './reports.module.css';
@@ -74,7 +74,7 @@ export function ReportsClient() {
         }
     };
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         setLoading(true);
         let result;
         if (reportType === 'songs') {
@@ -93,7 +93,7 @@ export function ReportsClient() {
             setData([]);
         }
         setLoading(false);
-    };
+    }, [reportType]);
 
     const handleSort = (key: string) => {
         let direction: 'asc' | 'desc' = 'asc';
@@ -125,9 +125,8 @@ export function ReportsClient() {
     }, [data, sortConfig]);
 
     useEffect(() => {
-        setSelectedId(null);
         fetchData();
-    }, [reportType]);
+    }, [fetchData]);
 
     const formatDate = (dateStr: string) => {
         const d = new Date(dateStr);
@@ -148,7 +147,10 @@ export function ReportsClient() {
                 <select
                     className={styles.select}
                     value={reportType}
-                    onChange={(e) => setReportType(e.target.value as ReportType)}
+                    onChange={(e) => {
+                        setReportType(e.target.value as ReportType);
+                        setSelectedId(null);
+                    }}
                 >
                     <option value="feedbacks">פידבקים</option>
                     <option value="songs">שירים</option>
