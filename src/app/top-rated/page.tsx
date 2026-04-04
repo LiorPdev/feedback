@@ -72,7 +72,7 @@ export default async function TopRatedPage() {
                       currentUserId={currentUserId}
                     />
                     {/* share */}
-                    <ShareSongButton slug={song.slug} />
+                    <ShareSongButton slug={song.slug} tooltipAlign="left" />
                   </div>
 
                 </div>

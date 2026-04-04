@@ -10,9 +10,10 @@ interface ShareSongButtonProps {
   isNew?: boolean;
   variant?: "standard" | "large";
   disabled?: boolean;
+  tooltipAlign?: "center" | "left" | "right";
 }
 
-export default function ShareSongButton({ slug, isNew, variant = "standard", disabled }: ShareSongButtonProps) {
+export default function ShareSongButton({ slug, isNew, variant = "standard", disabled, tooltipAlign = "center" }: ShareSongButtonProps) {
   const [copied, setCopied] = useState(false);
   const [showAutoTooltip, setShowAutoTooltip] = useState(false);
 
@@ -81,10 +82,10 @@ export default function ShareSongButton({ slug, isNew, variant = "standard", dis
         <AnimatePresence>
           {(copied || showAutoTooltip) && (
             <motion.div
-              className={styles.tooltip}
-              initial={{ opacity: 0, y: 5, x: "-50%" }}
-              animate={{ opacity: 1, y: 0, x: "-50%" }}
-              exit={{ opacity: 0, y: 5, x: "-50%" }}
+              className={`${styles.tooltip} ${styles[tooltipAlign]}`}
+              initial={{ opacity: 0, y: 5, x: tooltipAlign === "center" ? "-50%" : "0" }}
+              animate={{ opacity: 1, y: 0, x: tooltipAlign === "center" ? "-50%" : "0" }}
+              exit={{ opacity: 0, y: 5, x: tooltipAlign === "center" ? "-50%" : "0" }}
             >
               {copied
                 ? "הועתק! שילחו לחברים ובקשו מהם לתת לכם פידבק על השיר"

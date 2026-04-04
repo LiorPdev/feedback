@@ -35,6 +35,11 @@
   z-index: 100;
 }
 
+.dropdownUp {
+  top: auto;
+  bottom: calc(100% + 8px);
+}
+
 .dropdownLink {
   display: flex;
   align-items: center;

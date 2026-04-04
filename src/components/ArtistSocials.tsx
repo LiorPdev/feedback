@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-
 import SocialIcon from "./SocialIcon";
 import styles from "./ArtistSocials.module.css";
 
@@ -12,7 +11,19 @@ interface ArtistSocialsProps {
 
 export default function ArtistSocials({ socialLinks, size = 16 }: ArtistSocialsProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isUpwards, setIsUpwards] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  const toggleDropdown = () => {
+    if (!isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      // If space below is less than 240px (enough for ~5-6 items), open upwards
+      setIsUpwards(spaceBelow < 250);
+    }
+    setIsOpen(!isOpen);
+  };
 
   useEffect(() => {
     if (!isOpen) return;
@@ -54,14 +65,15 @@ export default function ArtistSocials({ socialLinks, size = 16 }: ArtistSocialsP
     <div className={styles.container} ref={dropdownRef}>
       <button
         className={styles.moreBtn}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={toggleDropdown}
+        ref={buttonRef}
         title="כרטיס ביקור מוזיקלי"
       >
         <SocialIcon platform="website" size={size} />
       </button>
 
       {isOpen && (
-        <div className={styles.dropdown}>
+        <div className={`${styles.dropdown} ${isUpwards ? styles.dropdownUp : ""}`}>
           {platforms.map(p => (
             <a
               key={p.id}
