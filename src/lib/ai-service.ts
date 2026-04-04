@@ -42,6 +42,7 @@ export async function checkIsOffensive(text: string): Promise<{ isOffensive: boo
  * Returns a formatted Hebrew string with sections for Mix, EQ, Dynamics, Effects, and Production.
  */
 export async function analyzeSong(youtubeUrl: string): Promise<string> {
+
   if (!youtubeUrl || youtubeUrl.trim().length === 0) {
     return "קישור לא נמצא. אנא ספק קישור תקין ליוטיוב.";
   }
@@ -55,7 +56,7 @@ export async function analyzeSong(youtubeUrl: string): Promise<string> {
   `;
 
   try {
-    const response = await callGemini(systemPrompt, `השיר לניתוח (URL): ${youtubeUrl}`);
+    const response = await callGemini(systemPrompt, youtubeUrl);
 
     if (!response) {
       return "לא ניתן היה לנתח את השיר כרגע. אנא נסה שוב מאוחר יותר.";
