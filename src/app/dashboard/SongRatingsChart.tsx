@@ -174,8 +174,8 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
           <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f0f0f0" />
           <XAxis
             type="number"
-            domain={type === 'general' ? [0, 5] : [0, 'dataMax']}
-            ticks={type === 'general' ? [0, 1, 2, 3, 4, 5] : undefined}
+            domain={[0, 'dataMax']}
+            ticks={undefined}
             allowDecimals={true}
             tick={false}
             axisLine={false}
@@ -203,7 +203,7 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
                     fill="#fff"
                     stroke="#000"
                     strokeWidth={1}
-                    fontSize={isMobile ? 11 : 14}
+                    fontSize={isMobile ? 13 : 14}
                     fontWeight={700}
                     style={{ direction: 'ltr', paintOrder: 'stroke' }}
                   >
