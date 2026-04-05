@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Share2, Check } from "lucide-react";
 import styles from "./ShareSongButton.module.css";
 import { motion, AnimatePresence } from "framer-motion";
+import { useShare } from "@/hooks/useShare";
 
 interface ShareSongButtonProps {
   slug: string;
@@ -14,8 +15,8 @@ interface ShareSongButtonProps {
 }
 
 export default function ShareSongButton({ slug, isNew, variant = "standard", disabled, tooltipAlign = "center" }: ShareSongButtonProps) {
-  const [copied, setCopied] = useState(false);
   const [showAutoTooltip, setShowAutoTooltip] = useState(false);
+  const { share, copied } = useShare();
 
   useEffect(() => {
     if (isNew) {
@@ -33,10 +34,13 @@ export default function ShareSongButton({ slug, isNew, variant = "standard", dis
     e.stopPropagation();
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://feedback.activitywiz.com';
     const url = `${origin}/give-feedback/${slug}`;
-    const shareText = `היי, האם תוכלו להקשיב ולשלוח לי פידבק על השיר? 🎸:\n${url}`;
-    navigator.clipboard.writeText(shareText);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 4000);
+    const shareText = `היי, האם תוכלו להקשיב לשיר ולרשום לי פידבק בקישור המצורף? 🎸`;
+
+    share({
+      title: 'פידבק ספייס',
+      text: shareText,
+      url
+    });
   };
 
   return (
@@ -88,8 +92,8 @@ export default function ShareSongButton({ slug, isNew, variant = "standard", dis
               exit={{ opacity: 0, y: 5, x: tooltipAlign === "center" ? "-50%" : "0" }}
             >
               {copied
-                ? "הועתק! שילחו לחברים ובקשו מהם לתת לכם פידבק על השיר"
-                : "השיר התווסף! שילחו לחברים ובקשו מהם לתת לכם פידבק על השיר"
+                ? "הועתק! שילחו לחברים את הקישור ובקשו מהם לפרגן לכם פידבק על השיר"
+                : "השיר התווסף! שילחו לחברים את הקישור ובקשו מהם לפרגן לכם פידבק על השיר"
               }
             </motion.div>
           )}

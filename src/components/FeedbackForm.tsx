@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Star, X, AlertCircle } from "lucide-react";
+import { Star, X, AlertCircle, Share2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUser } from "@clerk/nextjs";
 import { addFeedback } from "@/app/actions/songs";
@@ -10,9 +10,12 @@ import styles from "./FeedbackForm.module.css";
 import AnimatedTokenCounter from "./AnimatedTokenCounter";
 import AuthOverlay from "./AuthOverlay";
 import PopupMsg from "./PopupMsg";
+import CopyToast from "./CopyToast";
+import { useShare } from "@/hooks/useShare";
 
 interface FeedbackFormProps {
   songId: string;
+  songSlug?: string;
   onSuccess?: (feedback: unknown, stats?: { averageRating: number; totalFeedbacks: number }) => void;
   getPlayedSeconds?: () => Promise<number>;
   isPlaying?: boolean;
@@ -26,6 +29,7 @@ interface FeedbackFormProps {
 
 export default function FeedbackForm({
   songId,
+  songSlug,
   onSuccess,
   getPlayedSeconds,
   isPlaying,
@@ -82,6 +86,7 @@ export default function FeedbackForm({
     }, 2000);
   }, []);
 
+  const { share, copied } = useShare();
   const [listenCredits, setListenCredits] = useState(0);
   const playRewardGivenRef = useRef(false);
   const playTimeSecondsRef = useRef(0);
@@ -249,6 +254,20 @@ export default function FeedbackForm({
   const hasValidComment = commentLength >= MIN_COMMENT_LENGTH;
   const currentCredits = earnedFromCategories + (hasValidComment ? REWARD_COMMENT : 0) + listenCredits;
 
+  const handleShare = () => {
+    const slugUrl = songSlug ? `/give-feedback/${songSlug}` : '';
+    const shareUrl = `${window.location.origin}${slugUrl}`;
+
+    share({
+      title: 'פידבק ספייס',
+      text: 'שיר מעולה שמצאתי בפידבק ספייס. מה אתם אומרים?',
+      url: shareUrl,
+    });
+  };
+
+  const currentAverage = ((ratings.cat2 + ratings.cat3 + ratings.overall) / 3);
+  const showShareButton = currentAverage >= 4;
+
   if (!isLoaded) {
     return (
       <div className={styles.form}>
@@ -277,9 +296,11 @@ export default function FeedbackForm({
               setComment("");
               onPopupClose?.();
             }}
-            icon={<div style={{ color: '#16A34A', fontSize: '2rem', fontWeight: 800 }}>✓</div>}
             title="תודה על הפידבק!"
             buttonText="המשך"
+            secondaryButtonText={showShareButton ? "אהבתם? שתפו עם חברים" : undefined}
+            secondaryButtonIcon={showShareButton ? <Share2 size={18} /> : undefined}
+            onSecondaryClick={showShareButton ? handleShare : undefined}
             message={
               songStats && (
                 <div className={styles.successStats}>
@@ -486,6 +507,8 @@ export default function FeedbackForm({
           </motion.div>
         ))}
       </AnimatePresence>
+
+      <CopyToast isVisible={copied} text="הקישור הועתק ואתם יכולים לשלוח לחברים." />
     </div>
   );
 }

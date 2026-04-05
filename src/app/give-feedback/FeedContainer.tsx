@@ -169,6 +169,14 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
   const handleRemoveCurrent = () => {
     setSongs((prevSongs) => {
       const updatedSongs = prevSongs.filter((_, i) => i !== currentIndex);
+      
+      setCurrentIndex((prev) => {
+        if (prev >= updatedSongs.length) {
+          return 0;
+        }
+        return prev;
+      });
+
       if (updatedSongs.length === 0) return [];
 
       // Update index if needed
@@ -318,6 +326,7 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
           {!hasRatedCurrent && (
             <FeedbackForm
               songId={currentSong.id}
+              songSlug={currentSong.slug}
               key={currentSong.id}
               getPlayedSeconds={getPlayedSeconds}
               isPlaying={isPlaying}

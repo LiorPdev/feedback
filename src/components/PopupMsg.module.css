@@ -54,8 +54,16 @@
   white-space: pre-wrap;
 }
 
-.submitBtn {
+.buttonsWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  align-items: center;
   margin-top: 15px;
+}
+
+.submitBtn {
   width: 70%;
   padding: 0.75rem;
   line-height: 1.6;
@@ -84,8 +92,43 @@
   transform: translateY(-1px);
 }
 
+.secondaryBtn {
+  padding: 0.5rem;
+  background: transparent;
+  color: #64748b;
+  border: none;
+  font-size: 1.05rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  gap: 0.4rem;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: transparent;
+}
+
+.secondaryBtn:hover {
+  color: var(--brand-primary);
+  background: transparent;
+  text-decoration-color: var(--brand-primary);
+}
+
+.secondaryBtn:active {
+  transform: translateY(1px);
+}
+
+.btnIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 @media (max-width: 600px) {
-  .submitBtn {
+  .submitBtn, .secondaryBtn {
     width: 100%;
   }
 }

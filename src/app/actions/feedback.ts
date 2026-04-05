@@ -95,8 +95,6 @@ export async function unlockFeedback(feedbackId: string) {
 
   } catch (error) {
     const err = error as Error;
-    console.error("Error unlocking feedback (Fail Open):", err);
-
     await logAction({
       message: "Failed to unlock feedback (Fail Open)",
       data: { error: err.message, stack: err.stack, feedbackId },

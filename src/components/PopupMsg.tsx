@@ -12,6 +12,9 @@ interface PopupMsgProps {
   message: ReactNode;
   icon?: ReactNode;
   buttonText: string;
+  secondaryButtonText?: string;
+  secondaryButtonIcon?: ReactNode;
+  onSecondaryClick?: () => void;
 }
 
 export default function PopupMsg({
@@ -21,6 +24,9 @@ export default function PopupMsg({
   message,
   icon,
   buttonText,
+  secondaryButtonText,
+  secondaryButtonIcon,
+  onSecondaryClick,
 }: PopupMsgProps) {
   const [mounted, setMounted] = useState(false);
 
@@ -52,9 +58,17 @@ export default function PopupMsg({
             {icon && <div className={styles.iconWrapper}>{icon}</div>}
             <h2 className={styles.title}>{title}</h2>
             <div className={styles.message}>{message}</div>
-            <button className={styles.submitBtn} onClick={onClose}>
-              {buttonText}
-            </button>
+            <div className={styles.buttonsWrapper}>
+              <button className={styles.submitBtn} onClick={onClose}>
+                {buttonText}
+              </button>
+              {secondaryButtonText && onSecondaryClick && (
+                <button className={styles.secondaryBtn} onClick={onSecondaryClick}>
+                  {secondaryButtonIcon && <span className={styles.btnIcon}>{secondaryButtonIcon}</span>}
+                  {secondaryButtonText}
+                </button>
+              )}
+            </div>
           </motion.div>
         </motion.div>
       )}

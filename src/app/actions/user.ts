@@ -99,7 +99,12 @@ export async function generateCreditCode(amount: number) {
     revalidatePath("/dashboard");
     return { success: true, code };
   } catch (error) {
-    console.error("Error generating credit code:", error);
+    const err = error as Error;
+    await logAction({
+      message: "Error generating credit code",
+      data: { error: err.message, stack: err.stack, amount },
+      source: "actions/user.ts:generateCreditCode",
+    });
     return { success: false, error: "שגיאה ביצירת הקוד" };
   }
 }
@@ -139,7 +144,12 @@ export async function redeemCreditCode(code: string) {
     revalidatePath("/dashboard");
     return { success: true, amount: creditCode.amount };
   } catch (error) {
-    console.error("Error redeeming credit code:", error);
+    const err = error as Error;
+    await logAction({
+      message: "Error redeeming credit code",
+      data: { error: err.message, stack: err.stack, code },
+      source: "actions/user.ts:redeemCreditCode",
+    });
     return { success: false, error: "שגיאה במימוש הקוד" };
   }
 }

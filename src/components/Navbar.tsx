@@ -16,6 +16,8 @@ import styles from "./Navbar.module.css";
 import AnimatedTokenCounter from "./AnimatedTokenCounter";
 import { getCookie, setCookie } from "@/lib/cookieUtils";
 import { GiPodium } from "react-icons/gi";
+import CopyToast from "./CopyToast";
+import { useShare } from "@/hooks/useShare";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -33,6 +35,7 @@ export default function Navbar() {
   const redirectUrlRef = useRef<string | null>(null);
   const tokenTriggerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const { share, copied } = useShare();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -124,16 +127,11 @@ export default function Navbar() {
   }, [pathname, user]);
 
   const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: 'פידבק ספייס',
-        text: 'בואו לקבל ולתת פידבק על שירים בקהילת פידבק ספייס!',
-        url: window.location.origin,
-      });
-    } else {
-      navigator.clipboard.writeText(window.location.origin);
-      alert('הקישור הועתק ללוח!');
-    }
+    share({
+      title: 'פידבק ספייס',
+      text: 'מוזמנים להצטרף אלי ולתת פידבק על שירים בקהילת פידבק ספייס!',
+      url: window.location.origin,
+    });
   };
 
   const handleLogoClick = (e: React.MouseEvent) => {
@@ -262,6 +260,7 @@ export default function Navbar() {
         onClose={() => setShowCreditModal(false)}
         currentTokens={tokens ?? 0}
       />
+      <CopyToast isVisible={copied} />
     </nav>
   );
 }

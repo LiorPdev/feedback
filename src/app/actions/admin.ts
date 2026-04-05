@@ -5,6 +5,7 @@ import { currentUser } from '@clerk/nextjs/server';
 import { desc, eq, aliasedTable, sql } from 'drizzle-orm';
 import { users, songs, feedbacks, logs } from '@/lib/schema';
 import { ADMIN_EMAIL } from '@/lib/constants';
+import { logAction } from './logs';
 
 async function isAdmin() {
     const user = await currentUser();
@@ -30,7 +31,12 @@ export async function getAdminSongsReport() {
 
         return { success: true, data: result };
     } catch (error) {
-        console.error("getAdminSongsReport error:", error);
+        const err = error as Error;
+        await logAction({
+            message: "Failed to fetch songs report",
+            data: { error: err.message, stack: err.stack },
+            source: "actions/admin.ts:getAdminSongsReport",
+        });
         return { success: false, error: "Failed to fetch songs report" };
     }
 }
@@ -64,7 +70,12 @@ export async function getAdminFeedbacksReport() {
 
         return { success: true, data: result };
     } catch (error) {
-        console.error("getAdminFeedbacksReport error:", error);
+        const err = error as Error;
+        await logAction({
+            message: "Failed to fetch feedbacks report",
+            data: { error: err.message, stack: err.stack },
+            source: "actions/admin.ts:getAdminFeedbacksReport",
+        });
         return { success: false, error: "Failed to fetch feedbacks report" };
     }
 }
@@ -110,7 +121,12 @@ export async function getAdminUsersReport() {
 
         return { success: true, data: result };
     } catch (error) {
-        console.error("getAdminUsersReport error:", error);
+        const err = error as Error;
+        await logAction({
+            message: "Failed to fetch users report",
+            data: { error: err.message, stack: err.stack },
+            source: "actions/admin.ts:getAdminUsersReport",
+        });
         return { success: false, error: "Failed to fetch users report" };
     }
 }
@@ -135,7 +151,12 @@ export async function getAdminLogsReport() {
 
         return { success: true, data: result };
     } catch (error) {
-        console.error("getAdminLogsReport error:", error);
+        const err = error as Error;
+        await logAction({
+            message: "Failed to fetch logs report",
+            data: { error: err.message, stack: err.stack },
+            source: "actions/admin.ts:getAdminLogsReport",
+        });
         return { success: false, error: "Failed to fetch logs report" };
     }
 }
@@ -148,7 +169,12 @@ export async function deleteAdminFeedback(id: string) {
         await db.delete(feedbacks).where(eq(feedbacks.id, id));
         return { success: true };
     } catch (error) {
-        console.error("deleteAdminFeedback error:", error);
+        const err = error as Error;
+        await logAction({
+            message: "Failed to delete feedback",
+            data: { error: err.message, stack: err.stack, feedbackId: id },
+            source: "actions/admin.ts:deleteAdminFeedback",
+        });
         return { success: false, error: "Failed to delete feedback" };
     }
 }
@@ -162,7 +188,12 @@ export async function deleteAdminSong(id: string) {
         await db.delete(songs).where(eq(songs.id, id));
         return { success: true };
     } catch (error) {
-        console.error("deleteAdminSong error:", error);
+        const err = error as Error;
+        await logAction({
+            message: "Failed to delete song",
+            data: { error: err.message, stack: err.stack, songId: id },
+            source: "actions/admin.ts:deleteAdminSong",
+        });
         return { success: false, error: "Failed to delete song" };
     }
 }
