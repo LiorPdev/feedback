@@ -87,10 +87,6 @@
   align-items: center;
 }
 
-.homeLink {
-  transform: translateY(2px);
-}
-
 .navLink:hover {
   color: var(--brand-primary);
 }
@@ -159,11 +155,23 @@
     gap: 6px;
   }
 
+  .navContent {
+    padding: 0 0.75rem;
+  }
+}
+
+@media (max-width: 360px) {
+
+  .navLinks {
+    gap: 1rem;
+  }
+
+}
+
+@media (max-width: 320px) {
+
   .logo span {
     display: none;
   }
 
-  .navContent {
-    padding: 0 0.75rem;
-  }
 }

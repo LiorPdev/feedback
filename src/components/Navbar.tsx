@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { ADMIN_EMAIL } from "@/lib/constants";
-import { Music, Home, Gift, MessageCircle, BarChart, User as UserIcon, Share2 } from "lucide-react";
+import { Music, Gift, MessageCircle, BarChart, User as UserIcon, Share2 } from "lucide-react";
 import ContactModal from "./ContactModal";
 import InfoTooltip from "./InfoTooltip";
 import Image from "next/image";
@@ -162,11 +162,7 @@ export default function Navbar() {
         <div className={styles.navLinks}>
           {isLoaded ? (
             <>
-              {pathname !== "/" && (
-                <Link href="/" className={`${styles.navLink} ${styles.homeLink}`} title="דף הבית">
-                  <Home size={24} />
-                </Link>
-              )}
+
               <Link href="/top-rated" className={styles.navLink} title="היכל התהילה">
                 <GiPodium size={24} />
               </Link>
