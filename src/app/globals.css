@@ -93,3 +93,14 @@ body {
     background: color-mix(in srgb, #c026d3, transparent 80%);
   }
 }
+
+/* Force the Clerk modal close button to the left side in RTL */
+.cl-modalCloseButton {
+  left: 0.2rem !important;
+}
+
+/* Push down the Clerk header and sidebar to make room for the right-aligned close button */
+.cl-navbar,
+.cl-header {
+  padding-top: 2.5rem !important;
+}

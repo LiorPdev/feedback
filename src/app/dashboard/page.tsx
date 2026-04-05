@@ -78,7 +78,7 @@ export default async function DashboardPage({
             style={{ transform: 'translateY(-3px)' }}
           />
           <div className={styles.welcome}>
-            <h1><span className={styles.welcomeText}>שלום, </span>{user.name ? user.name.split(" ")[0] : ""}</h1>
+            <h1><span className={styles.welcomeText}>שלום </span>{user.name ? user.name.split(" ")[0] : ""}</h1>
           </div>
         </div>
         <Link href="/get-feedback" className={styles.mobileActionBtn}>
