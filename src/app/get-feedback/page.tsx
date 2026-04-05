@@ -372,11 +372,12 @@ export default function GetFeedback() {
                   <input
                     type="file"
                     accept="audio/mpeg,audio/mp3"
-                    onChange={(e) => {
+                    onChange={async (e) => {
                       const file = e.target.files?.[0] || null;
                       setSongFile(file);
                       if (file && file.size > MAX_FILE_SIZE) {
                         setFileError(`קובץ גדול מדי (מקסימום ${MAX_FILE_SIZE_MB}MB)`);
+                        await logAction({ message: "File too large upload attempt", data: { size: file.size }, source: "get-feedback/page.tsx:fileUpload" });
                       } else {
                         setFileError("");
                       }

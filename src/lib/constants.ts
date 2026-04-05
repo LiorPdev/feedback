@@ -25,7 +25,7 @@ export const REWARD_COMMENT = 10;
 
 export const MIN_COMMENT_LENGTH = 30;
 export const MIN_LISTEN_TIME = 40;
-export const MAX_FILE_SIZE_MB = 8;
+export const MAX_FILE_SIZE_MB = 10;
 export const MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024;
 export const ADMIN_EMAIL = "lior.porat.music@gmail.com";
 
