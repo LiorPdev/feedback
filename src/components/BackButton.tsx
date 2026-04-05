@@ -15,7 +15,11 @@ export default function BackButton({ className = "", style, iconSize = 22 }: Bac
 
   const handleBack = (e: React.MouseEvent) => {
     e.preventDefault();
-    router.back();
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/");
+    }
   };
 
   return (
