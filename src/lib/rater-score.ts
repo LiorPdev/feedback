@@ -85,7 +85,7 @@ export async function updateRaterScore(userId: string) {
         totalConsensusScore += similarity;
       } else {
         // Not enough data, give benefit of the doubt
-        totalConsensusScore += 1;
+        totalConsensusScore += 0.5;
       }
     }
 

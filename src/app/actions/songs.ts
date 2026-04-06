@@ -787,7 +787,7 @@ const authorUsers = aliasedTable(users, 'authorUsers');
  * C = global simple average rating
  */
 function getBayesianRatingSql(m: number, C: number) {
-    const weight = sql`COALESCE(${authorUsers.raterScore}, 0) + 1.0`;
+    const weight = sql`COALESCE(${authorUsers.raterScore}, 0) / 2.5 + 1.0`;
     const ratingExpr = sql`${feedbacks.cat2} * ${WEIGHT_PRODUCTION} + ${feedbacks.cat3} * ${WEIGHT_SINGING} + ${feedbacks.overall} * ${WEIGHT_OVERALL}`;
 
     const weightedSum = sql`sum(CASE WHEN ${feedbacks.overall} > 0 THEN ${weight} * (${ratingExpr}) ELSE 0 END)`;
