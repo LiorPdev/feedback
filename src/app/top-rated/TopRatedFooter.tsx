@@ -35,12 +35,12 @@ export default function TopRatedFooter() {
                 (v × R + m × C) / (v + m)
               </div>
               <ul className={styles.formulaLegend}>
-                <li><strong>v</strong>: מספר הדירוגים שהשיר קיבל</li>
+                <li><strong>v</strong>: סכום משקלי הדירוגים (מושפע מאיכות המדרג)</li>
                 <li><strong>R</strong>: הציון הממוצע של השיר</li>
                 <li><strong>m</strong>: רף המינימום (3 דירוגים)</li>
                 <li><strong>C</strong>: הציון הממוצע של כלל השירים באתר</li>
               </ul>
-              <p>כך אנחנו מבטיחים ששיר עם הרבה דירוגים איכותיים ידורג גבוה יותר משיר עם דירוג בודד.</p>
+              <p>כך אנחנו מבטיחים ששיר עם הרבה דירוגים איכותיים ומדרגים איכותיים ידורג גבוה יותר.</p>
             </div>
           }
         />

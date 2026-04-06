@@ -4,7 +4,7 @@ import { getDb } from '@/lib/db';
 import { nanoid } from 'nanoid';
 import { revalidatePath } from 'next/cache';
 import { currentUser, auth } from '@clerk/nextjs/server';
-import { eq, sql, and, notInArray, inArray, gt } from 'drizzle-orm';
+import { eq, sql, and, notInArray, inArray, gt, aliasedTable } from 'drizzle-orm';
 import { users, songs, feedbacks, listenEvents } from '@/lib/schema';
 import { SONG_SUBMISSION_COST, REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH, TOP_RATED_MIN_RATINGS_THRESHOLD, TOP_RATED_NOTIFICATION_COOLDOWN_DAYS, TOP_RATED_DECAY_FACTOR, WEIGHT_PRODUCTION, WEIGHT_SINGING, WEIGHT_OVERALL } from '@/lib/constants';
 import { sendFeedbackNotification, sendTopRatedNotification } from '@/lib/mail';
@@ -777,17 +777,25 @@ export async function getURLMetadata(url: string) {
     }
 }
 
+const authorUsers = aliasedTable(users, 'authorUsers');
+
 /**
  * Bayesian Rating Formula: (v*R + m*C) / (v+m)
- * v = number of ratings for the song
- * R = average rating of the song
- * m = minimum ratings threshold
- * C = global average rating
+ * v = sum of weights (weight = raterScore + 1)
+ * R = weighted average rating of the song
+ * m = minimum ratings threshold (prior weight)
+ * C = global simple average rating
  */
 function getBayesianRatingSql(m: number, C: number) {
+    const weight = sql`COALESCE(${authorUsers.raterScore}, 0) + 1.0`;
+    const ratingExpr = sql`${feedbacks.cat2} * ${WEIGHT_PRODUCTION} + ${feedbacks.cat3} * ${WEIGHT_SINGING} + ${feedbacks.overall} * ${WEIGHT_OVERALL}`;
+
+    const weightedSum = sql`sum(CASE WHEN ${feedbacks.overall} > 0 THEN ${weight} * (${ratingExpr}) ELSE 0 END)`;
+    const weightedCount = sql`sum(CASE WHEN ${feedbacks.overall} > 0 THEN ${weight} ELSE 0 END)`;
+
     const bayesianAvg = sql<number>`
-        ( (count(CASE WHEN ${feedbacks.overall} > 0 THEN ${feedbacks.id} END) * avg(CASE WHEN ${feedbacks.overall} > 0 THEN ${feedbacks.cat2} * ${WEIGHT_PRODUCTION} + ${feedbacks.cat3} * ${WEIGHT_SINGING} + ${feedbacks.overall} * ${WEIGHT_OVERALL} END)) + (${m} * ${C}) )
-        / (count(CASE WHEN ${feedbacks.overall} > 0 THEN ${feedbacks.id} END) + ${m})
+        ( (${weightedSum}) + (${m} * ${C}) )
+        / ( (${weightedCount}) + ${m} )
     `;
 
     // Final score = Bayesian Average - (Days since entry * Decay Factor)
@@ -829,7 +837,8 @@ export async function getTopRatedSongs() {
         })
             .from(songs)
             .innerJoin(feedbacks, eq(songs.id, feedbacks.songId))
-            .innerJoin(users, eq(songs.userId, users.id))
+            .innerJoin(users, eq(songs.userId, users.id)) // Song owner
+            .leftJoin(authorUsers, eq(feedbacks.authorId, authorUsers.id)) // Feedback author (for quality)
             .where(eq(songs.isActive, true))
             .groupBy(songs.id)
             .orderBy(sql`${weightedRatingSql} DESC`)
@@ -875,6 +884,7 @@ export async function checkAndNotifyTopRated() {
         })
             .from(songs)
             .innerJoin(feedbacks, eq(songs.id, feedbacks.songId))
+            .leftJoin(authorUsers, eq(feedbacks.authorId, authorUsers.id)) // Feedback author (for quality)
             .where(eq(songs.isActive, true))
             .groupBy(songs.id)
             .orderBy(sql`${weightedRatingSql} DESC`)

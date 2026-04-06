@@ -430,9 +430,7 @@
   align-items: center;
   gap: 2rem;
   background: var(--bg-section);
-  border: 1px solid var(--border-color);
-  border-radius: 20px;
-  padding: 1.25rem 1.5rem;
+  padding: 0rem;
   width: 100%;
   justify-content: center;
 }
