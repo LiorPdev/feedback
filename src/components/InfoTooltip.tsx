@@ -13,10 +13,11 @@ interface InfoTooltipProps {
   title: string;
   content: React.ReactNode;
   footer?: React.ReactNode;
-  className?: string; // Additional classes for positioning or other custom styles
+  className?: string;
   arrowPosition?: "left" | "center" | "right";
   align?: "left" | "center" | "right";
   triggerRef?: React.RefObject<HTMLElement | null>;
+  width?: number | string;
 }
 
 export default function InfoTooltip({
@@ -29,12 +30,11 @@ export default function InfoTooltip({
   arrowPosition = "right",
   align = "left",
   triggerRef,
+  width,
 }: InfoTooltipProps) {
   const tooltipRef = useRef<HTMLDivElement>(null);
   const [positionMode, setPositionMode] = useState<PositionMode>("top");
 
-  // Use useEffect to avoid synchronous state updates during layout,
-  // which can trigger "cascading renders" lint errors/warnings.
   useEffect(() => {
     if (!isOpen || !triggerRef?.current) return;
 
@@ -44,15 +44,12 @@ export default function InfoTooltip({
 
     let newMode: PositionMode = "top";
 
-    // 1. Check space above
     const spaceAbove = triggerRect.top;
     if (spaceAbove < tooltipPlaceholderHeight) {
-      // 2. Check space below
       const spaceBelow = viewportHeight - triggerRect.bottom;
       if (spaceBelow >= tooltipPlaceholderHeight) {
         newMode = "bottom";
       } else {
-        // 3. Fallback to centered modal
         newMode = "centered";
       }
     }
@@ -66,16 +63,12 @@ export default function InfoTooltip({
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      // Don't close if clicking inside tooltip
       if (tooltipRef.current?.contains(event.target as Node)) {
         return;
       }
-      
-      // Don't close if clicking the trigger (let the trigger handle its own toggle)
       if (triggerRef?.current?.contains(event.target as Node)) {
         return;
       }
-
       onClose();
     };
     if (isOpen) {
@@ -96,6 +89,7 @@ export default function InfoTooltip({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95 }}
           className={`${styles.popup} ${styles[`align-${align}`]} ${positioningClass} ${className}`}
+          style={width ? { width: typeof width === "number" ? `${width}px` : width } : {}}
         >
           <div className={styles.popupHeader}>
             <div className={styles.headerTitleGroup}>
@@ -113,7 +107,7 @@ export default function InfoTooltip({
               <X size={16} />
             </button>
           </div>
-          
+
           <div className={styles.content}>
             {content}
           </div>

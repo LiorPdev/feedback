@@ -42,3 +42,13 @@ export const TOP_RATED_DECAY_FACTOR = 0.01;
 export const WEIGHT_PRODUCTION = 0.3;
 export const WEIGHT_SINGING = 0.3;
 export const WEIGHT_OVERALL = 0.4;
+
+// Rater Score Configuration (Weights must sum to 1.0)
+export const RATER_WEIGHT_TEXT = 0.4;             // 40% - Weight for simply providing a text comment
+export const RATER_WEIGHT_LENGTH = 0.3;           // 30% - Weight for the length/depth of the comment
+export const RATER_WEIGHT_COUNT = 0.1;            // 10% - Weight for user's total number of ratings
+export const RATER_WEIGHT_CONSENSUS = 0.2;        // 20% - Weight for rating similarity to other users
+
+export const RATER_TARGET_CHARS_FOR_BONUS = 120;  // Number of characters required for maximum length bonus
+export const RATER_COUNT_RATES = 15;              // Number of total ratings required for maximum count bonus
+export const RATER_MIN_REVIEWS_TO_COMPARE = 2;  // Minimum ratings on a song before we calculate consensus score

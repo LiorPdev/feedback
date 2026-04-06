@@ -1,0 +1,1 @@
+ALTER TABLE `User` ADD `raterScore` real DEFAULT 0 NOT NULL;

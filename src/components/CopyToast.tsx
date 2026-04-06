@@ -12,8 +12,13 @@ interface CopyToastProps {
 export default function CopyToast({ isVisible, text = "הקישור הועתק ואתם יכולים לשלוח לחברים" }: CopyToastProps) {
   const [mounted, setMounted] = useState(false);
 
+  // Using requestAnimationFrame to avoid synchronous setState inside useEffect,
+  // which triggers cascading renders lint warning.
   useEffect(() => {
-    setMounted(true);
+    const frame = requestAnimationFrame(() => {
+      setMounted(true);
+    });
+    return () => cancelAnimationFrame(frame);
   }, []);
 
   if (!mounted) return null;

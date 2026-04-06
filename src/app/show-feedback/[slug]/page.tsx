@@ -52,10 +52,11 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
   const authors = authorIds.length > 0
     ? await db.query.users.findMany({
       where: (users, { inArray }) => inArray(users.id, authorIds),
-      columns: { id: true, userGenre: true }
+      columns: { id: true, userGenre: true, raterScore: true }
     })
     : [];
   const authorGenreMap = new Map(authors.map(a => [a.id, a.userGenre]));
+  const authorRaterScoreMap = new Map(authors.map(a => [a.id, a.raterScore]));
 
   // Prepare serializable feedbacks (resolve genre inline)
   const feedbacks = song.feedbacks.map(fb => ({
@@ -63,6 +64,7 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
     playedSeconds: fb.playedSeconds,
     createdAt: fb.createdAt,
     authorGenre: fb.authorId ? (authorGenreMap.get(fb.authorId) ?? null) : null,
+    authorRaterScore: fb.authorId ? (authorRaterScoreMap.get(fb.authorId) ?? 0) : 0,
     isUnlocked: fb.isUnlocked,
     cat2: fb.cat2,
     cat3: fb.cat3,

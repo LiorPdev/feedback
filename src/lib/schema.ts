@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, index, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, index, uniqueIndex, real } from 'drizzle-orm/sqlite-core';
 import { relations } from 'drizzle-orm';
 
 export const users = sqliteTable('User', {
@@ -9,6 +9,7 @@ export const users = sqliteTable('User', {
     providerId: text('providerId').unique(),
     tokens: integer('tokens').default(100).notNull(),
     userRank: integer('userRank').default(1).notNull(),
+    raterScore: real('raterScore').default(0).notNull(),
     userGenre: text('userGenre'),
     socialLinks: text('socialLinks'), // JSON string: { spotify?: string, youtube?: string, appleMusic?: string, facebook?: string, instagram?: string, website?: string }
     createdAt: text('createdAt').notNull().$defaultFn(() => new Date().toISOString()),

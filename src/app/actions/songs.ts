@@ -12,6 +12,7 @@ import { logToDb } from "@/lib/logger";
 import { deleteFileFromR2 } from '@/app/actions/upload';
 import { syncUser } from '@/lib/user-auth';
 import { sanitizeInput } from '@/lib/utils';
+import { updateRaterScore } from '@/lib/rater-score';
 
 export async function createSong(formData: FormData) {
     // Extract and sanitize data from form
@@ -115,6 +116,13 @@ export async function addFeedback(data: {
             comment: sanitizeInput(data.comment),
             playedSeconds: data.playedSeconds,
         }).returning();
+
+        // Update rater score asynchronously
+        if (clerkUser) {
+            updateRaterScore(clerkUser.id).catch(err => 
+                logToDb({ message: "Async updateRaterScore failed", data: err, source: "songs.ts:addFeedback" })
+            );
+        }
 
         if (clerkUser && dbUser) {
             // Calculate rewards (only for authenticated users)

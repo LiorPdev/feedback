@@ -134,6 +134,13 @@
       "when": 1775035519826,
       "tag": "0018_isInTopRated",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "6",
+      "when": 1775468138668,
+      "tag": "0019_raterScordField",
+      "breakpoints": true
     }
   ]
 }

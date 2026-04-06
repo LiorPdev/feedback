@@ -5,12 +5,12 @@
 ## Run the development:
 npm run dev
 
+## View and edit your LOCAL DATABASE:
+npm run studio
+
 ## Push your schema changes to the LOCAL DATABASE:
 npx drizzle-kit generate --name [any_name]
 npx wrangler d1 migrations apply feedback-db --local
-
-## View and edit your LOCAL DATABASE:
-npm run studio
 
 ## Push your schema changes to the CLOUDFLARE DATABASE:
 npx wrangler d1 migrations apply feedback-db --remote
