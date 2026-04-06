@@ -110,6 +110,7 @@ export async function getAdminUsersReport() {
             email: users.email,
             name: users.name,
             tokens: users.tokens,
+            raterScore: users.raterScore,
             lastFeedbackGiven: givenSubquery.lastGiven,
             lastFeedbackReceived: receivedSubquery.lastReceived,
             lastVisit: users.updatedAt

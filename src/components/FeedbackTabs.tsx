@@ -40,8 +40,9 @@ function formatSeconds(seconds: number | null | undefined) {
   if (!seconds || isNaN(seconds) || seconds <= 0) return null;
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
-  if (m === 0) return `זמן נגינה: ${s} שנ'`;
-  return `זמן נגינה: ${m}:${s.toString().padStart(2, "0")}`;
+  const label = <strong className={styles.fbLabel}>זמן השמעה:</strong>;
+  if (m === 0) return <>{label} {s} שנ&apos;</>;
+  return <>{label} {m}:{s.toString().padStart(2, "0")}</>;
 }
 
 function RaterScoreInfo({ score }: { score: number | null | undefined }) {
@@ -49,11 +50,11 @@ function RaterScoreInfo({ score }: { score: number | null | undefined }) {
   const triggerRef = useRef<HTMLButtonElement>(null);
 
   // Format score: show "אין דירוג" if 0 or undefined, otherwise show X.X/5
-  const displayScore = (score && score > 0) ? `${score.toFixed(1)}/5` : "אין דירוג";
+  const displayScore = (score && score > 0) ? score.toFixed(1) : "אין דירוג";
 
   return (
     <span className={styles.fbRaterScore}>
-      איכות המדרג: {displayScore}
+      <strong className={styles.fbLabel}>איכות המדרג:</strong> {displayScore}
       <button
         ref={triggerRef}
         className={styles.infoTriggerIcon}
@@ -79,6 +80,7 @@ function RaterScoreInfo({ score }: { score: number | null | undefined }) {
               <li><strong>20%</strong> - קרבה לדירוג הכללי</li>
               <li><strong>10%</strong> - ותק וכמות הדירוגים</li>
             </ul>
+            <p>הציון המקסימלי הוא 5</p>
           </div>
         }
       />
@@ -171,7 +173,7 @@ export default function FeedbackTabs({
                       <div className={styles.fbAuthorInfo}>
                         {genres.length > 0 && (
                           <div className={styles.fbRaterGenre}>
-                            סגנון מאזין:{" "}
+                            <strong className={styles.fbLabel}>סגנון מאזין:</strong>{" "}
                             <span className={styles.genreList}>
                               {genres.join(", ")}
                             </span>
@@ -182,10 +184,10 @@ export default function FeedbackTabs({
 
                       {((fb.cat2 || 0) > 0 || (fb.cat3 || 0) > 0 || (fb.overall || 0) > 0) && (
                         <div className={styles.fbRatingsRow}>
-                          <span className={styles.fbRatingLabel}>דירוג:</span>
-                          <span>הפקה: {fb.cat2}</span>
-                          <span>שירה: {fb.cat3}</span>
-                          <span className={styles.fbOverallBadge}>כללי: {fb.overall}</span>
+                          <strong className={styles.fbRatingLabel}>דירוג:</strong>
+                          <span><strong className={styles.fbLabel}>הפקה:</strong>{fb.cat2}</span>
+                          <span><strong className={styles.fbLabel}>שירה:</strong>{fb.cat3}</span>
+                          <span className={styles.fbOverallBadge}><strong className={styles.fbLabel}>כללי:</strong>{fb.overall}</span>
                         </div>
                       )}
                       <p className={styles.fbComment}>
@@ -201,11 +203,11 @@ export default function FeedbackTabs({
                       <div className={styles.unlockOverlay}>
                         {errorIds[fb.id] === 'INSUFFICIENT_CREDITS' ? (
                           <div>
-                            <div style={{ marginBottom: '1rem', fontWeight: 800 }}>להצגת הפידבק דרושים {UNLOCK_FEEDBACK_COST} תווי קרדיט</div>
-                            <div style={{ marginBottom: '1rem', fontWeight: 800 }}>יש לכם {currentTokens}</div>
+                            <div className={styles.unlockErrorText}>להצגת הפידבק דרושים {UNLOCK_FEEDBACK_COST} תווי קרדיט</div>
+                            <div className={styles.unlockErrorText}>יש לכם {currentTokens}</div>
                             <Link
                               href="/give-feedback"
-                              style={{ textDecoration: 'underline', color: 'var(--brand-primary)', display: 'block', textAlign: 'center', fontSize: '0.95rem', fontWeight: 800 }}
+                              className={styles.giveFeedbackLink}
                             >
                               <div>תנו פידבק לאחרים כדי לקבל עוד קרדיט</div>
                             </Link>
