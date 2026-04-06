@@ -208,16 +208,17 @@ export async function getAdminTopRatedReport() {
         const m = TOP_RATED_MIN_RATINGS_THRESHOLD;
         const C_sql = sql<number>`(SELECT avg(f_global.cat2 * ${WEIGHT_PRODUCTION} + f_global.cat3 * ${WEIGHT_SINGING} + f_global.overall * ${WEIGHT_OVERALL}) FROM Feedback f_global WHERE f_global.overall > 0)`;
         
-        const weight = sql`COALESCE(${rater.raterScore}, 0) + 1.0`;
-        const ratingExpr = sql`${feedbacks.cat2} * ${WEIGHT_PRODUCTION} + ${feedbacks.cat3} * ${WEIGHT_SINGING} + ${feedbacks.overall} * ${WEIGHT_OVERALL}`;
+        // Explicitly define the weighted calculation components
+        const weightSql = sql`CAST(COALESCE(${rater.raterScore}, 0) + 1.0 AS REAL)`;
+        const ratingExprSql = sql`(CAST(${feedbacks.cat2} AS REAL) * 0.3 + CAST(${feedbacks.cat3} AS REAL) * 0.3 + CAST(${feedbacks.overall} AS REAL) * 0.4)`;
 
-        const weightedSum = sql`sum(CASE WHEN ${feedbacks.overall} > 0 THEN ${weight} * (${ratingExpr}) ELSE 0 END)`;
-        const weightedCount = sql`sum(CASE WHEN ${feedbacks.overall} > 0 THEN ${weight} ELSE 0 END)`;
-        const rawAvg = sql`avg(CASE WHEN ${feedbacks.overall} > 0 THEN ${ratingExpr} END)`;
-        const numRatings = sql`count(CASE WHEN ${feedbacks.overall} > 0 THEN ${feedbacks.id} END)`;
+        const weightedSum = sql`SUM(${weightSql} * ${ratingExprSql})`;
+        const weightedCount = sql`SUM(${weightSql})`;
+        const rawAvg = sql`AVG(${ratingExprSql})`;
+        const numRatings = sql`COUNT(${feedbacks.id})`;
 
-        const bayesianAvg = sql`(((${weightedSum}) + (${m} * ${C_sql})) / ((${weightedCount}) + ${m}))`;
-        const decay = sql`CASE WHEN ${songs.topRatedLastNotified} IS NULL THEN 0 ELSE (julianday('now') - julianday(${songs.topRatedLastNotified})) * ${TOP_RATED_DECAY_FACTOR} END`;
+        const bayesianAvg = sql`(((${weightedSum}) + (3.0 * ${C_sql})) / ((${weightedCount}) + 3.0))`;
+        const decay = sql`CASE WHEN ${songs.topRatedLastNotified} IS NULL THEN 0 ELSE (julianday('now') - julianday(${songs.topRatedLastNotified})) * 0.01 END`;
         const finalScore = sql`(${bayesianAvg}) - (${decay})`;
 
         const result = await db.select({

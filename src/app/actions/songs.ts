@@ -787,22 +787,22 @@ const authorUsers = aliasedTable(users, 'authorUsers');
  * C = global simple average rating
  */
 function getBayesianRatingSql(m: number, C: any) {
-    const weight = sql`COALESCE(${authorUsers.raterScore}, 0) + 1.0`;
-    const ratingExpr = sql`${feedbacks.cat2} * ${WEIGHT_PRODUCTION} + ${feedbacks.cat3} * ${WEIGHT_SINGING} + ${feedbacks.overall} * ${WEIGHT_OVERALL}`;
+    const weightSql = sql`CAST(COALESCE(${authorUsers.raterScore}, 0) + 1.0 AS REAL)`;
+    const ratingExprSql = sql`(CAST(${feedbacks.cat2} AS REAL) * 0.3 + CAST(${feedbacks.cat3} AS REAL) * 0.3 + CAST(${feedbacks.overall} AS REAL) * 0.4)`;
 
-    const weightedSum = sql`sum(CASE WHEN ${feedbacks.overall} > 0 THEN ${weight} * (${ratingExpr}) ELSE 0 END)`;
-    const weightedCount = sql`sum(CASE WHEN ${feedbacks.overall} > 0 THEN ${weight} ELSE 0 END)`;
+    const weightedSum = sql`SUM(${weightSql} * ${ratingExprSql})`;
+    const weightedCount = sql`SUM(${weightSql})`;
 
     const bayesianAvg = sql<number>`
-        ( (${weightedSum}) + (${m} * ${C}) )
-        / ( (${weightedCount}) + ${m} )
+        ( (${weightedSum}) + (3.0 * ${C}) )
+        / ( (${weightedCount}) + 3.0 )
     `;
 
     // Final score = Bayesian Average - (Days since entry * Decay Factor)
     return sql<number>`
         ${bayesianAvg} - (CASE 
             WHEN ${songs.topRatedLastNotified} IS NULL THEN 0 
-            ELSE (julianday('now') - julianday(${songs.topRatedLastNotified})) * ${TOP_RATED_DECAY_FACTOR} 
+            ELSE (julianday('now') - julianday(${songs.topRatedLastNotified})) * 0.01 
         END)
     `;
 }
@@ -841,7 +841,7 @@ export async function getTopRatedSongs(): Promise<{ success: boolean; songs?: To
             userId: songs.userId,
             topRatedLastNotified: songs.topRatedLastNotified,
             socialLinks: users.socialLinks,
-            averageRating: sql<number>`CAST(avg(CASE WHEN ${feedbacks.overall} > 0 THEN ${feedbacks.cat2} * ${WEIGHT_PRODUCTION} + ${feedbacks.cat3} * ${WEIGHT_SINGING} + ${feedbacks.overall} * ${WEIGHT_OVERALL} END) AS FLOAT)`,
+            averageRating: sql<number>`CAST(AVG(CAST(${feedbacks.cat2} AS REAL) * 0.3 + CAST(${feedbacks.cat3} AS REAL) * 0.3 + CAST(${feedbacks.overall} AS REAL) * 0.4) AS REAL)`,
             totalFeedbacks: sql<number>`count(${feedbacks.id})`,
             weightedRating: weightedRatingSql
         })
