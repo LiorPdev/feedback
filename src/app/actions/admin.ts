@@ -4,7 +4,7 @@ import { getDb } from '@/lib/db';
 import { currentUser } from '@clerk/nextjs/server';
 import { desc, eq, aliasedTable, sql, and, gt } from 'drizzle-orm';
 import { users, songs, feedbacks, logs } from '@/lib/schema';
-import { ADMIN_EMAIL, WEIGHT_PRODUCTION, WEIGHT_SINGING, WEIGHT_OVERALL, TOP_RATED_MIN_RATINGS_THRESHOLD, TOP_RATED_DECAY_FACTOR } from '@/lib/constants';
+import { ADMIN_EMAIL, WEIGHT_PRODUCTION, WEIGHT_SINGING, WEIGHT_OVERALL } from '@/lib/constants';
 import { logAction } from './logs';
 
 async function isAdmin() {
@@ -205,7 +205,6 @@ export async function getAdminTopRatedReport() {
     const rater = aliasedTable(users, 'rater');
     
     try {
-        const m = TOP_RATED_MIN_RATINGS_THRESHOLD;
         const C_sql = sql<number>`(SELECT avg(f_global.cat2 * ${WEIGHT_PRODUCTION} + f_global.cat3 * ${WEIGHT_SINGING} + f_global.overall * ${WEIGHT_OVERALL}) FROM Feedback f_global WHERE f_global.overall > 0)`;
         
         // Explicitly define the weighted calculation components
