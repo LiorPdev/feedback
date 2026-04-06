@@ -827,7 +827,7 @@ export async function getTopRatedSongs(): Promise<{ success: boolean; songs?: To
     try {
         // Calculate the Bayesian threshold (m) and the global average (C) as a subquery
         const m = TOP_RATED_MIN_RATINGS_THRESHOLD;
-        const C_sql = sql<number>`(SELECT avg(${feedbacks.cat2} * ${WEIGHT_PRODUCTION} + ${feedbacks.cat3} * ${WEIGHT_SINGING} + ${feedbacks.overall} * ${WEIGHT_OVERALL}) FROM ${feedbacks} WHERE ${feedbacks.overall} > 0)`;
+        const C_sql = sql<number>`(SELECT avg(f_global.cat2 * ${WEIGHT_PRODUCTION} + f_global.cat3 * ${WEIGHT_SINGING} + f_global.overall * ${WEIGHT_OVERALL}) FROM Feedback f_global WHERE f_global.overall > 0)`;
 
         const weightedRatingSql = getBayesianRatingSql(m, C_sql);
 
@@ -876,7 +876,7 @@ export async function checkAndNotifyTopRated() {
     try {
         // 1. Get current Top 10 using the shared Bayesian logic
         const m = TOP_RATED_MIN_RATINGS_THRESHOLD;
-        const C_sql = sql<number>`(SELECT avg(${feedbacks.cat2} * ${WEIGHT_PRODUCTION} + ${feedbacks.cat3} * ${WEIGHT_SINGING} + ${feedbacks.overall} * ${WEIGHT_OVERALL}) FROM ${feedbacks} WHERE ${feedbacks.overall} > 0)`;
+        const C_sql = sql<number>`(SELECT avg(f_global.cat2 * ${WEIGHT_PRODUCTION} + f_global.cat3 * ${WEIGHT_SINGING} + f_global.overall * ${WEIGHT_OVERALL}) FROM Feedback f_global WHERE f_global.overall > 0)`;
         const weightedRatingSql = getBayesianRatingSql(m, C_sql);
 
         const currentTop10 = await db.select({

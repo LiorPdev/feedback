@@ -2,9 +2,9 @@
 
 import { getDb } from '@/lib/db';
 import { currentUser } from '@clerk/nextjs/server';
-import { desc, eq, aliasedTable, sql } from 'drizzle-orm';
+import { desc, eq, aliasedTable, sql, and, gt } from 'drizzle-orm';
 import { users, songs, feedbacks, logs } from '@/lib/schema';
-import { ADMIN_EMAIL } from '@/lib/constants';
+import { ADMIN_EMAIL, WEIGHT_PRODUCTION, WEIGHT_SINGING, WEIGHT_OVERALL, TOP_RATED_MIN_RATINGS_THRESHOLD, TOP_RATED_DECAY_FACTOR } from '@/lib/constants';
 import { logAction } from './logs';
 
 async function isAdmin() {
@@ -196,5 +196,57 @@ export async function deleteAdminSong(id: string) {
             source: "actions/admin.ts:deleteAdminSong",
         });
         return { success: false, error: "Failed to delete song" };
+    }
+}
+export async function getAdminTopRatedReport() {
+    if (!await isAdmin()) return { success: false, error: "Unauthorized" };
+
+    const db = await getDb();
+    const rater = aliasedTable(users, 'rater');
+    
+    try {
+        const m = TOP_RATED_MIN_RATINGS_THRESHOLD;
+        const C_sql = sql<number>`(SELECT avg(f_global.cat2 * ${WEIGHT_PRODUCTION} + f_global.cat3 * ${WEIGHT_SINGING} + f_global.overall * ${WEIGHT_OVERALL}) FROM Feedback f_global WHERE f_global.overall > 0)`;
+        
+        const weight = sql`COALESCE(${rater.raterScore}, 0) + 1.0`;
+        const ratingExpr = sql`${feedbacks.cat2} * ${WEIGHT_PRODUCTION} + ${feedbacks.cat3} * ${WEIGHT_SINGING} + ${feedbacks.overall} * ${WEIGHT_OVERALL}`;
+
+        const weightedSum = sql`sum(CASE WHEN ${feedbacks.overall} > 0 THEN ${weight} * (${ratingExpr}) ELSE 0 END)`;
+        const weightedCount = sql`sum(CASE WHEN ${feedbacks.overall} > 0 THEN ${weight} ELSE 0 END)`;
+        const rawAvg = sql`avg(CASE WHEN ${feedbacks.overall} > 0 THEN ${ratingExpr} END)`;
+        const numRatings = sql`count(CASE WHEN ${feedbacks.overall} > 0 THEN ${feedbacks.id} END)`;
+
+        const bayesianAvg = sql`(((${weightedSum}) + (${m} * ${C_sql})) / ((${weightedCount}) + ${m}))`;
+        const decay = sql`CASE WHEN ${songs.topRatedLastNotified} IS NULL THEN 0 ELSE (julianday('now') - julianday(${songs.topRatedLastNotified})) * ${TOP_RATED_DECAY_FACTOR} END`;
+        const finalScore = sql`(${bayesianAvg}) - (${decay})`;
+
+        const result = await db.select({
+            id: songs.id,
+            title: songs.title,
+            numRatings: numRatings,
+            rawAvg: rawAvg,
+            weightedV: weightedCount,
+            weightedSum: weightedSum,
+            bayesianAvg: bayesianAvg,
+            decay: decay,
+            finalScore: finalScore
+        })
+        .from(songs)
+        .innerJoin(feedbacks, and(eq(songs.id, feedbacks.songId), gt(feedbacks.overall, 0)))
+        .leftJoin(rater, eq(feedbacks.authorId, rater.id))
+        .where(eq(songs.isActive, true))
+        .groupBy(songs.id)
+        .orderBy(desc(finalScore))
+        .limit(20);
+
+        return { success: true, data: result };
+    } catch (error) {
+        const err = error as Error;
+        await logAction({
+            message: "Failed to fetch top rated report",
+            data: { error: err.message, stack: err.stack },
+            source: "actions/admin.ts:getAdminTopRatedReport",
+        });
+        return { success: false, error: "Failed to fetch top rated report" };
     }
 }

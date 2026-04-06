@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { getAdminSongsReport, getAdminFeedbacksReport, getAdminUsersReport, getAdminLogsReport, deleteAdminFeedback, deleteAdminSong } from '@/app/actions/admin';
+import { getAdminSongsReport, getAdminFeedbacksReport, getAdminUsersReport, getAdminLogsReport, getAdminTopRatedReport, deleteAdminFeedback, deleteAdminSong } from '@/app/actions/admin';
 import { ArrowUpDown, ArrowUp, ArrowDown, Trash2 } from 'lucide-react';
 import styles from './reports.module.css';
 
-type ReportType = 'songs' | 'feedbacks' | 'users' | 'logs';
+type ReportType = 'songs' | 'feedbacks' | 'users' | 'logs' | 'top-rated';
 
 interface SortHeaderProps {
     label: string;
@@ -17,8 +17,8 @@ interface SortHeaderProps {
 const SortHeader = ({ label, sortKey, sortConfig, onSort }: SortHeaderProps) => {
     const isActive = sortConfig?.key === sortKey;
     return (
-        <th 
-            className={styles.sortable} 
+        <th
+            className={styles.sortable}
             onClick={() => onSort(sortKey)}
             title={`מיין לפי ${label}`}
         >
@@ -50,7 +50,7 @@ export function ReportsClient() {
     const handleDelete = async () => {
         if (!selectedId || !canDelete) return;
 
-        const confirmMsg = reportType === 'songs' 
+        const confirmMsg = reportType === 'songs'
             ? "האם אתה בטוח שברצונך למחוק את השיר? פעולה זו תמחק גם את כל הפידבקים והלוגים הקשורים אליו."
             : "האם אתה בטוח שברצונך למחוק את הפידבק?";
 
@@ -83,6 +83,9 @@ export function ReportsClient() {
             result = await getAdminFeedbacksReport();
         } else if (reportType === 'logs') {
             result = await getAdminLogsReport();
+        } else if (reportType === 'top-rated') {
+            result = await getAdminTopRatedReport();
+            setSortConfig({ key: 'finalScore', direction: 'desc' });
         } else {
             result = await getAdminUsersReport();
         }
@@ -153,14 +156,15 @@ export function ReportsClient() {
                     }}
                 >
                     <option value="feedbacks">פידבקים</option>
+                    <option value="top-rated">דירוג (Top 20)</option>
                     <option value="songs">שירים</option>
                     <option value="users">משתמשים רשומים</option>
                     <option value="logs">לוגים</option>
                 </select>
 
                 {canDelete && selectedId && (
-                    <button 
-                        className={styles.trashBtn} 
+                    <button
+                        className={styles.trashBtn}
                         onClick={handleDelete}
                         title="מחק שורה נבחרת"
                     >
@@ -178,49 +182,61 @@ export function ReportsClient() {
                     <div className={styles.noData}>אין נתונים להצגה</div>
                 ) : (
                     <table className={styles.table}>
-                <thead>
-                    {reportType === 'songs' ? (
-                        <tr>
-                            <th className={styles.checkboxCol}></th>
-                            <SortHeader label="תאריך העלאה" sortKey="createdAt" sortConfig={sortConfig} onSort={handleSort} />
-                            <SortHeader label="שם השיר" sortKey="title" sortConfig={sortConfig} onSort={handleSort} />
-                            <SortHeader label="משתמש" sortKey="creatorName" sortConfig={sortConfig} onSort={handleSort} />
-                        </tr>
-                    ) : reportType === 'feedbacks' ? (
-                        <tr>
-                            <th className={styles.checkboxCol}></th>
-                            <SortHeader label="תאריך" sortKey="createdAt" sortConfig={sortConfig} onSort={handleSort} />
-                            <SortHeader label="שם השיר" sortKey="songTitle" sortConfig={sortConfig} onSort={handleSort} />
-                            <SortHeader label="מעלה השיר" sortKey="songCreatorName" sortConfig={sortConfig} onSort={handleSort} />
-                            <SortHeader label="שם המדרג" sortKey="authorName" sortConfig={sortConfig} onSort={handleSort} />
-                            <SortHeader label="דירוגים" sortKey="overall" sortConfig={sortConfig} onSort={handleSort} />
-                            <SortHeader label="הערה" sortKey="comment" sortConfig={sortConfig} onSort={handleSort} />
-                        </tr>
-                    ) : reportType === 'users' ? (
-                        <tr>
-                            <SortHeader label="מייל" sortKey="email" sortConfig={sortConfig} onSort={handleSort} />
-                            <SortHeader label="שם" sortKey="name" sortConfig={sortConfig} onSort={handleSort} />
-                            <SortHeader label="מספר טוקנים" sortKey="tokens" sortConfig={sortConfig} onSort={handleSort} />
-                            <SortHeader label="איכות המדרג" sortKey="raterScore" sortConfig={sortConfig} onSort={handleSort} />
-                            <SortHeader label="תאריך רישום" sortKey="createdAt" sortConfig={sortConfig} onSort={handleSort} />
-                            <SortHeader label="כניסה אחרונה" sortKey="lastVisit" sortConfig={sortConfig} onSort={handleSort} />
-                            <SortHeader label="לאחרונה נתן פידבק" sortKey="lastFeedbackGiven" sortConfig={sortConfig} onSort={handleSort} />
-                            <SortHeader label="לאחרונה קיבל פידבק" sortKey="lastFeedbackReceived" sortConfig={sortConfig} onSort={handleSort} />
-                        </tr>
-                    ) : (
-                        <tr>
-                            <SortHeader label="תאריך" sortKey="createdAt" sortConfig={sortConfig} onSort={handleSort} />
-                            <SortHeader label="הודעה" sortKey="message" sortConfig={sortConfig} onSort={handleSort} />
-                            <SortHeader label="מידע" sortKey="data" sortConfig={sortConfig} onSort={handleSort} />
-                            <SortHeader label="מקור" sortKey="source" sortConfig={sortConfig} onSort={handleSort} />
-                            <SortHeader label="שם משתמש" sortKey="userName" sortConfig={sortConfig} onSort={handleSort} />
-                        </tr>
-                    )}
-                </thead>
-                <tbody>
-                    {sortedData.map((item) => (
-                                <tr 
-                                    key={item.id} 
+                        <thead>
+                            {reportType === 'songs' ? (
+                                <tr>
+                                    <th className={styles.checkboxCol}></th>
+                                    <SortHeader label="תאריך העלאה" sortKey="createdAt" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="שם השיר" sortKey="title" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="משתמש" sortKey="creatorName" sortConfig={sortConfig} onSort={handleSort} />
+                                </tr>
+                            ) : reportType === 'feedbacks' ? (
+                                <tr>
+                                    <th className={styles.checkboxCol}></th>
+                                    <SortHeader label="תאריך" sortKey="createdAt" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="שם השיר" sortKey="songTitle" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="מעלה השיר" sortKey="songCreatorName" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="שם המדרג" sortKey="authorName" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="דירוגים" sortKey="overall" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="הערה" sortKey="comment" sortConfig={sortConfig} onSort={handleSort} />
+                                </tr>
+                            ) : reportType === 'top-rated' ? (
+                                <tr>
+                                    <th style={{ width: '50px' }}>#</th>
+                                    <SortHeader label="שם השיר" sortKey="title" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="דירוגים" sortKey="numRatings" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="ממוצע גולמי" sortKey="rawAvg" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="משקל (v)" sortKey="weightedV" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="סכום משוקלל" sortKey="weightedSum" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="Bayesian" sortKey="bayesianAvg" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="התיישנות" sortKey="decay" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="ציון סופי" sortKey="finalScore" sortConfig={sortConfig} onSort={handleSort} />
+                                </tr>
+                            ) : reportType === 'users' ? (
+                                <tr>
+                                    <SortHeader label="מייל" sortKey="email" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="שם" sortKey="name" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="מספר טוקנים" sortKey="tokens" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="איכות המדרג" sortKey="raterScore" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="תאריך רישום" sortKey="createdAt" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="כניסה אחרונה" sortKey="lastVisit" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="לאחרונה נתן פידבק" sortKey="lastFeedbackGiven" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="לאחרונה קיבל פידבק" sortKey="lastFeedbackReceived" sortConfig={sortConfig} onSort={handleSort} />
+                                </tr>
+                            ) : (
+                                <tr>
+                                    <SortHeader label="תאריך" sortKey="createdAt" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="הודעה" sortKey="message" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="מידע" sortKey="data" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="מקור" sortKey="source" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="שם משתמש" sortKey="userName" sortConfig={sortConfig} onSort={handleSort} />
+                                </tr>
+                            )}
+                        </thead>
+                        <tbody>
+                            {sortedData.map((item) => (
+                                <tr
+                                    key={item.id}
                                     className={selectedId === item.id ? styles.selected : ''}
                                     onClick={() => canDelete && setSelectedId(selectedId === item.id ? null : item.id)}
                                     style={{ cursor: canDelete ? 'pointer' : 'default' }}
@@ -228,8 +244,8 @@ export function ReportsClient() {
                                     {reportType === 'songs' && (
                                         <>
                                             <td className={styles.checkboxCol} onClick={(e) => e.stopPropagation()}>
-                                                <input 
-                                                    type="checkbox" 
+                                                <input
+                                                    type="checkbox"
                                                     className={styles.checkbox}
                                                     checked={selectedId === item.id}
                                                     onChange={() => setSelectedId(selectedId === item.id ? null : item.id)}
@@ -243,8 +259,8 @@ export function ReportsClient() {
                                     {reportType === 'feedbacks' && (
                                         <>
                                             <td className={styles.checkboxCol} onClick={(e) => e.stopPropagation()}>
-                                                <input 
-                                                    type="checkbox" 
+                                                <input
+                                                    type="checkbox"
                                                     className={styles.checkbox}
                                                     checked={selectedId === item.id}
                                                     onChange={() => setSelectedId(selectedId === item.id ? null : item.id)}
@@ -268,6 +284,21 @@ export function ReportsClient() {
                                             </td>
                                         </>
                                     )}
+                                    {reportType === 'top-rated' && (
+                                        <>
+                                            <td style={{ fontWeight: 'bold', color: 'var(--text-muted)' }}>{data.indexOf(item) + 1}</td>
+                                            <td>{item.title}</td>
+                                            <td>{item.numRatings}</td>
+                                            <td>{typeof item.rawAvg === 'number' ? item.rawAvg.toFixed(3) : item.rawAvg}</td>
+                                            <td>{typeof item.weightedV === 'number' ? item.weightedV.toFixed(2) : item.weightedV}</td>
+                                            <td>{typeof item.weightedSum === 'number' ? item.weightedSum.toFixed(2) : item.weightedSum}</td>
+                                            <td>{typeof item.bayesianAvg === 'number' ? item.bayesianAvg.toFixed(3) : item.bayesianAvg}</td>
+                                            <td>{typeof item.decay === 'number' ? item.decay.toFixed(3) : item.decay}</td>
+                                            <td style={{ fontWeight: 'bold', color: 'var(--accent)' }}>
+                                                {typeof item.finalScore === 'number' ? item.finalScore.toFixed(4) : item.finalScore}
+                                            </td>
+                                        </>
+                                    )}
                                     {reportType === 'users' && (
                                         <>
                                             <td>{item.email}</td>
@@ -284,7 +315,7 @@ export function ReportsClient() {
                                         <>
                                             <td>{formatDate(item.createdAt)}</td>
                                             <td>{item.message}</td>
-             <td>
+                                            <td>
                                                 <div className={styles.comment} title={item.data || ""}>
                                                     {item.data}
                                                 </div>
