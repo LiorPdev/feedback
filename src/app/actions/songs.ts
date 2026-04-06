@@ -797,7 +797,8 @@ export async function getTopRatedSongs() {
         // 1. Calculate the global average rating (C) and the minimum threshold (m)
         const globalStats = await db.select({
             avgRating: sql<number>`avg(${feedbacks.cat2} * ${WEIGHT_PRODUCTION} + ${feedbacks.cat3} * ${WEIGHT_SINGING} + ${feedbacks.overall} * ${WEIGHT_OVERALL})`
-        }).from(feedbacks);
+        }).from(feedbacks)
+        .where(gt(feedbacks.overall, 0));
 
         const C = globalStats[0]?.avgRating || 0;
         const m = TOP_RATED_MIN_RATINGS_THRESHOLD;
@@ -814,7 +815,7 @@ export async function getTopRatedSongs() {
             userId: songs.userId,
             topRatedLastNotified: songs.topRatedLastNotified,
             socialLinks: users.socialLinks,
-            averageRating: sql<number>`CAST(avg((${feedbacks.cat2} + ${feedbacks.cat3} + ${feedbacks.overall}) / 3.0) AS FLOAT)`,
+            averageRating: sql<number>`CAST(avg(CASE WHEN ${feedbacks.overall} > 0 THEN ${feedbacks.cat2} * ${WEIGHT_PRODUCTION} + ${feedbacks.cat3} * ${WEIGHT_SINGING} + ${feedbacks.overall} * ${WEIGHT_OVERALL} END) AS FLOAT)`,
             totalFeedbacks: sql<number>`count(${feedbacks.id})`,
             weightedRating: weightedRatingSql
         })
@@ -848,8 +849,9 @@ export async function checkAndNotifyTopRated() {
     try {
         // 1. Get current Top 10 using the shared Bayesian logic
         const globalStats = await db.select({
-            avgRating: sql<number>`avg((${feedbacks.cat2} + ${feedbacks.cat3} + ${feedbacks.overall}) / 3.0)`
-        }).from(feedbacks);
+            avgRating: sql<number>`avg(${feedbacks.cat2} * ${WEIGHT_PRODUCTION} + ${feedbacks.cat3} * ${WEIGHT_SINGING} + ${feedbacks.overall} * ${WEIGHT_OVERALL})`
+        }).from(feedbacks)
+        .where(gt(feedbacks.overall, 0));
 
         const C = globalStats[0]?.avgRating || 0;
         const m = TOP_RATED_MIN_RATINGS_THRESHOLD;

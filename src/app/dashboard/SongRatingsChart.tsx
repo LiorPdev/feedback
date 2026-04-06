@@ -215,13 +215,14 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
           />
           <Tooltip
             cursor={{ fill: 'transparent' }}
+            position={{ x: 50 }}
             allowEscapeViewBox={{ x: true, y: true }}
             wrapperStyle={{ zIndex: 1000 }}
             content={({ active, payload }) => {
               if (active && payload && payload.length) {
                 const data = payload[0].payload;
                 return (
-                  <div className={styles.tooltipContainer}>
+                  <div className={styles.tooltipContainer} style={{ transform: 'translateY(-30px)' }}>
                     {type === 'general' && (
                       <p className={styles.tooltipText}>ציון ממוצע: {data.avgOverall}</p>
                     )}
