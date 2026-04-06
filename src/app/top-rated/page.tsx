@@ -1,5 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
-import { getTopRatedSongs } from "@/app/actions/songs";
+import { getTopRatedSongs, TopRatedSong } from "@/app/actions/songs";
 import styles from "./top-rated.module.css";
 import BackButton from "@/components/BackButton";
 import ArtistSocials from "@/components/ArtistSocials";
@@ -22,7 +22,7 @@ export default async function TopRatedPage() {
     );
   }
 
-  const songs = result.songs;
+  const songs: TopRatedSong[] = result.songs;
 
   return (
     <div className={styles.container}>

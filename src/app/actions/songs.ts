@@ -807,7 +807,22 @@ function getBayesianRatingSql(m: number, C: number) {
     `;
 }
 
-export async function getTopRatedSongs() {
+export interface TopRatedSong {
+    id: string;
+    title: string;
+    url: string;
+    genre: string;
+    artist: string | null;
+    slug: string;
+    userId: string;
+    topRatedLastNotified: string | null;
+    socialLinks: string | null;
+    averageRating: number;
+    totalFeedbacks: number;
+    weightedRating: number;
+}
+
+export async function getTopRatedSongs(): Promise<{ success: boolean; songs?: TopRatedSong[]; error?: string }> {
     const db = await getDb();
     try {
         // 1. Calculate the global average rating (C) and the minimum threshold (m)
