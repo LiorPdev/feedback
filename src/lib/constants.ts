@@ -30,7 +30,7 @@ export const MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024;
 export const ADMIN_EMAIL = "lior.porat.music@gmail.com";
 
 export const TOP_RATED_NOTIFICATION_COOLDOWN_DAYS = 7;
-export const TOP_RATED_MIN_RATINGS_THRESHOLD = 5;
+export const TOP_RATED_MIN_RATINGS_THRESHOLD = 3;
 
 // The amount of score points a song loses for each day it stays in the Top 10 list.
 // Why: To prevent the same songs from dominating the Top 10 for too long, enabling new 

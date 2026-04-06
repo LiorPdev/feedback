@@ -787,7 +787,7 @@ const authorUsers = aliasedTable(users, 'authorUsers');
  * C = global simple average rating
  */
 function getBayesianRatingSql(m: number, C: number) {
-    const weight = sql`COALESCE(${authorUsers.raterScore}, 0) / 2.5 + 1.0`;
+    const weight = sql`COALESCE(${authorUsers.raterScore}, 0) + 1.0`;
     const ratingExpr = sql`${feedbacks.cat2} * ${WEIGHT_PRODUCTION} + ${feedbacks.cat3} * ${WEIGHT_SINGING} + ${feedbacks.overall} * ${WEIGHT_OVERALL}`;
 
     const weightedSum = sql`sum(CASE WHEN ${feedbacks.overall} > 0 THEN ${weight} * (${ratingExpr}) ELSE 0 END)`;
@@ -851,7 +851,7 @@ export async function getTopRatedSongs(): Promise<{ success: boolean; songs?: To
             weightedRating: weightedRatingSql
         })
             .from(songs)
-            .innerJoin(feedbacks, eq(songs.id, feedbacks.songId))
+            .innerJoin(feedbacks, and(eq(songs.id, feedbacks.songId), gt(feedbacks.overall, 0)))
             .innerJoin(users, eq(songs.userId, users.id)) // Song owner
             .leftJoin(authorUsers, eq(feedbacks.authorId, authorUsers.id)) // Feedback author (for quality)
             .where(eq(songs.isActive, true))
@@ -898,7 +898,7 @@ export async function checkAndNotifyTopRated() {
             isInTopRated: songs.isInTopRated,
         })
             .from(songs)
-            .innerJoin(feedbacks, eq(songs.id, feedbacks.songId))
+            .innerJoin(feedbacks, and(eq(songs.id, feedbacks.songId), gt(feedbacks.overall, 0)))
             .leftJoin(authorUsers, eq(feedbacks.authorId, authorUsers.id)) // Feedback author (for quality)
             .where(eq(songs.isActive, true))
             .groupBy(songs.id)
