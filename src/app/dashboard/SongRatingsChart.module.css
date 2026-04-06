@@ -80,7 +80,8 @@
 }
 
 .tooltipCategoryText {
-  margin: 0 0 2px;
+  margin: 0 0 1px;
+  font-size: 0.7rem;
 }
 
 .tooltipFooter {

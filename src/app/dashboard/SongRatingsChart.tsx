@@ -230,7 +230,7 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
                       <div className={styles.tooltipTrueRatingWrapper}>
                         <p className={styles.tooltipTrueRatingTitle}>מדד איכות משוקלל: {data.trueRating}</p>
                         <p className={styles.tooltipTrueRatingDesc}>
-                          דירוג המשקלל את ממוצע השיר מול הממוצע הכללי של השירים שלך ({data.userAverage}) כדי למנוע הטיות בשירים עם מעט מדרגים.
+                          דירוג המשקלל את ממוצע השיר מול הממוצע הכללי של השירים שלך ({data.userAverage}).
                         </p>
                       </div>
                     )}

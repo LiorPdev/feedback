@@ -93,7 +93,7 @@
 }
 
 .headerSocialsContainer {
-  margin-right: 0.8rem;
+  margin-right: 0.4rem;
   display: flex;
   align-items: center;
 }
@@ -447,7 +447,7 @@
 
   @media (max-width: 450px) {
     .headerRow {
-      padding: 0 2.2rem 0 0.8rem;
+      padding: 0 2.4rem 0 0rem;
     }
 
     .title {
@@ -455,7 +455,7 @@
     }
 
     .backButton {
-      top: -6px;
+      top: -8px;
     }
   }
 }
