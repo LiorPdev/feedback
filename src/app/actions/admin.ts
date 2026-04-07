@@ -4,7 +4,7 @@ import { getDb } from '@/lib/db';
 import { currentUser } from '@clerk/nextjs/server';
 import { desc, eq, aliasedTable, sql, and, gt } from 'drizzle-orm';
 import { users, songs, feedbacks, logs } from '@/lib/schema';
-import { ADMIN_EMAIL, WEIGHT_PRODUCTION, WEIGHT_SINGING, WEIGHT_OVERALL } from '@/lib/constants';
+import { ADMIN_EMAIL, WEIGHT_PRODUCTION, WEIGHT_SINGING, WEIGHT_OVERALL, TOP_RATED_DECAY_FACTOR } from '@/lib/constants';
 import { logAction } from './logs';
 
 async function isAdmin() {
@@ -217,7 +217,7 @@ export async function getAdminTopRatedReport() {
         const numRatings = sql`COUNT(${feedbacks.id})`;
 
         const bayesianAvg = sql`(((${weightedSum}) + (3.0 * ${C_sql})) / ((${weightedCount}) + 3.0))`;
-        const decay = sql`CASE WHEN ${songs.topRatedLastNotified} IS NULL THEN 0 ELSE (julianday('now') - julianday(${songs.topRatedLastNotified})) * 0.01 END`;
+        const decay = sql`CASE WHEN ${songs.topRatedLastNotified} IS NULL THEN 0 ELSE (julianday('now') - julianday(${songs.topRatedLastNotified})) * ${TOP_RATED_DECAY_FACTOR} END`;
         const finalScore = sql`(${bayesianAvg}) - (${decay})`;
 
         const result = await db.select({
