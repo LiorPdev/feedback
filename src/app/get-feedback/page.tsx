@@ -418,6 +418,9 @@ export default function GetFeedback() {
               required
               maxLength={22}
             />
+            <p className={styles.tipText}>
+              טיפ: פרטים אישיים כדאי לשים ב&apos;כרטיס הביקור המוזיקלי&apos; ולא בשם השיר
+            </p>
           </div>
 
           <div className={`${styles.formGroup} ${styles.genreGroup}`}>
@@ -466,7 +469,7 @@ export default function GetFeedback() {
               {status === "loading" ? (
                 <div className={styles.loadingSpinner} />
               ) : (
-                <>שליחה {user && <span className={styles.tokenLabel}>({SONG_SUBMISSION_COST} <Music size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /> קרדיט)</span>}</>
+                <>שליחה {user && <span className={styles.tokenLabel}>(<Music size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /> {SONG_SUBMISSION_COST})</span>}</>
               )}
             </button>
           </div>

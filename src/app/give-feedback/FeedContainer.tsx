@@ -169,7 +169,7 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
   const handleRemoveCurrent = () => {
     setSongs((prevSongs) => {
       const updatedSongs = prevSongs.filter((_, i) => i !== currentIndex);
-      
+
       setCurrentIndex((prev) => {
         if (prev >= updatedSongs.length) {
           return 0;
@@ -396,7 +396,7 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
         icon={<Coins size={48} />}
         title="נגמרו תווי הקרדיט"
         message={
-          <div>החדשות הטובות: על כל פידבק שתיתנו כאן, תקבלו תווי קרדיט נוספים!</div>
+          <div>החדשות הטובות: על כל פידבק שתיתנו, תקבלו תווי קרדיט נוספים.</div>
         }
         buttonText="הבנתי, בואו ניתן קצת פידבק לאחרים"
       />
