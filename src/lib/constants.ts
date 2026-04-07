@@ -38,7 +38,7 @@ export const TOP_RATED_MIN_RATINGS_THRESHOLD = 3;
 // Why: To prevent the same songs from dominating the Top 10 for too long, enabling new 
 // and fresh talent to be discovered while rewarding consistent high performance.
 // Lower value (e.g. 0.005) means songs stay longer; higher value (e.g. 0.05) means faster turnover.
-export const TOP_RATED_DECAY_FACTOR = 0.1;
+export const TOP_RATED_DECAY_FACTOR = 0.07;
 
 // Rating Weights (Must sum to 1.0)
 export const WEIGHT_PRODUCTION = 0.3;

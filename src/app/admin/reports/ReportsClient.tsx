@@ -189,6 +189,7 @@ export function ReportsClient() {
                                     <SortHeader label="תאריך העלאה" sortKey="createdAt" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="שם השיר" sortKey="title" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="משתמש" sortKey="creatorName" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="פידבק אחרון" sortKey="lastFeedbackAt" sortConfig={sortConfig} onSort={handleSort} />
                                 </tr>
                             ) : reportType === 'feedbacks' ? (
                                 <tr>
@@ -254,6 +255,7 @@ export function ReportsClient() {
                                             <td>{formatDate(item.createdAt)}</td>
                                             <td>{item.title}</td>
                                             <td>{item.creatorName || item.creatorEmail}</td>
+                                            <td>{item.lastFeedbackAt ? formatDate(item.lastFeedbackAt) : '-'}</td>
                                         </>
                                     )}
                                     {reportType === 'feedbacks' && (
