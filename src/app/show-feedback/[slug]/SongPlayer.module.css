@@ -1,0 +1,58 @@
+.playerContainer {
+  margin-bottom: 2rem;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.playButton {
+  width: 54px;
+  height: 54px;
+  background: var(--brand-light);
+  color: var(--brand-contrast);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.playButton:hover:not(:disabled) {
+  transform: scale(1.05);
+  background: var(--brand-bg);
+  color: var(--brand-primary);
+}
+
+.playButton:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.loadingSpinnerBasic {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinningIcon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.isPlaying {
+  background: var(--brand-bg);
+  color: var(--brand-primary);
+  box-shadow: 0 0 0 2px var(--brand-light);
+}

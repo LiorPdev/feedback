@@ -1,0 +1,263 @@
+.feedbackSection {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3rem;
+}
+
+.feedbacksList {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.feedbackItem {
+  background: var(--bg-section);
+  padding: 1.5rem;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+}
+
+.fbHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.6rem;
+  width: 100%;
+}
+
+.fbDate {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.fbRaterGenre {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.fbAuthorInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.genreList {
+  color: var(--text-muted);
+}
+
+.fbRatingsRow {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.fbRatingLabel {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  margin-left: 0.25rem;
+}
+
+.fbLabel {
+  font-weight: 800;
+  margin-left: 0.2rem;
+}
+
+.fbRatingsRow span:not(.fbRatingLabel) {
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  background: var(--card-bg);
+  padding: 0.35rem 0.7rem;
+  border-radius: 100px;
+  border: 1px solid var(--border-color);
+}
+
+.fbOverallBadge {
+  color: var(--brand-primary) !important;
+  border-color: var(--brand-light) !important;
+  background: var(--brand-bg) !important;
+}
+
+.fbPlaytime {
+  font-size: 0.85rem !important;
+  margin-bottom: 0.5rem;
+  color: var(--text-muted) !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.fbHeaderBadges {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  align-items: flex-start;
+}
+
+.fbRaterScore {
+  margin-bottom: 1.5rem;
+}
+
+.fbComment {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--text-main);
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+.noFeedback {
+  text-align: center;
+  padding: 3rem;
+  background: var(--bg-section);
+  border-radius: 20px;
+  color: var(--text-muted);
+  font-weight: 700;
+  border: 1px dashed var(--border-color);
+  width: 100%;
+}
+
+/* ── Tab bar ───────────────────────────────────────────────── */
+.tabBar {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 0;
+  margin-bottom: -0.5rem;
+}
+
+.tabBtn {
+  padding: 0.6rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-family: inherit;
+  color: var(--text-muted);
+  text-decoration: none;
+  background: transparent;
+  border-radius: 10px 10px 0 0;
+  border: 1px solid transparent;
+  border-bottom: none;
+  transition: color 0.2s, background 0.2s;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.tabBtn:hover {
+  color: var(--text-main);
+  background: var(--bg-section);
+}
+
+.tabActive {
+  color: var(--brand-primary) !important;
+  background: var(--card-bg);
+  border-color: var(--border-color);
+  border-bottom-color: var(--card-bg);
+  margin-bottom: -2px;
+}
+
+/* ── Locked Feedback ── */
+.lockedFeedback {
+  position: relative;
+  overflow: hidden;
+}
+
+.lockedContent {
+  filter: blur(5px);
+  user-select: none;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.unlockOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
+  z-index: 10;
+  padding: 0.5rem;
+  text-align: center;
+  border-radius: 20px;
+}
+
+.unlockTitle {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 1rem;
+}
+
+.unlockErrorText {
+  margin-bottom: 1rem;
+  font-weight: 800;
+}
+
+.giveFeedbackLink {
+  text-decoration: underline;
+  color: var(--brand-primary);
+  display: block;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.unlockBtn {
+  background: color-mix(in srgb, var(--brand-primary), transparent 25%);
+  color: white;
+  border: none;
+  padding: 0.85rem 1.75rem;
+  border-radius: 14px;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.25);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.unlockBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(30, 58, 138, 0.35);
+  background: var(--brand-primary);
+}
+
+.unlockBtn:active {
+  transform: translateY(0);
+}
+
+.lockIcon {
+  width: 18px;
+  height: 18px;
+}
+
+@media (max-width: 600px) {
+  .feedbackSection {
+    margin-bottom: 1rem;
+  }
+
+  .feedbackItem {
+    padding: 1.2rem;
+  }
+
+  .fbRatingsRow {
+    display: flex;
+    gap: 0.4rem;
+  }
+}

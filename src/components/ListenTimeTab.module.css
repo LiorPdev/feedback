@@ -1,0 +1,119 @@
+.feedbackSection {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.5rem;
+}
+
+.feedbacksList {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.feedbackItem {
+  background: var(--bg-section);
+  padding: 1.5rem;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  width: 100%;
+}
+
+.fbHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.6rem;
+  width: 100%;
+}
+
+.fbDate {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.fbRaterGenre {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.genreList {
+  color: var(--text-muted);
+}
+
+.noFeedback {
+  text-align: center;
+  padding: 3rem;
+  background: var(--bg-section);
+  border-radius: 20px;
+  color: var(--text-muted);
+  font-weight: 700;
+  border: 1px dashed var(--border-color);
+  width: 100%;
+}
+
+/* ── Listen events summary card ────────────────────────────── */
+.listenSummary {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  background: var(--bg-section);
+  padding: 0rem;
+  width: 100%;
+  justify-content: center;
+}
+
+.listenSummaryItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.listenSummaryIcon {
+  color: var(--brand-primary);
+  flex-shrink: 0;
+}
+
+.listenSummaryValue {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--text-main);
+  line-height: 1.1;
+}
+
+.listenSummaryLabel {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.listenSummaryDivider {
+  width: 1px;
+  height: 40px;
+  background: var(--border-color);
+}
+
+.listenDuration {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--brand-primary);
+}
+
+@media (max-width: 600px) {
+  .feedbackSection {
+    margin-bottom: 1rem;
+  }
+
+  .feedbackItem {
+    padding: 1.2rem;
+  }
+
+  .listenSummary {
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+}

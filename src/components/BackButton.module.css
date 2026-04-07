@@ -6,7 +6,6 @@
   height: 40px;
   border-radius: 50%;
   color: var(--text-muted);
-  box-shadow: var(--shadow-sm);
   transition: all 0.2s ease;
   flex-shrink: 0;
   text-decoration: none;
@@ -18,7 +17,6 @@
 }
 
 .backButton:hover {
-  background: #f3f4f6;
   color: var(--brand-primary);
   transform: scale(1.1);
   box-shadow: var(--shadow-md);

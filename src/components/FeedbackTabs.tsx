@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useTransition, useRef } from "react";
+import { useState, useTransition } from "react";
 import ListenTimeTab from "@/components/ListenTimeTab";
-import InfoTooltip from "@/components/InfoTooltip";
-import { Eye, Loader2, HelpCircle } from "lucide-react";
+import RaterScoreInfo from "@/components/RaterScoreInfo";
+import { Eye, Loader2 } from "lucide-react";
 import { unlockFeedback } from "@/app/actions/feedback";
 import { UNLOCK_FEEDBACK_COST } from "@/lib/constants";
 import Link from "next/link";
-import styles from "@/app/show-feedback/[slug]/show-feedback.module.css";
+import styles from "./FeedbackTabs.module.css";
 
 interface FeedbackItem {
   id: string;
@@ -45,48 +45,7 @@ function formatSeconds(seconds: number | null | undefined) {
   return <>{label} {m}:{s.toString().padStart(2, "0")}</>;
 }
 
-function RaterScoreInfo({ score }: { score: number | null | undefined }) {
-  const [showInfo, setShowInfo] = useState(false);
-  const triggerRef = useRef<HTMLButtonElement>(null);
 
-  // Format score: show "אין דירוג" if 0 or undefined, otherwise show X.X/5
-  const displayScore = (score && score > 0) ? score.toFixed(1) : "אין דירוג";
-
-  return (
-    <span className={styles.fbRaterScore}>
-      <strong className={styles.fbLabel}>איכות המדרג:</strong> {displayScore}
-      <button
-        ref={triggerRef}
-        className={styles.infoTriggerIcon}
-        onClick={() => setShowInfo(!showInfo)}
-        title="איך זה מחושב?"
-      >
-        <HelpCircle size={14} />
-      </button>
-
-      <InfoTooltip
-        isOpen={showInfo}
-        onClose={() => setShowInfo(false)}
-        triggerRef={triggerRef}
-        title="איך זה מחושב?"
-        align="right"
-        arrowPosition="center"
-        width={200}
-        content={
-          <div className={styles.tooltipContent}>
-            <ul className={styles.formulaLegend}>
-              <li><strong>40%</strong> - מתן הסבר לצד דירוג</li>
-              <li><strong>30%</strong> - רמת הפירוט בטקסט</li>
-              <li><strong>20%</strong> - קרבה לדירוג הכללי</li>
-              <li><strong>10%</strong> - ותק וכמות הדירוגים</li>
-            </ul>
-            <p>הציון המקסימלי הוא 5</p>
-          </div>
-        }
-      />
-    </span>
-  );
-}
 
 export default function FeedbackTabs({
   feedbacks,
@@ -179,7 +138,10 @@ export default function FeedbackTabs({
                             </span>
                           </div>
                         )}
-                        <RaterScoreInfo score={fb.authorRaterScore} />
+                        <RaterScoreInfo 
+                          score={fb.authorRaterScore} 
+                          className={styles.fbRaterScore} 
+                        />
                       </div>
 
                       {((fb.cat2 || 0) > 0 || (fb.cat3 || 0) > 0 || (fb.overall || 0) > 0) && (

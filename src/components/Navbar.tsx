@@ -164,7 +164,7 @@ export default function Navbar() {
             <>
 
               <Link href="/top-rated" className={styles.navLink} title="היכל התהילה">
-                <GiPodium size={24} />
+                <GiPodium size={26} />
               </Link>
               <SignedOut>
                 <SignInButton mode="modal">

@@ -1,6 +1,6 @@
 "use client";
 
-import styles from "@/app/show-feedback/[slug]/show-feedback.module.css";
+import styles from "./ListenTimeTab.module.css";
 import { Headphones, Clock } from "lucide-react";
 
 interface ListenEvent {

@@ -8,6 +8,7 @@ import { TOP_RATED_MIN_RATINGS_THRESHOLD } from "@/lib/constants";
 import { getDb } from "@/lib/db";
 import { feedbacks } from "@/lib/schema";
 import DashboardClient from "./DashboardClient";
+import RaterScoreInfo from "@/components/RaterScoreInfo";
 import styles from "./dashboard.module.css";
 
 export default async function DashboardPage({
@@ -79,6 +80,11 @@ export default async function DashboardPage({
           />
           <div className={styles.welcome}>
             <h1><span className={styles.welcomeText}>שלום </span>{user.name ? user.name.split(" ")[0] : ""}</h1>
+            <RaterScoreInfo 
+              score={user.raterScore} 
+              label="הדירוג שלי" 
+              className={styles.raterScoreDashboard}
+            />
           </div>
         </div>
         <Link href="/get-feedback" className={styles.mobileActionBtn}>

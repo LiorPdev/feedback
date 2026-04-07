@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Play, Pause, Loader2 } from "lucide-react";
 import UrlPlayer, { UrlPlayerHandle, getEmbedUrl } from "@/components/UrlPlayer";
-import styles from "./show-feedback.module.css";
+import styles from "./SongPlayer.module.css";
 
 interface SongPlayerProps {
   url: string;

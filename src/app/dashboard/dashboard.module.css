@@ -4,7 +4,6 @@
   color: var(--text-main);
   direction: rtl;
   position: relative;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -18,7 +17,7 @@
   align-items: center;
   gap: 2rem;
   position: relative;
-  z-index: 2;
+  z-index: 100;
 }
 
 .welcomeContainer {
@@ -27,10 +26,21 @@
   gap: 1.25rem;
 }
 
+.welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
 .welcome h1 {
   font-size: 2.5rem;
   font-weight: 900;
-  margin: 0 0 0.5rem 0;
+  margin-bottom: 0.2rem;
+}
+
+.raterScoreDashboard {
+  margin-bottom: 0;
+  margin-top: 0;
 }
 
 .content {
@@ -105,9 +115,11 @@
   }
 
   .welcome {
-    overflow: hidden;
     flex: 1;
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
 
   .welcome h1 {
