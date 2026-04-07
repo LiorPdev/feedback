@@ -11,7 +11,7 @@ import { getPresignedUploadUrl } from "@/app/actions/upload";
 import { logAction } from "@/app/actions/logs";
 import { useRouter } from "next/navigation";
 import styles from "./get-feedback.module.css";
-import { GENRES, SONG_SUBMISSION_COST, MAX_FILE_SIZE, MAX_FILE_SIZE_MB } from "@/lib/constants";
+import { GENRES, SONG_SUBMISSION_COST, MAX_FILE_SIZE, MAX_FILE_SIZE_MB, MAX_SONG_TITLE_LENGTH } from "@/lib/constants";
 import AuthOverlay from "@/components/AuthOverlay";
 import BackButton from "@/components/BackButton";
 
@@ -67,7 +67,7 @@ export default function GetFeedback() {
       try {
         const result = await getURLMetadata(songLink) as { success: boolean, title?: string, resolvedUrl?: string };
         if (result.success && result.title) {
-          setSongTitle(result.title.substring(0, 35));
+          setSongTitle(result.title.substring(0, MAX_SONG_TITLE_LENGTH));
           setLastFetchedLink(songLink);
 
           // SoundCloud resolution: if we got a better URL, use it
@@ -294,7 +294,7 @@ export default function GetFeedback() {
                             className={styles.searchResultItem}
                             onClick={() => {
                               setSongLink(result.url);
-                              setSongTitle(result.title.substring(0, 35));
+                              setSongTitle(result.title.substring(0, MAX_SONG_TITLE_LENGTH));
                               setSearchResults([]);
                               setShowDropdown(false);
                             }}
@@ -341,7 +341,7 @@ export default function GetFeedback() {
                                 className={styles.swapBtn}
                                 onClick={() => {
                                   setSongLink(youtubeAlternative.url);
-                                  if (!songTitle) setSongTitle(youtubeAlternative.title.substring(0, 30));
+                                  if (!songTitle) setSongTitle(youtubeAlternative.title.substring(0, MAX_SONG_TITLE_LENGTH));
                                   setYoutubeAlternative(null);
                                 }}
                               >
@@ -414,9 +414,9 @@ export default function GetFeedback() {
               className={styles.input}
               placeholder="לדוגמא: איך שיר נולד"
               value={songTitle}
-              onChange={(e) => setSongTitle(e.target.value)}
+              onChange={(e) => setSongTitle(e.target.value.substring(0, MAX_SONG_TITLE_LENGTH))}
               required
-              maxLength={22}
+              maxLength={MAX_SONG_TITLE_LENGTH}
             />
             <p className={styles.tipText}>
               טיפ: פרטים אישיים כדאי לשים ב&apos;כרטיס הביקור המוזיקלי&apos; ולא בשם השיר

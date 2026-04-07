@@ -13,6 +13,8 @@ export const GENRES = [
   "אחר"
 ];
 
+export const MAX_SONG_TITLE_LENGTH = 30;
+
 export const INITIAL_TOKENS = 100;
 export const SONG_SUBMISSION_COST = 50;
 export const UNLOCK_FEEDBACK_COST = 30;

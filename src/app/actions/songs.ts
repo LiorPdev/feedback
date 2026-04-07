@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { currentUser, auth } from '@clerk/nextjs/server';
 import { eq, sql, and, notInArray, inArray, gt, aliasedTable } from 'drizzle-orm';
 import { users, songs, feedbacks, listenEvents } from '@/lib/schema';
-import { SONG_SUBMISSION_COST, REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH, TOP_RATED_MIN_RATINGS_THRESHOLD, TOP_RATED_NOTIFICATION_COOLDOWN_DAYS, WEIGHT_PRODUCTION, WEIGHT_SINGING, WEIGHT_OVERALL, TOP_RATED_DECAY_FACTOR } from '@/lib/constants';
+import { SONG_SUBMISSION_COST, REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH, TOP_RATED_MIN_RATINGS_THRESHOLD, TOP_RATED_NOTIFICATION_COOLDOWN_DAYS, WEIGHT_PRODUCTION, WEIGHT_SINGING, WEIGHT_OVERALL, TOP_RATED_DECAY_FACTOR, MAX_SONG_TITLE_LENGTH } from '@/lib/constants';
 import { sendFeedbackNotification, sendTopRatedNotification } from '@/lib/mail';
 import { logToDb } from "@/lib/logger";
 import { deleteFileFromR2 } from '@/app/actions/upload';
@@ -17,7 +17,7 @@ import { updateRaterScore } from '@/lib/rater-score';
 export async function createSong(formData: FormData) {
     // Extract and sanitize data from form
     const url = formData.get('url') as string;
-    const title = sanitizeInput(formData.get('title') as string);
+    const title = sanitizeInput(formData.get('title') as string).substring(0, MAX_SONG_TITLE_LENGTH);
     const genre = sanitizeInput(formData.get('genre') as string);
 
     // Strict URL validation: Only YouTube or internal R2 uploads
@@ -463,7 +463,7 @@ export async function updateSong(songId: string, data: { title: string, url: str
 
         await db.update(songs)
             .set({
-                title: sanitizeInput(data.title),
+                title: sanitizeInput(data.title).substring(0, MAX_SONG_TITLE_LENGTH),
                 url: data.url,
                 genre: sanitizeInput(data.genre)
             })

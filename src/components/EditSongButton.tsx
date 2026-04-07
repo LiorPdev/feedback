@@ -17,7 +17,7 @@ interface EditSongButtonProps {
   };
 }
 
-import { GENRES } from "@/lib/constants";
+import { GENRES, MAX_SONG_TITLE_LENGTH } from "@/lib/constants";
 
 export default function EditSongButton({ song }: EditSongButtonProps) {
   const [showModal, setShowModal] = useState(false);
@@ -121,10 +121,10 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
                   type="text"
                   className={styles.input}
                   value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+                  onChange={(e) => setTitle(e.target.value.substring(0, MAX_SONG_TITLE_LENGTH))}
                   required
                   placeholder="לדוגמה: השיר החדש שלי"
-                  maxLength={22}
+                  maxLength={MAX_SONG_TITLE_LENGTH}
                 />
               </div>
 
