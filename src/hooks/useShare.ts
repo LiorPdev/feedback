@@ -20,6 +20,11 @@ export function useShare() {
       try {
         await navigator.share({ title, text, url });
       } catch (err) {
+        // Silently return if the user cancelled the share (standard browser behavior)
+        if (err instanceof Error && err.name === 'AbortError') {
+          return;
+        }
+
         logAction({
           message: "Share API failed",
           data: { error: String(err) },

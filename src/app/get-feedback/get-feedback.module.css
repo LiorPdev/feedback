@@ -40,7 +40,6 @@
   z-index: 10;
 }
 
-
 .form {
   display: flex;
   flex-direction: column;
@@ -375,7 +374,6 @@
   }
 }
 
-
 .radioGroup {
   display: flex;
   gap: 2rem;
@@ -518,6 +516,10 @@
     padding: 1rem;
   }
 
+  .header h1 {
+    font-size: 1.8rem;
+  }
+
   .radioGroup {
     gap: 1rem;
   }
@@ -532,6 +534,16 @@
 }
 
 @media (max-width: 400px) {
+  .backButton {
+    top: -1.25rem;
+  }
+
+  .header h1 {
+    font-size: 1.6rem;
+  }
+}
+
+@media (max-width: 300px) {
   .backButton {
     display: none !important;
   }
