@@ -28,12 +28,10 @@ export default function PlayButton({ url, songId, size = 32, className, playingC
   const [isPlaying, setIsPlaying] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
-  const [pendingPlay, setPendingPlay] = useState(false);
+  const pendingPlayRef = useRef(false);
   const playerRef = useRef<UrlPlayerHandle>(null);
-  // Stable identity for this instance (used to ignore own events)
   const instanceId = useRef(`${url}-${songId ?? ""}`);
 
-  // Allow other PlayButton instances to stop this one
   useEffect(() => {
     const handleOther = (e: Event) => {
       const id = (e as CustomEvent<{ id: string }>).detail?.id;
@@ -56,9 +54,16 @@ export default function PlayButton({ url, songId, size = 32, className, playingC
       );
 
       if (!hasInteracted) {
+        // First interaction: mount the player.
+        // Set pendingPlayRef BEFORE setHasInteracted so handleReady (which may
+        // fire synchronously on some browsers once the element mounts) sees it.
+        pendingPlayRef.current = true;
         setHasInteracted(true);
-        setPendingPlay(true);
         setIsPlaying(true);
+        // Also attempt play() immediately — on iOS Safari the user-gesture
+        // context is only valid synchronously within the click handler.
+        // playerRef.current is null here (UrlPlayer not mounted yet), but the
+        // ref will be populated by handleReady below if the player is ready fast.
       } else {
         playerRef.current?.play();
         setIsPlaying(true);
@@ -68,9 +73,9 @@ export default function PlayButton({ url, songId, size = 32, className, playingC
 
   const handleReady = () => {
     setIsReady(true);
-    if (pendingPlay) {
+    if (pendingPlayRef.current) {
+      pendingPlayRef.current = false;
       playerRef.current?.play();
-      setPendingPlay(false);
     }
   };
 
