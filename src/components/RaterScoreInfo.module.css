@@ -8,9 +8,23 @@
   gap: 0.35rem;
 }
 
+.noScoreText {
+  font-weight: 600;
+  color: var(--text-muted);
+  opacity: 0.8;
+}
+
 .fbLabel {
   font-weight: 800;
-  margin-left: 0.2rem;
+  margin-left: 0.1rem;
+}
+
+.scoreValue {
+  margin-left: 0.1rem;
+}
+
+.badgeNudge {
+  margin-right: -2px;
 }
 
 .infoTriggerIcon {
@@ -25,6 +39,7 @@
   border-radius: 50%;
   transition: all 0.2s ease;
   opacity: 0.6;
+  transform: translateY(-1px);
 }
 
 .infoTriggerIcon:hover {

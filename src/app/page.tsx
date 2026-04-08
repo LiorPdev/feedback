@@ -3,6 +3,7 @@ import LandingClient from "@/components/LandingClient";
 import { auth } from "@clerk/nextjs/server";
 import { getUserSongCount } from "@/app/actions/songs";
 import { getUserData } from "@/app/actions/user";
+import { getMyGivenFeedbacksCount } from "@/app/actions/feedback";
 
 export const metadata: Metadata = {
   title: "פידבק-ספייס | קהילה לקבלת פידבקים",
@@ -42,11 +43,13 @@ export default async function Home() {
   const { userId } = await auth();
   let initialHasSongs = false;
   let initialGenre = "";
+  let initialHasFeedbacksGiven = false;
 
   if (userId) {
-    const [songResult, userResult] = await Promise.all([
+    const [songResult, userResult, feedbackCount] = await Promise.all([
       getUserSongCount(userId),
-      getUserData(userId)
+      getUserData(userId),
+      getMyGivenFeedbacksCount(),
     ]);
     
     if (songResult.success && songResult.count > 0) {
@@ -55,7 +58,16 @@ export default async function Home() {
     if (userResult.success && userResult.userGenre) {
       initialGenre = userResult.userGenre;
     }
+    if (feedbackCount > 0) {
+      initialHasFeedbacksGiven = true;
+    }
   }
 
-  return <LandingClient initialHasSongs={initialHasSongs} initialGenre={initialGenre} />;
+  return (
+    <LandingClient 
+      initialHasSongs={initialHasSongs} 
+      initialGenre={initialGenre} 
+      initialHasFeedbacksGiven={initialHasFeedbacksGiven}
+    />
+  );
 }

@@ -132,15 +132,16 @@ export default function FeedbackTabs({
                       <div className={styles.fbAuthorInfo}>
                         {genres.length > 0 && (
                           <div className={styles.fbRaterGenre}>
-                            <strong className={styles.fbLabel}>סגנון מאזין:</strong>{" "}
+                            <strong className={styles.fbLabel}>סגנון המדרג:</strong>{" "}
                             <span className={styles.genreList}>
                               {genres.join(", ")}
                             </span>
                           </div>
                         )}
-                        <RaterScoreInfo 
-                          score={fb.authorRaterScore} 
-                          className={styles.fbRaterScore} 
+                        <RaterScoreInfo
+                          score={fb.authorRaterScore}
+                          variant="plain"
+                          className={styles.fbRaterScore}
                         />
                       </div>
 

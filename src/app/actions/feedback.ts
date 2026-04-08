@@ -8,6 +8,69 @@ import { revalidatePath } from "next/cache";
 import { logAction } from "./logs";
 import { UNLOCK_FEEDBACK_COST, FREE_FEEDBACKS_FOR_ARTIST } from "@/lib/constants";
 
+export async function getMyGivenFeedbacksCount(): Promise<number> {
+  try {
+    const clerkUser = await currentUser();
+    if (!clerkUser) return 0;
+
+    const db = await getDb();
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(feedbacks)
+      .where(eq(feedbacks.authorId, clerkUser.id));
+
+    return result[0]?.count ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
+export interface GivenFeedbackItem {
+  id: string;
+  songId: string;
+  songTitle: string;
+  songSlug: string;
+  songUrl: string;
+  cat2: number;
+  cat3: number;
+  overall: number;
+  comment: string;
+  playedSeconds: number | null;
+  createdAt: string;
+}
+
+export async function getMyGivenFeedbacks(): Promise<GivenFeedbackItem[]> {
+  try {
+    const clerkUser = await currentUser();
+    if (!clerkUser) return [];
+
+    const db = await getDb();
+
+    const rows = await db.query.feedbacks.findMany({
+      where: (f, { eq }) => eq(f.authorId, clerkUser.id),
+      with: { song: { columns: { title: true, slug: true, url: true } } },
+      orderBy: (f, { desc }) => [desc(f.createdAt)],
+    });
+
+    return rows.map((row) => ({
+      id: row.id,
+      songId: row.songId,
+      songTitle: row.song.title,
+      songSlug: row.song.slug,
+      songUrl: row.song.url,
+      cat2: row.cat2,
+      cat3: row.cat3,
+      overall: row.overall,
+      comment: row.comment,
+      playedSeconds: row.playedSeconds,
+      createdAt: row.createdAt,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+
 export async function unlockFeedback(feedbackId: string) {
   try {
     const clerkUser = await currentUser();

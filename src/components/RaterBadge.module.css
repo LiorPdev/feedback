@@ -1,0 +1,28 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.75rem;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  user-select: none;
+  color: #9a3412;
+}
+
+.badgePlain {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: inherit;
+}
+
+.icon {
+  flex-shrink: 0;
+}
+
+.label {
+  line-height: normal;
+}

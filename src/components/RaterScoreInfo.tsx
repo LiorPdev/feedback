@@ -3,28 +3,33 @@
 import { useState, useRef } from "react";
 import { HelpCircle } from "lucide-react";
 import InfoTooltip from "./InfoTooltip";
+import RaterBadge from "./RaterBadge";
 import styles from "./RaterScoreInfo.module.css";
 
 interface RaterScoreInfoProps {
   score: number | null | undefined;
   label?: string;
+  variant?: "default" | "plain";
   className?: string;
 }
 
 export default function RaterScoreInfo({
   score,
   label = "איכות המדרג",
+  variant = "default",
   className = ""
 }: RaterScoreInfoProps) {
   const [showInfo, setShowInfo] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
-  // Format score: show "אין דירוג" if 0 or undefined, otherwise show X.X/5
-  const displayScore = (score && score > 0) ? score.toFixed(1) : "אין דירוג";
-
   return (
     <span className={`${styles.fbRaterScore} ${className}`}>
-      <strong className={styles.fbLabel}>{label}:</strong> {displayScore}
+      <strong className={styles.fbLabel}>{label}:</strong>
+      {score && score > 0 ? (
+        <RaterBadge score={score} variant={variant} className={styles.badgeNudge} />
+      ) : (
+        <span className={styles.noScoreText}>אין דירוג</span>
+      )}
       <button
         ref={triggerRef}
         className={styles.infoTriggerIcon}

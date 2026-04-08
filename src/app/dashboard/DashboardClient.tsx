@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { BarChart3, Music } from "lucide-react";
+import { BarChart3, MessageSquare, Music } from "lucide-react";
 import SongCard from "@/components/SongCard";
 import SongRatingsChart from "./SongRatingsChart";
+import PlayButton from "@/components/PlayButton";
 import styles from "./DashboardClient.module.css";
+import type { GivenFeedbackItem } from "@/app/actions/feedback";
 
 interface DashboardSong {
   id: string;
@@ -26,10 +28,29 @@ interface DashboardClientProps {
   newSlug?: string;
   globalAverage?: number;
   minThreshold?: number;
+  givenFeedbacks?: GivenFeedbackItem[];
 }
 
-export default function DashboardClient({ songs, newSlug, globalAverage = 0, minThreshold = 3 }: DashboardClientProps) {
-  const [activeTab, setActiveTab] = useState<"songs" | "insights">("songs");
+function formatSeconds(seconds: number | null | undefined) {
+  if (!seconds || isNaN(seconds) || seconds <= 0) return null;
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  if (m === 0) return `${s} שנ'`;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+export default function DashboardClient({
+  songs,
+  newSlug,
+  globalAverage = 0,
+  minThreshold = 3,
+  givenFeedbacks = [],
+}: DashboardClientProps) {
+  const onlyFeedbacksGiven = songs.length === 0 && givenFeedbacks.length > 0;
+
+  const [activeTab, setActiveTab] = useState<"songs" | "insights" | "myFeedbacks">(
+    onlyFeedbacksGiven ? "myFeedbacks" : "songs"
+  );
   const [chartType, setChartType] = useState<"general" | "categories" | "retention" | "trueRating">("trueRating");
 
   // Check if any song has feedbacks or listen events
@@ -42,35 +63,52 @@ export default function DashboardClient({ songs, newSlug, globalAverage = 0, min
     <div className={styles.container}>
       <div className={styles.tabsContainer}>
         <div className={styles.tabs}>
-          <button
-            className={`${styles.tab} ${activeTab === "songs" ? styles.activeTab : ""}`}
-            onClick={() => setActiveTab("songs")}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Music size={18} />
-              <span>השירים ששלחתי</span>
-            </div>
-          </button>
-          <button
-            className={`${styles.tab} ${activeTab === "insights" ? styles.activeTab : ""}`}
-            onClick={() => setActiveTab("insights")}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <BarChart3 size={18} />
-              <span>תובנות</span>
-            </div>
-          </button>
+          {!onlyFeedbacksGiven && (
+            <>
+              <button
+                className={`${styles.tab} ${activeTab === "songs" ? styles.activeTab : ""}`}
+                onClick={() => setActiveTab("songs")}
+              >
+                <div className={styles.tabLabel}>
+                  <Music size={18} />
+                  <span>השירים שלי</span>
+                </div>
+              </button>
+              <button
+                className={`${styles.tab} ${activeTab === "insights" ? styles.activeTab : ""}`}
+                onClick={() => setActiveTab("insights")}
+              >
+                <div className={styles.tabLabel}>
+                  <BarChart3 size={18} />
+                  <span>תובנות</span>
+                </div>
+              </button>
+            </>
+          )}
+
+          {/* "הפידבק שנתתי" tab — always shown if onlyFeedbacksGiven, otherwise shown alongside songs tabs */}
+          {(onlyFeedbacksGiven || givenFeedbacks.length > 0) && (
+            <button
+              className={`${styles.tab} ${activeTab === "myFeedbacks" ? styles.activeTab : ""}`}
+              onClick={() => setActiveTab("myFeedbacks")}
+            >
+              <div className={styles.tabLabel}>
+                <MessageSquare size={18} />
+                <span>הפידבק שנתתי</span>
+              </div>
+            </button>
+          )}
         </div>
 
         <div className={`${styles.headerAction} ${styles.hideOnMobile}`}>
           <Link href="/get-feedback" className={styles.submitNewBtn}>
-            <span className={styles.btnText}>שליחת שיר נוסף</span>
+            <span className={styles.btnText}>שליחת שיר</span>
           </Link>
         </div>
       </div>
 
       <div className={styles.tabContent}>
-        {activeTab === "songs" ? (
+        {activeTab === "songs" && (
           <div className={styles.songsSection}>
             <div className={styles.songGrid}>
               {songs.map((song) => (
@@ -78,7 +116,9 @@ export default function DashboardClient({ songs, newSlug, globalAverage = 0, min
               ))}
             </div>
           </div>
-        ) : (
+        )}
+
+        {activeTab === "insights" && (
           <div className={styles.insightsSection}>
             <select
               className={styles.chartSelector}
@@ -109,11 +149,78 @@ export default function DashboardClient({ songs, newSlug, globalAverage = 0, min
                 <h3>התובנות שלך בדרך!</h3>
                 <p>כאן תוכל לראות ניתוח עומק של חוויית המאזינים בכל השירים שלך.</p>
                 <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center', gap: '1rem', opacity: 0.5 }}>
-                  {/* Visual placeholders */}
                   <div style={{ width: '100px', height: '100px', borderRadius: '12px', background: 'rgba(0,0,0,0.05)' }} />
                   <div style={{ width: '100px', height: '100px', borderRadius: '12px', background: 'rgba(0,0,0,0.05)' }} />
                   <div style={{ width: '100px', height: '100px', borderRadius: '12px', background: 'rgba(0,0,0,0.05)' }} />
                 </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === "myFeedbacks" && (
+          <div className={styles.myFeedbacksSection}>
+            {givenFeedbacks.length > 0 ? (
+              <div className={styles.myFeedbacksList}>
+                {givenFeedbacks.map((fb) => (
+                  <div key={fb.id} className={styles.myFeedbackItem}>
+                    {/* Header: PlayButton + Song title + Date */}
+                    <div className={styles.myFbHeader}>
+                      <div className={styles.myFbTitleRow}>
+                        <PlayButton
+                          url={fb.songUrl}
+                          songId={fb.songId}
+                          size={26}
+                        />
+                        <span className={styles.myFbSongTitle}>{fb.songTitle}</span>
+                      </div>
+                      <span className={styles.myFbDate}>
+                        {new Date(fb.createdAt).toLocaleDateString("he-IL")}
+                      </span>
+                    </div>
+
+
+
+                    {/* Playtime + Ratings + Comment */}
+                    <div className={styles.myFbBody}>
+                      {fb.playedSeconds && fb.playedSeconds > 0 && (
+                        <div className={styles.myFbPlaytime}>
+                          <strong className={styles.myFbLabel}>זמן השמעה:</strong>{" "}
+                          {formatSeconds(fb.playedSeconds)}
+                        </div>
+                      )}
+
+                      {/* Ratings row */}
+                      {(fb.cat2 > 0 || fb.cat3 > 0 || fb.overall > 0) && (
+                        <div className={styles.myFbRatingsRow}>
+                          <strong className={styles.myFbRatingLabel}>דירוג:</strong>
+                          <span><strong className={styles.myFbLabel}>הפקה:</strong>{" "}{fb.cat2}</span>
+                          <span><strong className={styles.myFbLabel}>שירה:</strong>{" "}{fb.cat3}</span>
+                          <span className={styles.myFbOverallBadge}>
+                            <strong className={styles.myFbLabel}>כללי:</strong>{" "}{fb.overall}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Comment */}
+                      {fb.comment && fb.comment.trim().length > 0 && (
+                        <p className={styles.myFbComment}>
+                          {fb.comment.split(/(\*\*.*?\*\*)/g).map((part, i) =>
+                            part.startsWith('**') && part.endsWith('**')
+                              ? <strong key={i}>{part.slice(2, -2)}</strong>
+                              : part
+                          )}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className={styles.insightsContainer}>
+                <MessageSquare size={48} style={{ marginBottom: '1.5rem', opacity: 0.3 }} />
+                <h3>עדיין לא נתת פידבקים</h3>
+                <p>לאחר שתיתן פידבקים לשירים של יוצרים אחרים, הם יופיעו כאן.</p>
               </div>
             )}
           </div>

@@ -8,6 +8,8 @@ import { TOP_RATED_MIN_RATINGS_THRESHOLD } from "@/lib/constants";
 import { getDb } from "@/lib/db";
 import { feedbacks } from "@/lib/schema";
 import DashboardClient from "./DashboardClient";
+import { getMyGivenFeedbacks } from "@/app/actions/feedback";
+import type { GivenFeedbackItem } from "@/app/actions/feedback";
 import RaterScoreInfo from "@/components/RaterScoreInfo";
 import styles from "./dashboard.module.css";
 
@@ -54,14 +56,16 @@ export default async function DashboardPage({
       <div className={styles.container}>
         <div className={styles.dbError}>
           <h2>אופס, משהו השתבש</h2>
-          <p>נתקלנו בבעיה בטעינת הנתונים שלך. השגיאה דווחה למערכת ואנו נטפל בה מייד.</p>
+          <p>נתקלנו בבעיה בטעינת הנתונים שלך. השגיאה דווחה ואנו נטפל בה מייד.</p>
           <Link href="/" className={styles.emptyBtn}>חזרה לדף הבית</Link>
         </div>
       </div>
     );
   }
 
-  if (!user || user.songs.length === 0) {
+  const givenFeedbacks: GivenFeedbackItem[] = await getMyGivenFeedbacks();
+
+  if (!user || (user.songs.length === 0 && givenFeedbacks.length === 0)) {
     redirect("/get-feedback");
   }
 
@@ -76,13 +80,13 @@ export default async function DashboardPage({
       <div className={styles.header}>
         <div className={styles.welcomeContainer}>
           <BackButton
-            style={{ transform: 'translateY(-3px)' }}
+            style={{ transform: 'translateY(-13px)' }}
           />
           <div className={styles.welcome}>
             <h1><span className={styles.welcomeText}>שלום </span>{user.name ? user.name.split(" ")[0] : ""}</h1>
-            <RaterScoreInfo 
-              score={user.raterScore} 
-              label="הדירוג שלי" 
+            <RaterScoreInfo
+              score={user.raterScore}
+              label="הדירוג שלי"
               className={styles.raterScoreDashboard}
             />
           </div>
@@ -94,10 +98,11 @@ export default async function DashboardPage({
 
       <div className={styles.content}>
         <DashboardClient
-          songs={user.songs}
+          songs={user?.songs ?? []}
           newSlug={newSlug}
           globalAverage={globalAverage}
           minThreshold={TOP_RATED_MIN_RATINGS_THRESHOLD}
+          givenFeedbacks={givenFeedbacks}
         />
       </div>
     </div>

@@ -7,6 +7,7 @@ import { CheckCircle } from "lucide-react";
 import styles from "@/app/landing.module.css";
 import { useState, useEffect } from "react";
 import { getUserSongCount } from "@/app/actions/songs";
+import { getMyGivenFeedbacksCount } from "@/app/actions/feedback";
 import Footer from "./Footer";
 import AuthOverlay from "./AuthOverlay";
 import HeroGallery from "./HeroGallery";
@@ -31,13 +32,16 @@ const staggerContainer = {
 
 export default function LandingClient({
   initialHasSongs = false,
-  initialGenre = ""
+  initialGenre = "",
+  initialHasFeedbacksGiven = false
 }: {
   initialHasSongs?: boolean,
-  initialGenre?: string
+  initialGenre?: string,
+  initialHasFeedbacksGiven?: boolean
 }) {
   const { user, isLoaded } = useUser();
   const [hasSongs, setHasSongs] = useState(initialHasSongs);
+  const [hasFeedbacksGiven, setHasFeedbacksGiven] = useState(initialHasFeedbacksGiven);
   const [userGenre, setUserGenre] = useState(initialGenre);
   const [authOverlay, setAuthOverlay] = useState<{ isOpen: boolean; message: React.ReactNode; redirectUrl?: string }>({
     isOpen: false,
@@ -47,13 +51,16 @@ export default function LandingClient({
   useEffect(() => {
     async function checkUserData() {
       if (isLoaded && user) {
-        const [songResult, userResult] = await Promise.all([
+        const [songResult, userResult, feedbackCount] = await Promise.all([
           getUserSongCount(user.id),
           (async () => {
             const { getUserData } = await import("@/app/actions/user");
             return getUserData(user.id);
-          })()
+          })(),
+          getMyGivenFeedbacksCount(),
         ]);
+
+        setHasFeedbacksGiven(feedbackCount > 0);
 
         if (songResult.success && songResult.count > 0) {
           setHasSongs(true);
@@ -138,10 +145,10 @@ export default function LandingClient({
               </SignedOut>
               <SignedIn>
                 <Link
-                  href={hasSongs ? "/dashboard" : "/get-feedback"}
+                  href={(hasSongs || hasFeedbacksGiven) ? "/dashboard" : "/get-feedback"}
                   className={styles.btnPrimary}
                 >
-                  {hasSongs ? "האיזור האישי שלי" : "אני רוצה לקבל פידבק"}
+                  {(hasSongs || hasFeedbacksGiven) ? "האיזור האישי שלי" : "אני רוצה לקבל פידבק"}
                 </Link>
                 {userGenre ? (
                   <Link

@@ -1,8 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { Play, Pause, Loader2 } from "lucide-react";
-import UrlPlayer, { UrlPlayerHandle } from "@/components/UrlPlayer";
+import PlayButton from "@/components/PlayButton";
 import styles from "./top-rated.module.css";
 
 interface TopRatedPlayerProps {
@@ -11,79 +9,14 @@ interface TopRatedPlayerProps {
 }
 
 export default function TopRatedPlayer({ url, songId }: TopRatedPlayerProps) {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isReady, setIsReady] = useState(false);
-  const playerRef = useRef<UrlPlayerHandle>(null);
-
-  useEffect(() => {
-    let mounted = true;
-    const timer = setTimeout(() => {
-      if (mounted) {
-        setIsReady(true);
-      }
-    }, 800);
-
-    
-    return () => {
-      mounted = false;
-      clearTimeout(timer);
-    };
-  }, [url]);
-
-  useEffect(() => {
-    const handleOtherPlay = (e: Event) => {
-      const customEvent = e as CustomEvent;
-      if (customEvent.detail?.id !== url) {
-        playerRef.current?.pause();
-        setIsPlaying(false);
-      }
-    };
-
-    window.addEventListener("top-rated-play", handleOtherPlay);
-    return () => window.removeEventListener("top-rated-play", handleOtherPlay);
-  }, [url]);
-
-  const togglePlay = () => {
-    if (isPlaying) {
-      playerRef.current?.pause();
-      setIsPlaying(false);
-    } else {
-      // Dispatch immediately to stop other players without delay
-      window.dispatchEvent(new CustomEvent("top-rated-play", { detail: { id: url } }));
-      playerRef.current?.play();
-      setIsPlaying(true);
-    }
-  };
-
   return (
     <div className={styles.playerContainer}>
-      <button 
-        className={`${styles.playButton} ${isPlaying ? styles.isPlaying : ""}`} 
-        onClick={togglePlay}
-        title={isPlaying ? "הפסקה" : "השמעה"}
-      >
-        {!isReady ? (
-          <Loader2 size={18} className={styles.spinningIcon} />
-        ) : isPlaying ? (
-          <Pause size={18} fill="currentColor" />
-        ) : (
-          <Play size={18} fill="currentColor" style={{ marginLeft: '1px' }} />
-        )}
-      </button>
-
-      <UrlPlayer 
-        ref={playerRef}
+      <PlayButton
         url={url}
         songId={songId}
-        onReady={() => setIsReady(true)}
-        onPlay={() => {
-          setIsPlaying(true);
-          window.dispatchEvent(new CustomEvent("top-rated-play", { detail: { id: url } }));
-        }}
-        onPause={() => setIsPlaying(false)}
-        onEnded={() => setIsPlaying(false)}
-        onError={() => setIsReady(true)}
-        isHidden={true}
+        size={36}
+        className={styles.playButton}
+        playingClassName={styles.isPlaying}
       />
     </div>
   );

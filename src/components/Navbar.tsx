@@ -14,7 +14,6 @@ import UserPreferencesModal from "./UserPreferencesModal";
 import CreditTransferModal from "./CreditTransferModal";
 import styles from "./Navbar.module.css";
 import AnimatedTokenCounter from "./AnimatedTokenCounter";
-import { getCookie, setCookie } from "@/lib/cookieUtils";
 import { GiPodium } from "react-icons/gi";
 import CopyToast from "./CopyToast";
 import { useShare } from "@/hooks/useShare";
@@ -116,15 +115,18 @@ export default function Navbar() {
     }
   }, [glowMode]);
 
-  useEffect(() => {
-    if (user && pathname.startsWith("/give-feedback")) {
-      const isExplained = getCookie("fbCreditExplained");
-      if (!isExplained) {
-        setTimeout(() => setShowTokensInfo(true), 0);
-        setCookie("fbCreditExplained", "true", 365);
-      }
-    }
-  }, [pathname, user]);
+  //
+  // Automatic tokens info display feature is currently disabled for new users
+  //
+  // useEffect(() => {
+  //   if (user && pathname.startsWith("/give-feedback")) {
+  //     const isExplained = getCookie("fbCreditExplained");
+  //     if (!isExplained) {
+  //       setTimeout(() => setShowTokensInfo(true), 0);
+  //       setCookie("fbCreditExplained", "true", 365);
+  //     }
+  //   }
+  // }, [pathname, user]);
 
   const handleShare = () => {
     share({
