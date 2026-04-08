@@ -30,7 +30,22 @@ export default function HeroGallery() {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.98 }}
           transition={{ duration: 0.5, ease: "easeInOut" }}
+          drag="x"
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.2}
+          onDragEnd={(_, info) => {
+            const threshold = 50;
+            if (info.offset.x < -threshold) {
+              // Swiped Left -> Previous
+              setCurrentIndex((prev) => (prev - 1 + IMAGES.length) % IMAGES.length);
+            } else if (info.offset.x > threshold) {
+              // Swiped Right -> Next
+              setCurrentIndex((prev) => (prev + 1) % IMAGES.length);
+            }
+          }}
+          whileTap={{ cursor: "grabbing" }}
           className={styles.mockupImageWrapper}
+          style={{ cursor: "grab" }}
         >
           <Image
             src={IMAGES[currentIndex]}

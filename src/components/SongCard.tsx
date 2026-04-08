@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React from "react";
 import Link from "next/link";
 import DeleteSongButton from "@/components/DeleteSongButton";
 import EditSongButton from "@/components/EditSongButton";
@@ -25,41 +25,26 @@ interface SongCardProps {
 }
 
 export default function SongCard({ song, isNew: propIsNew }: SongCardProps) {
-  const [isHighlighted, setIsHighlighted] = useState(propIsNew || false);
-
-  useEffect(() => {
-    if (propIsNew) {
-      const timer = setTimeout(() => {
-        setIsHighlighted(false);
-        // Clear the new slug from URL without refresh
-        if (typeof window !== 'undefined') {
-          window.history.replaceState({}, '', window.location.pathname);
-        }
-      }, 7000);
-      return () => clearTimeout(timer);
-    }
-  }, [propIsNew]);
-
   return (
-    <div className={`${styles.songCard} ${isHighlighted ? styles.newSongHighlight : ""} ${!song.isActive ? styles.paused : ""}`}>
-      <div className={styles.songMain}>
-        <div className={styles.songHeader}>
-          <h3 className={styles.songTitle}>{song.title}</h3>
-        </div>
-        <div className={styles.songDate}>
+    <div className={`${styles.songCard} ${!song.isActive ? styles.paused : ""}`}>
+      <div className={styles.songHeader}>
+        <h3 className={styles.songTitle}>{song.title}</h3>
+        <span className={styles.songDate}>
           {new Date(song.createdAt).toLocaleDateString("he-IL")}
-        </div>
+        </span>
       </div>
 
-      <div className={styles.songActions}>
-        <Link href={`/show-feedback/${song.slug}`} className={styles.viewLink}>
-          פידבקים ({song.feedbacks?.length || 0})
-        </Link>
-        <div className={styles.adminActions}>
-          <ShareSongButton slug={song.slug} isNew={propIsNew} disabled={!song.isActive} />
-          <EditSongButton song={song} />
-          <ToggleSongStatusButton songId={song.id} isActive={song.isActive} />
-          <DeleteSongButton songId={song.id} songTitle={song.title} />
+      <div className={styles.songBody}>
+        <div className={styles.songActions}>
+          <Link href={`/show-feedback/${song.slug}`} className={styles.viewLink}>
+            פידבקים ({song.feedbacks?.length || 0})
+          </Link>
+          <div className={styles.adminActions}>
+            <ShareSongButton slug={song.slug} isNew={propIsNew} disabled={!song.isActive} />
+            <EditSongButton song={song} />
+            <ToggleSongStatusButton songId={song.id} isActive={song.isActive} />
+            <DeleteSongButton songId={song.id} songTitle={song.title} />
+          </div>
         </div>
       </div>
     </div>

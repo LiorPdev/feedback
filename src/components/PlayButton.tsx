@@ -27,6 +27,8 @@ interface PlayButtonProps {
 export default function PlayButton({ url, songId, size = 32, className, playingClassName }: PlayButtonProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isReady, setIsReady] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false);
+  const [pendingPlay, setPendingPlay] = useState(false);
   const playerRef = useRef<UrlPlayerHandle>(null);
   // Stable identity for this instance (used to ignore own events)
   const instanceId = useRef(`${url}-${songId ?? ""}`);
@@ -52,8 +54,23 @@ export default function PlayButton({ url, songId, size = 32, className, playingC
       window.dispatchEvent(
         new CustomEvent(PLAY_EVENT, { detail: { id: instanceId.current } })
       );
+
+      if (!hasInteracted) {
+        setHasInteracted(true);
+        setPendingPlay(true);
+        setIsPlaying(true);
+      } else {
+        playerRef.current?.play();
+        setIsPlaying(true);
+      }
+    }
+  };
+
+  const handleReady = () => {
+    setIsReady(true);
+    if (pendingPlay) {
       playerRef.current?.play();
-      setIsPlaying(true);
+      setPendingPlay(false);
     }
   };
 
@@ -67,8 +84,9 @@ export default function PlayButton({ url, songId, size = 32, className, playingC
         onClick={togglePlay}
         title={isPlaying ? "עצור" : "נגן"}
         aria-label={isPlaying ? "עצור" : "נגן"}
+        type="button"
       >
-        {!isReady ? (
+        {isPlaying && !isReady ? (
           <Loader2 size={iconSize} className={styles.spin} />
         ) : isPlaying ? (
           <Pause size={iconSize} fill="currentColor" />
@@ -77,23 +95,25 @@ export default function PlayButton({ url, songId, size = 32, className, playingC
         )}
       </button>
 
-      {/* Hidden player — handles actual audio/video playback */}
-      <UrlPlayer
-        ref={playerRef}
-        url={url}
-        songId={songId}
-        isHidden
-        onReady={() => setIsReady(true)}
-        onError={() => setIsReady(true)}
-        onPlay={() => {
-          setIsPlaying(true);
-          window.dispatchEvent(
-            new CustomEvent(PLAY_EVENT, { detail: { id: instanceId.current } })
-          );
-        }}
-        onPause={() => setIsPlaying(false)}
-        onEnded={() => setIsPlaying(false)}
-      />
+      {/* Hidden player — only renders after first interaction to save resources */}
+      {hasInteracted && (
+        <UrlPlayer
+          ref={playerRef}
+          url={url}
+          songId={songId}
+          isHidden
+          onReady={handleReady}
+          onError={() => setIsReady(true)}
+          onPlay={() => {
+            setIsPlaying(true);
+            window.dispatchEvent(
+              new CustomEvent(PLAY_EVENT, { detail: { id: instanceId.current } })
+            );
+          }}
+          onPause={() => setIsPlaying(false)}
+          onEnded={() => setIsPlaying(false)}
+        />
+      )}
     </div>
   );
 }

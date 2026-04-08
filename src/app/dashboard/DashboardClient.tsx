@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import Link from "next/link";
 import { BarChart3, MessageSquare, Music } from "lucide-react";
 import SongCard from "@/components/SongCard";
@@ -46,12 +47,43 @@ export default function DashboardClient({
   minThreshold = 3,
   givenFeedbacks = [],
 }: DashboardClientProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
   const onlyFeedbacksGiven = songs.length === 0 && givenFeedbacks.length > 0;
 
-  const [activeTab, setActiveTab] = useState<"songs" | "insights" | "myFeedbacks">(
-    onlyFeedbacksGiven ? "myFeedbacks" : "songs"
-  );
+  // Derive active tab from URL param 'tab', fallback to logic-based default
+  const urlTab = searchParams.get('tab') as "songs" | "insights" | "myFeedbacks" | null;
+  const activeTab = urlTab || (onlyFeedbacksGiven ? "myFeedbacks" : "songs");
+
   const [chartType, setChartType] = useState<"general" | "categories" | "retention" | "trueRating">("trueRating");
+  const [activeNewSlug, setActiveNewSlug] = useState<string | undefined>(newSlug);
+
+  const handleTabChange = (tab: "songs" | "insights" | "myFeedbacks") => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tab', tab);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  useEffect(() => {
+    if (newSlug) {
+      // Clear URL query parameters via Next.js router
+      const params = new URLSearchParams(searchParams.toString());
+      if (params.has('new')) {
+        params.delete('new');
+        router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+      }
+
+      // Clear the "new" highlight state after 10 seconds to ensure
+      // it doesn't re-trigger on tab switches later.
+      const timer = setTimeout(() => {
+        setActiveNewSlug(undefined);
+      }, 10000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [newSlug, pathname, router, searchParams]);
 
   // Check if any song has feedbacks or listen events
   const hasAnyData = songs.some(
@@ -66,8 +98,9 @@ export default function DashboardClient({
           {!onlyFeedbacksGiven && (
             <>
               <button
+                type="button"
                 className={`${styles.tab} ${activeTab === "songs" ? styles.activeTab : ""}`}
-                onClick={() => setActiveTab("songs")}
+                onClick={() => handleTabChange("songs")}
               >
                 <div className={styles.tabLabel}>
                   <Music size={18} />
@@ -75,8 +108,9 @@ export default function DashboardClient({
                 </div>
               </button>
               <button
+                type="button"
                 className={`${styles.tab} ${activeTab === "insights" ? styles.activeTab : ""}`}
-                onClick={() => setActiveTab("insights")}
+                onClick={() => handleTabChange("insights")}
               >
                 <div className={styles.tabLabel}>
                   <BarChart3 size={18} />
@@ -89,8 +123,9 @@ export default function DashboardClient({
           {/* "הפידבק שנתתי" tab — always shown if onlyFeedbacksGiven, otherwise shown alongside songs tabs */}
           {(onlyFeedbacksGiven || givenFeedbacks.length > 0) && (
             <button
+              type="button"
               className={`${styles.tab} ${activeTab === "myFeedbacks" ? styles.activeTab : ""}`}
-              onClick={() => setActiveTab("myFeedbacks")}
+              onClick={() => handleTabChange("myFeedbacks")}
             >
               <div className={styles.tabLabel}>
                 <MessageSquare size={18} />
@@ -112,7 +147,7 @@ export default function DashboardClient({
           <div className={styles.songsSection}>
             <div className={styles.songGrid}>
               {songs.map((song) => (
-                <SongCard key={song.id} song={song} isNew={song.slug === newSlug} />
+                <SongCard key={song.id} song={song} isNew={song.slug === activeNewSlug} />
               ))}
             </div>
           </div>

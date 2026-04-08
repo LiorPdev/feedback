@@ -2,6 +2,7 @@ import {
   Star,
   Trophy,
   Crown,
+  Meh,
   type LucideIcon
 } from "lucide-react";
 import styles from "./RaterBadge.module.css";
@@ -13,8 +14,9 @@ interface Tier {
 
 const TIERS: Tier[] = [
   { min: 4.0, icon: Crown },
-  { min: 2.5, icon: Trophy },
-  { min: 0, icon: Star },
+  { min: 3.0, icon: Trophy },
+  { min: 2.0, icon: Star },
+  { min: 0, icon: Meh },
 ];
 
 interface RaterBadgeProps {

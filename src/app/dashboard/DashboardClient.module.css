@@ -213,7 +213,7 @@
   justify-content: space-between;
   gap: 1rem;
   padding: 0.85rem 1.25rem;
-  background: color-mix(in srgb, var(--brand-primary), transparent 93%);
+  background: color-mix(in srgb, var(--brand-primary), transparent 91%);
   border-bottom: 1px solid rgba(0, 0, 0, 0.07);
 }
 

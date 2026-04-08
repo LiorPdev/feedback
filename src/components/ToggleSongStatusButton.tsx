@@ -40,7 +40,7 @@ export default function ToggleSongStatusButton({ songId, isActive: initialIsActi
     }
   };
 
-  const title = isActive ? "עצור את קבלת הפידבקים" : "הפעל מחדש את קבלת הפידבקים";
+  const title = isActive ? "השהה את קבלת הפידבקים" : "הפעל מחדש את קבלת הפידבקים";
 
   return (
     <div className={styles.toggleBtnContainer}>
