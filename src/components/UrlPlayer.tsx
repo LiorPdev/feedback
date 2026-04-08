@@ -91,7 +91,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
   const startTimeRef = useRef<number>(0);
   const currentTimeRef = useRef<number>(0);
   const isPlayingRef = useRef<boolean>(false);
-
+  const ytPendingPlayRef = useRef<boolean>(false);
 
   useEffect(() => {
     onPlayRef.current = onPlay;
@@ -168,8 +168,14 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
     },
     play: () => {
       try {
-        if (isYouTube && playerRef.current?.playVideo) {
-          playerRef.current.playVideo();
+        if (isYouTube) {
+          if (playerRef.current?.playVideo) {
+            // YT.Player is ready — play immediately
+            playerRef.current.playVideo();
+          } else {
+            // YT.Player not initialised yet (API still loading).
+            ytPendingPlayRef.current = true;
+          }
         } else if (isAudio && audioRef.current) {
           const playPromise = audioRef.current.play();
           if (playPromise !== undefined) {
@@ -255,6 +261,11 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
               },
               onReady: () => {
                 guard(onReadyRef.current)();
+                // If play() was called before the YT player was ready, execute it now
+                if (ytPendingPlayRef.current) {
+                  ytPendingPlayRef.current = false;
+                  try { playerRef.current?.playVideo(); } catch { /* ignore */ }
+                }
               },
             },
           });
@@ -345,6 +356,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
         <audio
           ref={audioRef}
           src={url}
+          preload="none"
           onPlay={() => {
             handlePlayStart();
             guard(onPlayRef.current)();
