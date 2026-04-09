@@ -133,7 +133,7 @@ export default function LandingClient({
             </SignedOut>
             <motion.div className={styles.heroButtons} variants={fadeInUp}>
               <SignedOut>
-                <Link href="/get-feedback" className={styles.btnPrimary}>
+                <Link href="/get-feedback?hideBack=true" className={styles.btnPrimary}>
                   אני רוצה לקבל פידבק
                 </Link>
                 <Link
@@ -145,7 +145,7 @@ export default function LandingClient({
               </SignedOut>
               <SignedIn>
                 <Link
-                  href={(hasSongs || hasFeedbacksGiven) ? "/dashboard" : "/get-feedback"}
+                  href={(hasSongs || hasFeedbacksGiven) ? "/dashboard" : "/get-feedback?hideBack=true"}
                   className={styles.btnPrimary}
                 >
                   {(hasSongs || hasFeedbacksGiven) ? "האיזור האישי שלי" : "אני רוצה לקבל פידבק"}

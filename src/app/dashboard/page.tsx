@@ -66,7 +66,7 @@ export default async function DashboardPage({
   const givenFeedbacks: GivenFeedbackItem[] = await getMyGivenFeedbacks();
 
   if (!user || (user.songs.length === 0 && givenFeedbacks.length === 0)) {
-    redirect("/get-feedback");
+    redirect("/get-feedback?hideBack=true");
   }
 
   // Calculate global average rating (C) for Bayesian True Rating
@@ -91,7 +91,7 @@ export default async function DashboardPage({
             />
           </div>
         </div>
-        <Link href="/get-feedback" className={styles.mobileActionBtn}>
+        <Link href="/get-feedback?new=true" className={styles.mobileActionBtn}>
           שליחת שיר נוסף
         </Link>
       </div>

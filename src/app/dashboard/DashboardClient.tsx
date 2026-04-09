@@ -136,7 +136,7 @@ export default function DashboardClient({
         </div>
 
         <div className={`${styles.headerAction} ${styles.hideOnMobile}`}>
-          <Link href="/get-feedback" className={styles.submitNewBtn}>
+          <Link href="/get-feedback?new=true" className={styles.submitNewBtn}>
             <span className={styles.btnText}>שליחת שיר</span>
           </Link>
         </div>

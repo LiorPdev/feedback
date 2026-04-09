@@ -2,7 +2,6 @@ import {
   Star,
   Trophy,
   Crown,
-  Meh,
   type LucideIcon
 } from "lucide-react";
 import styles from "./RaterBadge.module.css";
@@ -16,7 +15,6 @@ const TIERS: Tier[] = [
   { min: 4.0, icon: Crown },
   { min: 3.0, icon: Trophy },
   { min: 2.0, icon: Star },
-  { min: 0, icon: Meh },
 ];
 
 interface RaterBadgeProps {
@@ -34,8 +32,8 @@ export default function RaterBadge({
 }: RaterBadgeProps) {
   if (score === null || score === undefined || score === 0) return null;
 
-  const tier = TIERS.find(t => score >= t.min) || TIERS[TIERS.length - 1];
-  const Icon = tier.icon;
+  const tier = TIERS.find(t => score >= t.min);
+  const Icon = tier?.icon;
 
   const formattedScore = score.toFixed(1);
 
@@ -43,7 +41,7 @@ export default function RaterBadge({
 
   return (
     <div className={`${badgeClass} ${className}`}>
-      {variant !== "plain" && <Icon size={14} className={styles.icon} />}
+      {variant !== "plain" && Icon && <Icon size={14} className={styles.icon} />}
       {showLabel && <span className={styles.label}>{formattedScore}</span>}
     </div>
   );

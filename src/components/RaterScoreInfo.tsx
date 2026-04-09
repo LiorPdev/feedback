@@ -54,9 +54,8 @@ export default function RaterScoreInfo({
           <div className={styles.tooltipContent}>
             <ul className={styles.formulaLegend}>
               <li><strong>לפי איכות:</strong> רמת הפירוט של ההסברים.</li>
-              <li><strong>לפי כמות:</strong> מספר הפידבקים שניתנו.</li>
               <li><strong>לפי אמינות:</strong> מידת התאמת הדירוג לממוצע <br />הקהילה
-                (למניעת הטיות).</li>
+                (למניעת הטיות מכוונות).</li>
             </ul>
             <p style={{ marginTop: '1rem' }}>
               <strong>בונוס:</strong> מדרגים איכותיים זוכים לתעדוף <br />
