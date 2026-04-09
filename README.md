@@ -13,6 +13,7 @@ npx wrangler d1 migrations apply feedback-db --remote
 
 ## DEPLOYMENT -> To deploy the project to Cloudflare Pages:
 Do Commit & Push from Menu and wait for the build to complete.
+Check build status here: https://dash.cloudflare.com/9c530885ad264c96d05babc5c7dc69a3/pages/view/feedback
 
 ## Mail Service
 feedback.space.app@gmail.com

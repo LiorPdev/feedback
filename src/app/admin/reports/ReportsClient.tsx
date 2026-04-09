@@ -39,7 +39,7 @@ const SortHeader = ({ label, sortKey, sortConfig, onSort }: SortHeaderProps) => 
 };
 
 export function ReportsClient() {
-    const [reportType, setReportType] = useState<ReportType>('songs');
+    const [reportType, setReportType] = useState<ReportType>('users');
     const [data, setData] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
     const [loading, setLoading] = useState(true);
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({ key: 'createdAt', direction: 'desc' });
@@ -155,10 +155,10 @@ export function ReportsClient() {
                         setSelectedId(null);
                     }}
                 >
-                    <option value="feedbacks">פידבקים</option>
-                    <option value="top-rated">דירוג (Top 20)</option>
-                    <option value="songs">שירים</option>
                     <option value="users">משתמשים רשומים</option>
+                    <option value="songs">שירים</option>
+                    <option value="feedbacks">פידבקים</option>
+                    <option value="top-rated">לפי דירוג</option>
                     <option value="logs">לוגים</option>
                 </select>
 

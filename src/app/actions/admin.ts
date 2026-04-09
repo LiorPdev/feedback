@@ -128,7 +128,7 @@ export async function getAdminUsersReport() {
         .from(users)
         .leftJoin(givenSubquery, eq(givenSubquery.authorId, users.id))
         .leftJoin(receivedSubquery, eq(receivedSubquery.songUserId, users.id))
-        .orderBy(desc(users.updatedAt));
+        .orderBy(desc(users.createdAt));
 
         return { success: true, data: result };
     } catch (error) {
@@ -246,8 +246,7 @@ export async function getAdminTopRatedReport() {
         .leftJoin(rater, eq(feedbacks.authorId, rater.id))
         .where(eq(songs.isActive, true))
         .groupBy(songs.id)
-        .orderBy(desc(finalScore))
-        .limit(20);
+        .orderBy(desc(finalScore));
 
         return { success: true, data: result };
     } catch (error) {

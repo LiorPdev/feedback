@@ -6,7 +6,7 @@ export const GENRES = [
   "צ'יל",
   "בלוז",
   "פולק",
-  "פאנקי",
+  "פאנקי/גרוב",
   "היפ-הופ",
   "ים תיכוני",
   "אלקטרוני",
@@ -54,3 +54,7 @@ export const RATER_WEIGHT_CONSENSUS = 0.2;         // 20% - Weight for rating si
 export const RATER_TARGET_CHARS_FOR_BONUS = 100;   // Number of characters required for maximum length bonus
 export const RATER_COUNT_RATES = 30;               // Number of total ratings required for maximum count bonus
 export const RATER_MIN_REVIEWS_TO_COMPARE = 2;     // Minimum ratings on a song before we calculate consensus score
+
+// Available algorithms for displaying songs to rate (see feed-algorithms.ts)
+export type FeedAlgorithm = 'randomAlg' | 'noFeedbackPriority';
+export const CURRENT_FEED_ALGORITHM: FeedAlgorithm = 'noFeedbackPriority';  // Change this value to switch global feed algorithms

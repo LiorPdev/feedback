@@ -6,13 +6,14 @@ import { revalidatePath } from 'next/cache';
 import { currentUser, auth } from '@clerk/nextjs/server';
 import { eq, sql, and, notInArray, inArray, gt, aliasedTable } from 'drizzle-orm';
 import { users, songs, feedbacks, listenEvents } from '@/lib/schema';
-import { SONG_SUBMISSION_COST, REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH, TOP_RATED_MIN_RATINGS_THRESHOLD, TOP_RATED_NOTIFICATION_COOLDOWN_DAYS, WEIGHT_PRODUCTION, WEIGHT_SINGING, WEIGHT_OVERALL, TOP_RATED_DECAY_FACTOR, MAX_SONG_TITLE_LENGTH } from '@/lib/constants';
+import { SONG_SUBMISSION_COST, REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH, TOP_RATED_MIN_RATINGS_THRESHOLD, TOP_RATED_NOTIFICATION_COOLDOWN_DAYS, WEIGHT_PRODUCTION, WEIGHT_SINGING, WEIGHT_OVERALL, TOP_RATED_DECAY_FACTOR, MAX_SONG_TITLE_LENGTH, FeedAlgorithm } from '@/lib/constants';
 import { sendFeedbackNotification, sendTopRatedNotification } from '@/lib/mail';
 import { logToDb } from "@/lib/logger";
 import { deleteFileFromR2 } from '@/app/actions/upload';
 import { syncUser } from '@/lib/user-auth';
 import { sanitizeInput } from '@/lib/utils';
 import { updateRaterScore } from '@/lib/rater-score';
+import { applyFeedAlgorithm } from '@/lib/feed-algorithms';
 
 export async function createSong(formData: FormData) {
     // Extract and sanitize data from form
@@ -119,7 +120,7 @@ export async function addFeedback(data: {
 
         // Update rater score asynchronously
         if (clerkUser) {
-            updateRaterScore(clerkUser.id).catch(err => 
+            updateRaterScore(clerkUser.id).catch(err =>
                 logToDb({ message: "Async updateRaterScore failed", data: err, source: "songs.ts:addFeedback" })
             );
         }
@@ -312,7 +313,7 @@ export async function getUserSongCount(userId: string) {
     }
 }
 
-export async function getFeedSongs(firstSongSlug?: string) {
+export async function getFeedSongs(firstSongSlug?: string, algorithm: FeedAlgorithm = 'randomAlg') {
     const { userId } = await auth();
     const db = await getDb();
 
@@ -387,31 +388,11 @@ export async function getFeedSongs(firstSongSlug?: string) {
             },
         });
 
-        // 3. Shuffle and Prioritize in JavaScript
-        // This is more reliable for handling Hebrew strings and Cloudflare D1 environment nuances
-        const preferredGenres = preferredGenre
-            ? preferredGenre.split(",").map(g => g.trim()).filter(Boolean)
-            : [];
+        const allSongsToProcess = firstSong ? [firstSong, ...remainingSongs] : remainingSongs;
+        let songsWithStats = allSongsToProcess.map(s => ({ ...s, averageRating: 0, totalFeedbacks: 0 }));
 
-        const sortedSongs = [...remainingSongs]
-            .sort(() => Math.random() - 0.5) // Randomize first
-            .sort((a, b) => {
-                // Then stable sort by genre: matching any preferred genre (0) comes before non-matching (1)
-                if (preferredGenres.length > 0) {
-                    const aMatch = preferredGenres.includes(a.genre) ? 0 : 1;
-                    const bMatch = preferredGenres.includes(b.genre) ? 0 : 1;
-                    return aMatch - bMatch;
-                }
-                return 0;
-            });
-
-        const finalSongs = firstSong ? [firstSong, ...sortedSongs] : sortedSongs;
-
-        // Calculate average ratings for the selected songs
-        const songIds = finalSongs.map(s => s.id);
-        let songsWithStats = finalSongs.map(s => ({ ...s, averageRating: 0, totalFeedbacks: 0 }));
-
-        if (songIds.length > 0) {
+        if (allSongsToProcess.length > 0) {
+            const songIds = allSongsToProcess.map(s => s.id);
             const stats = await db.select({
                 songId: feedbacks.songId,
                 total: sql<number>`count(${feedbacks.id})`,
@@ -422,14 +403,31 @@ export async function getFeedSongs(firstSongSlug?: string) {
                 .groupBy(feedbacks.songId);
 
             const statsMap = new Map(stats.map(s => [s.songId, s]));
-            songsWithStats = finalSongs.map(s => ({
+            songsWithStats = allSongsToProcess.map(s => ({
                 ...s,
                 averageRating: statsMap.get(s.id)?.avgRating ?? 0,
                 totalFeedbacks: statsMap.get(s.id)?.total ?? 0
             }));
         }
 
-        return { success: true, songs: songsWithStats };
+        const processedFirstSong = firstSong ? songsWithStats[0] : null;
+        const processedRemainingSongs = firstSong ? songsWithStats.slice(1) : songsWithStats;
+
+        // 3. Sort/Prioritize based on Algorithm Output
+        const preferredGenres = preferredGenre
+            ? preferredGenre.split(",").map(g => g.trim()).filter(Boolean)
+            : [];
+
+        const sortedSongs = applyFeedAlgorithm(
+            processedRemainingSongs, 
+            algorithm, 
+            preferredGenres, 
+            processedFirstSong ? processedFirstSong.userId : null
+        );
+
+        const finalOutputSongs = processedFirstSong ? [processedFirstSong, ...sortedSongs] : sortedSongs;
+
+        return { success: true, songs: finalOutputSongs };
     } catch (error) {
         await logToDb({ message: "Failed to fetch feed songs", data: error, source: "songs.ts:getFeedSongs" });
         return { success: false, error: "שגיאה בטעינת השירים" };

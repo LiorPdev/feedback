@@ -122,13 +122,10 @@ export default function LandingClient({
             <motion.h1 className={styles.heroTitle} variants={fadeInUp}>
               <span style={{ color: "var(--brand-contrast)" }}>מישהו מקשיב לך</span>
             </motion.h1>
-            <motion.p className={styles.heroSubtitle} variants={fadeInUp}>
-              קבלו משוב אמיתי על השירים שלכם.
-            </motion.p>
             <SignedOut>
               <motion.div className={styles.howItWorks} variants={fadeInUp}>
                 <h3>איך זה עובד?</h3>
-                <p>אתם שולחים שיר בצורה פשוטה ומקבלים פידבק מהקהילה באתר.</p>
+                <p>אתם שולחים שיר בצורה פשוטה, מקבלים פידבק מהקהילה באתר, וגם נותנים פידבק לאחרים.</p>
               </motion.div>
             </SignedOut>
             <motion.div className={styles.heroButtons} variants={fadeInUp}>
