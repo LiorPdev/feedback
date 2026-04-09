@@ -1,5 +1,6 @@
-import { FeedAlgorithm } from "./constants";
-
+// ----------------------------------------------------
+// Play Order Algorithms
+// ----------------------------------------------------
 export interface SongWithStats {
     userId: string;
     genre: string;
@@ -22,10 +23,6 @@ function applyStableGenreSort<T extends SongWithStats>(songs: T[], preferredGenr
     return sorted;
 }
 
-// ----------------------------------------------------
-// Algorithms
-// ----------------------------------------------------
-
 /**
  * Original Random Algorithm (`randomAlg`)
  * 
@@ -41,7 +38,7 @@ export function randomAlgorithm<T extends SongWithStats>(
 ): T[] {
     // 1. Randomize
     const sorted = [...songs].sort(() => Math.random() - 0.5);
-    
+
     // 2. Stable Genre Sort
     return applyStableGenreSort(sorted, preferredGenres);
 }
@@ -107,16 +104,14 @@ export function noFeedbackPriorityAlgorithm<T extends SongWithStats>(
 // ----------------------------------------------------
 
 export function applyFeedAlgorithm<T extends SongWithStats>(
-    songs: T[], 
-    algorithm: FeedAlgorithm, 
+    songs: T[],
     preferredGenres: string[],
     firstSongUserId: string | null
 ): T[] {
-    switch (algorithm) {
-        case 'noFeedbackPriority':
-            return noFeedbackPriorityAlgorithm(songs, preferredGenres, firstSongUserId);
-        case 'randomAlg':
-        default:
-            return randomAlgorithm(songs, preferredGenres);
+    const currentMinute = new Date().getMinutes();
+    if (currentMinute % 2 === 0) {
+        return randomAlgorithm(songs, preferredGenres);
+    } else {
+        return noFeedbackPriorityAlgorithm(songs, preferredGenres, firstSongUserId);
     }
 }

@@ -3,7 +3,7 @@ import FeedContainer from "./FeedContainer";
 import styles from "./feed.module.css";
 import { auth } from "@clerk/nextjs/server";
 import { getDb } from "@/lib/db";
-import { CURRENT_FEED_ALGORITHM } from "@/lib/constants";
+
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +13,7 @@ export default async function GiveFeedbackFeedPage({
   searchParams: Promise<{ song?: string; from?: string; insufficient_credits?: string }>;
 }) {
   const { song: songSlug, from, insufficient_credits } = await searchParams;
-  const result = await getFeedSongs(songSlug, CURRENT_FEED_ALGORITHM);
+  const result = await getFeedSongs(songSlug);
   const { userId } = await auth();
 
   if (!result.success || !result.songs) {
