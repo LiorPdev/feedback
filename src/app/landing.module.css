@@ -376,7 +376,7 @@
   }
 
   .heroTitle {
-    padding-bottom: 20px;
+    padding-bottom: 5px;
   }
 
   .hero {
@@ -450,8 +450,7 @@
   }
 
   .howItWorks {
-    padding: 1.25rem;
-    margin: 0 1rem;
+    padding: 1.25rem 0.3rem 1.25rem 0.8rem;
   }
 
   .features {

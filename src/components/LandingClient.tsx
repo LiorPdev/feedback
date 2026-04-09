@@ -124,8 +124,12 @@ export default function LandingClient({
             </motion.h1>
             <SignedOut>
               <motion.div className={styles.howItWorks} variants={fadeInUp}>
-                <h3>איך זה עובד?</h3>
-                <p>אתם שולחים שיר בצורה פשוטה, מקבלים פידבק מהקהילה באתר, וגם נותנים פידבק לאחרים.</p>
+                <h3 style={{ textAlign: "right", paddingRight: "0.7rem" }}>איך זה עובד?</h3>
+                <ul className={styles.howItWorksList} style={{ listStyleType: "disc", marginRight: "2rem", marginTop: "0.5rem", textAlign: "right" }}>
+                  <li style={{ marginBottom: "0.5rem" }}><strong>מעלים</strong> שיר (קישור או קובץ)</li>
+                  <li style={{ marginBottom: "0.5rem" }}><strong>מקבלים</strong> חוות דעת כנה ואנונימית מהקהילה</li>
+                  <li><strong>תורמים</strong> גם מהידע שלכם כדי לעזור לאחרים</li>
+                </ul>
               </motion.div>
             </SignedOut>
             <motion.div className={styles.heroButtons} variants={fadeInUp}>
