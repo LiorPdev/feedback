@@ -188,7 +188,7 @@ export default function FeedbackTabs({
                               ) : (
                                 <Eye className={styles.lockIcon} />
                               )}
-                              לחצו כאן לצפיה בפידבק
+                              <span className={styles.blinkText}>לחצו כאן לצפיה בפידבק</span>
                             </button>
                           </>
                         )}

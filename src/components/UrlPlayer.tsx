@@ -220,9 +220,14 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
   }, [isYouTube, isAudio]);
 
   useEffect(() => {
-    if (!mounted || !embedUrl || !iframeRef.current) return;
+    if (!mounted || !embedUrl) return;
 
-    if (isYouTube) {
+    if (isAudio && audioRef.current) {
+      // Audio tags are immediately ready to receive play() commands
+      guard(onReadyRef.current)();
+    }
+
+    if (isYouTube && iframeRef.current) {
       const initYT = () => {
         if (!window.YT || !window.YT.Player) {
           // If YT is loading but not ready, check again shortly
@@ -326,7 +331,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
       }
       playerRef.current = null;
     };
-  }, [embedUrl, url, mounted, origin, isYouTube, handlePlayStart, handlePlayStop]);
+  }, [embedUrl, url, mounted, origin, isYouTube, isAudio, handlePlayStart, handlePlayStop]);
 
   if (!mounted) {
     return (

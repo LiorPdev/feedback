@@ -93,7 +93,12 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
           playerRef.current.getDuration()
         ]);
         setCurrentTime(time);
-        if (dur > 0) setDuration(dur);
+        if (dur > 0) {
+          setDuration(dur);
+          if (time >= dur) {  // Edge case: If playback has reached the end and the song naturally finished before the timer, unlock it.
+            setSecondsRemaining(0);
+          }
+        }
       }
     }, 500);
 
@@ -228,6 +233,7 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
   const isAudio = !!currentSong.url.match(/\.(mp3|wav|ogg|m4a|aac)(\?.*)?$/i) || currentSong.url.includes("r2.dev");
   const isBypassTimer = from === "top-rated" && currentSong?.slug === initialSongSlug;
   const isHiddenPlayer = isYouTube || isAudio;
+  const showSpinner = isYouTube && isTransitioning;
   const isProminentNext = !isPlaying && hasRatedCurrent;
 
   return (
@@ -284,16 +290,16 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
               <button
                 className={isProminentNext ? styles.btnSkip : (isPlaying ? styles.btnStop : styles.btnPlay)}
                 onClick={togglePlayback}
-                disabled={((!isSignedIn && !isAuthDismissed) && isLoaded) || isTransitioning}
+                disabled={((!isSignedIn && !isAuthDismissed) && isLoaded) || showSpinner}
               >
                 {isPlaying ? (
                   <>
-                    {isTransitioning ? <Loader2 size={20} className={styles.spinIcon} /> : <SquareStop size={20} fill="currentColor" />}
+                    {showSpinner ? <Loader2 size={20} className={styles.spinIcon} /> : <SquareStop size={20} fill="currentColor" />}
                     <span>עצור</span>
                   </>
                 ) : (
                   <>
-                    {isTransitioning ? <Loader2 size={20} className={styles.spinIcon} /> : <Play size={20} fill="currentColor" />}
+                    {showSpinner ? <Loader2 size={20} className={styles.spinIcon} /> : <Play size={20} fill="currentColor" />}
                     <span>נגן</span>
                   </>
                 )}

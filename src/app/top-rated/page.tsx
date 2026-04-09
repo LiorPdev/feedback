@@ -47,7 +47,7 @@ export default async function TopRatedPage() {
 
         <div className={styles.listCard}>
           {songs.length === 0 ? (
-            <div className={styles.empty}>עדיין אין מספיק דירוגים להצגת רשימת הטובים ביותר.</div>
+            <div className={styles.empty}>אין מספיק דירוגים להצגת הרשימה.</div>
           ) : (
             <div className={styles.songsList}>
               {songs.map((song, index) => (

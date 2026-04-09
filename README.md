@@ -1,22 +1,18 @@
-#
-# Feedback Space
-#
-
-## Run the development:
+## Run in dev mode:
 npm run dev
 
-## View and edit your LOCAL DATABASE:
+## DATABASE -> View and edit your LOCAL DATABASE:
 npm run studio
 
-## Push your schema changes to the LOCAL DATABASE:
+## DATABASE -> Push your schema changes to the LOCAL DATABASE:
 npx drizzle-kit generate --name [any_name]
 npx wrangler d1 migrations apply feedback-db --local
 
-## Push your schema changes to the CLOUDFLARE DATABASE:
+## DATABASE -> Push your schema changes to the CLOUDFLARE DATABASE:
 npx wrangler d1 migrations apply feedback-db --remote
 
-## To deploy the project to Cloudflare Pages:
-Do Commit & Push from Menu
+## DEPLOYMENT -> To deploy the project to Cloudflare Pages:
+Do Commit & Push from Menu and wait for the build to complete.
 
 ## Mail Service
 feedback.space.app@gmail.com

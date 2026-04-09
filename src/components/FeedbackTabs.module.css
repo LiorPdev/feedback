@@ -186,11 +186,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   background: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(4px);
   z-index: 10;
   padding: 0.5rem;
+  padding-top: 15%;
   text-align: center;
   border-radius: 20px;
 }
@@ -245,6 +246,24 @@
 .lockIcon {
   width: 18px;
   height: 18px;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+.blinkText {
+  animation: blink 1.6s infinite ease-in-out;
 }
 
 @media (max-width: 600px) {
