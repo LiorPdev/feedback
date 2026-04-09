@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Star, X, AlertCircle, Share2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUser } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 import { addFeedback } from "@/app/actions/songs";
 import { REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH } from "@/lib/constants";
 import styles from "./FeedbackForm.module.css";
@@ -41,6 +42,7 @@ export default function FeedbackForm({
   onPopupClose
 }: FeedbackFormProps) {
   const { isLoaded, isSignedIn } = useUser();
+  const router = useRouter();
   const [ratings, setRatings] = useState({
     cat2: 0,
     cat3: 0,
@@ -464,12 +466,15 @@ export default function FeedbackForm({
           isModal={true}
           message={
             <>
-              <strong>הפידבק שלך חשוב</strong>{"\n\n"}
-              כדי שלא נציג לך שוב ושוב שירים שכבר דירגת וכדי לשמור על איכות הקהילה, בואו נתחבר.{"\n\n"}
+              <strong>הפידבק שלך ממש חשוב לנו</strong>{"\n\n"}
+              אבל כדי שלא נציג לך שוב ושוב שירים שכבר דירגת וכדי לשמור על איכות הקהילה, בואו נתחבר בקליק.{"\n\n"}
               הדירוגים שלך אנונימיים לחלוטין.
             </>
           }
-          onDismiss={onAuthDismiss}
+          onDismiss={() => {
+            if (onAuthDismiss) onAuthDismiss();
+            router.push("/");
+          }}
           dismissLabel="לא עכשיו, תודה"
         />
       )}

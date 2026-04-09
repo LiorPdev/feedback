@@ -509,6 +509,8 @@ export default function GetFeedback({ hideBack = false }: { hideBack?: boolean }
               אבל בלי זה, אין לנו דרך לשייך את השיר אליך או לשלוח לך את התגובות שהקהילה תכתוב. מתחברים בקליק אחד וממשיכים.
             </>
           }
+          dismissLabel="לא עכשיו, תודה"
+          onDismiss={() => router.push("/")}
         />
       )}
     </div>
