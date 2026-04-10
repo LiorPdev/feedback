@@ -3,6 +3,7 @@ import { getDb } from "./db";
 import { users } from "./schema";
 import { eq } from "drizzle-orm";
 import { INITIAL_TOKENS } from "./constants";
+import { logAction } from "@/app/actions/logs";
 
 /**
  * Ensures the Clerk user exists in our local database with the correct initial credits.
@@ -35,7 +36,15 @@ export async function syncUser() {
       providerId,
       tokens: INITIAL_TOKENS,
     }).returning();
-    return newUser;
+    
+    // Log the new user registration
+    await logAction({ 
+      message: "New User Registered (Lead Created)", 
+      data: { userId: newUser.id, email: newUser.email }, 
+      source: "syncUser" 
+    });
+
+    return { ...newUser, isNewRecord: true };
   } else {
     // Existing user: update activity and check if we should update metadata
     await db.update(users)
