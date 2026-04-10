@@ -15,7 +15,7 @@ import { GENRES, SONG_SUBMISSION_COST, MAX_FILE_SIZE, MAX_FILE_SIZE_MB, MAX_SONG
 import AuthOverlay from "@/components/AuthOverlay";
 import BackButton from "@/components/BackButton";
 
-export default function GetFeedback({ hideBack = false }: { hideBack?: boolean }) {
+export default function GetFeedback({ backHome = false }: { backHome?: boolean }) {
   const [songLink, setSongLink] = useState("");
   const [songTitle, setSongTitle] = useState("");
   const [selectedGenre, setSelectedGenre] = useState("");
@@ -222,7 +222,7 @@ export default function GetFeedback({ hideBack = false }: { hideBack?: boolean }
         transition={{ duration: 0.5 }}
       >
         <div className={styles.header}>
-          {!hideBack && <BackButton className={styles.backButton} />}
+          <BackButton className={styles.backButton} forceUrl={backHome ? "/" : undefined} />
           <h1>שליחת שיר</h1>
         </div>
 

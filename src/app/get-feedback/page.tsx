@@ -10,7 +10,7 @@ interface PageProps {
 export default async function GetFeedbackPage({ searchParams }: PageProps) {
   const { userId } = await auth();
   const params = await searchParams;
-  const hideBack = params.hideBack === "true";  // we need to hide the back button when the user is coming from the login page so back wont return to the login page
+  const backHome = params.backHome === "true";  // back button goes to home page when the user is coming from the login page so back wont return to the login page
 
   // If the user is logged in AND they didn't explicitly ask for a 'new' song upload
   // AND they arrived here via the landing page or a general direct link (no ?new=true)
@@ -23,5 +23,5 @@ export default async function GetFeedbackPage({ searchParams }: PageProps) {
     }
   }
 
-  return <GetFeedbackClient hideBack={hideBack} />;
+  return <GetFeedbackClient backHome={backHome} />;
 }

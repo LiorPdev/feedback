@@ -425,7 +425,7 @@
   }
 
   .sectionTitle {
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
   }
 
   .scrollDownFab {
@@ -470,7 +470,7 @@
   }
 
   .sectionTitle {
-    margin-bottom: 2rem !important;
+    margin-bottom: 0rem !important;
     font-size: 2rem !important;
   }
 }

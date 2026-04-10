@@ -42,9 +42,10 @@ interface FeedContainerProps {
   from?: string;
   initialSongSlug?: string;
   showInsufficientCredits?: boolean;
+  backHome?: boolean;
 }
 
-export default function FeedContainer({ initialSongs, initialFeedback, from, initialSongSlug, showInsufficientCredits = false }: FeedContainerProps) {
+export default function FeedContainer({ initialSongs, initialFeedback, from, initialSongSlug, showInsufficientCredits = false, backHome = false }: FeedContainerProps) {
   const { isSignedIn, isLoaded } = useUser();
   const router = useRouter();
   const [showCreditPopup, setShowCreditPopup] = useState(showInsufficientCredits);
@@ -240,7 +241,7 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
     <div className={styles.feedWrapper}>
       <div className={styles.songCard}>
         <div className={styles.topHeader}>
-          <BackButton className={styles.backButton} />
+          <BackButton className={styles.backButton} forceUrl={backHome ? "/" : undefined} />
           <div className={styles.headerRow}>
             <h2 className={styles.title}>
               {currentSong.title}

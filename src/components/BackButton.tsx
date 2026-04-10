@@ -8,13 +8,18 @@ interface BackButtonProps {
   className?: string;
   style?: React.CSSProperties;
   iconSize?: number;
+  forceUrl?: string;
 }
 
-export default function BackButton({ className = "", style, iconSize = 22 }: BackButtonProps) {
+export default function BackButton({ className = "", style, iconSize = 22, forceUrl }: BackButtonProps) {
   const router = useRouter();
 
   const handleBack = (e: React.MouseEvent) => {
     e.preventDefault();
+    if (forceUrl) {
+      router.push(forceUrl);
+      return;
+    }
     if (window.history.length > 1) {
       router.back();
     } else {

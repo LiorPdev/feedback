@@ -90,7 +90,7 @@ export default function LandingClient({
   const handleGiveFeedbackClick = () => {
     if (user && !userGenre) {
       window.dispatchEvent(new CustomEvent("open-preferences-modal", {
-        detail: { redirectTo: "/give-feedback" }
+        detail: { redirectTo: "/give-feedback?backHome=true" }
       }));
     }
   };
@@ -134,11 +134,11 @@ export default function LandingClient({
             </SignedOut>
             <motion.div className={styles.heroButtons} variants={fadeInUp}>
               <SignedOut>
-                <Link href="/get-feedback?hideBack=true" className={styles.btnPrimary}>
+                <Link href="/get-feedback?backHome=true" className={styles.btnPrimary}>
                   אני רוצה לקבל פידבק
                 </Link>
                 <Link
-                  href="/give-feedback"
+                  href="/give-feedback?backHome=true"
                   className={styles.btnSecondary}
                 >
                   אני רוצה לתת פידבק
@@ -146,14 +146,14 @@ export default function LandingClient({
               </SignedOut>
               <SignedIn>
                 <Link
-                  href={(hasSongs || hasFeedbacksGiven) ? "/dashboard" : "/get-feedback?hideBack=true"}
+                  href={(hasSongs || hasFeedbacksGiven) ? "/dashboard" : "/get-feedback?backHome=true"}
                   className={styles.btnPrimary}
                 >
                   {(hasSongs || hasFeedbacksGiven) ? "האיזור האישי שלי" : "אני רוצה לקבל פידבק"}
                 </Link>
                 {userGenre ? (
                   <Link
-                    href="/give-feedback"
+                    href="/give-feedback?backHome=true"
                     className={styles.btnSecondary}
                   >
                     אני רוצה לתת פידבק
@@ -291,12 +291,32 @@ export default function LandingClient({
                 title: "לבחור את השיר הנכון",
                 desc: "מתלבטים איזה שיר כדאי לקדם? איזה שיר להוציא כסינגל? לא בטוחים איזה עיבוד עובד טוב יותר? העלו מספר שירים וגלו מה אחרים חושבים. הפידבקים יעזרו לכם לקבל החלטות מושכלות יותר.",
                 icon: <CheckCircle />
+              },
+              {
+                title: "שירים נבחרים יכנסו לפלייליסטים בספוטיפי",
+                desc: (
+                  <ul style={{ listStyleType: "none", padding: 0, marginTop: "0.5rem", textAlign: "center" }}>
+                    <li style={{ marginBottom: "0.5rem" }}>
+                      <a href="https://open.spotify.com/playlist/2pItlRIEcNpVrdrNPvTJiU?si=d2a588f23af24b08" target="_blank" rel="noopener noreferrer" style={{ color: "var(--brand-primary)", textDecoration: "underline" }}>ישראלי שקט רגוע</a>
+                    </li>
+                    <li style={{ marginBottom: "0.5rem" }}>
+                      <a href="https://open.spotify.com/playlist/6VOJdiNq1lGprqQLfOm7pl?si=290c5cc2422e481c" target="_blank" rel="noopener noreferrer" style={{ color: "var(--brand-primary)", textDecoration: "underline" }}>ישראלי איכותי</a>
+                    </li>
+                    <li style={{ marginBottom: "0.5rem" }}>
+                      <a href="https://open.spotify.com/playlist/36YoT388ljvJSssrC0LUMK?si=bc627ffb6efa43b0" target="_blank" rel="noopener noreferrer" style={{ color: "var(--brand-primary)", textDecoration: "underline" }}>רוק ישראלי</a>
+                    </li>
+                    <li style={{ marginBottom: "0.5rem" }}>
+                      <a href="https://open.spotify.com/playlist/0qYgjCnqOmG1WyJ3nZf841?si=31bf2145098d40fc" target="_blank" rel="noopener noreferrer" style={{ color: "var(--brand-primary)", textDecoration: "underline" }}>אינדי ישראלי</a>
+                    </li>
+                  </ul>
+                ),
+                icon: <CheckCircle />
               }
             ].map((feature, idx) => (
               <motion.div key={idx} className={styles.featureCard} variants={fadeInUp}>
                 <div className={styles.featureIcon}>{feature.icon}</div>
                 <h3>{feature.title}</h3>
-                <p>{feature.desc}</p>
+                <div className={styles.featureDesc}>{feature.desc}</div>
               </motion.div>
             ))}
           </motion.div>

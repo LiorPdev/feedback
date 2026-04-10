@@ -381,7 +381,7 @@ export default function FeedbackForm({
             <div className={styles.textareaWrapper}>
               <textarea
                 className={styles.textarea}
-                placeholder={`נסו להוסיף כמה מילים על מה שאהבתם או מה לשפר – עשו מאמץ, האמנים באמת מחכים למשוב הזה.`}
+                placeholder={`הוסיפו כמה מילים על מה שאהבתם או מה כדאי לשפר, האמנים באמת מחכים למשוב הזה.`}
                 value={comment}
                 onChange={(e) => {
                   const newValue = e.target.value;
