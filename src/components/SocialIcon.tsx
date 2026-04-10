@@ -1,6 +1,6 @@
 "use client";
 
-import { Youtube, Facebook, Instagram, Globe } from "lucide-react";
+import { Youtube, Facebook, Instagram, Globe, Music } from "lucide-react";
 
 interface SocialIconProps {
   platform: string;
@@ -15,6 +15,7 @@ export default function SocialIcon({ platform, size = 16, className }: SocialIco
   if (p === "facebook") return <Facebook size={size} className={className} />;
   if (p === "instagram") return <Instagram size={size} className={className} />;
   if (p === "website") return <Globe size={size} className={className} />;
+  if (p === "music") return <Music size={size} className={className} />;
 
   if (p === "spotify") {
     return (

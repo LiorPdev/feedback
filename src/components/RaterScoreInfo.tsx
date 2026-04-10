@@ -25,21 +25,23 @@ export default function RaterScoreInfo({
   return (
     <span className={`${styles.fbRaterScore} ${className}`}>
       <strong className={styles.fbLabel}>{label}:</strong>
-      {score && score > 0 ? (
-        <RaterBadge score={score} variant={variant} className={styles.badgeNudge} />
-      ) : (
-        <span className={styles.noScoreText}>אין דירוג</span>
-      )}
       <button
         ref={triggerRef}
-        className={styles.infoTriggerIcon}
+        className={styles.triggerButton}
         onClick={(e) => {
           e.preventDefault();
           setShowInfo(!showInfo);
         }}
         title="איך זה מחושב?"
       >
-        <HelpCircle size={14} />
+        {score && score > 0 ? (
+          <RaterBadge score={score} variant={variant} className={styles.badgeNudge} />
+        ) : (
+          <span className={styles.noScoreText}>אין דירוג</span>
+        )}
+        <div className={styles.infoTriggerIcon}>
+          <HelpCircle size={14} />
+        </div>
       </button>
 
       <InfoTooltip

@@ -69,7 +69,7 @@ export default function ArtistSocials({ socialLinks, size = 16 }: ArtistSocialsP
         ref={buttonRef}
         title="כרטיס ביקור מוזיקלי"
       >
-        <SocialIcon platform="website" size={size} />
+        <SocialIcon platform="music" size={size} />
       </button>
 
       {isOpen && (

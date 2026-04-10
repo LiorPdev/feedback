@@ -101,23 +101,23 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  background: color-mix(in srgb, var(--brand-primary), transparent 92%);
+  background: color-mix(in srgb, var(--brand-primary), transparent 98%);
   color: var(--brand-primary);
   padding: 0.35rem 0.75rem;
   border-radius: 12px;
   font-size: 0.85rem;
   font-weight: 700;
-  border: 1px solid color-mix(in srgb, var(--brand-primary), transparent 85%);
+  border: 1px solid color-mix(in srgb, var(--brand-primary), transparent 95%);
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   cursor: pointer;
   user-select: none;
+  transform: translateY(1px);
 }
 
 .tokenDisplay:hover {
-  background: color-mix(in srgb, var(--brand-primary), transparent 85%);
-  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--brand-primary), transparent 90%);
 }
 
 .tokenDisplay.glowingPositive {

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { ADMIN_EMAIL } from "@/lib/constants";
-import { Music, Gift, MessageCircle, BarChart, User as UserIcon, Share2 } from "lucide-react";
+import { Music, Gift, MessageCircle, BarChart, Share2 } from "lucide-react";
 import ContactModal from "./ContactModal";
 import InfoTooltip from "./InfoTooltip";
 import Image from "next/image";
@@ -184,9 +184,6 @@ export default function Navbar() {
                       onClick={() => setShowTokensInfo(!showTokensInfo)}
                       ref={tokenTriggerRef}
                     >
-                      <div className={styles.tokenIcon}>
-                        <Music size={14} />
-                      </div>
                       <AnimatedTokenCounter value={displayedTokens ?? 0} />
                     </div>
 
@@ -208,7 +205,7 @@ export default function Navbar() {
                   <UserButton.MenuItems>
                     <UserButton.Action
                       label="כרטיס ביקור מוזיקלי"
-                      labelIcon={<UserIcon size={16} />}
+                      labelIcon={<Music size={16} />}
                       onClick={() => setShowPreferencesModal(true)}
                     />
                     <UserButton.Action

@@ -27,25 +27,35 @@
   margin-right: -2px;
 }
 
-.infoTriggerIcon {
+.triggerButton {
   background: none;
   border: none;
-  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.4rem;
+  margin: -0.2rem -0.4rem;
+  border-radius: 6px;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.triggerButton:hover {
+  background-color: var(--brand-bg);
+}
+
+.triggerButton:hover .infoTriggerIcon {
+  opacity: 1;
+  color: var(--brand-primary);
+}
+
+.infoTriggerIcon {
+  color: var(--text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2px;
-  border-radius: 50%;
-  transition: all 0.2s ease;
   opacity: 0.6;
-  transform: translateY(-1px);
-}
-
-.infoTriggerIcon:hover {
-  opacity: 1;
-  background-color: var(--brand-bg);
-  color: var(--brand-primary);
+  transition: all 0.2s ease;
 }
 
 .tooltipContent {

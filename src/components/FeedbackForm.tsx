@@ -1,18 +1,17 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Star, X, AlertCircle, Share2 } from "lucide-react";
+import { Star, X, AlertCircle, Gift } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import { addFeedback } from "@/app/actions/songs";
+import { addFeedback, getUserSongCount, getUserTokens } from "@/app/actions/songs";
 import { REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH } from "@/lib/constants";
 import styles from "./FeedbackForm.module.css";
 import AnimatedTokenCounter from "./AnimatedTokenCounter";
 import AuthOverlay from "./AuthOverlay";
 import PopupMsg from "./PopupMsg";
-import CopyToast from "./CopyToast";
-import { useShare } from "@/hooks/useShare";
+import GiftArtistPopup from "./GiftArtistPopup";
 
 interface FeedbackFormProps {
   songId: string;
@@ -30,7 +29,6 @@ interface FeedbackFormProps {
 
 export default function FeedbackForm({
   songId,
-  songSlug,
   onSuccess,
   getPlayedSeconds,
   isPlaying,
@@ -41,7 +39,7 @@ export default function FeedbackForm({
   isAuthDismissed = false,
   onPopupClose
 }: FeedbackFormProps) {
-  const { isLoaded, isSignedIn } = useUser();
+  const { isLoaded, isSignedIn, user } = useUser();
   const router = useRouter();
   const [ratings, setRatings] = useState({
     cat2: 0,
@@ -54,6 +52,9 @@ export default function FeedbackForm({
   const [flyers, setFlyers] = useState<{ id: number; x: number; y: number; tx: number; ty: number; value: number; ox?: number; oy?: number }[]>([]);
   const bucketRef = useRef<HTMLDivElement>(null);
   const flyerIdRef = useRef(0);
+  const [userSongCount, setUserSongCount] = useState<number | null>(null);
+  const [userTokens, setUserTokens] = useState<number>(0);
+  const [isGiftPopupOpen, setIsGiftPopupOpen] = useState(false);
 
   const triggerFlyer = useCallback((x: number, y: number, value: number, targetX?: number, targetY?: number, initialOffsetX = 0, initialOffsetY = 0) => {
     let finalX = targetX;
@@ -88,7 +89,6 @@ export default function FeedbackForm({
     }, 2000);
   }, []);
 
-  const { share, copied } = useShare();
   const [listenCredits, setListenCredits] = useState(0);
   const playRewardGivenRef = useRef(false);
   const playTimeSecondsRef = useRef(0);
@@ -211,6 +211,16 @@ export default function FeedbackForm({
         listenCredits,
       });
 
+      if (user) {
+        // Fetch user stats for the Gift feature
+        const [countResult, tokensResult] = await Promise.all([
+          getUserSongCount(user.id),
+          getUserTokens(user.id)
+        ]);
+        if (countResult.success) setUserSongCount(countResult.count);
+        if (tokensResult.success) setUserTokens(tokensResult.tokens);
+      }
+
       if (result.success) {
         // --- ADDED BUCKET -> NAVBAR ANIMATION --- //
         const navTokenElement = document.querySelector('[class*="tokenDisplay"]');
@@ -256,19 +266,8 @@ export default function FeedbackForm({
   const hasValidComment = commentLength >= MIN_COMMENT_LENGTH;
   const currentCredits = earnedFromCategories + (hasValidComment ? REWARD_COMMENT : 0) + listenCredits;
 
-  const handleShare = () => {
-    const slugUrl = songSlug ? `/give-feedback/${songSlug}` : '';
-    const shareUrl = `${window.location.origin}${slugUrl}`;
-
-    share({
-      title: 'פידבק ספייס',
-      text: 'שיר מעולה שמצאתי בפידבק ספייס. מה אתם אומרים?',
-      url: shareUrl,
-    });
-  };
-
   const currentAverage = ((ratings.cat2 + ratings.cat3 + ratings.overall) / 3);
-  const showShareButton = currentAverage >= 4;
+  const showGiftButton = currentAverage >= 4 && userSongCount === 0;
 
   if (!isLoaded) {
     return (
@@ -286,7 +285,7 @@ export default function FeedbackForm({
       <div className={(!isSignedIn && !isAuthDismissed) ? styles.blurred : ""}>
         <AnimatePresence>
           <PopupMsg
-            isOpen={status === "success"}
+            isOpen={status === "success" && !isGiftPopupOpen}
             onClose={() => {
               setStatus("idle");
               setSongStats(null);
@@ -299,10 +298,10 @@ export default function FeedbackForm({
               onPopupClose?.();
             }}
             title="תודה על הפידבק!"
-            buttonText="המשך"
-            secondaryButtonText={showShareButton ? "אהבתם? שתפו עם חברים" : undefined}
-            secondaryButtonIcon={showShareButton ? <Share2 size={18} /> : undefined}
-            onSecondaryClick={showShareButton ? handleShare : undefined}
+            buttonText="שיר הבא"
+            secondaryButtonText={showGiftButton ? "או אולי מתנה קטנה לאמן?" : undefined}
+            secondaryButtonIcon={showGiftButton ? <Gift size={18} /> : undefined}
+            onSecondaryClick={showGiftButton ? () => setIsGiftPopupOpen(true) : undefined}
             message={
               songStats && (
                 <div className={styles.successStats}>
@@ -513,7 +512,17 @@ export default function FeedbackForm({
         ))}
       </AnimatePresence>
 
-      <CopyToast isVisible={copied} text="הקישור הועתק ואתם יכולים לשלוח לחברים." />
+      <GiftArtistPopup
+        isOpen={isGiftPopupOpen}
+        onClose={() => setIsGiftPopupOpen(false)}
+        songId={songId}
+        songTitle={songStats ? "השיר שדירגת" : "השיר"} // We don't have song title here easily unless passed in, but we can use "השיר שדירגת"
+        maxTokens={userTokens}
+        onSuccess={() => {
+          setStatus("idle");
+          onPopupClose?.();
+        }}
+      />
     </div>
   );
 }

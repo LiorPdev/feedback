@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Fragment } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Music } from "lucide-react";
+import { Coins } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useUser } from "@clerk/nextjs";
@@ -469,7 +469,7 @@ export default function GetFeedback({ backHome = false }: { backHome?: boolean }
               {status === "loading" ? (
                 <div className={styles.loadingSpinner} />
               ) : (
-                <>שליחה {user && <span className={styles.tokenLabel}>(<Music size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /> {SONG_SUBMISSION_COST})</span>}</>
+                <>שליחה {user && <span className={styles.tokenLabel}>(<Coins size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /> {SONG_SUBMISSION_COST})</span>}</>
               )}
             </button>
           </div>
@@ -486,7 +486,7 @@ export default function GetFeedback({ backHome = false }: { backHome?: boolean }
                 {errorMessage.split('[MUSIC_ICON]').map((part, i, arr) => (
                   <Fragment key={i}>
                     {part}
-                    {i < arr.length - 1 && <Music size={14} style={{ display: 'inline', verticalAlign: 'middle', margin: '0 4px' }} />}
+                    {i < arr.length - 1 && <Coins size={14} style={{ display: 'inline', verticalAlign: 'middle', margin: '0 4px' }} />}
                   </Fragment>
                 ))}
                 {showTokenLink && (

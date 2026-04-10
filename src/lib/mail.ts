@@ -234,3 +234,92 @@ export async function sendTopRatedNotification({
     return { success: false, error: "Top-rated notification sending error" };
   }
 }
+
+export async function sendGiftNotification({
+  to,
+  amount,
+  message,
+  senderName,
+}: {
+  to: string;
+  amount: number;
+  message: string;
+  senderName?: string;
+}) {
+  const BREVO_API_KEY = process.env.BREVO_API_KEY;
+  if (!BREVO_API_KEY) {
+    await logToDb({
+      message: "BREVO_API_KEY is missing, skipping gift notification",
+      source: "mail.ts:sendGiftNotification",
+    });
+    return { success: false, error: "Email service not configured" };
+  }
+
+  const url = "https://api.brevo.com/v3/smtp/email";
+
+  const body = {
+    sender: { name: "Feedback Space", email: "contact@feedback.activitywiz.com" },
+    to: [{ email: to }],
+    subject: message
+      ? "קיבלת מתנה והודעה אישית בפידבק-ספייס! 🎁"
+      : "קיבלת מתנה חדשה בפידבק-ספייס! 🎁",
+    htmlContent: `
+      <div dir="rtl" style="font-family: sans-serif; line-height: 1.6; text-align: right; background-color: #f8fafc; padding: 20px; border-radius: 12px;">
+        <div style="background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
+          <h2 style="color: #2563eb; margin-top: 0;">${senderName ? `${senderName} ממש אהב/ה את השיר שלך!` : "מישהו ממש אהב את השיר שלך!"}</h2>
+          <p style="font-size: 18px; color: #475569;">
+            קיבלת מתנה של <strong>${amount} קרדיטים</strong>${message ? " והודעה אישית:" : "!"}
+          </p>
+          ${message ? `
+            <div style="background: #f1f5f9; padding: 20px; border-radius: 12px; margin: 24px 0; border-right: 4px solid #2563eb; font-style: italic; color: #334155;">
+              ${message}
+            </div>
+          ` : ""}
+          ${senderName ? `<p style="font-size: 16px; color: #64748b; margin-bottom: 24px;">מאת: <strong>${senderName}</strong></p>` : ""}
+          <p style="font-size: 16px; color: #475569;">
+            הקרדיטים נוספו ליתרה שלך באתר. תוכלו להשתמש בהם כדי לקדם את השירים הבאים שלכם.
+          </p>
+          <p style="margin-top: 32px;">
+            <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}" style="background: #2563eb; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; display: inline-block; font-weight: bold;">לפידבק-ספייס</a>
+          </p>
+          <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 32px 0;" />
+          <p style="font-size: 14px; color: #94a3b8; margin-bottom: 0;">
+            בברכה,<br />
+            <strong>צוות Feedback Space</strong>
+          </p>
+        </div>
+      </div>
+    `,
+  };
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "api-key": BREVO_API_KEY,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      await logToDb({
+        message: "Brevo API error (gift notification)",
+        data: errorData,
+        source: "mail.ts:sendGiftNotification",
+      });
+      return { success: false, error: "Failed to send gift notification" };
+    }
+
+    return { success: true };
+  } catch (error) {
+    await logToDb({
+      message: "Error sending gift notification",
+      data: error,
+      source: "mail.ts:sendGiftNotification",
+    });
+    return { success: false, error: "Gift notification sending error" };
+  }
+}
