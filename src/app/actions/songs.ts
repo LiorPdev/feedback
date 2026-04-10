@@ -420,8 +420,7 @@ export async function getFeedSongs(firstSongSlug?: string) {
 
         const sortedSongs = applyFeedAlgorithm(
             processedRemainingSongs,
-            preferredGenres,
-            processedFirstSong ? processedFirstSong.userId : null
+            preferredGenres
         );
 
         const finalOutputSongs = processedFirstSong ? [processedFirstSong, ...sortedSongs] : sortedSongs;

@@ -106,12 +106,7 @@ export function noFeedbackPriorityAlgorithm<T extends SongWithStats>(
 export function applyFeedAlgorithm<T extends SongWithStats>(
     songs: T[],
     preferredGenres: string[],
-    //firstSongUserId: string | null
 ): T[] {
-    //const currentMinute = new Date().getMinutes();
-    //if (currentMinute % 2 === 0) {
     return randomAlgorithm(songs, preferredGenres);
-    /*} else {
-        return noFeedbackPriorityAlgorithm(songs, preferredGenres, firstSongUserId);
-    }*/
+    //return noFeedbackPriorityAlgorithm(songs, preferredGenres, firstSongUserId);  // Currently not in use
 }
