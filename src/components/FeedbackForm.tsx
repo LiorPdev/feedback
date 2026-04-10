@@ -5,7 +5,7 @@ import { Star, X, AlertCircle, Gift } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import { addFeedback, getUserSongCount, getUserTokens } from "@/app/actions/songs";
+import { addFeedback, getUserTokens } from "@/app/actions/songs";
 import { REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH } from "@/lib/constants";
 import styles from "./FeedbackForm.module.css";
 import AnimatedTokenCounter from "./AnimatedTokenCounter";
@@ -52,7 +52,6 @@ export default function FeedbackForm({
   const [flyers, setFlyers] = useState<{ id: number; x: number; y: number; tx: number; ty: number; value: number; ox?: number; oy?: number }[]>([]);
   const bucketRef = useRef<HTMLDivElement>(null);
   const flyerIdRef = useRef(0);
-  const [userSongCount, setUserSongCount] = useState<number | null>(null);
   const [userTokens, setUserTokens] = useState<number>(0);
   const [isGiftPopupOpen, setIsGiftPopupOpen] = useState(false);
 
@@ -213,11 +212,7 @@ export default function FeedbackForm({
 
       if (user) {
         // Fetch user stats for the Gift feature
-        const [countResult, tokensResult] = await Promise.all([
-          getUserSongCount(user.id),
-          getUserTokens(user.id)
-        ]);
-        if (countResult.success) setUserSongCount(countResult.count);
+        const tokensResult = await getUserTokens(user.id);
         if (tokensResult.success) setUserTokens(tokensResult.tokens);
       }
 
@@ -246,10 +241,10 @@ export default function FeedbackForm({
 
         setStatus("success");
         // Reset happens in PopupMsg onClose
-        onSuccess?.(result.feedback, {
-          averageRating: result.averageRating as number,
-          totalFeedbacks: result.totalFeedbacks as number
-        });
+        onSuccess?.(result.feedback, (result.averageRating !== undefined && result.totalFeedbacks !== undefined) ? {
+          averageRating: result.averageRating,
+          totalFeedbacks: result.totalFeedbacks
+        } : undefined);
         // Dispatch custom event to notify Navbar or other components
         window.dispatchEvent(new CustomEvent("tokens-updated"));
       } else {
@@ -265,9 +260,8 @@ export default function FeedbackForm({
   const commentLength = comment.trim().length;
   const hasValidComment = commentLength >= MIN_COMMENT_LENGTH;
   const currentCredits = earnedFromCategories + (hasValidComment ? REWARD_COMMENT : 0) + listenCredits;
-
   const currentAverage = ((ratings.cat2 + ratings.cat3 + ratings.overall) / 3);
-  const showGiftButton = currentAverage >= 4 && userSongCount === 0;
+  const showGiftButton = currentAverage >= 4;
 
   if (!isLoaded) {
     return (
@@ -299,7 +293,7 @@ export default function FeedbackForm({
             }}
             title="תודה על הפידבק!"
             buttonText="שיר הבא"
-            secondaryButtonText={showGiftButton ? "או אולי מתנה קטנה לאמן?" : undefined}
+            secondaryButtonText={showGiftButton ? "תנו מתנה קטנה לאמן" : undefined}
             secondaryButtonIcon={showGiftButton ? <Gift size={18} /> : undefined}
             onSecondaryClick={showGiftButton ? () => setIsGiftPopupOpen(true) : undefined}
             message={

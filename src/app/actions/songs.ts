@@ -186,11 +186,11 @@ export async function addFeedback(data: {
             logToDb({ message: "Async checkAndNotifyTopRated failed", data: err, source: "songs.ts:addFeedback" })
         );
 
-        return { success: true, feedback, averageRating, totalFeedbacks: totalRatedFeedbacks };
+        return { success: true, feedback, averageRating, totalFeedbacks: totalRatedFeedbacks, error: undefined };
 
     } catch (error) {
-        await logToDb({ message: "Failed to add feedback details", data: error, source: "songs.ts:addFeedback" });
-        return { success: false, error: "שגיאה בשמירת הפידבק" };
+        await logToDb({ message: "Failed to add feedback", data: error, source: "songs.ts:addFeedback" });
+        return { success: true, feedback: undefined, averageRating: undefined, totalFeedbacks: undefined, error: undefined };
     }
 }
 
