@@ -70,7 +70,8 @@ export async function getAdminFeedbacksReport() {
             cat2: feedbacks.cat2,
             cat3: feedbacks.cat3,
             overall: feedbacks.overall,
-            comment: feedbacks.comment
+            comment: feedbacks.comment,
+            isLiked: feedbacks.isLiked
         })
         .from(feedbacks)
         .leftJoin(songs, eq(feedbacks.songId, songs.id))

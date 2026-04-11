@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { getAdminSongsReport, getAdminFeedbacksReport, getAdminUsersReport, getAdminLogsReport, getAdminTopRatedReport, deleteAdminFeedback, deleteAdminSong } from '@/app/actions/admin';
-import { ArrowUpDown, ArrowUp, ArrowDown, Trash2 } from 'lucide-react';
+import { ArrowUpDown, ArrowUp, ArrowDown, Trash2, Heart } from 'lucide-react';
 import styles from './reports.module.css';
 
 type ReportType = 'songs' | 'feedbacks' | 'users' | 'logs' | 'top-rated';
@@ -199,6 +199,7 @@ export function ReportsClient() {
                                     <SortHeader label="מעלה השיר" sortKey="songCreatorName" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="שם המדרג" sortKey="authorName" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="דירוגים" sortKey="overall" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="לייק" sortKey="isLiked" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="הערה" sortKey="comment" sortConfig={sortConfig} onSort={handleSort} />
                                 </tr>
                             ) : reportType === 'top-rated' ? (
@@ -278,6 +279,13 @@ export function ReportsClient() {
                                                     <span>שירה:{item.cat3}</span>
                                                     <span>כללי:{item.overall}</span>
                                                 </div>
+                                            </td>
+                                            <td style={{ textAlign: 'center' }}>
+                                                {item.isLiked ? (
+                                                    <Heart size={18} fill="#ef4444" color="#ef4444" />
+                                                ) : (
+                                                    <span style={{ color: 'var(--text-muted)', opacity: 0.3 }}>-</span>
+                                                )}
                                             </td>
                                             <td>
                                                 <div className={styles.comment} title={item.comment}>
