@@ -39,18 +39,24 @@ export default function InfoTooltip({
     if (!isOpen || !triggerRef?.current) return;
 
     const triggerRect = triggerRef.current.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
     const tooltipPlaceholderHeight = 450;
+    const mobileThreshold = 450;
 
     let newMode: PositionMode = "top";
 
-    const spaceAbove = triggerRect.top;
-    if (spaceAbove < tooltipPlaceholderHeight) {
-      const spaceBelow = viewportHeight - triggerRect.bottom;
-      if (spaceBelow >= tooltipPlaceholderHeight) {
-        newMode = "bottom";
-      } else {
-        newMode = "centered";
+    if (viewportWidth < mobileThreshold) {
+      newMode = "centered";
+    } else {
+      const spaceAbove = triggerRect.top;
+      if (spaceAbove < tooltipPlaceholderHeight) {
+        const spaceBelow = viewportHeight - triggerRect.bottom;
+        if (spaceBelow >= tooltipPlaceholderHeight) {
+          newMode = "bottom";
+        } else {
+          newMode = "centered";
+        }
       }
     }
 

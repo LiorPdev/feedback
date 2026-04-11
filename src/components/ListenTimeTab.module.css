@@ -24,7 +24,7 @@
 .fbHeader {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 0.6rem;
   width: 100%;
 }

@@ -1,13 +1,17 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { motion } from "framer-motion";
 import ListenTimeTab from "@/components/ListenTimeTab";
 import RaterScoreInfo from "@/components/RaterScoreInfo";
 import { Eye, Loader2 } from "lucide-react";
 import { unlockFeedback } from "@/app/actions/feedback";
-import { UNLOCK_FEEDBACK_COST } from "@/lib/constants";
+import { UNLOCK_FEEDBACK_COST, LIKE_FEEDBACK_REWARD } from "@/lib/constants";
 import Link from "next/link";
 import styles from "./FeedbackTabs.module.css";
+import { Heart } from "lucide-react";
+import { likeFeedback, unlikeFeedback } from "@/app/actions/feedback";
+import Tooltip from "@/components/Tooltip";
 
 interface FeedbackItem {
   id: string;
@@ -20,6 +24,8 @@ interface FeedbackItem {
   overall: number | null;
   comment: string | null;
   authorRaterScore?: number;
+  isLiked?: boolean;
+  authorId?: string | null;
 }
 
 interface ListenEvent {
@@ -34,6 +40,7 @@ interface FeedbackTabsProps {
   listenEvents: ListenEvent[];
   listenAvgSeconds: number;
   currentTokens: number;
+  isOwner?: boolean;
   initialTab?: string;
 }
 function formatSeconds(seconds: number | null | undefined) {
@@ -52,12 +59,15 @@ export default function FeedbackTabs({
   listenEvents,
   listenAvgSeconds,
   currentTokens,
+  isOwner = false,
   initialTab = "feedbacks",
 }: FeedbackTabsProps) {
   const [activeTab, setActiveTab] = useState(initialTab);
   const [isPending, startTransition] = useTransition();
   const [errorIds, setErrorIds] = useState<Record<string, string>>({});
   const [optimisticUnlocked, setOptimisticUnlocked] = useState<Set<string>>(new Set());
+  const [optimisticLiked, setOptimisticLiked] = useState<Set<string>>(new Set());
+  const [showLikeTooltip, setShowLikeTooltip] = useState<string | null>(null);
 
   const handleUnlock = async (feedbackId: string) => {
     if (isPending) return;
@@ -80,6 +90,57 @@ export default function FeedbackTabs({
       } catch {
         // "Fail open" for server actions failures
         setOptimisticUnlocked(prev => new Set(prev).add(feedbackId));
+      }
+    });
+  };
+  const handleToggleLike = async (feedbackId: string, isCurrentlyLiked: boolean) => {
+    if (isPending) return;
+
+    // Optimistically update
+    if (isCurrentlyLiked) {
+      setOptimisticLiked(prev => {
+        const next = new Set(prev);
+        next.delete(feedbackId);
+        return next;
+      });
+      if (showLikeTooltip === feedbackId) setShowLikeTooltip(null);
+    } else {
+      setOptimisticLiked(prev => new Set(prev).add(feedbackId));
+    }
+
+    startTransition(async () => {
+      try {
+        if (isCurrentlyLiked) {
+          const result = await unlikeFeedback(feedbackId);
+          if (!result.success) {
+            // Revert
+            setOptimisticLiked(prev => new Set(prev).add(feedbackId));
+          }
+        } else {
+          const result = await likeFeedback(feedbackId);
+          if (result.success) {
+            setShowLikeTooltip(feedbackId);
+            setTimeout(() => setShowLikeTooltip(null), 4000);
+          } else {
+            // Revert
+            setOptimisticLiked(prev => {
+              const next = new Set(prev);
+              next.delete(feedbackId);
+              return next;
+            });
+          }
+        }
+      } catch {
+        // Revert on error
+        if (isCurrentlyLiked) {
+          setOptimisticLiked(prev => new Set(prev).add(feedbackId));
+        } else {
+          setOptimisticLiked(prev => {
+            const next = new Set(prev);
+            next.delete(feedbackId);
+            return next;
+          });
+        }
       }
     });
   };
@@ -160,6 +221,29 @@ export default function FeedbackTabs({
                             : part
                         ))}
                       </p>
+
+                      {isOwner && isActuallyUnlocked && (fb.authorId) && (
+                        <div className={styles.fbFooter}>
+                          <div className={styles.likeBtnContainer}>
+                            <motion.button
+                              className={`${styles.likeBtn} ${fb.isLiked || optimisticLiked.has(fb.id) ? styles.liked : ""}`}
+                              onClick={() => handleToggleLike(fb.id, fb.isLiked || optimisticLiked.has(fb.id))}
+                              disabled={isPending}
+                              title={(fb.isLiked || optimisticLiked.has(fb.id)) ? "ביטול" : "עזרת לי!"}
+                              whileHover={{ scale: 1.2 }}
+                              whileTap={{ scale: 2 }}
+                              transition={{ type: "spring", stiffness: 200, damping: 10 }}
+                            >
+                              <Heart size={18} fill={(fb.isLiked || optimisticLiked.has(fb.id)) ? "currentColor" : "none"} />
+                            </motion.button>
+                            <Tooltip
+                              show={showLikeTooltip === fb.id}
+                              message={`כותב המשוב תוגמל ב-${LIKE_FEEDBACK_REWARD} נק' קרדיט!`}
+                              align="left"
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {!isActuallyUnlocked && (

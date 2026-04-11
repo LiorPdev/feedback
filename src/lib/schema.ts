@@ -52,6 +52,7 @@ export const feedbacks = sqliteTable('Feedback', {
     comment: text('comment').notNull(),
     playedSeconds: integer('playedSeconds'),
     isUnlocked: integer('isUnlocked', { mode: 'boolean' }).default(false).notNull(),
+    isLiked: integer('isLiked', { mode: 'boolean' }).default(false).notNull(),
     createdAt: text('createdAt').notNull().$defaultFn(() => new Date().toISOString()),
 }, (table) => {
     return {

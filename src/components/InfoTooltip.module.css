@@ -152,7 +152,7 @@
   }
 }
 
-@media (max-width: 360px) {
+@media (max-width: 450px) {
   .popup {
     position: fixed !important;
     top: 50% !important;

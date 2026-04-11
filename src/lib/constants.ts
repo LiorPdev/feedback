@@ -15,15 +15,18 @@ export const GENRES = [
 
 export const MAX_SONG_TITLE_LENGTH = 30;
 
+// Tokens i get
 export const INITIAL_TOKENS = 100;
+export const FREE_FEEDBACKS_FOR_ARTIST = 2;
+export const LIKE_FEEDBACK_REWARD = 20;
+export const REWARD_PRODUCTION = 1;
+export const REWARD_VOCALS = 1;
+export const REWARD_OVERALL = 1;
+export const REWARD_COMMENT = 10;
+
+// Tokens i spend
 export const SONG_SUBMISSION_COST = 50;
 export const UNLOCK_FEEDBACK_COST = 30;
-export const FREE_FEEDBACKS_FOR_ARTIST = 2;
-
-export const REWARD_PRODUCTION = 2;
-export const REWARD_VOCALS = 2;
-export const REWARD_OVERALL = 2;
-export const REWARD_COMMENT = 15;
 
 export const MIN_COMMENT_LENGTH = 30;
 export const COMMENT_LENGTH_BONUS = 60;

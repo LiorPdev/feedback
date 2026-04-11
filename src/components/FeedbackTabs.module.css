@@ -23,8 +23,8 @@
 .fbHeader {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.6rem;
+  align-items: flex-start;
+  margin-bottom: 1rem;
   width: 100%;
 }
 
@@ -89,7 +89,6 @@
 
 .fbPlaytime {
   font-size: 0.85rem !important;
-  margin-bottom: 0.5rem;
   color: var(--text-muted) !important;
   display: flex !important;
   align-items: center !important;
@@ -158,7 +157,7 @@
 
 .tabActive {
   color: var(--brand-primary) !important;
-  background: var(--card-bg);
+  background: var(--bg-section);
   border-color: var(--border-color);
   border-bottom-color: var(--card-bg);
   margin-bottom: -2px;
@@ -264,6 +263,45 @@
 
 .blinkText {
   animation: blink 1.6s infinite ease-in-out;
+}
+
+.likeBtnContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-right: -4px;
+}
+
+.likeBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.likeBtn:hover:not(:disabled) {
+  background: var(--brand-bg);
+}
+
+.likeBtn:disabled {
+  cursor: default;
+}
+
+.liked {
+  color: #ff4d4f;
+}
+
+.fbFooter {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+  width: 100%;
 }
 
 @media (max-width: 600px) {

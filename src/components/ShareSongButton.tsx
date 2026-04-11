@@ -5,6 +5,7 @@ import { Share2, Check } from "lucide-react";
 import styles from "./ShareSongButton.module.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { useShare } from "@/hooks/useShare";
+import Tooltip from "@/components/Tooltip";
 
 interface ShareSongButtonProps {
   slug: string;
@@ -83,21 +84,14 @@ export default function ShareSongButton({ slug, isNew, variant = "standard", dis
           </span>
         )}
 
-        <AnimatePresence>
-          {(copied || showAutoTooltip) && (
-            <motion.div
-              className={`${styles.tooltip} ${styles[tooltipAlign]}`}
-              initial={{ opacity: 0, y: 5, x: tooltipAlign === "center" ? "-50%" : "0" }}
-              animate={{ opacity: 1, y: 0, x: tooltipAlign === "center" ? "-50%" : "0" }}
-              exit={{ opacity: 0, y: 5, x: tooltipAlign === "center" ? "-50%" : "0" }}
-            >
-              {copied
-                ? "הועתק! שילחו לחברים את הקישור ובקשו מהם לפרגן לכם עם פידבק על השיר"
-                : "השיר התווסף! שילחו לחברים את הקישור ובקשו מהם לפרגן לכם עם פידבק על השיר"
-              }
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <Tooltip
+          show={copied || showAutoTooltip}
+          align={tooltipAlign}
+          message={copied
+            ? "הועתק! שילחו לחברים את הקישור כדי שיתנו לכם פידבק על השיר"
+            : "השיר התווסף! שילחו לחברים את הקישור כדי שיתנו לכם פידבק על השיר"
+          }
+        />
       </button>
     </div>
   );

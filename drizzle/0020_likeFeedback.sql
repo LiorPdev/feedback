@@ -1,0 +1,1 @@
+ALTER TABLE `Feedback` ADD `isLiked` integer DEFAULT false NOT NULL;

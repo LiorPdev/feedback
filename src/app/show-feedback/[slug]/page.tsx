@@ -66,6 +66,8 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
     authorGenre: fb.authorId ? (authorGenreMap.get(fb.authorId) ?? null) : null,
     authorRaterScore: fb.authorId ? (authorRaterScoreMap.get(fb.authorId) ?? 0) : 0,
     isUnlocked: fb.isUnlocked,
+    isLiked: fb.isLiked,
+    authorId: fb.authorId,
     cat2: fb.cat2,
     cat3: fb.cat3,
     overall: fb.overall,
@@ -136,6 +138,7 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
           listenEvents={listenData.events ?? []}
           listenAvgSeconds={listenData.avgSeconds ?? 0}
           currentTokens={currentUserRecord?.tokens ?? 0}
+          isOwner={isOwner}
         />
 
         <DashboardLink />
