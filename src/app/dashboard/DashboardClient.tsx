@@ -7,8 +7,10 @@ import { BarChart3, MessageSquare, Music } from "lucide-react";
 import SongCard from "@/components/SongCard";
 import SongRatingsChart from "./SongRatingsChart";
 import PlayButton from "@/components/PlayButton";
+import HeartWithTooltip from "@/components/HeartWithTooltip";
 import styles from "./DashboardClient.module.css";
 import type { GivenFeedbackItem } from "@/app/actions/feedback";
+import { LIKE_FEEDBACK_REWARD } from "@/lib/constants";
 
 interface DashboardSong {
   id: string;
@@ -120,7 +122,7 @@ export default function DashboardClient({
             </>
           )}
 
-          {/* "הפידבק שנתתי" tab — always shown if onlyFeedbacksGiven, otherwise shown alongside songs tabs */}
+          {/* "הפידבק שנתתי" tab — shown if onlyFeedbacksGiven, otherwise shown alongside songs tabs */}
           {(onlyFeedbacksGiven || givenFeedbacks.length > 0) && (
             <button
               type="button"
@@ -208,6 +210,9 @@ export default function DashboardClient({
                           size={26}
                         />
                         <span className={styles.myFbSongTitle}>{fb.songTitle}</span>
+                        {fb.isLiked && (
+                          <HeartWithTooltip rewardAmount={LIKE_FEEDBACK_REWARD} />
+                        )}
                       </div>
                       <span className={styles.myFbDate}>
                         {new Date(fb.createdAt).toLocaleDateString("he-IL")}

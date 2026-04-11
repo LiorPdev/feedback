@@ -37,6 +37,7 @@ export interface GivenFeedbackItem {
   comment: string;
   playedSeconds: number | null;
   createdAt: string;
+  isLiked: boolean;
 }
 
 export async function getMyGivenFeedbacks(): Promise<GivenFeedbackItem[]> {
@@ -64,6 +65,7 @@ export async function getMyGivenFeedbacks(): Promise<GivenFeedbackItem[]> {
       comment: row.comment,
       playedSeconds: row.playedSeconds,
       createdAt: row.createdAt,
+      isLiked: row.isLiked,
     }));
   } catch {
     return [];
