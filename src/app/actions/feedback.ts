@@ -7,6 +7,7 @@ import { and, eq, lt, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { logAction } from "./logs";
 import { UNLOCK_FEEDBACK_COST, FREE_FEEDBACKS_FOR_ARTIST, LIKE_FEEDBACK_REWARD } from "@/lib/constants";
+import { updateRaterScore } from "@/lib/rater-score";
 
 export async function getMyGivenFeedbacksCount(): Promise<number> {
   try {
@@ -223,6 +224,9 @@ export async function likeFeedback(feedbackId: string) {
 
     revalidatePath(`/show-feedback/${feedback.song.slug}`);
 
+    // Update rater quality index (since it depends on likes)
+    await updateRaterScore(feedback.authorId!);
+
     return { success: true };
 
   } catch (error) {
@@ -277,6 +281,9 @@ export async function unlikeFeedback(feedbackId: string) {
       .where(eq(feedbacks.id, feedbackId));
 
     revalidatePath(`/show-feedback/${feedback.song.slug}`);
+
+    // Update rater quality index (since it depends on likes)
+    await updateRaterScore(feedback.authorId!);
 
     return { success: true };
 

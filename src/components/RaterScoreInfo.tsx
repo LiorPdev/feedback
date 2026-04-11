@@ -55,14 +55,9 @@ export default function RaterScoreInfo({
         content={
           <div className={styles.tooltipContent}>
             <ul className={styles.formulaLegend}>
-              <li><strong>לפי איכות:</strong> רמת הפירוט של ההסברים.</li>
-              <li><strong>לפי אמינות:</strong> מידת התאמת הדירוג לממוצע <br />הקהילה
-                (למניעת הטיות מכוונות).</li>
+              <li>לפי אחוז הפידבקים שקיבלו <strong>לייק</strong>.</li>
+              <li>לפי רמת <strong>הפירוט והדיוק</strong> של הפידבק.</li>
             </ul>
-            <p style={{ marginTop: '1rem' }}>
-              <strong>בונוס:</strong> מדרגים איכותיים זוכים לתעדוף <br />
-              באלגוריתם ההשמעה!
-            </p>
             <p style={{ marginTop: '1rem' }}>
               הציון המקסימלי הוא 5.
             </p>

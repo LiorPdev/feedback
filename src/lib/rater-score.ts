@@ -1,15 +1,12 @@
 import { getDb } from "./db";
+import { logToDb } from "./logger";
 import { feedbacks, users } from "./schema";
 import { eq } from "drizzle-orm";
 import {
   RATER_WEIGHT_TEXT,
-  RATER_WEIGHT_LENGTH,
-  RATER_WEIGHT_COUNT,
+  RATER_WEIGHT_LIKES,
   RATER_WEIGHT_CONSENSUS,
-  RATER_TARGET_CHARS_FOR_BONUS,
-  RATER_COUNT_RATES,
   RATER_MIN_REVIEWS_TO_COMPARE,
-  MIN_COMMENT_LENGTH,
   WEIGHT_PRODUCTION,
   WEIGHT_SINGING,
   WEIGHT_OVERALL
@@ -21,6 +18,7 @@ interface FeedbackShape {
   cat3: number;
   overall: number;
   comment?: string | null;
+  isLiked: boolean;
   song: {
     feedbacks: {
       id: string;
@@ -55,25 +53,22 @@ export async function updateRaterScore(userId: string) {
     }
 
     let totalTextScore = 0;
-    let totalLengthScore = 0;
     let totalConsensusScore = 0;
+    let likedCount = 0;
 
     // Helper to calculate weighted rating
     const getRating = (f: { cat2: number; cat3: number; overall: number }) => 
       (f.cat2 * WEIGHT_PRODUCTION + f.cat3 * WEIGHT_SINGING + f.overall * WEIGHT_OVERALL);
 
     for (const fb of userFeedbacks) {
-      // Text Presence (40%)
+      // Text Presence Component
       const charCount = fb.comment ? fb.comment.trim().length : 0;
-      const hasText = charCount > 0;
-      if (hasText) totalTextScore += 1;
+      if (charCount > 0) totalTextScore += 1;
 
-      // Text Length (30%) - bonus for every char above MIN_COMMENT_LENGTH
-      const lengthBonusRange = RATER_TARGET_CHARS_FOR_BONUS - MIN_COMMENT_LENGTH;
-      const extraChars = Math.max(0, charCount - MIN_COMMENT_LENGTH);
-      totalLengthScore += Math.min(extraChars / lengthBonusRange, 1);
+      // Likes Component
+      if (fb.isLiked) likedCount += 1;
 
-      // Consensus (20%)
+      // Consensus Component
       const userRating = getRating(fb);
       const otherFeedbacks = fb.song.feedbacks.filter(f => f.id !== fb.id && f.overall > 0);
 
@@ -91,14 +86,14 @@ export async function updateRaterScore(userId: string) {
 
     const count = userFeedbacks.length;
     const avgText = totalTextScore / count;
-    const avgLength = totalLengthScore / count;
     const avgConsensus = totalConsensusScore / count;
-    const countScore = Math.min(count / RATER_COUNT_RATES, 1);
+    
+    // 50% liked is enough for full points (1.0) in this component
+    const likesScore = Math.min((likedCount / count) * 2, 1);
 
     const finalScore = (
+      (likesScore * RATER_WEIGHT_LIKES) +
       (avgText * RATER_WEIGHT_TEXT) +
-      (avgLength * RATER_WEIGHT_LENGTH) +
-      (countScore * RATER_WEIGHT_COUNT) +
       (avgConsensus * RATER_WEIGHT_CONSENSUS)
     ) * 5;
 
@@ -111,6 +106,11 @@ export async function updateRaterScore(userId: string) {
 
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(`Error updating rater score for user ${userId}:`, errorMessage);
+    await logToDb({
+      message: `Error updating rater score: ${errorMessage}`,
+      data: error,
+      source: "rater-score.ts:updateRaterScore",
+      userId
+    });
   }
 }
