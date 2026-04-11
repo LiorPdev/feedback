@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { addFeedback, getUserTokens } from "@/app/actions/songs";
-import { REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH } from "@/lib/constants";
+import { REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH, COMMENT_LENGTH_BONUS } from "@/lib/constants";
 import styles from "./FeedbackForm.module.css";
 import AnimatedTokenCounter from "./AnimatedTokenCounter";
 import AuthOverlay from "./AuthOverlay";
@@ -259,7 +259,8 @@ export default function FeedbackForm({
   const earnedFromCategories = categories.reduce((sum, cat) => sum + (ratings[cat.key] > 0 ? cat.reward : 0), 0);
   const commentLength = comment.trim().length;
   const hasValidComment = commentLength >= MIN_COMMENT_LENGTH;
-  const currentCredits = earnedFromCategories + (hasValidComment ? REWARD_COMMENT : 0) + listenCredits;
+  const hasBonusComment = commentLength >= COMMENT_LENGTH_BONUS;
+  const currentCredits = earnedFromCategories + (hasValidComment ? REWARD_COMMENT : 0) + (hasBonusComment ? REWARD_COMMENT : 0) + listenCredits;
   const currentAverage = ((ratings.cat2 + ratings.cat3 + ratings.overall) / 3);
   const showGiftButton = currentAverage >= 4;
 
@@ -378,12 +379,21 @@ export default function FeedbackForm({
                 value={comment}
                 onChange={(e) => {
                   const newValue = e.target.value;
-                  const wasValid = comment.trim().length >= MIN_COMMENT_LENGTH;
-                  const isValid = newValue.trim().length >= MIN_COMMENT_LENGTH;
+                  const prevLength = comment.trim().length;
+                  const nextLength = newValue.trim().length;
 
-                  if (!wasValid && isValid) {
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    triggerFlyer(rect.left + rect.width / 2, rect.top + rect.height / 2, REWARD_COMMENT);
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const centerX = rect.left + rect.width / 2;
+                  const centerY = rect.top + rect.height / 2;
+
+                  // Trigger for MIN_COMMENT_LENGTH (30)
+                  if (prevLength < MIN_COMMENT_LENGTH && nextLength >= MIN_COMMENT_LENGTH) {
+                    triggerFlyer(centerX, centerY, REWARD_COMMENT);
+                  }
+
+                  // Trigger for COMMENT_LENGTH_BONUS (60)
+                  if (prevLength < COMMENT_LENGTH_BONUS && nextLength >= COMMENT_LENGTH_BONUS) {
+                    triggerFlyer(centerX, centerY, REWARD_COMMENT);
                   }
 
                   setComment(newValue);

@@ -68,44 +68,6 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
   const embedUrl = currentSong ? getEmbedUrl(currentSong.url) : null;
   const showPlayer = !!embedUrl;
 
-  useEffect(() => {
-    if (!isTimerActive) return;
-
-    const interval = setInterval(() => {
-      setSecondsRemaining((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [isTimerActive]);
-
-  useEffect(() => {
-    if (!isPlaying) return;
-
-    const interval = setInterval(async () => {
-      if (playerRef.current) {
-        const [time, dur] = await Promise.all([
-          playerRef.current.getPlaybackTime(),
-          playerRef.current.getDuration()
-        ]);
-        setCurrentTime(time);
-        if (dur > 0) {
-          setDuration(dur);
-          if (time >= dur) {  // Edge case: If playback has reached the end and the song naturally finished before the timer, unlock it.
-            setSecondsRemaining(0);
-          }
-        }
-      }
-    }, 500);
-
-    return () => clearInterval(interval);
-  }, [isPlaying]);
-
   const closeCreditPopup = () => {
     setShowCreditPopup(false);
     // Cleanup URL to avoid showing popup again on refresh
@@ -139,6 +101,44 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
     setCurrentTime(0);
     setDuration(0);
   }, [getRequiredTime]);
+
+  useEffect(() => {
+    if (!isTimerActive) return;
+
+    const interval = setInterval(() => {
+      setSecondsRemaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isTimerActive]);
+
+  useEffect(() => {
+    if (!isPlaying) return;
+
+    const interval = setInterval(async () => {
+      if (playerRef.current) {
+        const [time, dur] = await Promise.all([
+          playerRef.current.getPlaybackTime(),
+          playerRef.current.getDuration()
+        ]);
+        setCurrentTime(time);
+        if (dur > 0) {
+          setDuration(dur);
+          if (time >= dur - 0.5) { 
+            onPlayerEnded();
+          }
+        }
+      }
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, [isPlaying, onPlayerEnded]);
 
   const onPlayerError = useCallback((error: unknown) => {
     logAction({

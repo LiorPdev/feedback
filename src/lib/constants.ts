@@ -23,9 +23,10 @@ export const FREE_FEEDBACKS_FOR_ARTIST = 2;
 export const REWARD_PRODUCTION = 2;
 export const REWARD_VOCALS = 2;
 export const REWARD_OVERALL = 2;
-export const REWARD_COMMENT = 10;
+export const REWARD_COMMENT = 15;
 
 export const MIN_COMMENT_LENGTH = 30;
+export const COMMENT_LENGTH_BONUS = 60;
 export const MIN_LISTEN_TIME = 40;
 export const MAX_FILE_SIZE_MB = 10;
 export const MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024;
