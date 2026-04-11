@@ -2,7 +2,8 @@ import { sqliteTable, text, integer, index, uniqueIndex, real } from 'drizzle-or
 import { relations } from 'drizzle-orm';
 
 export const users = sqliteTable('User', {
-    id: text('id').primaryKey(), // Clerk ID
+    id: text('id').primaryKey(), // Internal system ID
+    clerkId: text('clerkId').unique(), // Mapping to Clerk user ID
     email: text('email').notNull().unique(),
     name: text('name'),
     provider: text('provider'),
