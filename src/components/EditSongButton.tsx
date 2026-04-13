@@ -194,13 +194,13 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
   return (
     <>
       <Button
-        variant="outline"
+        variant="ghost"
         size="md"
         onClick={() => setShowModal(true)}
         title="עריכת פרטי השיר"
         style={{ padding: '8px', minWidth: 'auto' }}
       >
-        <Pencil size={18} />
+        <Pencil size={16} />
       </Button>
 
       {mounted && createPortal(modalContent, document.body)}

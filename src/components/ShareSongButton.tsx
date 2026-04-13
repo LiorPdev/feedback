@@ -49,7 +49,7 @@ export default function ShareSongButton({ slug, variant = "standard", disabled, 
               exit={{ scale: 0.5, opacity: 0 }}
               className={styles.iconBox}
             >
-              <Check size={variant === "large" ? 20 : 18} />
+              <Check size={variant === "large" ? 20 : 16} />
             </motion.div>
           ) : (
             <motion.div
@@ -59,7 +59,7 @@ export default function ShareSongButton({ slug, variant = "standard", disabled, 
               exit={{ scale: 0.5, opacity: 0 }}
               className={styles.iconBox}
             >
-              <Share2 size={variant === "large" ? 20 : 18} />
+              <Share2 size={variant === "large" ? 20 : 16} />
             </motion.div>
           )}
         </AnimatePresence>
