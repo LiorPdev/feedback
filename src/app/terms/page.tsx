@@ -1,5 +1,7 @@
 import LegalContent from "@/components/LegalContent";
 
+export const dynamic = "force-dynamic";
+
 export default function TermsPage() {
   const termsData = {
     title: "תנאי שימוש",

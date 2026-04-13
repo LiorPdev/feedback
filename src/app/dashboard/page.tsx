@@ -10,6 +10,7 @@ import { getMyGivenFeedbacks } from "@/app/actions/feedback";
 import type { GivenFeedbackItem } from "@/app/actions/feedback";
 import RaterScoreInfo from "@/components/RaterScoreInfo";
 import { syncUser } from "@/lib/user-auth";
+export const dynamic = "force-dynamic";
 import PageHeader from "@/components/PageHeader";
 import styles from "./dashboard.module.css";
 
@@ -92,8 +93,8 @@ export default async function DashboardPage({
             backUrl={isBackHome ? "/" : undefined}
             hideDivider
           />
-          <Link 
-            href={`/get-feedback?new=true${isBackHome ? "&backHome=true" : ""}`} 
+          <Link
+            href={`/get-feedback?new=true${isBackHome ? "&backHome=true" : ""}`}
             className={styles.headerActionBtn}
           >
             הוספת שיר

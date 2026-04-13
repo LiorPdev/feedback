@@ -1,5 +1,7 @@
 import LegalContent from "@/components/LegalContent";
 
+export const dynamic = "force-dynamic";
+
 export default function PrivacyPage() {
   const privacyData = {
     title: "מדיניות פרטיות",

@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import styles from "./show-feedback.module.css";
 import ManualBackButton from "@/components/ManualBackButton";
 import { syncUser } from "@/lib/user-auth";
+export const dynamic = "force-dynamic";
 import DashboardLink from "@/components/DashboardLink";
 import ShareSongButton from "@/components/ShareSongButton";
 import SongPlayer from "./SongPlayer";

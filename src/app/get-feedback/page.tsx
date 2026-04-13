@@ -1,4 +1,6 @@
 import { syncUser } from "@/lib/user-auth";
+
+export const dynamic = "force-dynamic";
 import { redirect } from "next/navigation";
 import { getUserSongCount } from "@/app/actions/songs";
 import GetFeedbackClient from "./GetFeedbackClient";

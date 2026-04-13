@@ -4,6 +4,8 @@ import { syncUser } from "@/lib/user-auth";
 import { getUserSongCount } from "@/app/actions/songs";
 import { getMyGivenFeedbacksCount } from "@/app/actions/feedback";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "פידבק-ספייס | קהילה לקבלת פידבקים",
   description: "מותאמת לאמנים ויוצרים. בואו לקבל חוות דעת כנה על היצירות שלכם.",
