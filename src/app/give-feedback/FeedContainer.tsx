@@ -78,7 +78,8 @@ export default function FeedContainer({
   });
 
   const [currentIndex, setCurrentIndex] = useState(0);
-
+  const [originalFirstSongId] = useState(initialSongs[0]?.id);
+  const [isJustRated, setIsJustRated] = useState(false);
   const currentSong = songs[currentIndex];
   const getRequiredTime = useCallback(() => { return MIN_LISTEN_TIME; }, []);
   const [secondsRemaining, setSecondsRemaining] = useState<number>(getRequiredTime());
@@ -100,7 +101,10 @@ export default function FeedContainer({
     }
   });
 
-  const hasRatedCurrent = !!initialFeedback || (currentSong && sessionRatedSongs.includes(currentSong.id));
+  const hasRatedCurrent = !isJustRated && (
+    (currentSong?.id === originalFirstSongId && !!initialFeedback) ||
+    (currentSong && sessionRatedSongs.includes(currentSong.id))
+  );
   const [userFeedback, setUserFeedback] = useState<Feedback | null>(initialFeedback || null);
   const [isTransitioning, setIsTransitioning] = useState(true); // true until player fires onReady
   const [playerError, setPlayerError] = useState<string | null>(null);
@@ -229,6 +233,7 @@ export default function FeedContainer({
     if (songs.length <= 1) return;
     resetSongState();
     setUserFeedback(null);
+    setIsJustRated(false);
     setIsPlaying(false);
     setIsTransitioning(true);
     setCurrentIndex((prev) => (prev + 1) % songs.length);
@@ -250,6 +255,7 @@ export default function FeedContainer({
       // Update index if needed
       resetSongState();
       setUserFeedback(null);
+      setIsJustRated(false);
       setIsPlaying(false);
       setIsTransitioning(true);
       return updatedSongs;
@@ -299,7 +305,6 @@ export default function FeedContainer({
 
   const isYouTube = currentSong.url.includes("youtube.com") || currentSong.url.includes("youtu.be");
   const isAudio = !!currentSong.url.match(/\.(mp3|wav|ogg|m4a|aac)(\?.*)?$/i) || currentSong.url.includes("r2.dev");
-  const isBypassTimer = from === "top-rated" && currentSong?.slug === initialSongSlug;
   const isHiddenPlayer = isYouTube || isAudio;
   const showSpinner = isYouTube && isTransitioning;
   const isProminentNext = !isPlaying && hasRatedCurrent;
@@ -309,25 +314,32 @@ export default function FeedContainer({
   return (
     <div className={styles.feedWrapper}>
       <div className={styles.songCard}>
+        {/* Song Title Section */}
         <div className={styles.topHeader}>
-          {showBack && (
-            <ManualBackButton 
-              url={backUrl}
-              className={styles.backButton}
-            />
-          )}
+          <div className={`${styles.headerSide} ${styles.headerRight}`}>
+            {showBack && (
+              <ManualBackButton
+                url={backUrl}
+                className={styles.backButton}
+              />
+            )}
+          </div>
 
-          <div className={styles.titleRow}>
+          <div className={styles.headerCenter}>
             <h2 className={styles.title}>{currentSong.title}</h2>
             {currentSong.genre && (
               <span className={styles.genreInline}>({currentSong.genre})</span>
             )}
+          </div>
+
+          <div className={`${styles.headerSide} ${styles.headerLeft}`}>
             <div className={styles.inlineSocials}>
               <ArtistSocials socialLinks={currentSong.user?.socialLinks} />
             </div>
           </div>
         </div>
 
+        {/* Player Section */}
         <div className={styles.playerSection}>
           <motion.div
             key={currentSong.id + "-player"}
@@ -356,6 +368,7 @@ export default function FeedContainer({
           )}
         </div>
 
+        {/* Controls Wrapper */}
         <div className={styles.controlsWrapper}>
           <div className={styles.actions}>
             {isHiddenPlayer ? (
@@ -400,6 +413,7 @@ export default function FeedContainer({
           </div>
         </div>
 
+        {/* Feedback card */}
         <div className={styles.feedbackSection}>
           {!hasRatedCurrent && (
             <FeedbackForm
@@ -408,25 +422,25 @@ export default function FeedContainer({
               key={currentSong.id}
               getPlayedSeconds={getPlayedSeconds}
               isPlaying={isPlaying}
-              isDisabled={!isBypassTimer && secondsRemaining > 0}
+              isDisabled={secondsRemaining > 0}
               initialSource={from}
               isLoggedIn={isLoggedIn}
               onSuccess={(feedback) => {
                 setUserFeedback(feedback as Feedback);
+                setIsJustRated(true);
                 // Don't mark as rated in session yet, wait for popup to close
               }}
               onPopupClose={() => {
+                setIsJustRated(false);
                 if (!isLoggedIn) {
                   markSongAsRatedInSession(currentSong.id);
                 }
                 handleRemoveCurrent();
               }}
               disabledMessage={
-                isBypassTimer ? "" : (
-                  secondsRemaining >= getRequiredTime()
-                    ? (isLoggedIn || isGuestEligible ? `שליחת פידבק` : `שליחת פידבק (אנונימי)`)
-                    : `ניתן לשלוח פידבק בעוד ${secondsRemaining} שניות${!isTimerActive ? " (מושהה)" : "..."}`
-                )
+                secondsRemaining >= getRequiredTime()
+                  ? (isLoggedIn || isGuestEligible ? `שליחת פידבק` : `שליחת פידבק (אנונימי)`)
+                  : `ניתן לשלוח פידבק בעוד ${secondsRemaining} שניות${!isTimerActive ? " (מושהה)" : "..."}`
               }
             />
           )}
