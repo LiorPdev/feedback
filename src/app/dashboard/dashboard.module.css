@@ -8,39 +8,10 @@
   flex-direction: column;
 }
 
-.header {
+.headerWrapper {
   max-width: 1000px;
   width: 100%;
-  margin: 0 auto 1.5rem;
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 2rem;
-  position: relative;
-  z-index: 100;
-}
-
-.welcomeContainer {
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
-}
-
-.welcome {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.welcome h1 {
-  font-size: 2.5rem;
-  font-weight: 900;
-  margin-bottom: 0.2rem;
-}
-
-.raterScoreDashboard {
-  margin-bottom: 0;
-  margin-top: 0;
+  margin: 0 auto;
 }
 
 .content {
@@ -84,50 +55,14 @@
   margin: 0;
 }
 
-.mobileActionBtn {
+.mobileActionBtn,
+.headerActionBtn {
   display: none;
 }
 
 @media (max-width: 768px) {
   .container {
     padding: 0.75rem 1rem;
-  }
-
-  .header {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    text-align: right;
-    position: relative;
-    padding: 0.5rem 0 1rem 0;
-    margin-bottom: 0.5rem;
-    gap: 1rem;
-    width: 100%;
-  }
-
-  .welcomeContainer {
-    gap: 0.3rem;
-    margin-right: -1rem;
-    display: flex;
-    align-items: center;
-    flex: 1;
-    min-width: 0;
-  }
-
-  .welcome {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-
-  .welcome h1 {
-    font-size: 1.45rem;
-    margin-bottom: 0px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 
   .mobileActionBtn {
@@ -144,10 +79,34 @@
     margin-left: 0;
     flex-shrink: 0;
   }
+
+  .headerRow {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .headerActionBtn {
+    display: flex;
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 0.5rem 0.8rem;
+    font-size: 0.85rem;
+    background: var(--brand-primary);
+    color: white;
+    text-decoration: none;
+    border-radius: 12px;
+    font-weight: 700;
+    box-shadow: 0 4px 10px var(--brand-light);
+    white-space: nowrap;
+    z-index: 10;
+  }
 }
 
-@media (max-width: 350px) {
-  .welcomeText {
+@media (max-width: 370px) {
+  .raterScoreDashboard strong {
     display: none;
   }
 }

@@ -5,56 +5,80 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Coins } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { useUser } from "@clerk/nextjs";
-import { createSong, getUserSongCount, getUserTokens, getURLMetadata, searchYouTubeVideos } from "@/app/actions/songs";
+import { createSong, getURLMetadata, searchYouTubeVideos } from "@/app/actions/songs";
 import { getPresignedUploadUrl } from "@/app/actions/upload";
 import { logAction } from "@/app/actions/logs";
 import { useRouter } from "next/navigation";
 import styles from "./get-feedback.module.css";
 import { GENRES, SONG_SUBMISSION_COST, MAX_FILE_SIZE, MAX_FILE_SIZE_MB, MAX_SONG_TITLE_LENGTH } from "@/lib/constants";
-import AuthOverlay from "@/components/AuthOverlay";
-import BackButton from "@/components/BackButton";
+import RegistrationGate from "@/components/RegistrationGate";
+import PageHeader from "@/components/PageHeader";
+import Button from "@/components/ui/Button";
+import PopupMsg from "@/components/PopupMsg";
+import { useUtmMode } from "@/hooks/useUtmMode";
 
-export default function GetFeedback({ backHome = false }: { backHome?: boolean }) {
+interface GetFeedbackProps {
+  backHome?: boolean;
+  isLoggedIn: boolean;
+  initialHasSongs: boolean;
+  initialTokens: number;
+}
+
+export default function GetFeedback({
+  backHome = false,
+  isLoggedIn,
+  initialHasSongs,
+  initialTokens
+}: GetFeedbackProps) {
   const [songLink, setSongLink] = useState("");
   const [songTitle, setSongTitle] = useState("");
   const [selectedGenre, setSelectedGenre] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success">("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [showTokenLink, setShowTokenLink] = useState(false);
-  const [hasSongs, setHasSongs] = useState(false);
+  const [hasSongs] = useState(initialHasSongs);
   const [isFetchingMetadata, setIsFetchingMetadata] = useState(false);
   const [submissionType, setSubmissionType] = useState<"link" | "upload">("link");
   const [songFile, setSongFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState("");
   const [lastFetchedLink, setLastFetchedLink] = useState("");
+  const [guestEmail, setGuestEmail] = useState("");
   const [youtubeAlternative, setYoutubeAlternative] = useState<{ url: string, title: string } | null>(null);
   const [searchResults, setSearchResults] = useState<{ id: string, url: string, title: string, thumbnail: string }[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-  const { user, isLoaded, isSignedIn } = useUser();
+  const [copied, setCopied] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    async function checkAccountStatus() {
-      if (user?.id) {
-        // Check song count
-        const songCountResult = await getUserSongCount(user.id);
-        if (songCountResult.success && songCountResult.count > 0) {
-          setHasSongs(true);
-        }
-
-        // Check tokens
-        const tokenResult = await getUserTokens(user.id);
-        if (tokenResult.success && typeof tokenResult.tokens === 'number') {
-          if (tokenResult.tokens < SONG_SUBMISSION_COST) {
-            router.push('/give-feedback?insufficient_credits=true');
-          }
-        }
-      }
+    if (songTitle) {
+      const el = document.querySelector(`input[placeholder*="לדוגמא: איך שיר נולד"]`) as HTMLInputElement;
+      if (el) el.setCustomValidity("");
     }
-    checkAccountStatus();
-  }, [user?.id, router]);
+  }, [songTitle]);
+
+  useEffect(() => {
+    if (selectedGenre) {
+      const el = document.querySelector(`select`) as HTMLSelectElement;
+      if (el) el.setCustomValidity("");
+    }
+  }, [selectedGenre]);
+
+  useEffect(() => {
+    if (songLink) {
+      const el = document.querySelector(`input[placeholder*="הדביקו קישור ליוטיוב"]`) as HTMLInputElement;
+      if (el) el.setCustomValidity("");
+    }
+  }, [songLink]);
+
+  const { isUtmMode: isGuestEligible, isLoaded: isUtmLoaded } = useUtmMode();
+  const isCheckingGuest = !isUtmLoaded;
+
+  useEffect(() => {
+    if (isLoggedIn && initialTokens < SONG_SUBMISSION_COST) {
+      router.push('/give-feedback?insufficient_credits=true');
+    }
+  }, [isLoggedIn, initialTokens, router]);
 
   useEffect(() => {
     const fetchMetadata = async () => {
@@ -133,8 +157,18 @@ export default function GetFeedback({ backHome = false }: { backHome?: boolean }
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!user?.id) {
+    if (!isLoggedIn && !isGuestEligible) {
       setErrorMessage("עליך להיות מחובר כדי לשלוח שיר");
+      return;
+    }
+
+    if (!isLoggedIn && !guestEmail) {
+      setErrorMessage("יש להזין אימייל ליצירת קשר");
+      return;
+    }
+
+    if (!isLoggedIn && guestEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) {
+      setErrorMessage("כתובת המייל שקישרת אינה תקינה");
       return;
     }
 
@@ -193,12 +227,15 @@ export default function GetFeedback({ backHome = false }: { backHome?: boolean }
     formData.append("url", finalUrl);
     formData.append("title", songTitle);
     formData.append("genre", selectedGenre);
+    if (!isLoggedIn && guestEmail) {
+      formData.append("guestEmail", guestEmail);
+    }
 
     try {
       const result = await createSong(formData);
       if (result.success && result.song) {
-        // Immediate redirect with the new slug for highlighting
-        router.push(`/dashboard?new=${result.song.slug}`);
+        const dest = backHome ? "/dashboard?backHome=true" : "/dashboard";
+        router.push(dest);
       } else {
         setErrorMessage(result.error || "שגיאה בביצוע הפעולה");
         if ((result as { type?: string }).type === 'insufficient_tokens') {
@@ -216,15 +253,16 @@ export default function GetFeedback({ backHome = false }: { backHome?: boolean }
   return (
     <div className={styles.container}>
       <motion.div
-        className={`${styles.card} ${!isSignedIn && isLoaded ? styles.blurred : ""}`}
+        className={styles.card}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <div className={styles.header}>
-          <BackButton className={styles.backButton} forceUrl={backHome ? "/" : undefined} />
-          <h1>שליחת שיר</h1>
-        </div>
+        <PageHeader
+          title="הוספת שיר"
+          showBack
+          backUrl={backHome ? "/" : undefined}
+        />
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.formGroup}>
@@ -257,7 +295,7 @@ export default function GetFeedback({ backHome = false }: { backHome?: boolean }
                   <input
                     type="text"
                     className={styles.input}
-                    placeholder="הדביקו קישור מיוטיוב או הקלידו טקסט לחיפוש..."
+                    placeholder="קישור מיוטיוב או הקלידו טקסט לחיפוש"
                     value={songLink}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                       const val = e.target.value;
@@ -268,13 +306,14 @@ export default function GetFeedback({ backHome = false }: { backHome?: boolean }
                         setSearchResults([]);
                         setShowDropdown(false);
                       } else {
-                        // If link changed and we have a previous YouTube alternative, clear it
                         setYoutubeAlternative(null);
                       }
                     }}
                     onFocus={() => {
                       if (searchResults.length > 0) setShowDropdown(true);
                     }}
+                    onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity("אנא הזינו קישור או חפשו את שם השיר")}
+                    onInput={(e) => (e.target as HTMLInputElement).setCustomValidity("")}
                     required={submissionType === "link"}
                     style={{ paddingLeft: isFetchingMetadata || isSearching ? '2.5rem' : '1.25rem' }}
                   />
@@ -336,9 +375,10 @@ export default function GetFeedback({ backHome = false }: { backHome?: boolean }
                           <div className={styles.alternativeCard}>
                             <span className={styles.alternativeTitle}>{youtubeAlternative.title}</span>
                             <div className={styles.suggestionActions}>
-                              <button
+                              <Button
                                 type="button"
-                                className={styles.swapBtn}
+                                variant="primary"
+                                size="md"
                                 onClick={() => {
                                   setSongLink(youtubeAlternative.url);
                                   if (!songTitle) setSongTitle(youtubeAlternative.title.substring(0, MAX_SONG_TITLE_LENGTH));
@@ -346,7 +386,7 @@ export default function GetFeedback({ backHome = false }: { backHome?: boolean }
                                 }}
                               >
                                 החלפה ליוטיוב
-                              </button>
+                              </Button>
                               <a
                                 href={youtubeAlternative.url}
                                 target="_blank"
@@ -382,6 +422,8 @@ export default function GetFeedback({ backHome = false }: { backHome?: boolean }
                         setFileError("");
                       }
                     }}
+                    onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity("אנא בחרו קובץ MP3 להעלאה")}
+                    onInput={(e) => (e.target as HTMLInputElement).setCustomValidity("")}
                     required={submissionType === "upload"}
                   />
                 </div>
@@ -402,6 +444,7 @@ export default function GetFeedback({ backHome = false }: { backHome?: boolean }
             )}
           </div>
 
+          <div style={{ height: "20px" }}></div>
           <div className={styles.formGroup}>
             <label className={styles.label}>
               שם השיר
@@ -412,14 +455,16 @@ export default function GetFeedback({ backHome = false }: { backHome?: boolean }
             <input
               type="text"
               className={styles.input}
-              placeholder="לדוגמא: איך שיר נולד"
+              placeholder="איך שיר נולד..."
               value={songTitle}
               onChange={(e) => setSongTitle(e.target.value.substring(0, MAX_SONG_TITLE_LENGTH))}
+              onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity("אנא הזינו את שם השיר")}
+              onInput={(e) => (e.target as HTMLInputElement).setCustomValidity("")}
               required
               maxLength={MAX_SONG_TITLE_LENGTH}
             />
             <p className={styles.tipText}>
-              טיפ: פרטים אישיים כדאי לשים ב&apos;כרטיס הביקור המוזיקלי&apos; ולא בשם השיר
+              טיפ: את פרטי האמן כדאי לשים ב&apos;כרטיס הביקור המוזיקלי&apos; ולא בשם השיר.
             </p>
           </div>
 
@@ -430,6 +475,8 @@ export default function GetFeedback({ backHome = false }: { backHome?: boolean }
                 className={styles.select}
                 value={selectedGenre}
                 onChange={(e) => setSelectedGenre(e.target.value)}
+                onInvalid={(e) => (e.target as HTMLSelectElement).setCustomValidity("אנא בחרו סגנון מהרשימה")}
+                onInput={(e) => (e.target as HTMLSelectElement).setCustomValidity("")}
                 required
               >
                 <option value="" disabled>בחרו סגנון...</option>
@@ -442,40 +489,70 @@ export default function GetFeedback({ backHome = false }: { backHome?: boolean }
             </div>
           </div>
 
+          {/* Guest Email Field - Moved here and styled normally */}
+          {!isLoggedIn && isGuestEligible && (
+            <>
+              <div style={{ height: "20px" }}></div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>אימייל</label>
+                <input
+                  type="email"
+                  className={styles.input}
+                  placeholder="mymail@gmail.com"
+                  value={guestEmail}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setGuestEmail(val);
+                    const target = e.target;
+                    target.setCustomValidity("");
+                    if (val && !target.checkValidity()) {
+                      target.setCustomValidity("כתובת המייל שהזנת אינה תקינה (חסרה @)");
+                    }
+                  }}
+                  onInvalid={(e) => {
+                    const target = e.target as HTMLInputElement;
+                    if (target.validity.valueMissing) {
+                      target.setCustomValidity("בלי זיהוי כלשהו, אין לנו שום דרך לשייך אליך את השיר.");
+                    } else if (target.validity.typeMismatch) {
+                      target.setCustomValidity("כתובת המייל שהזנת אינה תקינה");
+                    }
+                  }}
+                  onInput={(e) => (e.target as HTMLInputElement).setCustomValidity("")}
+                  required={!isLoggedIn && isGuestEligible}
+                />
+                <p className={styles.tipText}>
+                  למה? בלי זיהוי כלשהו, אין לנו דרך לשייך אליך את השיר ולשלוח את התגובות מהקהילה.
+                </p>
+              </div>
+            </>
+          )}
+
           <div className={styles.formActions}>
-            <button
+            <Button
               type="button"
-              className={styles.cancelBtn}
-              onClick={() => router.push(hasSongs ? "/dashboard" : "/")}
+              variant="outline"
+              size="md"
+              onClick={() => router.push(hasSongs ? (backHome ? "/dashboard?backHome=true" : "/dashboard") : "/")}
               disabled={status === "loading"}
             >
               ביטול
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              className={styles.submitBtn}
+              variant="primary"
+              size="lg"
+              isLoading={status === "loading"}
               onMouseEnter={() => window.dispatchEvent(new CustomEvent("star-hover-start"))}
               onMouseLeave={() => window.dispatchEvent(new CustomEvent("star-hover-end"))}
               onTouchStart={() => window.dispatchEvent(new CustomEvent("star-hover-start"))}
               onTouchEnd={() => window.dispatchEvent(new CustomEvent("star-hover-end"))}
-              disabled={
-                status === "loading" ||
-                (submissionType === "link" ? (!songLink || !isSupportedLink) : (!songFile || !!fileError)) ||
-                !songTitle ||
-                !selectedGenre ||
-                !user
-              }
             >
-              {status === "loading" ? (
-                <div className={styles.loadingSpinner} />
-              ) : (
-                <>שליחה {user && <span className={styles.tokenLabel}>(<Coins size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /> {SONG_SUBMISSION_COST})</span>}</>
-              )}
-            </button>
+              שליחה {isLoggedIn && <span className={styles.tokenLabel}>(<Coins size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /> {SONG_SUBMISSION_COST})</span>}
+            </Button>
           </div>
 
           <AnimatePresence>
-            {errorMessage && (
+            {errorMessage && errorMessage !== "EMAIL_EXISTS" && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
@@ -499,20 +576,50 @@ export default function GetFeedback({ backHome = false }: { backHome?: boolean }
               </motion.div>
             )}
           </AnimatePresence>
+
+          <PopupMsg
+            isOpen={errorMessage === "EMAIL_EXISTS"}
+            onClose={() => {
+              setErrorMessage("");
+              setCopied(false);
+            }}
+            title="המייל הזה כבר קיים במערכת"
+            message={
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ marginBottom: '1rem' }}>כדי להתחבר למערכת יש להכנס לאתר דרך הדפדפן ולא דרך מודעת הפרסום.</p>
+                <div
+                  onClick={() => {
+                    navigator.clipboard.writeText("https://feedback.activitywiz.com");
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 3000);
+                  }}
+                  style={{
+                    color: 'var(--brand-primary)',
+                    textDecoration: 'underline',
+                    cursor: 'pointer',
+                    fontSize: '1.2rem',
+                    fontWeight: 600,
+                    margin: '1.5rem 0',
+                    display: 'block',
+                    direction: 'ltr'
+                  }}
+                >
+                  {copied ? "הכתובת הועתקה" : "feedback.activitywiz.com"}
+                </div>
+              </div>
+            }
+            buttonText=""
+            onPrimaryClick={() => { }}
+          />
         </form>
       </motion.div>
-      {!isSignedIn && isLoaded && (
-        <AuthOverlay
-          message={
-            <>
-              <strong>אנחנו יודעים, להירשם זה מבאס...</strong>{"\n\n"}
-              אבל בלי זה, אין לנו דרך לשייך את השיר אליך או לשלוח לך את התגובות שהקהילה תכתוב. מתחברים בקליק אחד וממשיכים.
-            </>
-          }
-          dismissLabel="לא עכשיו, תודה"
-          onDismiss={() => router.push("/")}
-        />
-      )}
+      <RegistrationGate
+        isOpen={!isLoggedIn && !isCheckingGuest && !isGuestEligible}
+        type="get-feedback"
+        onClose={() => {
+          window.location.href = "/";
+        }}
+      />
     </div>
   );
 }

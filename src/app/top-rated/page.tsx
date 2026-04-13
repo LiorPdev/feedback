@@ -1,7 +1,7 @@
-import { auth } from "@clerk/nextjs/server";
+import { syncUser } from "@/lib/user-auth";
 import { getTopRatedSongs, TopRatedSong } from "@/app/actions/songs";
+import PageHeader from "@/components/PageHeader";
 import styles from "./top-rated.module.css";
-import BackButton from "@/components/BackButton";
 import ArtistSocials from "@/components/ArtistSocials";
 import ShareSongButton from "@/components/ShareSongButton";
 import TopRatedPlayer from "./TopRatedPlayer";
@@ -11,7 +11,8 @@ import TopRatedFeedbackButton from "./TopRatedFeedbackButton";
 export const dynamic = "force-dynamic";
 
 export default async function TopRatedPage() {
-  const { userId: currentUserId } = await auth();
+  const dbUser = await syncUser();
+  const currentUserId = dbUser?.id || null;
   const result = await getTopRatedSongs();
 
   if (!result.success || !result.songs) {
@@ -29,21 +30,7 @@ export default async function TopRatedPage() {
       <div className={styles.blob} />
 
       <main className={styles.main}>
-        <div className={styles.header}>
-          <BackButton />
-          <h1 className={styles.title}>10 השירים המובילים</h1>
-          {/* 
-          <a
-            href="https://open.spotify.com/playlist/0qYgjCnqOmG1WyJ3nZf841?si=86614b338dab4324"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.spotifyLink}
-            title="פלייליסט בספוטיפיי"
-          >
-            <SocialIcon platform="spotify" size={24} />
-          </a> 
-          */}
-        </div>
+        <PageHeader title="10 השירים המובילים" showBack />
 
         <div className={styles.listCard}>
           {songs.length === 0 ? (

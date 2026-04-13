@@ -1,0 +1,217 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 24rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: #18181b;
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  color: #71717a;
+}
+
+.googleButton {
+  height: 60px !important;
+  border-radius: 14px !important;
+  font-weight: 500 !important;
+  font-size: 1.12rem !important;
+  background-color: rgba(0, 0, 0, 0.65) !important;
+  color: white !important;
+  border: none !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.googleButton:hover {
+  background-color: #18181b !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+}
+
+.googleIconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.75rem;
+}
+
+.googleIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-left: 0.5rem;
+}
+
+.divider {
+  position: relative;
+}
+
+.dividerLine {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+}
+
+.dividerLine span {
+  width: 100%;
+  border-top: 1px solid #e4e4e7;
+}
+
+.dividerTextContainer {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.dividerText {
+  background-color: white;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  color: #71717a;
+  font-size: 1rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.inlineForm {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  align-items: flex-end;
+  width: 100%;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  flex: 1;
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #27272a;
+  text-align: right;
+}
+
+.input {
+  height: 3rem;
+  border: 1px solid #e4e4e7;
+  border-radius: 1rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  transition: all 0.2s;
+  width: 220px;
+  font-size: 0.8rem;
+  direction: ltr;
+  text-align: left;
+}
+
+.input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(113, 113, 122, 0.1);
+}
+
+.codeInput {
+  height: 4.5rem !important;
+  text-align: right !important;
+  font-size: 2.2rem !important;
+  letter-spacing: 0.7em !important;
+  padding-right: 1.5rem !important;
+  padding-left: 0.5rem !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+  background-color: #f8f9fa !important;
+  border-radius: 1.25rem !important;
+  border: 2px solid #e4e4e7 !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  color: #18181b !important;
+  width: 100% !important;
+  direction: rtl !important;
+}
+
+.codeInput:focus {
+  background-color: white !important;
+  box-shadow: 0 0 0 2px rgba(113, 113, 122, 0.1) !important;
+  transform: scale(1.01);
+}
+
+.submitButton {
+  border-radius: 1rem !important;
+  color: rgba(0, 0, 0, 0.557) !important;
+  font-weight: 600 !important;
+  width: 80px !important;
+  margin: 0 !important;
+  background-color: rgb(243, 243, 243) !important;
+  border: none !important;
+  flex-shrink: 0;
+}
+
+.verifyButton {
+  height: 3.5rem !important;
+  border-radius: 1rem !important;
+  background-color: #27272a !important;
+  color: white !important;
+  font-weight: 700 !important;
+  font-size: 1.125rem !important;
+  width: 100% !important;
+}
+
+.backButton {
+  font-size: 0.875rem;
+  color: #71717a;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  transition: color 0.2s;
+}
+
+.backButton:hover {
+  color: #18181b;
+}
+
+.backIcon {
+  width: 1rem;
+  height: 1rem;
+  transform: rotate(180deg);
+}
+
+.error {
+  color: #ef4444;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-align: center;
+  margin-top: 0.5rem;
+  background-color: #fef2f2;
+  padding: 0.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid #fee2e2;
+}

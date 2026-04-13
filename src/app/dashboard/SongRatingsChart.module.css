@@ -102,3 +102,26 @@
     gap: 12px;
   }
 }
+
+.noDataMessage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  background: white;
+  border-radius: 16px;
+  text-align: center;
+  color: var(--text-main);
+  font-weight: 700;
+  font-size: 1.1rem;
+  gap: 0.5rem;
+  padding: 2rem;
+  direction: rtl;
+}
+
+.noDataSubText {
+  font-weight: 500;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}

@@ -2,8 +2,10 @@
 
 import { motion } from "framer-motion";
 import { X } from "lucide-react";
-import { SignInButton } from "@clerk/nextjs";
-import { ReactNode } from "react";
+import { useAuth } from "@clerk/nextjs";
+import { ReactNode, useState } from "react";
+import Button from "./ui/Button";
+import UnifiedAuthForm from "./auth/UnifiedAuthForm";
 import styles from "./AuthOverlay.module.css";
 
 interface AuthOverlayProps {
@@ -15,17 +17,20 @@ interface AuthOverlayProps {
   isModal?: boolean;
 }
 
-export default function AuthOverlay({ 
-  message, 
-  redirectUrl, 
+export default function AuthOverlay({
+  message,
+  redirectUrl,
   onClose,
   onDismiss,
   dismissLabel,
-  isModal = false 
+  isModal = false
 }: AuthOverlayProps) {
+  const { userId, isLoaded } = useAuth();
+  const [isVerifyStep, setIsVerifyStep] = useState(false);
+
   return (
-    <div 
-      className={`${styles.authOverlay} ${isModal ? styles.authOverlayModal : ""}`} 
+    <div
+      className={`${styles.authOverlay} ${isModal ? styles.authOverlayModal : ""}`}
       onClick={isModal ? onClose : undefined}
     >
       <motion.div
@@ -37,25 +42,36 @@ export default function AuthOverlay({
         onClick={(e) => e.stopPropagation()}
       >
         {onClose && (
-          <button 
-            className={styles.closeBtn} 
-            onClick={onClose} 
+          <button
+            className={styles.closeBtn}
+            onClick={onClose}
             aria-label="סגור"
           >
             <X size={20} />
           </button>
         )}
-        <p className={styles.subHeading}>{message}</p>
-        <SignInButton mode="modal" forceRedirectUrl={redirectUrl}>
-          <button className={styles.submitBtn}>
-            <span>התחברות</span>
-          </button>
-        </SignInButton>
+        
+        {!isVerifyStep && message && <p className={styles.subHeading}>{message}</p>}
+        
+        {isLoaded && !userId && (
+          <div className="mt-4">
+            <UnifiedAuthForm 
+              onSuccess={onClose} 
+              redirectUrl={redirectUrl} 
+              onStepChange={(step) => setIsVerifyStep(step === "VERIFY")}
+            />
+          </div>
+        )}
 
-        {onDismiss && (
-          <button className={styles.dismissBtn} onClick={onDismiss}>
+        {onDismiss && dismissLabel && (
+          <Button
+            variant="ghost"
+            fullWidth
+            onClick={onDismiss}
+            style={{ marginTop: '0.75rem' }}
+          >
             {dismissLabel}
-          </button>
+          </Button>
         )}
       </motion.div>
     </div>

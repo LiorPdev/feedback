@@ -2,23 +2,23 @@
 
 import { getDb } from "@/lib/db";
 import { feedbacks, users, songs } from "@/lib/schema";
-import { currentUser } from "@clerk/nextjs/server";
 import { and, eq, lt, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { logAction } from "./logs";
 import { UNLOCK_FEEDBACK_COST, FREE_FEEDBACKS_FOR_ARTIST, LIKE_FEEDBACK_REWARD } from "@/lib/constants";
 import { updateRaterScore } from "@/lib/rater-score";
+import { syncUser } from "@/lib/user-auth";
 
 export async function getMyGivenFeedbacksCount(): Promise<number> {
   try {
-    const clerkUser = await currentUser();
-    if (!clerkUser) return 0;
+    const dbUser = await syncUser();
+    if (!dbUser) return 0;
 
     const db = await getDb();
     const result = await db
       .select({ count: sql<number>`count(*)` })
       .from(feedbacks)
-      .where(eq(feedbacks.authorId, clerkUser.id));
+      .where(eq(feedbacks.authorId, dbUser.id));
 
     return result[0]?.count ?? 0;
   } catch {
@@ -43,13 +43,13 @@ export interface GivenFeedbackItem {
 
 export async function getMyGivenFeedbacks(): Promise<GivenFeedbackItem[]> {
   try {
-    const clerkUser = await currentUser();
-    if (!clerkUser) return [];
+    const dbUser = await syncUser();
+    if (!dbUser) return [];
 
     const db = await getDb();
 
     const rows = await db.query.feedbacks.findMany({
-      where: (f, { eq }) => eq(f.authorId, clerkUser.id),
+      where: (f, { eq }) => eq(f.authorId, dbUser.id),
       with: { song: { columns: { title: true, slug: true, url: true } } },
       orderBy: (f, { desc }) => [desc(f.createdAt)],
     });
@@ -76,12 +76,8 @@ export async function getMyGivenFeedbacks(): Promise<GivenFeedbackItem[]> {
 
 export async function unlockFeedback(feedbackId: string) {
   try {
-    const clerkUser = await currentUser();
-    if (!clerkUser) {
-      await logAction({
-        message: "Attempt to unlock feedback without login",
-        source: "actions/feedback:unlockFeedback",
-      });
+    const dbUser = await syncUser();
+    if (!dbUser) {
       return { success: true };
     }
 
@@ -96,11 +92,6 @@ export async function unlockFeedback(feedbackId: string) {
     });
 
     if (!feedback) {
-      await logAction({
-        message: `Feedback ${feedbackId} not found during unlock attempt`,
-        source: "actions/feedback:unlockFeedback",
-        userId: clerkUser.id
-      });
       return { success: true };
     }
 
@@ -109,13 +100,7 @@ export async function unlockFeedback(feedbackId: string) {
     }
 
     // Check if the current user is the owner of the song the feedback belongs to
-    if (feedback.song.userId !== clerkUser.id) {
-      await logAction({
-        message: `Unauthorized attempt to unlock feedback ${feedbackId}`,
-        data: { ownerId: feedback.song.userId, attempterId: clerkUser.id },
-        source: "actions/feedback:unlockFeedback",
-        userId: clerkUser.id
-      });
+    if (feedback.song.userId !== dbUser.id) {
       return { success: true };
     }
 
@@ -124,30 +109,24 @@ export async function unlockFeedback(feedbackId: string) {
       .from(feedbacks)
       .innerJoin(songs, eq(feedbacks.songId, songs.id))
       .where(and(
-        eq(songs.userId, feedback.song.userId),
+        eq(songs.userId, dbUser.id),
         lt(feedbacks.createdAt, feedback.createdAt)
       ));
 
     const isFree = (prevFeedbacksCount[0]?.value ?? 0) < FREE_FEEDBACKS_FOR_ARTIST;
 
     if (!isFree) {
-      // Get user token balance
-      const user = await db.query.users.findFirst({
-        where: (u, { eq }) => eq(u.id, clerkUser.id),
-        columns: { tokens: true }
-      });
-
-      if (!user || user.tokens < UNLOCK_FEEDBACK_COST) {
+      if (dbUser.tokens < UNLOCK_FEEDBACK_COST) {
         return { success: false, error: 'INSUFFICIENT_CREDITS' };
       }
 
       // Deduct tokens
       await db.update(users)
         .set({
-          tokens: user.tokens - UNLOCK_FEEDBACK_COST,
+          tokens: dbUser.tokens - UNLOCK_FEEDBACK_COST,
           updatedAt: new Date().toISOString()
         })
-        .where(eq(users.id, clerkUser.id));
+        .where(eq(users.id, dbUser.id));
     }
 
     // 3. Mark as unlocked (Deduction happened above if not free)
@@ -184,8 +163,8 @@ export async function unlockFeedback(feedbackId: string) {
 
 export async function likeFeedback(feedbackId: string) {
   try {
-    const clerkUser = await currentUser();
-    if (!clerkUser) return { success: false, error: 'NOT_LOGGED_IN' };
+    const dbUser = await syncUser();
+    if (!dbUser) return { success: false, error: 'NOT_LOGGED_IN' };
 
     const db = await getDb();
 
@@ -199,7 +178,7 @@ export async function likeFeedback(feedbackId: string) {
 
     if (!feedback) return { success: false, error: 'FEEDBACK_NOT_FOUND' };
     if (feedback.isLiked) return { success: false, error: 'ALREADY_LIKED' };
-    if (feedback.song.userId !== clerkUser.id) return { success: false, error: 'UNAUTHORIZED' };
+    if (feedback.song.userId !== dbUser.id) return { success: false, error: 'UNAUTHORIZED' };
     if (!feedback.authorId) return { success: false, error: 'ANONYMOUS_FEEDBACK' };
 
     // 2. Award credits to the author of the feedback
@@ -242,8 +221,8 @@ export async function likeFeedback(feedbackId: string) {
 
 export async function unlikeFeedback(feedbackId: string) {
   try {
-    const clerkUser = await currentUser();
-    if (!clerkUser) return { success: false, error: 'NOT_LOGGED_IN' };
+    const dbUser = await syncUser();
+    if (!dbUser) return { success: false, error: 'NOT_LOGGED_IN' };
 
     const db = await getDb();
 
@@ -257,7 +236,7 @@ export async function unlikeFeedback(feedbackId: string) {
 
     if (!feedback) return { success: false, error: 'FEEDBACK_NOT_FOUND' };
     if (!feedback.isLiked) return { success: false, error: 'NOT_LIKED_YET' };
-    if (feedback.song.userId !== clerkUser.id) return { success: false, error: 'UNAUTHORIZED' };
+    if (feedback.song.userId !== dbUser.id) return { success: false, error: 'UNAUTHORIZED' };
     if (!feedback.authorId) return { success: false, error: 'ANONYMOUS_FEEDBACK' };
 
     // 2. Subtract credits from the author of the feedback (floor at 0)

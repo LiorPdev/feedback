@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Gift, Download, Copy, Check, AlertCircle, Music, Loader2 } from "lucide-react";
+import { X, Gift, Download, Copy, Check, AlertCircle, Music } from "lucide-react";
 import { generateCreditCode, redeemCreditCode } from "@/app/actions/user";
 import { logAction } from "@/app/actions/logs";
+import Button from "./ui/Button";
 import styles from "./CreditTransferModal.module.css";
 
 interface CreditTransferModalProps {
@@ -173,17 +174,24 @@ export default function CreditTransferModal({
               </div>
 
               {!generatedCode ? (
-                <button
-                  className={styles.actionButton}
+                <Button
+                  variant="primary"
+                  fullWidth
                   onClick={handleGenerateCode}
-                  disabled={loading || !amount || parseInt(amount) <= 0 || parseInt(amount) > currentTokens}
+                  isLoading={loading}
+                  disabled={!amount || parseInt(amount) <= 0 || parseInt(amount) > currentTokens}
                 >
-                  {loading ? <Loader2 className="animate-spin" size={20} /> : "צור קוד לשליחה"}
-                </button>
+                  צור קוד לשליחה
+                </Button>
               ) : (
                 <div className={styles.resultArea}>
                   <div className={styles.codeDisplay}>{generatedCode}</div>
-                  <button className={styles.copyButton} onClick={copyToClipboard}>
+                  <Button
+                    variant="outline"
+                    size="md"
+                    fullWidth
+                    onClick={copyToClipboard}
+                  >
                     {copied ? (
                       <>
                         <Check size={16} /> הועתק!
@@ -193,7 +201,7 @@ export default function CreditTransferModal({
                         <Copy size={16} /> העתק קוד
                       </>
                     )}
-                  </button>
+                  </Button>
                   <button
                     style={{ fontSize: '0.8rem', background: 'none', border: 'none', color: 'var(--brand-primary)', cursor: 'pointer', textDecoration: 'underline' }}
                     onClick={() => setGeneratedCode(null)}
@@ -217,13 +225,15 @@ export default function CreditTransferModal({
                   />
                 </div>
               </div>
-              <button
-                className={styles.actionButton}
+              <Button
+                variant="primary"
+                fullWidth
                 onClick={handleRedeemCode}
-                disabled={loading || !code}
+                isLoading={loading}
+                disabled={!code}
               >
-                {loading ? <Loader2 className="animate-spin" size={20} /> : "מימוש הקוד"}
-              </button>
+                מימוש הקוד
+              </Button>
             </div>
           )}
 

@@ -77,7 +77,14 @@ async function signR2Url({
     return `${endpoint}/${bucket}/${key.split('/').map(encodeURIComponent).join('/')}?${canonicalQuerystring}&X-Amz-Signature=${signatureHex}`;
 }
 
+import { syncUser } from '@/lib/user-auth';
+
 export async function getPresignedUploadUrl(fileName: string, contentType: string) {
+    const dbUser = await syncUser();
+    if (!dbUser) {
+        throw new Error("Unauthorized: Sync required for upload");
+    }
+
     // Sanitize fileName: replace spaces with underscores, but keep other characters
     const sanitizedName = fileName.replace(/\s+/g, '_');
     const fileKey = `${nanoid()}-${sanitizedName}`;

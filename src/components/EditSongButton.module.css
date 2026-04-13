@@ -1,21 +1,3 @@
-.editBtn {
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  padding: 6px;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.editBtn:hover {
-  color: var(--brand-primary);
-  background: var(--brand-bg);
-}
-
 .overlay {
   position: fixed;
   top: 0;
@@ -42,13 +24,6 @@
   position: relative;
 }
 
-.modal h3 {
-  font-size: 1.5rem;
-  font-weight: 800;
-  margin: 0 0 1.5rem 0;
-  color: var(--text-main);
-  text-align: center;
-}
 
 .form {
   display: flex;
@@ -115,57 +90,8 @@
   margin-top: 1rem;
 }
 
-.cancelBtn,
-.saveBtn {
-  flex: 1;
-  padding: 1rem;
-  border-radius: 14px;
-  font-weight: 700;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.cancelBtn {
-  background: var(--bg-section);
-  color: var(--text-muted);
-  border: none;
-}
-
-.cancelBtn:hover {
-  background: #E2E8F0;
-}
-
-.saveBtn {
-  background: color-mix(in srgb, var(--brand-primary), transparent 15%);
-  color: white;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.saveBtn:hover:not(:disabled) {
-  background: var(--brand-hover);
-  box-shadow: 0 4px 12px var(--brand-light);
-}
-
-.saveBtn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.spin {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
+.errorText {
+  color: var(--status-error);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
 }

@@ -45,7 +45,7 @@ export const songs = sqliteTable('Song', {
 export const feedbacks = sqliteTable('Feedback', {
     id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
     songId: text('songId').notNull().references(() => songs.id, { onDelete: 'cascade' }),
-    authorId: text('authorId'),         // Clerk ID of the person giving feedback
+    authorId: text('authorId').references(() => users.id, { onDelete: 'set null' }), // Internal system ID
     cat1: integer('cat1').notNull(),    // Currently unused
     cat2: integer('cat2').notNull(),    // Production
     cat3: integer('cat3').notNull(),    // Singing
@@ -95,6 +95,10 @@ export const feedbacksRelations = relations(feedbacks, ({ one }) => ({
         fields: [feedbacks.songId],
         references: [songs.id],
     }),
+    user: one(users, {
+        fields: [feedbacks.authorId],
+        references: [users.id],
+    }),
 }));
 
 export const listenEventsRelations = relations(listenEvents, ({ one }) => ({
@@ -113,7 +117,7 @@ export const logs = sqliteTable('Log', {
     message: text('message').notNull(),
     data: text('data'), // JSON string
     source: text('source'), // e.g., "server-action:uploadSong"
-    userId: text('userId'), // Optional Clerk ID
+    userId: text('userId'), // Internal System ID
     createdAt: text('createdAt').notNull().$defaultFn(() => new Date().toISOString()),
 }, (table) => {
     return {

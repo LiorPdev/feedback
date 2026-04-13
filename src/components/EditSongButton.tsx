@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { Pencil, Loader2 } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { updateSong, getURLMetadata } from "@/app/actions/songs";
 import { logAction } from "@/app/actions/logs";
 import styles from "./EditSongButton.module.css";
 import { motion, AnimatePresence } from "framer-motion";
+import Button from "./ui/Button";
+import PageHeader from "./PageHeader";
 
 interface EditSongButtonProps {
   song: {
@@ -48,10 +50,10 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
       if (!showModal || !url || !url.includes("://") || url.length < 10) return;
 
       try {
-        const result = await getURLMetadata(url) as { 
-          success: boolean, 
-          title?: string, 
-          resolvedUrl?: string 
+        const result = await getURLMetadata(url) as {
+          success: boolean,
+          title?: string,
+          resolvedUrl?: string
         };
         if (result.success) {
           // Automatic resolution for SoundCloud
@@ -99,12 +101,7 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
   const modalContent = (
     <AnimatePresence>
       {showModal && (
-        <div
-          className={styles.overlay}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setShowModal(false);
-          }}
-        >
+        <div className={styles.overlay}>
           <motion.div
             className={styles.modal}
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -112,7 +109,13 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h3>עריכת פרטי השיר</h3>
+          <PageHeader
+            title="עריכת פרטי השיר"
+            showClose={true}
+            onClose={() => setShowModal(false)}
+            showBack={false}
+            align="center"
+          />
 
             <form onSubmit={handleSave} className={styles.form}>
               <div className={styles.field}>
@@ -160,27 +163,26 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
               </div>
 
               <div className={styles.actions}>
-                <button
+                <Button
                   type="button"
-                  className={styles.cancelBtn}
+                  variant="outline"
+                  size="md"
                   onClick={() => setShowModal(false)}
                   disabled={isUpdating}
+                  fullWidth
                 >
                   ביטול
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
-                  className={styles.saveBtn}
-                  disabled={isUpdating || isUnsupportedLink}
+                  variant="primary"
+                  size="md"
+                  isLoading={isUpdating}
+                  disabled={isUnsupportedLink}
+                  fullWidth
                 >
-                  {isUpdating ? (
-                    <>
-                      <Loader2 size={18} className={styles.spin} /> שומר...
-                    </>
-                  ) : (
-                    "שמור שינויים"
-                  )}
-                </button>
+                  שמור שינויים
+                </Button>
               </div>
             </form>
           </motion.div>
@@ -191,13 +193,15 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
 
   return (
     <>
-      <button
-        className={styles.editBtn}
+      <Button
+        variant="outline"
+        size="md"
         onClick={() => setShowModal(true)}
         title="עריכת פרטי השיר"
+        style={{ padding: '8px', minWidth: 'auto' }}
       >
         <Pencil size={18} />
-      </button>
+      </Button>
 
       {mounted && createPortal(modalContent, document.body)}
     </>

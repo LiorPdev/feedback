@@ -87,7 +87,19 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
         const fbs = (song.feedbacks || []) as Feedback[];
         const events = (song.listenEvents || []) as { playedSeconds: number }[];
 
-        if (fbs.length === 0 && events.length === 0) return null;
+        const isRetention = type === 'retention';
+        const hasFeedbacks = fbs.length > 0;
+        const hasEvents = events.length > 0;
+
+        // FILTERING LOGIC:
+        // 1. For score-based charts (general, categories, trueRating), 
+        //    we MUST have at least one feedback.
+        // 2. For retention charts, we just need activity (feedback OR listen event).
+        if (isRetention) {
+          if (!hasFeedbacks && !hasEvents) return null;
+        } else {
+          if (!hasFeedbacks) return null;
+        }
 
         const count = fbs.length;
         const avgOverall = count > 0 ? fbs.reduce((sum, fb) => sum + (fb.overall || 0), 0) / count : 0;
@@ -155,7 +167,18 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
       }[];
   }, [songs, globalAverage, minThreshold, type]);
 
-  if (chartData.length === 0) return null;
+  if (chartData.length === 0) {
+    return (
+      <div className={styles.noDataMessage}>
+        <p>אין מספיק נתונים להצגת הגרף שנבחר.</p>
+        <p className={styles.noDataSubText}>
+          {type === 'retention' 
+            ? "שירים יופיעו כאן לאחר שתהיה בהם פעילות האזנה." 
+            : "שירים יופיעו כאן לאחר שיקבלו פידבקים מהקהילה."}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.chartWrapper}>

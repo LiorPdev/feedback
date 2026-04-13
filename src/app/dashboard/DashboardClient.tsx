@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import Link from "next/link";
 import { BarChart3, MessageSquare, Music } from "lucide-react";
 import SongCard from "@/components/SongCard";
 import SongRatingsChart from "./SongRatingsChart";
 import PlayButton from "@/components/PlayButton";
 import HeartWithTooltip from "@/components/HeartWithTooltip";
+import Button from "@/components/ui/Button";
 import styles from "./DashboardClient.module.css";
 import type { GivenFeedbackItem } from "@/app/actions/feedback";
 import { LIKE_FEEDBACK_REWARD } from "@/lib/constants";
@@ -44,7 +44,6 @@ function formatSeconds(seconds: number | null | undefined) {
 
 export default function DashboardClient({
   songs,
-  newSlug,
   globalAverage = 0,
   minThreshold = 3,
   givenFeedbacks = [],
@@ -60,7 +59,6 @@ export default function DashboardClient({
   const activeTab = urlTab || (onlyFeedbacksGiven ? "myFeedbacks" : "songs");
 
   const [chartType, setChartType] = useState<"general" | "categories" | "retention" | "trueRating">("trueRating");
-  const [activeNewSlug, setActiveNewSlug] = useState<string | undefined>(newSlug);
 
   const handleTabChange = (tab: "songs" | "insights" | "myFeedbacks") => {
     const params = new URLSearchParams(searchParams.toString());
@@ -68,24 +66,6 @@ export default function DashboardClient({
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
-  useEffect(() => {
-    if (newSlug) {
-      // Clear URL query parameters via Next.js router
-      const params = new URLSearchParams(searchParams.toString());
-      if (params.has('new')) {
-        params.delete('new');
-        router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-      }
-
-      // Clear the "new" highlight state after 10 seconds to ensure
-      // it doesn't re-trigger on tab switches later.
-      const timer = setTimeout(() => {
-        setActiveNewSlug(undefined);
-      }, 10000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [newSlug, pathname, router, searchParams]);
 
   // Check if any song has feedbacks or listen events
   const hasAnyData = songs.some(
@@ -138,9 +118,13 @@ export default function DashboardClient({
         </div>
 
         <div className={`${styles.headerAction} ${styles.hideOnMobile}`}>
-          <Link href="/get-feedback?new=true" className={styles.submitNewBtn}>
-            <span className={styles.btnText}>שליחת שיר</span>
-          </Link>
+          <Button
+            variant="primary"
+            size="md"
+            onClick={() => router.push(`/get-feedback?new=true${searchParams.get('backHome') === 'true' ? "&backHome=true" : ""}`)}
+          >
+            הוספת שיר
+          </Button>
         </div>
       </div>
 
@@ -149,7 +133,7 @@ export default function DashboardClient({
           <div className={styles.songsSection}>
             <div className={styles.songGrid}>
               {songs.map((song) => (
-                <SongCard key={song.id} song={song} isNew={song.slug === activeNewSlug} />
+                <SongCard key={song.id} song={song} />
               ))}
             </div>
           </div>
@@ -182,9 +166,8 @@ export default function DashboardClient({
               </div>
             ) : (
               <div className={styles.insightsContainer}>
-                <BarChart3 size={48} style={{ marginBottom: '1.5rem', opacity: 0.3 }} />
-                <h3>התובנות שלך בדרך!</h3>
-                <p>כאן תוכל לראות ניתוח עומק של חוויית המאזינים בכל השירים שלך.</p>
+                <h3>התובנות שלך!</h3>
+                <p>כאן תוכלו לראות ניתוח של חוויית המאזינים בכל השירים שלכם.</p>
                 <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center', gap: '1rem', opacity: 0.5 }}>
                   <div style={{ width: '100px', height: '100px', borderRadius: '12px', background: 'rgba(0,0,0,0.05)' }} />
                   <div style={{ width: '100px', height: '100px', borderRadius: '12px', background: 'rgba(0,0,0,0.05)' }} />

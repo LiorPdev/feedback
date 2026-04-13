@@ -29,8 +29,6 @@
   position: absolute;
   top: 1.5rem;
   left: 1.5rem;
-  background: var(--bg-section);
-  border: 1px solid var(--border-color);
   border-radius: 50%;
   width: 40px;
   height: 40px;
@@ -124,46 +122,6 @@
   color: #DC2626;
 }
 
-.submitButton {
-  background: color-mix(in srgb, var(--brand-primary), transparent 15%);
-  color: white;
-  border: none;
-  padding: 1rem;
-  border-radius: 16px;
-  font-size: 1.1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 112, 192, 0.1);
-}
-
-.submitButton:hover:not(:disabled) {
-  background: var(--brand-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 112, 192, 0.2);
-}
-
-.submitButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.spinner {
-  animation: rotate 0.8s linear infinite;
-}
-
-@keyframes rotate {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
-}
 
 .successMessage {
   display: flex;

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { X, Loader2 } from "lucide-react";
+import Button from "./ui/Button";
+import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { submitContactMessage } from "@/app/actions/contact";
 import styles from "./ContactModal.module.css";
@@ -90,17 +91,15 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
                       <p className={styles.error}>{errorMessage}</p>
                     )}
 
-                    <button
+                    <Button
                       type="submit"
-                      className={styles.submitButton}
-                      disabled={isSubmitting || !message.trim()}
+                      variant="primary"
+                      isLoading={isSubmitting}
+                      disabled={!message.trim()}
+                      fullWidth
                     >
-                      {isSubmitting ? (
-                        <Loader2 className={styles.spinner} size={20} />
-                      ) : (
-                        "שליחה"
-                      )}
-                    </button>
+                      שליחה
+                    </Button>
                   </form>
                 </>
               )}

@@ -36,7 +36,7 @@
 .card {
   width: 100%;
   background: var(--card-bg);
-  padding: 1.5rem;
+  padding: 2.5rem;
   border-radius: 32px;
   box-shadow: var(--shadow-xl);
   border: 1px solid var(--border-color);
@@ -45,14 +45,67 @@
   align-items: center;
   text-align: center;
   position: relative;
+  overflow: hidden;
+}
+
+.topHeader {
+  width: 100%;
+  position: relative;
+  margin-bottom: 1rem;
+  padding: 0.5rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.titleRow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  width: 100%;
+}
+
+.title {
+  font-family: var(--font-heebo), sans-serif;
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: var(--brand-contrast);
+  margin: 0;
+  line-height: 1.1;
+  text-align: center;
+}
+
+.subDate {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  font-weight: 500;
 }
 
 .backButton {
   position: absolute;
-  top: 1.25rem;
-  right: 1.25rem;
-  z-index: 10;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 6px;
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
 }
+
+.backButton:hover {
+  background: var(--brand-light);
+  color: var(--brand-primary);
+  transform: translateY(-50%) scale(1.1);
+}
+
 
 .blurred {
   filter: blur(4px);
@@ -61,27 +114,6 @@
   opacity: 0.6;
 }
 
-.titleRow {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-  margin-bottom: 1.4rem;
-}
-
-.title {
-  font-size: 2rem;
-  font-weight: 900;
-  margin: 0;
-  line-height: 1.1;
-  color: var(--text-main);
-}
-
-.subDate {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--text-muted);
-}
 
 .shareWrapper {
   margin-top: 1rem;
@@ -143,9 +175,6 @@
 }
 
 @media (max-width: 600px) {
-  .title {
-    font-size: 1.6rem;
-  }
 
   .averagesSection {
     margin-bottom: 0.2rem;

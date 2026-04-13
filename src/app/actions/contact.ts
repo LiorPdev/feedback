@@ -1,19 +1,18 @@
 "use server";
 
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { syncUser } from "@/lib/user-auth";
 import { sendContactUsEmail } from "@/lib/mail";
 import { logToDb } from "@/lib/logger";
 
 export async function submitContactMessage(message: string) {
-  const { userId } = await auth();
-  const user = await currentUser();
+  const dbUser = await syncUser();
 
-  if (!userId || !user) {
-    return { success: false, error: "You must be logged in to send a message" };
+  if (!dbUser) {
+    return { success: false, error: "עליך להיות מחובר כדי לשלוח הודעה" };
   }
 
-  const userEmail = user.emailAddresses[0]?.emailAddress || "Unknown";
-  const userName = user.firstName ? `${user.firstName} ${user.lastName || ""}` : userEmail;
+  const userEmail = dbUser.email || "Unknown";
+  const userName = dbUser.name || userEmail;
 
   try {
     const result = await sendContactUsEmail({
@@ -32,7 +31,7 @@ export async function submitContactMessage(message: string) {
       message: "Failed to send contact message",
       data: error,
       source: "contact.ts:submitContactMessage",
-      userId,
+      userId: dbUser.id,
     });
     return { success: false, error: "An unexpected error occurred" };
   }

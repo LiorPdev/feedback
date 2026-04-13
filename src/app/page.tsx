@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import LandingClient from "@/components/LandingClient";
-import { auth } from "@clerk/nextjs/server";
+import { syncUser } from "@/lib/user-auth";
 import { getUserSongCount } from "@/app/actions/songs";
-import { getUserData } from "@/app/actions/user";
 import { getMyGivenFeedbacksCount } from "@/app/actions/feedback";
 
 export const metadata: Metadata = {
@@ -40,23 +39,22 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
-  const { userId } = await auth();
+  const dbUser = await syncUser();
   let initialHasSongs = false;
   let initialGenre = "";
   let initialHasFeedbacksGiven = false;
 
-  if (userId) {
-    const [songResult, userResult, feedbackCount] = await Promise.all([
-      getUserSongCount(userId),
-      getUserData(userId),
+  if (dbUser) {
+    const [songResult, feedbackCount] = await Promise.all([
+      getUserSongCount(),
       getMyGivenFeedbacksCount(),
     ]);
     
     if (songResult.success && songResult.count > 0) {
       initialHasSongs = true;
     }
-    if (userResult.success && userResult.userGenre) {
-      initialGenre = userResult.userGenre;
+    if (dbUser.userGenre) {
+      initialGenre = dbUser.userGenre;
     }
     if (feedbackCount > 0) {
       initialHasFeedbacksGiven = true;
@@ -65,6 +63,8 @@ export default async function Home() {
 
   return (
     <LandingClient 
+      isLoggedIn={!!dbUser}
+      isClerkUser={!!dbUser?.clerkId}
       initialHasSongs={initialHasSongs} 
       initialGenre={initialGenre} 
       initialHasFeedbacksGiven={initialHasFeedbacksGiven}

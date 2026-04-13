@@ -3,7 +3,7 @@ import { getDb } from "@/lib/db";
 import FeedContainer from "../FeedContainer";
 import styles from "../feed.module.css";
 import { notFound } from "next/navigation";
-import { auth } from "@clerk/nextjs/server";
+import { syncUser } from "@/lib/user-auth";
 export const dynamic = "force-dynamic";
 import DashboardLink from "@/components/DashboardLink";
 import { UserCheck } from "lucide-react";
@@ -16,7 +16,8 @@ interface GiveFeedbackPageProps {
 
 export default async function GiveFeedbackPage({ params }: GiveFeedbackPageProps) {
   const { slug } = await params;
-  const { userId } = await auth();
+  const dbUser = await syncUser();
+  const userId = dbUser?.id;
 
   // Ownership check
   const db = await getDb();
@@ -80,6 +81,7 @@ export default async function GiveFeedbackPage({ params }: GiveFeedbackPageProps
         <FeedContainer 
           initialSongs={result.songs} 
           initialFeedback={initialFeedback}
+          isLoggedIn={!!dbUser}
         />
       </main>
     </div>

@@ -28,7 +28,7 @@ export default function ListenTimeTab({ events, avgSeconds }: ListenTimeTabProps
     return (
       <section className={styles.feedbackSection}>
         <div className={styles.noFeedback}>
-          עדיין אין השמעות מוקלטות לשיר זה.
+          עדיין אין השמעות לשיר זה.
         </div>
       </section>
     );

@@ -1,17 +1,16 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Star, X, AlertCircle, Gift } from "lucide-react";
+import { Star, AlertCircle, Gift } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useUser } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
 import { addFeedback, getUserTokens } from "@/app/actions/songs";
 import { REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH, COMMENT_LENGTH_BONUS } from "@/lib/constants";
 import styles from "./FeedbackForm.module.css";
 import AnimatedTokenCounter from "./AnimatedTokenCounter";
-import AuthOverlay from "./AuthOverlay";
 import PopupMsg from "./PopupMsg";
 import GiftArtistPopup from "./GiftArtistPopup";
+import Button from "./ui/Button";
+import { useUtmMode } from "@/hooks/useUtmMode";
 
 interface FeedbackFormProps {
   songId: string;
@@ -22,9 +21,8 @@ interface FeedbackFormProps {
   isDisabled?: boolean;
   disabledMessage?: string;
   initialSource?: string;
-  onAuthDismiss?: () => void;
-  isAuthDismissed?: boolean;
   onPopupClose?: () => void;
+  isLoggedIn: boolean;
 }
 
 export default function FeedbackForm({
@@ -35,12 +33,9 @@ export default function FeedbackForm({
   isDisabled,
   disabledMessage,
   initialSource,
-  onAuthDismiss,
-  isAuthDismissed = false,
-  onPopupClose
+  onPopupClose,
+  isLoggedIn
 }: FeedbackFormProps) {
-  const { isLoaded, isSignedIn, user } = useUser();
-  const router = useRouter();
   const [ratings, setRatings] = useState({
     cat2: 0,
     cat3: 0,
@@ -54,6 +49,7 @@ export default function FeedbackForm({
   const flyerIdRef = useRef(0);
   const [userTokens, setUserTokens] = useState<number>(0);
   const [isGiftPopupOpen, setIsGiftPopupOpen] = useState(false);
+  const { isUtmMode } = useUtmMode();
 
   const triggerFlyer = useCallback((x: number, y: number, value: number, targetX?: number, targetY?: number, initialOffsetX = 0, initialOffsetY = 0) => {
     let finalX = targetX;
@@ -171,6 +167,13 @@ export default function FeedbackForm({
 
   const [songStats, setSongStats] = useState<{ averageRating: number; totalFeedbacks: number } | null>(null);
 
+  // Calculate live earned credits
+  const earnedFromCategories = categories.reduce((sum, cat) => sum + (ratings[cat.key] > 0 ? cat.reward : 0), 0);
+  const commentLength = comment.trim().length;
+  const hasValidComment = commentLength >= MIN_COMMENT_LENGTH;
+  const hasBonusComment = commentLength >= COMMENT_LENGTH_BONUS;
+  const currentCredits = earnedFromCategories + (hasValidComment ? REWARD_COMMENT : 0) + (hasBonusComment ? REWARD_COMMENT : 0) + listenCredits;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -210,9 +213,9 @@ export default function FeedbackForm({
         listenCredits,
       });
 
-      if (user) {
+      if (isLoggedIn) {
         // Fetch user stats for the Gift feature
-        const tokensResult = await getUserTokens(user.id);
+        const tokensResult = await getUserTokens();
         if (tokensResult.success) setUserTokens(tokensResult.tokens);
       }
 
@@ -255,91 +258,60 @@ export default function FeedbackForm({
     }
   };
 
-  // Calculate live earned credits
-  const earnedFromCategories = categories.reduce((sum, cat) => sum + (ratings[cat.key] > 0 ? cat.reward : 0), 0);
-  const commentLength = comment.trim().length;
-  const hasValidComment = commentLength >= MIN_COMMENT_LENGTH;
-  const hasBonusComment = commentLength >= COMMENT_LENGTH_BONUS;
-  const currentCredits = earnedFromCategories + (hasValidComment ? REWARD_COMMENT : 0) + (hasBonusComment ? REWARD_COMMENT : 0) + listenCredits;
   const currentAverage = ((ratings.cat2 + ratings.cat3 + ratings.overall) / 3);
-  const showGiftButton = currentAverage >= 4;
-
-  if (!isLoaded) {
-    return (
-      <div className={styles.form}>
-        <div className={styles.spinnerContainer}>
-          <div className={styles.spinner} />
-        </div>
-      </div>
-    );
-  }
+  const showGiftButton = !isUtmMode && currentAverage >= 4;
 
   return (
     <div className={styles.form}>
-      {/* Container for the form that gets blurred when unauthenticated */}
-      <div className={(!isSignedIn && !isAuthDismissed) ? styles.blurred : ""}>
-        <AnimatePresence>
-          <PopupMsg
-            isOpen={status === "success" && !isGiftPopupOpen}
-            onClose={() => {
-              setStatus("idle");
-              setSongStats(null);
-              setRatings({
-                cat2: 0,
-                cat3: 0,
-                overall: 0,
-              });
-              setComment("");
-              onPopupClose?.();
-            }}
-            title="תודה על הפידבק!"
-            buttonText="שיר הבא"
-            secondaryButtonText={showGiftButton ? "תנו מתנה קטנה לאמן" : undefined}
-            secondaryButtonIcon={showGiftButton ? <Gift size={18} /> : undefined}
-            onSecondaryClick={showGiftButton ? () => setIsGiftPopupOpen(true) : undefined}
-            message={
-              songStats && (
-                <div className={styles.successStats}>
-                  <p className={styles.successScoreLabel}>
-                    <span className={styles.successScoreText}>הדירוג שלי לשיר:</span>
-                    <span className={styles.successScoreValue}>
-                      {((ratings.cat2 + ratings.cat3 + ratings.overall) / 3).toFixed(1)}
-                    </span>
-                  </p>
-                  <p className={styles.successScoreLabel}>
-                    <span className={styles.successScoreText}>דירוג הקהילה לשיר:</span>
-                    <span className={styles.successScoreValue}>{songStats.averageRating.toFixed(1)}</span>
-                  </p>
-                </div>
-              )
-            }
-          />
+      {/* Form container is now always accessible (guest mode) */}
+      <div>
+        <PopupMsg
+          key="success-popup"
+          isOpen={status === "success" && !isGiftPopupOpen}
+          onClose={() => {
+            setStatus("idle");
+            setSongStats(null);
+            setRatings({
+              cat2: 0,
+              cat3: 0,
+              overall: 0,
+            });
+            setComment("");
+            onPopupClose?.();
+          }}
+          title="תודה על הפידבק!"
+          buttonText="שיר הבא"
+          secondaryButtonText={showGiftButton ? "תנו מתנה קטנה לאמן" : undefined}
+          secondaryButtonIcon={showGiftButton ? <Gift size={18} /> : undefined}
+          onSecondaryClick={showGiftButton ? () => setIsGiftPopupOpen(true) : undefined}
+          message={
+            songStats && (
+              <div className={styles.successStats}>
+                <p className={styles.successScoreLabel}>
+                  <span className={styles.successScoreText}>הדירוג שלי לשיר:</span>
+                  <span className={styles.successScoreValue}>
+                    {((ratings.cat2 + ratings.cat3 + ratings.overall) / 3).toFixed(1)}
+                  </span>
+                </p>
+                <p className={styles.successScoreLabel}>
+                  <span className={styles.successScoreText}>דירוג הקהילה לשיר:</span>
+                  <span className={styles.successScoreValue}>{songStats.averageRating.toFixed(1)}</span>
+                </p>
+              </div>
+            )
+          }
+        />
 
-          {status === "error" && (
-            <div className={styles.errorOverlay} onClick={() => setStatus("idle")}>
-              <motion.div
-                className={styles.errorPopup}
-                initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <button
-                  className={styles.closeBtn}
-                  onClick={() => setStatus("idle")}
-                  aria-label="סגור"
-                >
-                  <X size={20} />
-                </button>
-                <div className={styles.errorHeader}>
-                  <AlertCircle size={24} className={styles.errorIcon} />
-                  <span className={styles.errorTitle}>שימו לב</span>
-                </div>
-                <div className={styles.errorContent}>{errorMsg}</div>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
+        <PopupMsg
+          key="error-popup"
+          isOpen={status === "error"}
+          onClose={() => setStatus("idle")}
+          title="שימו לב"
+          message={errorMsg}
+          icon={<AlertCircle size={34} color="#DC2626" />}
+          buttonText="הבנתי"
+          variant="error"
+        />
 
         <form onSubmit={handleSubmit}>
           <div className={styles.ratingGrid}>
@@ -448,39 +420,18 @@ export default function FeedbackForm({
               </div>
             </div>
 
-            <button
+            <Button
               type="submit"
               className={styles.submitBtn}
-              disabled={status === "loading" || isDisabled}
+              isLoading={status === "loading"}
+              disabled={isDisabled}
             >
-              {status === "loading" ? (
-                <div className={styles.spinner} />
-              ) : (
-                <span>{isDisabled ? disabledMessage : "שליחת פידבק (אנונימי)"}</span>
-              )}
-            </button>
+              {isDisabled ? disabledMessage : "שליחת פידבק (אנונימי)"}
+            </Button>
           </div>
         </form>
       </div>
 
-      {/* Overlay for unauthenticated users */}
-      {!isSignedIn && !isAuthDismissed && (
-        <AuthOverlay
-          isModal={true}
-          message={
-            <>
-              <strong>הפידבק שלך ממש חשוב לנו</strong>{"\n\n"}
-              אבל כדי שלא נציג לך שוב ושוב שירים שכבר דירגת וכדי לשמור על איכות הקהילה, בואו נתחבר בקליק.{"\n\n"}
-              הדירוגים שלך אנונימיים לחלוטין.
-            </>
-          }
-          onDismiss={() => {
-            if (onAuthDismiss) onAuthDismiss();
-            router.push("/");
-          }}
-          dismissLabel="לא עכשיו, תודה"
-        />
-      )}
 
       {/* Flying Numbers Portal-like overlay */}
       <AnimatePresence>

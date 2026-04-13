@@ -152,65 +152,6 @@
   border-bottom-right-radius: 20px;
 }
 
-.confirmButton {
-  background-color: var(--brand-primary);
-  color: white;
-  border: none;
-  padding: 0.85rem 2.5rem;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 1.05rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  min-width: 120px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.confirmButton:hover:not(:disabled) {
-  opacity: 0.9;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(29, 185, 84, 0.3);
-}
-
-.cancelButton {
-  background-color: transparent;
-  color: var(--text-muted);
-  border: 1.5px solid var(--border-color);
-  padding: 0.85rem 2rem;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 1.05rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.cancelButton:hover:not(:disabled) {
-  border-color: var(--text-muted);
-  color: var(--text-main);
-  background-color: var(--bg-section);
-}
-
-.confirmButton:disabled,
-.cancelButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.spinner {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
-}
 
 @media (max-width: 480px) {
   .genreGrid {

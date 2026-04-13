@@ -1,11 +1,8 @@
 "use client";
 
-import { SignInButton, SignedIn, SignedOut, UserButton, useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
-import { ADMIN_EMAIL } from "@/lib/constants";
-import { Music, Gift, MessageCircle, BarChart, Share2 } from "lucide-react";
 import ContactModal from "./ContactModal";
 import InfoTooltip from "./InfoTooltip";
 import Image from "next/image";
@@ -17,29 +14,54 @@ import AnimatedTokenCounter from "./AnimatedTokenCounter";
 import { GiPodium } from "react-icons/gi";
 import CopyToast from "./CopyToast";
 import { useShare } from "@/hooks/useShare";
+import UserMenu from "./UserMenu";
+import RegistrationGate, { GateType } from "./RegistrationGate";
+import { useAuth } from "@clerk/nextjs";
+import Button from "./ui/Button";
+import { useUtmMode } from "@/hooks/useUtmMode";
 
-export default function Navbar() {
+interface NavbarProps {
+  isLoggedIn: boolean;
+  initialTokens: number;
+  initialName?: string;
+  initialEmail?: string;
+  isAdmin: boolean;
+}
+
+export default function Navbar({ isLoggedIn, initialTokens, initialName = "", initialEmail = "", isAdmin }: NavbarProps) {
   const pathname = usePathname();
-  const { user, isLoaded } = useUser();
-  const [tokens, setTokens] = useState<number | null>(null);
+  const { userId, isLoaded: authLoaded } = useAuth();
+  const [tokens, setTokens] = useState<number | null>(isLoggedIn ? initialTokens : null);
   const [userGenre, setUserGenre] = useState<string>("");
   const [userSocialLinks, setUserSocialLinks] = useState<string>("");
-  const [displayedTokens, setDisplayedTokens] = useState<number | null>(null);
+  const [userEmail, setUserEmail] = useState<string>(initialEmail);
+  const [userName, setUserName] = useState<string>(initialName);
+  const [displayedTokens, setDisplayedTokens] = useState<number | null>(isLoggedIn ? initialTokens : null);
   const [glowMode, setGlowMode] = useState<"positive" | "negative" | null>(null);
   const [showTokensInfo, setShowTokensInfo] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
   const [showPreferencesModal, setShowPreferencesModal] = useState(false);
   const [showCreditModal, setShowCreditModal] = useState(false);
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
+  const [registrationType, setRegistrationType] = useState<GateType>("give-feedback");
   const [pendingRedirect, setPendingRedirect] = useState<string | null>(null);
   const redirectUrlRef = useRef<string | null>(null);
   const tokenTriggerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { share, copied } = useShare();
+  const { isUtmMode } = useUtmMode();
+
+  // Sync server state with client state if mismatch detected
+  useEffect(() => {
+    if (authLoaded && !!userId !== isLoggedIn) {
+      router.refresh();
+    }
+  }, [authLoaded, userId, isLoggedIn, router]);
 
   useEffect(() => {
     const fetchUserData = async () => {
-      if (user) {
-        const result = await getUserData(user.id);
+      if (isLoggedIn) {
+        const result = await getUserData();
         if (result.success && result.tokens !== undefined) {
           if (tokens !== null && result.tokens !== tokens) {
             setGlowMode(result.tokens > tokens ? "positive" : "negative");
@@ -47,6 +69,8 @@ export default function Navbar() {
           setTokens(result.tokens);
           setUserGenre(result.userGenre || "");
           setUserSocialLinks(result.socialLinks || "");
+          setUserEmail(result.email || "");
+          setUserName(result.name || "");
           if (displayedTokens === null) {
             setDisplayedTokens(result.tokens);
           }
@@ -69,11 +93,19 @@ export default function Navbar() {
     };
     window.addEventListener("open-preferences-modal", handleOpenPrefs);
 
+    const handleOpenAuth = (e: Event) => {
+      const customEvent = e as CustomEvent<{ type?: GateType }>;
+      setRegistrationType(customEvent.detail?.type || "give-feedback");
+      setShowRegistrationModal(true);
+    };
+    window.addEventListener("open-registration-gate", handleOpenAuth);
+
     return () => {
       window.removeEventListener("tokens-updated", handleUpdate);
       window.removeEventListener("open-preferences-modal", handleOpenPrefs);
+      window.removeEventListener("open-registration-gate", handleOpenAuth);
     };
-  }, [user, pathname, displayedTokens, tokens]); // Added tokens to dependencies for fetchTokens to compare correctly
+  }, [isLoggedIn, pathname, displayedTokens, tokens]);
 
   useEffect(() => {
     if (pendingRedirect && !showPreferencesModal) {
@@ -92,10 +124,8 @@ export default function Navbar() {
     }
   };
 
-
   useEffect(() => {
     if (tokens !== null && displayedTokens !== null && tokens !== displayedTokens) {
-      // Step 2: Update counter after 1 second
       const updateTimer = setTimeout(() => {
         setDisplayedTokens(tokens);
       }, 1000);
@@ -106,7 +136,6 @@ export default function Navbar() {
 
   useEffect(() => {
     if (glowMode) {
-      // Step 3: Stop glow after total 1.5 seconds (gives a bit of time after update)
       const stopGlowTimer = setTimeout(() => {
         setGlowMode(null);
       }, 2500);
@@ -114,19 +143,6 @@ export default function Navbar() {
       return () => clearTimeout(stopGlowTimer);
     }
   }, [glowMode]);
-
-  //
-  // Automatic tokens info display feature is currently disabled for new users
-  //
-  // useEffect(() => {
-  //   if (user && pathname.startsWith("/give-feedback")) {
-  //     const isExplained = getCookie("fbCreditExplained");
-  //     if (!isExplained) {
-  //       setTimeout(() => setShowTokensInfo(true), 0);
-  //       setCookie("fbCreditExplained", "true", 365);
-  //     }
-  //   }
-  // }, [pathname, user]);
 
   const handleShare = () => {
     share({
@@ -162,84 +178,64 @@ export default function Navbar() {
           <span>פידבק-ספייס</span>
         </Link>
         <div className={styles.navLinks}>
-          {isLoaded ? (
+          {!isLoggedIn && !userId && !isUtmMode && (
+            <Button
+              variant="outline"
+              className={styles.loginBtn}
+              onClick={() => {
+                setRegistrationType("minimal");
+                setShowRegistrationModal(true);
+              }}
+            >
+              התחברות
+            </Button>
+          )}
+          {(isLoggedIn || userId) && (
+            <Link href="/top-rated" className={styles.navLink} title="היכל התהילה">
+              <GiPodium size={26} />
+            </Link>
+          )}
+          {(isLoggedIn || userId) && (
             <>
-
-              <Link href="/top-rated" className={styles.navLink} title="היכל התהילה">
-                <GiPodium size={26} />
-              </Link>
-              <SignedOut>
-                <SignInButton mode="modal">
-                  <button className={styles.btnGoogle}>
-                    התחברות
-                  </button>
-                </SignInButton>
-              </SignedOut>
-              <SignedIn>
-                {tokens !== null && (
-                  <div className={styles.tokenWrapper}>
-                    <div
-                      className={`${styles.tokenDisplay} ${glowMode === "positive" ? styles.glowingPositive : glowMode === "negative" ? styles.glowingNegative : ""}`}
-                      title="לחצו להסבר על הקרדיטים"
-                      onClick={() => setShowTokensInfo(!showTokensInfo)}
-                      ref={tokenTriggerRef}
-                    >
-                      <AnimatedTokenCounter value={displayedTokens ?? 0} />
-                    </div>
-
-                    <InfoTooltip
-                      isOpen={showTokensInfo}
-                      onClose={() => setShowTokensInfo(false)}
-                      title="איך עובד מנגנון הקרדיטים?"
-                      content={
-                        <p>שליחת שיר וצפיה בפידבק מורידה מתווי הקרדיט. כדי לצבור תווי קרדיט חדשים, פשוט תנו פידבק לשירים של יוצרים אחרים בקהילה.</p>
-                      }
-
-                      arrowPosition="left"
-                      align="left"
-                      triggerRef={tokenTriggerRef}
-                    />
+              {tokens !== null && (
+                <div className={styles.tokenWrapper}>
+                  <div
+                    className={`${styles.tokenDisplay} ${glowMode === "positive" ? styles.glowingPositive : glowMode === "negative" ? styles.glowingNegative : ""}`}
+                    title="לחצו להסבר על הקרדיטים"
+                    onClick={() => setShowTokensInfo(!showTokensInfo)}
+                    ref={tokenTriggerRef}
+                  >
+                    <AnimatedTokenCounter value={displayedTokens ?? 0} />
                   </div>
-                )}
-                <UserButton afterSignOutUrl="/">
-                  <UserButton.MenuItems>
-                    <UserButton.Action
-                      label="כרטיס ביקור מוזיקלי"
-                      labelIcon={<Music size={16} />}
-                      onClick={() => setShowPreferencesModal(true)}
-                    />
-                    <UserButton.Action
-                      label="שתפו עם חברים"
-                      labelIcon={<Share2 size={16} />}
-                      onClick={handleShare}
-                    />
-                    <UserButton.Action
-                      label="שלח/קבל תווי קרדיט"
-                      labelIcon={<Gift size={16} />}
-                      onClick={() => setShowCreditModal(true)}
-                    />
-                    <UserButton.Action
-                      label="צרו איתנו קשר"
-                      labelIcon={<MessageCircle size={16} />}
-                      onClick={() => setShowContactModal(true)}
-                    />
-                    {user?.primaryEmailAddress?.emailAddress === ADMIN_EMAIL && (
-                      <UserButton.Link
-                        label="דוחות מנהל"
-                        labelIcon={<BarChart size={16} />}
-                        href="/admin/reports"
-                      />
-                    )}
-                    <UserButton.Action label="manageAccount" />
-                  </UserButton.MenuItems>
-                </UserButton>
-              </SignedIn>
+
+                  <InfoTooltip
+                    isOpen={showTokensInfo}
+                    onClose={() => setShowTokensInfo(false)}
+                    title="איך עובד מנגנון הקרדיטים?"
+                    content={
+                      <p>העלאת שיר וצפיה בפידבק מורידה מתווי הקרדיט. כדי לצבור תווי קרדיט חדשים, פשוט תנו פידבק לשירים של יוצרים אחרים בקהילה.</p>
+                    }
+                    arrowPosition="left"
+                    align="left"
+                    triggerRef={tokenTriggerRef}
+                  />
+                </div>
+              )}
+
+              <UserMenu
+                isAdmin={isAdmin}
+                name={userName}
+                email={userEmail}
+                onOpenPreferences={() => setShowPreferencesModal(true)}
+                onOpenContact={() => setShowContactModal(true)}
+                onOpenCreditTransfer={() => setShowCreditModal(true)}
+                onShare={handleShare}
+              />
             </>
-          ) : (
-            <div style={{ width: '100px' }} /> // Placeholder while loading
           )}
         </div>
       </div>
+
       <ContactModal
         isOpen={showContactModal}
         onClose={() => setShowContactModal(false)}
@@ -254,6 +250,11 @@ export default function Navbar() {
         isOpen={showCreditModal}
         onClose={() => setShowCreditModal(false)}
         currentTokens={tokens ?? 0}
+      />
+      <RegistrationGate
+        isOpen={showRegistrationModal}
+        type={registrationType}
+        onClose={() => setShowRegistrationModal(false)}
       />
       <CopyToast isVisible={copied} />
     </nav>

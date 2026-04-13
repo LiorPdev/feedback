@@ -1,18 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { SignedIn, SignedOut, useUser } from "@clerk/nextjs";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { CheckCircle } from "lucide-react";
 import styles from "@/app/landing.module.css";
 import { useState, useEffect } from "react";
 import { getUserSongCount } from "@/app/actions/songs";
 import { getMyGivenFeedbacksCount } from "@/app/actions/feedback";
+import { getUserData } from "@/app/actions/user";
 import Footer from "./Footer";
-import AuthOverlay from "./AuthOverlay";
 import HeroGallery from "./HeroGallery";
+import { useRouter, useSearchParams } from "next/navigation";
 import { GiPodium } from "react-icons/gi";
 import Image from "next/image";
+import RegistrationGate, { GateType } from "./RegistrationGate";
+import PageHeader from "./PageHeader";
+import Button from "./ui/Button";
+import { useUtmMode } from "@/hooks/useUtmMode";
 
 // Animation variants
 const fadeInUp = {
@@ -31,67 +35,79 @@ const staggerContainer = {
 };
 
 export default function LandingClient({
+  isLoggedIn = false,
+  isClerkUser = false,
   initialHasSongs = false,
   initialGenre = "",
   initialHasFeedbacksGiven = false
 }: {
+  isLoggedIn?: boolean,
+  isClerkUser?: boolean,
   initialHasSongs?: boolean,
   initialGenre?: string,
   initialHasFeedbacksGiven?: boolean
 }) {
-  const { user, isLoaded } = useUser();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [hasSongs, setHasSongs] = useState(initialHasSongs);
   const [hasFeedbacksGiven, setHasFeedbacksGiven] = useState(initialHasFeedbacksGiven);
   const [userGenre, setUserGenre] = useState(initialGenre);
-  const [authOverlay, setAuthOverlay] = useState<{ isOpen: boolean; message: React.ReactNode; redirectUrl?: string }>({
-    isOpen: false,
-    message: "",
-  });
+  const [activeGate, setActiveGate] = useState<GateType | null>(null);
+  const [targetRedirectUrl, setTargetRedirectUrl] = useState<string | undefined>(undefined);
+  const [userEmail, setUserEmail] = useState<string | undefined>(undefined);
+  const { isUtmMode, utmSource } = useUtmMode();
 
   useEffect(() => {
-    async function checkUserData() {
-      if (isLoaded && user) {
-        const [songResult, userResult, feedbackCount] = await Promise.all([
-          getUserSongCount(user.id),
-          (async () => {
-            const { getUserData } = await import("@/app/actions/user");
-            return getUserData(user.id);
-          })(),
-          getMyGivenFeedbacksCount(),
-        ]);
-
-        setHasFeedbacksGiven(feedbackCount > 0);
-
-        if (songResult.success && songResult.count > 0) {
-          setHasSongs(true);
-        } else {
-          setHasSongs(false);
-        }
-
-        if (userResult.success && userResult.userGenre) {
-          setUserGenre(userResult.userGenre);
-        }
+    const handleUpdate = async () => {
+      if (!isLoggedIn) return;
+      const [songResult, feedbackCount, userData] = await Promise.all([
+        getUserSongCount(),
+        getMyGivenFeedbacksCount(),
+        getUserData()
+      ]);
+      setHasSongs(songResult.success && songResult.count > 0);
+      setHasFeedbacksGiven(feedbackCount > 0);
+      if (userData.success) {
+        if (userData.userGenre) setUserGenre(userData.userGenre);
+        if (userData.email) setUserEmail(userData.email);
       }
-    }
-    if (isLoaded) {
-      checkUserData();
-    }
-
-    const handleUpdate = () => {
-      checkUserData();
     };
+
+    handleUpdate();
     window.addEventListener("tokens-updated", handleUpdate);
 
     return () => {
       window.removeEventListener("tokens-updated", handleUpdate);
     };
-  }, [user, isLoaded]);
+  }, [isLoggedIn, searchParams]);
 
-  const handleGiveFeedbackClick = () => {
-    if (user && !userGenre) {
-      window.dispatchEvent(new CustomEvent("open-preferences-modal", {
-        detail: { redirectTo: "/give-feedback?backHome=true" }
-      }));
+  const handleGetFeedbackClick = (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+    
+    if (isClerkUser || isUtmMode) {
+      const dest = `/get-feedback?backHome=true${utmSource ? `&utm_source=${utmSource}` : ""}`;
+      router.push(dest);
+    } else {
+      setTargetRedirectUrl("/get-feedback");
+      setActiveGate(isLoggedIn ? "complete-registration" : "get-feedback");
+    }
+  };
+
+  const handleGiveFeedbackClick = (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+
+    if (isClerkUser || isUtmMode) {
+      if (isLoggedIn && !userGenre) {
+        window.dispatchEvent(new CustomEvent("open-preferences-modal", {
+          detail: { redirectTo: "/give-feedback?backHome=true" }
+        }));
+      } else {
+        const dest = `/give-feedback?backHome=true${utmSource ? `&utm_source=${utmSource}` : ""}`;
+        router.push(dest);
+      }
+    } else {
+      setTargetRedirectUrl("/give-feedback");
+      setActiveGate(isLoggedIn ? "complete-registration" : "give-feedback");
     }
   };
 
@@ -99,16 +115,16 @@ export default function LandingClient({
 
   return (
     <div className={styles.landingPage}>
-      <AnimatePresence>
-        {authOverlay.isOpen && (
-          <AuthOverlay
-            isModal
-            message={authOverlay.message}
-            redirectUrl={authOverlay.redirectUrl}
-            onClose={() => setAuthOverlay(prev => ({ ...prev, isOpen: false }))}
-          />
-        )}
-      </AnimatePresence>
+      <RegistrationGate
+        isOpen={!!activeGate}
+        type={activeGate || "give-feedback"}
+        onClose={() => {
+          setActiveGate(null);
+          setTargetRedirectUrl(undefined);
+        }}
+        userEmail={userEmail}
+        redirectUrl={targetRedirectUrl}
+      />
 
       {/* Hero Section */}
       <header className={styles.hero}>
@@ -119,54 +135,64 @@ export default function LandingClient({
             animate="visible"
             variants={staggerContainer}
           >
-            <motion.h1 className={styles.heroTitle} variants={fadeInUp}>
-              <span style={{ color: "var(--brand-contrast)" }}>מישהו מקשיב לך</span>
-            </motion.h1>
-            <SignedOut>
+            <motion.div variants={fadeInUp} style={{ width: '100%' }}>
+              <PageHeader
+                title="מישהו מקשיב לך"
+                variant="hero"
+                hideDivider
+                align="center"
+              />
+            </motion.div>
+            {!isLoggedIn && (
               <motion.div className={styles.howItWorks} variants={fadeInUp}>
                 <h3 style={{ textAlign: "right", paddingRight: "0.7rem" }}>איך זה עובד?</h3>
-                <ul className={styles.howItWorksList} style={{ listStyleType: "disc", marginRight: "2rem", marginTop: "0.5rem", textAlign: "right" }}>
-                  <li style={{ marginBottom: "0.5rem" }}><strong>מעלים</strong> שיר (קישור או קובץ)</li>
-                  <li style={{ marginBottom: "0.5rem" }}><strong>מקבלים</strong> חוות דעת כנה ואנונימית מהקהילה</li>
-                  <li><strong>תורמים</strong> גם מהידע שלכם כדי לעזור לאחרים</li>
+                <ul className={styles.howItWorksList}>
+                  <li><strong>מעלים</strong> שיר (קישור או קובץ)</li>
+                  <li><strong>מקבלים</strong> חוות דעת כנה ואנונימית מהקהילה</li>
+                  <li><strong>תורמים</strong> מהידע שלכם כדי לעזור לאחרים</li>
                 </ul>
               </motion.div>
-            </SignedOut>
+            )}
             <motion.div className={styles.heroButtons} variants={fadeInUp}>
-              <SignedOut>
-                <Link href="/get-feedback?backHome=true" className={styles.btnPrimary}>
-                  אני רוצה לקבל פידבק
-                </Link>
-                <Link
-                  href="/give-feedback?backHome=true"
-                  className={styles.btnSecondary}
-                >
-                  אני רוצה לתת פידבק
-                </Link>
-              </SignedOut>
-              <SignedIn>
-                <Link
-                  href={(hasSongs || hasFeedbacksGiven) ? "/dashboard" : "/get-feedback?backHome=true"}
-                  className={styles.btnPrimary}
-                >
-                  {(hasSongs || hasFeedbacksGiven) ? "האיזור האישי שלי" : "אני רוצה לקבל פידבק"}
-                </Link>
-                {userGenre ? (
-                  <Link
-                    href="/give-feedback?backHome=true"
-                    className={styles.btnSecondary}
+              {!isLoggedIn ? (
+                <>
+                  <Button
+                    onClick={handleGetFeedbackClick}
+                    variant="primary"
+                    size="lg"
+                    fullWidth
+                  >
+                    אני רוצה לקבל פידבק
+                  </Button>
+                  <Button
+                    onClick={handleGiveFeedbackClick}
+                    variant="outline-brand"
+                    size="lg"
+                    fullWidth
                   >
                     אני רוצה לתת פידבק
-                  </Link>
-                ) : (
-                  <button
-                    className={styles.btnSecondary}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    onClick={handleGetFeedbackClick}
+                    variant="primary"
+                    size="lg"
+                    fullWidth
+                  >
+                    {(hasSongs || hasFeedbacksGiven) ? "האיזור האישי שלי" : "אני רוצה לקבל פידבק"}
+                  </Button>
+                  <Button
+                    variant="outline-brand"
+                    size="lg"
+                    fullWidth
                     onClick={handleGiveFeedbackClick}
                   >
                     אני רוצה לתת פידבק
-                  </button>
-                )}
-              </SignedIn>
+                  </Button>
+                </>
+              )}
             </motion.div>
 
             <motion.div variants={fadeInUp} className={styles.topRatedLinkWrapper}>
@@ -184,48 +210,44 @@ export default function LandingClient({
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.4 }}
           >
-            {isLoaded ? (
-              user ? (
-                <HeroGallery />
-              ) : (
-                <div className={styles.videoWrapper}>
-                  {!showVideo ? (
-                    <div
-                      className={styles.videoThumbnail}
-                      onClick={() => setShowVideo(true)}
-                    >
-                      <Image
-                        src="https://img.youtube.com/vi/4kxbf8gNDzk/maxresdefault.jpg"
-                        alt="Play Video"
-                        className={styles.thumbnailImage}
-                        width={1280}
-                        height={720}
-                        loading="eager"
-                        unoptimized
-                      />
-                      <div className={styles.playButton}>
-                        <svg viewBox="0 0 24 24" width="48" height="48" fill="white">
-                          <path d="M8 5v14l11-7z" />
-                        </svg>
-                      </div>
-                    </div>
-                  ) : (
-                    <iframe
-                      src="https://www.youtube.com/embed/4kxbf8gNDzk?autoplay=1&mute=0&loop=1&playlist=4kxbf8gNDzk"
-                      title="מישהו מקשיב לך"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      allowFullScreen
-                    ></iframe>
-                  )}
-                </div>
-              )
+            {isLoggedIn ? (
+              <HeroGallery />
             ) : (
-              <div className={styles.heroPlaceholder} style={{ height: '300px' }} />
+              <div className={styles.videoWrapper}>
+                {!showVideo ? (
+                  <div
+                    className={styles.videoThumbnail}
+                    onClick={() => setShowVideo(true)}
+                  >
+                    <Image
+                      src="https://img.youtube.com/vi/4kxbf8gNDzk/maxresdefault.jpg"
+                      alt="Play Video"
+                      className={styles.thumbnailImage}
+                      width={1280}
+                      height={720}
+                      loading="eager"
+                      unoptimized
+                    />
+                    <div className={styles.playButton}>
+                      <svg viewBox="0 0 24 24" width="48" height="48" fill="white">
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    </div>
+                  </div>
+                ) : (
+                  <iframe
+                    src="https://www.youtube.com/embed/4kxbf8gNDzk?autoplay=1&mute=0&loop=1&playlist=4kxbf8gNDzk"
+                    title="מישהו מקשיב לך"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                  ></iframe>
+                )}
+              </div>
             )}
           </motion.div>
         </div>
 
-        {isLoaded && !user && (
+        {!isLoggedIn && (
           <motion.button
             className={styles.scrollDownFab}
             onClick={() => {

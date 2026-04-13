@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Share2, Check } from "lucide-react";
 import styles from "./ShareSongButton.module.css";
 import { motion, AnimatePresence } from "framer-motion";
@@ -15,20 +14,8 @@ interface ShareSongButtonProps {
   tooltipAlign?: "center" | "left" | "right";
 }
 
-export default function ShareSongButton({ slug, isNew, variant = "standard", disabled, tooltipAlign = "center" }: ShareSongButtonProps) {
-  const [showAutoTooltip, setShowAutoTooltip] = useState(false);
+export default function ShareSongButton({ slug, variant = "standard", disabled, tooltipAlign = "center" }: ShareSongButtonProps) {
   const { share, copied } = useShare();
-
-  useEffect(() => {
-    if (isNew) {
-      const timer = setTimeout(() => setShowAutoTooltip(true), 500);
-      const hideTimer = setTimeout(() => setShowAutoTooltip(false), 10500);
-      return () => {
-        clearTimeout(timer);
-        clearTimeout(hideTimer);
-      };
-    }
-  }, [isNew]);
 
   const handleCopy = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -85,12 +72,9 @@ export default function ShareSongButton({ slug, isNew, variant = "standard", dis
         )}
 
         <Tooltip
-          show={copied || showAutoTooltip}
+          show={copied}
           align={tooltipAlign}
-          message={copied
-            ? "הועתק! שילחו לחברים את הקישור כדי שיתנו לכם פידבק על השיר"
-            : "השיר התווסף! שילחו לחברים את הקישור כדי שיתנו לכם פידבק על השיר"
-          }
+          message="הועתק! שילחו לחברים את הקישור כדי שיתנו לכם פידבק על השיר"
         />
       </button>
     </div>

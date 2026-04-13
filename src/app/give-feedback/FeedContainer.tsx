@@ -2,17 +2,18 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useUser } from "@clerk/nextjs";
 import { motion } from "framer-motion";
 import { Play, SquareStop, CheckCircle2, Star, Coins, Loader2 } from "lucide-react";
 import FeedbackForm from "@/components/FeedbackForm";
 import UrlPlayer, { getEmbedUrl, type UrlPlayerHandle } from "@/components/UrlPlayer";
 import DashboardLink from "@/components/DashboardLink";
-import BackButton from "@/components/BackButton";
+import ManualBackButton from "@/components/ManualBackButton";
 import ArtistSocials from "@/components/ArtistSocials";
 import PopupMsg from "@/components/PopupMsg";
 import { MIN_LISTEN_TIME } from "@/lib/constants";
 import { logAction } from "@/app/actions/logs";
+import RegistrationGate from "@/components/RegistrationGate";
+import { useUtmMode } from "@/hooks/useUtmMode";
 import styles from "./feed.module.css";
 
 interface Song {
@@ -43,27 +44,89 @@ interface FeedContainerProps {
   initialSongSlug?: string;
   showInsufficientCredits?: boolean;
   backHome?: boolean;
+  isLoggedIn: boolean;
 }
 
-export default function FeedContainer({ initialSongs, initialFeedback, from, initialSongSlug, showInsufficientCredits = false, backHome = false }: FeedContainerProps) {
-  const { isSignedIn, isLoaded } = useUser();
+export default function FeedContainer({
+  initialSongs,
+  initialFeedback,
+  from,
+  initialSongSlug,
+  showInsufficientCredits = false,
+  backHome = false,
+  isLoggedIn
+}: FeedContainerProps) {
   const router = useRouter();
   const [showCreditPopup, setShowCreditPopup] = useState(showInsufficientCredits);
-  const [songs, setSongs] = useState(initialSongs);
+
+  // Storage initialization
+  const [songs, setSongs] = useState(() => {
+    if (typeof window === "undefined") return initialSongs;
+    try {
+      const stored = sessionStorage.getItem("ad_rated_songs");
+      if (!stored) return initialSongs;
+      const ratedIds = JSON.parse(stored) as string[];
+      return initialSongs.filter(s => !ratedIds.includes(s.id));
+    } catch (e) {
+      logAction({
+        message: "Failed to load rated songs for filtering",
+        source: "FeedContainer",
+        data: { error: String(e) }
+      });
+      return initialSongs;
+    }
+  });
+
   const [currentIndex, setCurrentIndex] = useState(0);
+
   const currentSong = songs[currentIndex];
   const getRequiredTime = useCallback(() => { return MIN_LISTEN_TIME; }, []);
   const [secondsRemaining, setSecondsRemaining] = useState<number>(getRequiredTime());
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [hasRatedCurrent, setHasRatedCurrent] = useState(!!initialFeedback);
+
+  const [sessionRatedSongs, setSessionRatedSongs] = useState<string[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const stored = sessionStorage.getItem("ad_rated_songs");
+      return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+      logAction({
+        message: "Failed to load session rated songs",
+        source: "FeedContainer",
+        data: { error: String(e) }
+      });
+      return [];
+    }
+  });
+
+  const hasRatedCurrent = !!initialFeedback || (currentSong && sessionRatedSongs.includes(currentSong.id));
   const [userFeedback, setUserFeedback] = useState<Feedback | null>(initialFeedback || null);
   const [isTransitioning, setIsTransitioning] = useState(true); // true until player fires onReady
   const [playerError, setPlayerError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [isAuthDismissed, setIsAuthDismissed] = useState(false);
+
+  const { isUtmMode: isGuestEligible, isLoaded: isUtmLoaded } = useUtmMode();
+  const isCheckingGuest = !isUtmLoaded;
+
   const playerRef = useRef<UrlPlayerHandle>(null);
+
+  const markSongAsRatedInSession = useCallback((songId: string) => {
+    setSessionRatedSongs(prev => {
+      const next = [...new Set([...prev, songId])];
+      try {
+        sessionStorage.setItem("ad_rated_songs", JSON.stringify(next));
+      } catch (e) {
+        logAction({
+          message: "Failed to save session rated songs",
+          source: "FeedContainer",
+          data: { error: String(e) }
+        });
+      }
+      return next;
+    });
+  }, []);
 
   const embedUrl = currentSong ? getEmbedUrl(currentSong.url) : null;
   const showPlayer = !!embedUrl;
@@ -130,7 +193,7 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
         setCurrentTime(time);
         if (dur > 0) {
           setDuration(dur);
-          if (time >= dur - 0.5) { 
+          if (time >= dur - 0.5) {
             onPlayerEnded();
           }
         }
@@ -165,7 +228,6 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
   const handleSkip = () => {
     if (songs.length <= 1) return;
     resetSongState();
-    setHasRatedCurrent(false);
     setUserFeedback(null);
     setIsPlaying(false);
     setIsTransitioning(true);
@@ -187,7 +249,6 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
 
       // Update index if needed
       resetSongState();
-      setHasRatedCurrent(false);
       setUserFeedback(null);
       setIsPlaying(false);
       setIsTransitioning(true);
@@ -202,7 +263,13 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
   };
 
   const togglePlayback = () => {
-    if (!playerRef.current || (!isSignedIn && !isAuthDismissed)) return;
+    if (!playerRef.current) return;
+
+    // If not logged in AND not coming from an ad, block playback
+    if (!isLoggedIn && !isGuestEligible) {
+      return;
+    }
+
     if (isPlaying) {
       setIsPlaying(false); // Optimistic UI update
       setIsTimerActive(false);
@@ -236,22 +303,26 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
   const isHiddenPlayer = isYouTube || isAudio;
   const showSpinner = isYouTube && isTransitioning;
   const isProminentNext = !isPlaying && hasRatedCurrent;
+  const showBack = true;
+  const backUrl = backHome ? "/" : undefined;
 
   return (
     <div className={styles.feedWrapper}>
       <div className={styles.songCard}>
         <div className={styles.topHeader}>
-          <BackButton className={styles.backButton} forceUrl={backHome ? "/" : undefined} />
-          <div className={styles.headerRow}>
-            <h2 className={styles.title}>
-              {currentSong.title}
-            </h2>
+          {showBack && (
+            <ManualBackButton 
+              url={backUrl}
+              className={styles.backButton}
+            />
+          )}
+
+          <div className={styles.titleRow}>
+            <h2 className={styles.title}>{currentSong.title}</h2>
             {currentSong.genre && (
-              <span className={styles.genreInline}>
-                ({currentSong.genre})
-              </span>
+              <span className={styles.genreInline}>({currentSong.genre})</span>
             )}
-            <div className={styles.headerSocialsContainer}>
+            <div className={styles.inlineSocials}>
               <ArtistSocials socialLinks={currentSong.user?.socialLinks} />
             </div>
           </div>
@@ -291,7 +362,7 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
               <button
                 className={isProminentNext ? styles.btnSkip : (isPlaying ? styles.btnStop : styles.btnPlay)}
                 onClick={togglePlayback}
-                disabled={((!isSignedIn && !isAuthDismissed) && isLoaded) || showSpinner}
+                disabled={(!isLoggedIn && !isGuestEligible) || showSpinner}
               >
                 {isPlaying ? (
                   <>
@@ -311,7 +382,7 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
               </button>
             )}
 
-            {(isSignedIn || isAuthDismissed) && (songs.length > 1 || hasRatedCurrent) && (
+            {(isLoggedIn || isGuestEligible) && (songs.length > 1 || hasRatedCurrent) && (
               <button
                 className={isProminentNext ? styles.btnPlay : styles.btnSkip}
                 onClick={hasRatedCurrent ? handleRemoveCurrent : handleSkip}
@@ -339,23 +410,27 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
               isPlaying={isPlaying}
               isDisabled={!isBypassTimer && secondsRemaining > 0}
               initialSource={from}
-              onAuthDismiss={() => setIsAuthDismissed(true)}
-              isAuthDismissed={isAuthDismissed}
+              isLoggedIn={isLoggedIn}
+              onSuccess={(feedback) => {
+                setUserFeedback(feedback as Feedback);
+                // Don't mark as rated in session yet, wait for popup to close
+              }}
+              onPopupClose={() => {
+                if (!isLoggedIn) {
+                  markSongAsRatedInSession(currentSong.id);
+                }
+                handleRemoveCurrent();
+              }}
               disabledMessage={
                 isBypassTimer ? "" : (
                   secondsRemaining >= getRequiredTime()
-                    ? `שליחת פידבק (אנונימי)`
+                    ? (isLoggedIn || isGuestEligible ? `שליחת פידבק` : `שליחת פידבק (אנונימי)`)
                     : `ניתן לשלוח פידבק בעוד ${secondsRemaining} שניות${!isTimerActive ? " (מושהה)" : "..."}`
                 )
               }
-              onSuccess={(feedback) => {
-                setUserFeedback(feedback as Feedback);
-              }}
-              onPopupClose={() => {
-                handleRemoveCurrent();
-              }}
             />
           )}
+
 
           {hasRatedCurrent && userFeedback && (
             <div className={styles.ratedContainer}>
@@ -406,6 +481,16 @@ export default function FeedContainer({ initialSongs, initialFeedback, from, ini
           <div>החדשות הטובות: על כל פידבק שתיתנו, תקבלו תווי קרדיט נוספים.</div>
         }
         buttonText="הבנתי, בואו ניתן קצת פידבק לאחרים"
+      />
+
+      {/* Hard block only for organic traffic (not from Ads) */}
+      <RegistrationGate
+        isOpen={!isLoggedIn && !isCheckingGuest && !isGuestEligible}
+        type="give-feedback"
+        onClose={() => {
+          // Return to home if organic user dismisses without logging in
+          window.location.href = "/";
+        }}
       />
     </div>
   );

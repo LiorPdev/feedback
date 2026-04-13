@@ -11,7 +11,7 @@ npx wrangler d1 migrations apply feedback-db --local
 ## DATABASE -> Push your schema changes to the CLOUDFLARE DATABASE:
 npx wrangler d1 migrations apply feedback-db --remote
 
-## DEPLOYMENT -> To deploy the project to Cloudflare Pages:
+## How to DEPLOY -> To deploy the project to Cloudflare Pages:
 Do Commit & Push from Menu and wait for the build to complete.
 Check build status here: https://dash.cloudflare.com/9c530885ad264c96d05babc5c7dc69a3/pages/view/feedback
 
@@ -26,3 +26,6 @@ Token value (ffu): cfat_ywHZVFDl0YYXHpA9aZ4lQXyOX7gknw2Z1dyc8ntJ11001334
 
 ## Google YouTube API Key (under feedback.space.app@gmail.com)
 https://console.cloud.google.com/apis/credentials
+
+## How to run Ads
+https://feedback.co.il/?utm_source=meta_ad

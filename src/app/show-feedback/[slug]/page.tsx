@@ -1,8 +1,8 @@
 import { getDb } from "@/lib/db";
 import { notFound, redirect } from "next/navigation";
 import styles from "./show-feedback.module.css";
-import BackButton from "@/components/BackButton";
-import { auth } from "@clerk/nextjs/server";
+import ManualBackButton from "@/components/ManualBackButton";
+import { syncUser } from "@/lib/user-auth";
 import DashboardLink from "@/components/DashboardLink";
 import ShareSongButton from "@/components/ShareSongButton";
 import SongPlayer from "./SongPlayer";
@@ -17,7 +17,8 @@ interface ShowFeedbackPageProps {
 export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps) {
   const { slug } = await params;
   const db = await getDb();
-  const { userId } = await auth();
+  const dbUser = await syncUser();
+  const userId = dbUser?.id;
 
   const song = await db.query.songs.findFirst({
     where: (songs, { eq }) => eq(songs.slug, slug),
@@ -90,15 +91,17 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
 
       <main className={`${styles.main} ${!userId ? styles.blurred : ""}`}>
         <div className={styles.card}>
-          <BackButton className={styles.backButton} />
-          <SongPlayer url={song.url} />
+          <div className={styles.topHeader}>
+            <ManualBackButton className={styles.backButton} />
 
-          <div className={styles.titleRow}>
-            <h1 className={styles.title}>{song.title}</h1>
-            <span className={styles.subDate}>
-              {new Date(song.createdAt).toLocaleDateString('he-IL')}
-            </span>
+            <div className={styles.titleRow}>
+              <h1 className={styles.title}>{song.title}</h1>
+              <span className={styles.subDate}>
+                {new Date(song.createdAt).toLocaleDateString('he-IL')}
+              </span>
+            </div>
           </div>
+          <SongPlayer url={song.url} />
 
           {hasAnyAverage && (
             <div className={styles.averagesSection}>
@@ -146,6 +149,7 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
 
       {!userId && (
         <AuthOverlay
+          redirectUrl={`/show-feedback/${slug}`}
           message={
             <>
               כדי לצפות בפידבקים ובתובנות על השיר שלך, יש להתחבר למערכת.{"\n\n"}

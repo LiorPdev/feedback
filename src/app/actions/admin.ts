@@ -1,20 +1,21 @@
 'use server'
 
 import { getDb } from '@/lib/db';
-import { currentUser } from '@clerk/nextjs/server';
+import { syncUser } from '@/lib/user-auth';
 import { desc, eq, aliasedTable, sql, and, gt } from 'drizzle-orm';
 import { users, songs, feedbacks, logs } from '@/lib/schema';
 import { ADMIN_EMAIL, WEIGHT_PRODUCTION, WEIGHT_SINGING, WEIGHT_OVERALL, TOP_RATED_DECAY_FACTOR } from '@/lib/constants';
 import { logAction } from './logs';
 
-async function isAdmin() {
-    const user = await currentUser();
-    const email = user?.primaryEmailAddress?.emailAddress;
-    return email === ADMIN_EMAIL;
+async function getAdminUser() {
+    const user = await syncUser();
+    if (user?.email === ADMIN_EMAIL) return user;
+    return null;
 }
 
 export async function getAdminSongsReport() {
-    if (!await isAdmin()) return { success: false, error: "Unauthorized" };
+    const admin = await getAdminUser();
+    if (!admin) return { success: false, error: "Unauthorized" };
 
     const db = await getDb();
     try {
@@ -46,13 +47,15 @@ export async function getAdminSongsReport() {
             message: "Failed to fetch songs report",
             data: { error: err.message, stack: err.stack },
             source: "actions/admin.ts:getAdminSongsReport",
+            userId: admin.id
         });
         return { success: false, error: "Failed to fetch songs report" };
     }
 }
 
 export async function getAdminFeedbacksReport() {
-    if (!await isAdmin()) return { success: false, error: "Unauthorized" };
+    const admin = await getAdminUser();
+    if (!admin) return { success: false, error: "Unauthorized" };
 
     const db = await getDb();
     const songCreator = aliasedTable(users, 'songCreator');
@@ -86,13 +89,15 @@ export async function getAdminFeedbacksReport() {
             message: "Failed to fetch feedbacks report",
             data: { error: err.message, stack: err.stack },
             source: "actions/admin.ts:getAdminFeedbacksReport",
+            userId: admin.id
         });
         return { success: false, error: "Failed to fetch feedbacks report" };
     }
 }
 
 export async function getAdminUsersReport() {
-    if (!await isAdmin()) return { success: false, error: "Unauthorized" };
+    const admin = await getAdminUser();
+    if (!admin) return { success: false, error: "Unauthorized" };
 
     const db = await getDb();
     try {
@@ -138,13 +143,15 @@ export async function getAdminUsersReport() {
             message: "Failed to fetch users report",
             data: { error: err.message, stack: err.stack },
             source: "actions/admin.ts:getAdminUsersReport",
+            userId: admin.id
         });
         return { success: false, error: "Failed to fetch users report" };
     }
 }
 
 export async function getAdminLogsReport() {
-    if (!await isAdmin()) return { success: false, error: "Unauthorized" };
+    const admin = await getAdminUser();
+    if (!admin) return { success: false, error: "Unauthorized" };
 
     const db = await getDb();
     try {
@@ -168,13 +175,15 @@ export async function getAdminLogsReport() {
             message: "Failed to fetch logs report",
             data: { error: err.message, stack: err.stack },
             source: "actions/admin.ts:getAdminLogsReport",
+            userId: admin.id
         });
         return { success: false, error: "Failed to fetch logs report" };
     }
 }
 
 export async function deleteAdminFeedback(id: string) {
-    if (!await isAdmin()) return { success: false, error: "Unauthorized" };
+    const admin = await getAdminUser();
+    if (!admin) return { success: false, error: "Unauthorized" };
 
     const db = await getDb();
     try {
@@ -186,13 +195,15 @@ export async function deleteAdminFeedback(id: string) {
             message: "Failed to delete feedback",
             data: { error: err.message, stack: err.stack, feedbackId: id },
             source: "actions/admin.ts:deleteAdminFeedback",
+            userId: admin.id
         });
         return { success: false, error: "Failed to delete feedback" };
     }
 }
 
 export async function deleteAdminSong(id: string) {
-    if (!await isAdmin()) return { success: false, error: "Unauthorized" };
+    const admin = await getAdminUser();
+    if (!admin) return { success: false, error: "Unauthorized" };
 
     const db = await getDb();
     try {
@@ -205,12 +216,14 @@ export async function deleteAdminSong(id: string) {
             message: "Failed to delete song",
             data: { error: err.message, stack: err.stack, songId: id },
             source: "actions/admin.ts:deleteAdminSong",
+            userId: admin.id
         });
         return { success: false, error: "Failed to delete song" };
     }
 }
 export async function getAdminTopRatedReport() {
-    if (!await isAdmin()) return { success: false, error: "Unauthorized" };
+    const admin = await getAdminUser();
+    if (!admin) return { success: false, error: "Unauthorized" };
 
     const db = await getDb();
     const rater = aliasedTable(users, 'rater');
@@ -256,6 +269,7 @@ export async function getAdminTopRatedReport() {
             message: "Failed to fetch top rated report",
             data: { error: err.message, stack: err.stack },
             source: "actions/admin.ts:getAdminTopRatedReport",
+            userId: admin.id
         });
         return { success: false, error: "Failed to fetch top rated report" };
     }

@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { syncUser } from "@/lib/user-auth";
 import { redirect } from "next/navigation";
 import { getUserSongCount } from "@/app/actions/songs";
 import GetFeedbackClient from "./GetFeedbackClient";
@@ -8,20 +8,30 @@ interface PageProps {
 }
 
 export default async function GetFeedbackPage({ searchParams }: PageProps) {
-  const { userId } = await auth();
+  const dbUser = await syncUser();
   const params = await searchParams;
-  const backHome = params.backHome === "true";  // back button goes to home page when the user is coming from the login page so back wont return to the login page
+  const backHome = params.backHome === "true"; 
+  
+  let initialHasSongs = false;
+  let initialTokens = 0;
 
-  // If the user is logged in AND they didn't explicitly ask for a 'new' song upload
-  // AND they arrived here via the landing page or a general direct link (no ?new=true)
-  if (userId && params.new !== "true") {
-    const songCountResult = await getUserSongCount(userId);
+  if (dbUser) {
+    const songCountResult = await getUserSongCount();
+    initialHasSongs = (songCountResult.success && songCountResult.count > 0);
+    initialTokens = dbUser.tokens || 0;
 
-    // If they already have at least one song, send them to their dashboard
-    if (songCountResult.success && songCountResult.count > 0) {
-      redirect("/dashboard");
+    // Redirect to dashboard if they already have songs and didn't ask for "new"
+    if (initialHasSongs && params.new !== "true") {
+      redirect(`/dashboard${backHome ? "?backHome=true" : ""}`);
     }
   }
 
-  return <GetFeedbackClient backHome={backHome} />;
+  return (
+    <GetFeedbackClient 
+      backHome={backHome} 
+      isLoggedIn={!!dbUser} 
+      initialHasSongs={initialHasSongs}
+      initialTokens={initialTokens}
+    />
+  );
 }

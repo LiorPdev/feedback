@@ -1,9 +1,7 @@
 import { sql } from "drizzle-orm";
-import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { logAction } from "@/app/actions/logs";
-import BackButton from "@/components/BackButton";
 import { TOP_RATED_MIN_RATINGS_THRESHOLD } from "@/lib/constants";
 import { getDb } from "@/lib/db";
 import { feedbacks } from "@/lib/schema";
@@ -11,25 +9,28 @@ import DashboardClient from "./DashboardClient";
 import { getMyGivenFeedbacks } from "@/app/actions/feedback";
 import type { GivenFeedbackItem } from "@/app/actions/feedback";
 import RaterScoreInfo from "@/components/RaterScoreInfo";
+import { syncUser } from "@/lib/user-auth";
+import PageHeader from "@/components/PageHeader";
 import styles from "./dashboard.module.css";
 
 export default async function DashboardPage({
   searchParams
 }: {
-  searchParams: Promise<{ new?: string }>
+  searchParams: Promise<{ new?: string; backHome?: string }>
 }) {
-  const clerkUser = await currentUser();
-  if (!clerkUser) {
+  const dbUser = await syncUser();
+  if (!dbUser) {
     redirect("/");
   }
 
-  const { new: newSlug } = await searchParams;
+  const { new: newSlug, backHome } = await searchParams;
+  const isBackHome = backHome === "true";
 
   let user;
   const db = await getDb();
   try {
     user = await db.query.users.findFirst({
-      where: (users, { eq }) => eq(users.id, clerkUser.id),
+      where: (users, { eq }) => eq(users.id, dbUser.id),
       with: {
         songs: {
           orderBy: (songs, { desc }) => [desc(songs.createdAt)],
@@ -46,8 +47,7 @@ export default async function DashboardPage({
       message: "Dashboard Database Error",
       data: {
         error: error.message,
-        stack: error.stack,
-        userId: clerkUser.id
+        userId: dbUser.id
       },
       source: "dashboard/page.tsx"
     });
@@ -77,23 +77,28 @@ export default async function DashboardPage({
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <div className={styles.welcomeContainer}>
-          <BackButton
-            style={{ transform: 'translateY(-13px)' }}
+      <div className={styles.headerWrapper}>
+        <div className={styles.headerRow}>
+          <PageHeader
+            title={<><span className={styles.welcomeText}>שלום </span>{user.name ? user.name.split(" ")[0] : ""}</>}
+            subtitle={
+              <RaterScoreInfo
+                score={user.raterScore}
+                label="הדירוג שלי"
+                className={styles.raterScoreDashboard}
+              />
+            }
+            showBack
+            backUrl={isBackHome ? "/" : undefined}
+            hideDivider
           />
-          <div className={styles.welcome}>
-            <h1><span className={styles.welcomeText}>שלום </span>{user.name ? user.name.split(" ")[0] : ""}</h1>
-            <RaterScoreInfo
-              score={user.raterScore}
-              label="הדירוג שלי"
-              className={styles.raterScoreDashboard}
-            />
-          </div>
+          <Link 
+            href={`/get-feedback?new=true${isBackHome ? "&backHome=true" : ""}`} 
+            className={styles.headerActionBtn}
+          >
+            הוספת שיר
+          </Link>
         </div>
-        <Link href="/get-feedback?new=true" className={styles.mobileActionBtn}>
-          שליחת שיר נוסף
-        </Link>
       </div>
 
       <div className={styles.content}>

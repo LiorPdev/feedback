@@ -3,7 +3,7 @@
 import { getDb } from '@/lib/db';
 import { nanoid } from 'nanoid';
 import { revalidatePath } from 'next/cache';
-import { currentUser, auth } from '@clerk/nextjs/server';
+import { cookies } from 'next/headers';
 import { eq, sql, and, notInArray, inArray, gt, aliasedTable } from 'drizzle-orm';
 import { users, songs, feedbacks, listenEvents } from '@/lib/schema';
 import { SONG_SUBMISSION_COST, REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH, COMMENT_LENGTH_BONUS, TOP_RATED_MIN_RATINGS_THRESHOLD, TOP_RATED_NOTIFICATION_COOLDOWN_DAYS, WEIGHT_PRODUCTION, WEIGHT_SINGING, WEIGHT_OVERALL, TOP_RATED_DECAY_FACTOR, MAX_SONG_TITLE_LENGTH } from '@/lib/constants';
@@ -20,6 +20,7 @@ export async function createSong(formData: FormData) {
     const url = formData.get('url') as string;
     const title = sanitizeInput(formData.get('title') as string).substring(0, MAX_SONG_TITLE_LENGTH);
     const genre = sanitizeInput(formData.get('genre') as string);
+    const guestEmail = formData.get('guestEmail') as string | null;
 
     // Strict URL validation: Only YouTube or internal R2 uploads
     const isYouTube = url.includes("youtube.com") || url.includes("youtu.be");
@@ -35,52 +36,89 @@ export async function createSong(formData: FormData) {
     const db = await getDb();
 
     try {
-        const clerkUser = await currentUser();
-        if (!clerkUser) {
-            await logToDb({ message: "createSong: No clerk user found", source: "songs.ts:createSong" });
-            return { success: false, error: "יש להתחבר כדי לשלוח שיר" };
+        // Resolve internal identity (with conditional metadata sync)
+        let dbUser = await syncUser();
+        let isGuestSubmission = false;
+
+        // Guest Flow: If not authenticated but coming from an ad (we assume ad-status passed via guestEmail presence)
+        if (!dbUser && guestEmail) {
+            const sanitizedEmail = sanitizeInput(guestEmail).toLowerCase();
+
+            // Security Check: Does this email already exist?
+            const existingUser = await db.query.users.findFirst({
+                where: eq(users.email, sanitizedEmail)
+            });
+
+            if (existingUser) {
+                // Return a specific error if user exists to prevent "hijacking" accounts
+                return {
+                    success: false,
+                    error: "EMAIL_EXISTS",
+                    message: "המייל הזה כבר קיים במערכת. כדי להמשיך, עליך להתחבר לחשבון שלך."
+                };
+            }
+
+            // Create new "shadow" user for this guest
+            const [newUser] = await db.insert(users).values({
+                id: crypto.randomUUID(),
+                email: sanitizedEmail,
+                tokens: 100, // Give them initial tokens for future use
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            }).returning();
+
+            dbUser = newUser;
+            isGuestSubmission = true;
+
+            // Give them a session cookie so they "behave like any other user"
+            const cookieStore = await cookies();
+            cookieStore.set("tmp_id", dbUser.id, {
+                expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "lax",
+                path: "/"
+            });
         }
 
-        // Sync user with Clerk to DB using shared utility
-        const dbUser = await syncUser();
-
         if (!dbUser) {
-            return { success: false, error: "משתמש לא נמצא" };
+            return { success: false, error: "יש להתחבר כדי לשלוח שיר" };
         }
 
         // Check if song already exists for this specific user
         const existingSong = await db.query.songs.findFirst({
-            where: (songs, { eq, and }) => and(eq(songs.url, url), eq(songs.userId, clerkUser.id))
+            where: (songs, { eq, and }) => and(eq(songs.url, url), eq(songs.userId, dbUser.id))
         });
 
         if (existingSong) {
             return { success: false, error: "השיר כבר הועלה בעבר וקיים באיזור האישי" };
         }
 
-        // Check tokens
-        if (dbUser.tokens < SONG_SUBMISSION_COST) {
-            return { success: false, error: "יתרת קרדיט נמוכה מדי" };
+        // Check tokens (Skip for guest submissions arriving from ads)
+        if (!isGuestSubmission && dbUser.tokens < SONG_SUBMISSION_COST) {
+            return { success: false, error: "יתרת קרדיט נמוכה מדי", type: "insufficient_tokens" };
         }
 
         const [newSong] = await db.insert(songs).values({
-            userId: clerkUser.id,
+            userId: dbUser.id,
             url,
             title,
             genre,
             slug,
         }).returning();
 
-        // Deduct tokens
-        await db.update(users)
-            .set({ tokens: dbUser.tokens - SONG_SUBMISSION_COST })
-            .where(eq(users.id, clerkUser.id));
+        // Deduct tokens (Skip for guest submissions)
+        if (!isGuestSubmission) {
+            await db.update(users)
+                .set({ tokens: dbUser.tokens - SONG_SUBMISSION_COST })
+                .where(eq(users.id, dbUser.id));
+        }
 
         revalidatePath('/dashboard');
         return { success: true, song: newSong };
     } catch (error: unknown) {
         await logToDb({ message: "Failed to create song details", data: error, source: "songs.ts:createSong" });
 
-        // If it's another type of unique constraint (e.g., slug collision, very rare)
         const errorStr = String(error);
         if (errorStr.includes('UNIQUE constraint failed') || (error as { code?: string }).code === 'SQLITE_CONSTRAINT_UNIQUE') {
             return { success: false, error: "שגיאה בשמירת השיר, נסה שוב" };
@@ -99,17 +137,14 @@ export async function addFeedback(data: {
     playedSeconds?: number;
     listenCredits?: number;
 }) {
-    const clerkUser = await currentUser();
-    // Anonymous feedback is allowed, but no tokens are granted
-
     const db = await getDb();
     try {
-        // Sync/get user to grant credits using shared utility
-        const dbUser = clerkUser ? await syncUser() : null;
+        // Resolve internal identity (with conditional metadata sync)
+        const dbUser = await syncUser();
 
         const [feedback] = await db.insert(feedbacks).values({
             songId: data.songId,
-            authorId: clerkUser?.id || null,
+            authorId: dbUser?.id || null,
             cat1: 0, // FFU - Not used but required by schema
             cat2: data.cat2,
             cat3: data.cat3,
@@ -119,13 +154,13 @@ export async function addFeedback(data: {
         }).returning();
 
         // Update rater score asynchronously
-        if (clerkUser) {
-            updateRaterScore(clerkUser.id).catch(err =>
+        if (dbUser) {
+            updateRaterScore(dbUser.id).catch(err =>
                 logToDb({ message: "Async updateRaterScore failed", data: err, source: "songs.ts:addFeedback" })
             );
         }
 
-        if (clerkUser && dbUser) {
+        if (dbUser) {
             // Calculate rewards (only for authenticated users)
             let reward = 0;
             if (data.cat2 > 0) reward += REWARD_PRODUCTION;
@@ -138,7 +173,7 @@ export async function addFeedback(data: {
             // Grant credits
             await db.update(users)
                 .set({ tokens: (dbUser.tokens || 0) + reward })
-                .where(eq(users.id, clerkUser.id));
+                .where(eq(users.id, dbUser.id));
         }
 
         // Revalidate both views to show the new feedback and updated tokens in dashboard
@@ -206,11 +241,11 @@ export async function recordListenEvent(data: {
 
     const db = await getDb();
     try {
-        const { userId } = await auth();
+        const dbUser = await syncUser();
 
         await db.insert(listenEvents).values({
             songId: data.songId,
-            userId: userId || null,
+            userId: dbUser?.id || null,
             playedSeconds: data.playedSeconds,
         });
 
@@ -247,20 +282,20 @@ export async function getListenTimeEvents(songId: string) {
 }
 
 export async function deleteSong(songId: string) {
-    const clerkUser = await currentUser();
-    if (!clerkUser) {
-        return { success: false, error: "Unauthorized" };
-    }
-
     const db = await getDb();
     try {
+        const dbUser = await syncUser();
+        if (!dbUser) {
+            return { success: false, error: "לא מחובר" };
+        }
+
         // Double check ownership
         const song = await db.query.songs.findFirst({
-            where: (songs, { eq }) => eq(songs.id, songId),
+            where: (songs, { eq, and }) => and(eq(songs.id, songId), eq(songs.userId, dbUser.id)),
             columns: { userId: true, url: true }
         });
 
-        if (!song || song.userId !== clerkUser.id) {
+        if (!song) {
             return { success: false, error: "לא מורשה" };
         }
 
@@ -286,44 +321,46 @@ export async function deleteSong(songId: string) {
     }
 }
 
-export async function getUserTokens(userId: string) {
-    const db = await getDb();
+export async function getUserTokens() {
     try {
-        const user = await db.query.users.findFirst({
-            where: (users, { eq }) => eq(users.id, userId),
-            columns: { tokens: true }
-        });
-        return { success: true, tokens: user?.tokens ?? 0 };
+        const dbUser = await syncUser();
+        if (!dbUser) return { success: true, tokens: 0 };
+        return { success: true, tokens: dbUser.tokens ?? 0 };
     } catch (error) {
         await logToDb({ message: "Failed to get user tokens", data: error, source: "songs.ts:getUserTokens" });
         return { success: true, tokens: 0 };
     }
 }
 
-export async function getUserSongCount(userId: string) {
-    const db = await getDb();
+export async function getUserSongCount() {
     try {
-        const userSongs = await db.query.songs.findMany({
-            where: (songs, { eq }) => eq(songs.userId, userId),
-            columns: { id: true }
-        });
-        return { success: true, count: userSongs.length };
+        const dbUser = await syncUser();
+        if (!dbUser) return { success: true, count: 0 };
+
+        const db = await getDb();
+        const result = await db.select({
+            count: sql<number>`count(*)`
+        })
+            .from(songs)
+            .where(eq(songs.userId, dbUser.id));
+
+        return { success: true, count: result[0]?.count ?? 0 };
     } catch (error) {
         await logToDb({ message: "Failed to get song count", data: error, source: "songs.ts:getUserSongCount" });
-        return { success: true, count: 0 };
+        return { success: false, count: 0 };
     }
 }
 
 export async function getFeedSongs(firstSongSlug?: string) {
-    const { userId } = await auth();
+    const dbUser = await syncUser();
     const db = await getDb();
 
     try {
         // Get IDs of songs the user has already rated
         let ratedSongIds: string[] = [];
-        if (userId) {
+        if (dbUser) {
             const userFeedbacks = await db.query.feedbacks.findMany({
-                where: (feedbacks, { eq }) => eq(feedbacks.authorId, userId),
+                where: (feedbacks, { eq }) => eq(feedbacks.authorId, dbUser.id),
                 columns: { songId: true }
             });
             ratedSongIds = userFeedbacks.map(f => f.songId);
@@ -331,12 +368,8 @@ export async function getFeedSongs(firstSongSlug?: string) {
 
         // 1. Get user's preferred genre if authenticated
         let preferredGenre: string | null = null;
-        if (userId) {
-            const user = await db.query.users.findFirst({
-                where: eq(users.id, userId),
-                columns: { userGenre: true }
-            });
-            preferredGenre = user?.userGenre ?? null;
+        if (dbUser) {
+            preferredGenre = dbUser.userGenre ?? null;
         }
 
         // 2. Fetch the first song specifically if requested
@@ -360,8 +393,8 @@ export async function getFeedSongs(firstSongSlug?: string) {
                 const filters = [];
 
                 // Don't show user's own songs
-                if (userId) {
-                    filters.push(ne(songs.userId, userId));
+                if (dbUser) {
+                    filters.push(ne(songs.userId, dbUser.id));
                 }
 
                 // Don't show already rated songs
@@ -434,22 +467,17 @@ export async function getFeedSongs(firstSongSlug?: string) {
 }
 
 export async function updateSong(songId: string, data: { title: string, url: string, genre: string }) {
-    const clerkUser = await currentUser();
-    if (!clerkUser) {
-        return { success: false, error: "Unauthorized" };
-    }
-
-    const db = await getDb();
     try {
-        // Double check ownership
+        const dbUser = await syncUser();
+        if (!dbUser) return { success: false, error: "לא מחובר" };
+
+        const db = await getDb();
+
         const song = await db.query.songs.findFirst({
-            where: (songs, { eq }) => eq(songs.id, songId),
-            columns: { userId: true }
+            where: (songs, { eq, and }) => and(eq(songs.id, songId), eq(songs.userId, dbUser.id)),
         });
 
-        if (!song || song.userId !== clerkUser.id) {
-            return { success: false, error: "לא מורשה" };
-        }
+        if (!song) return { success: false, error: "לא מורשה" };
 
         const isYouTube = data.url.includes("youtube.com") || data.url.includes("youtu.be");
         const isR2 = data.url.includes("r2.dev");
@@ -475,20 +503,18 @@ export async function updateSong(songId: string, data: { title: string, url: str
 }
 
 export async function toggleSongStatus(songId: string, isActive: boolean) {
-    const clerkUser = await currentUser();
-    if (!clerkUser) {
-        return { success: false, error: "Unauthorized" };
-    }
-
     const db = await getDb();
     try {
+        const dbUser = await syncUser();
+        if (!dbUser) return { success: false, error: "לא מחובר" };
+
         // Double check ownership
         const song = await db.query.songs.findFirst({
-            where: (songs, { eq }) => eq(songs.id, songId),
+            where: (songs, { eq, and }) => and(eq(songs.id, songId), eq(songs.userId, dbUser.id)),
             columns: { userId: true }
         });
 
-        if (!song || song.userId !== clerkUser.id) {
+        if (!song) {
             return { success: false, error: "לא מורשה" };
         }
 

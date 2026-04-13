@@ -1,20 +1,20 @@
 import { getFeedSongs } from "@/app/actions/songs";
 import FeedContainer from "./FeedContainer";
 import styles from "./feed.module.css";
-import { auth } from "@clerk/nextjs/server";
 import { getDb } from "@/lib/db";
-
+import { syncUser } from "@/lib/user-auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function GiveFeedbackFeedPage({
   searchParams,
 }: {
-  searchParams: Promise<{ song?: string; from?: string; insufficient_credits?: string; backHome?: string }>;
+  searchParams: Promise<{ song?: string; from?: string; utm_source?: string; insufficient_credits?: string; backHome?: string }>;
 }) {
   const { song: songSlug, from, insufficient_credits, backHome } = await searchParams;
   const result = await getFeedSongs(songSlug);
-  const { userId } = await auth();
+  const dbUser = await syncUser();
+  const userId = dbUser?.id;
 
   if (!result.success || !result.songs) {
     return (
@@ -59,6 +59,7 @@ export default async function GiveFeedbackFeedPage({
           initialSongSlug={songSlug}
           showInsufficientCredits={insufficient_credits === 'true'}
           backHome={backHome === 'true'}
+          isLoggedIn={!!dbUser}
         />
       </main>
     </div>

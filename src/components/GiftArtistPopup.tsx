@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Gift, X, Loader2, Coins } from "lucide-react";
+import { Gift, X, Coins } from "lucide-react";
+import Button from "./ui/Button";
 import styles from "./GiftArtistPopup.module.css";
 import { sendArtistGift } from "@/app/actions/gift";
 import { logAction } from "@/app/actions/logs";
@@ -151,7 +152,8 @@ export default function GiftArtistPopup({
             </div>
 
             <div className={styles.footer}>
-              <button
+              <Button
+                variant="outline"
                 className={styles.cancelBtn}
                 onClick={() => {
                   onSuccess?.();
@@ -160,21 +162,16 @@ export default function GiftArtistPopup({
                 disabled={loading}
               >
                 ביטול
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="primary"
                 className={styles.submitBtn}
                 onClick={handleSend}
-                disabled={loading}
+                isLoading={loading}
+                leftIcon={<Gift size={18} />}
               >
-                {loading ? (
-                  <Loader2 className={styles.spin} size={20} />
-                ) : (
-                  <>
-                    <Gift size={18} />
-                    <span>שליחה</span>
-                  </>
-                )}
-              </button>
+                שליחה
+              </Button>
             </div>
           </motion.div>
         </motion.div>

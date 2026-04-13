@@ -24,7 +24,7 @@ interface SongCardProps {
   isNew?: boolean;
 }
 
-export default function SongCard({ song, isNew: propIsNew }: SongCardProps) {
+export default function SongCard({ song }: SongCardProps) {
   return (
     <div className={`${styles.songCard} ${!song.isActive ? styles.paused : ""}`}>
       <div className={styles.songHeader}>
@@ -40,7 +40,7 @@ export default function SongCard({ song, isNew: propIsNew }: SongCardProps) {
             פידבקים ({song.feedbacks?.length || 0})
           </Link>
           <div className={styles.adminActions}>
-            <ShareSongButton slug={song.slug} isNew={propIsNew} disabled={!song.isActive} />
+            <ShareSongButton slug={song.slug} disabled={!song.isActive} />
             <EditSongButton song={song} />
             <ToggleSongStatusButton songId={song.id} isActive={song.isActive} />
             <DeleteSongButton songId={song.id} songTitle={song.title} />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2 } from "lucide-react";
+import Button from "./ui/Button";
 import SocialIcon from "./SocialIcon";
 import { motion, AnimatePresence } from "framer-motion";
 import { GENRES } from "@/lib/constants";
@@ -250,20 +250,25 @@ export default function UserPreferencesModal({
             </div>
 
             <div className={styles.footer}>
-              <button
-                className={styles.cancelButton}
+              <Button
+                variant="outline"
+                size="md"
                 onClick={onClose}
                 disabled={isSaving}
+                fullWidth
               >
                 ביטול
-              </button>
-              <button
-                className={styles.confirmButton}
+              </Button>
+              <Button
+                variant="primary"
+                size="md"
                 onClick={handleConfirm}
                 disabled={isSaving || localGenres.length === 0}
+                isLoading={isSaving}
+                fullWidth
               >
-                {isSaving ? <Loader2 size={20} className={styles.spinner} /> : "אישור"}
-              </button>
+                אישור
+              </Button>
             </div>
           </motion.div>
         </div>

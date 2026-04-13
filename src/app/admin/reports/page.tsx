@@ -1,14 +1,13 @@
-import { currentUser } from '@clerk/nextjs/server';
+import { syncUser } from '@/lib/user-auth';
 import { redirect } from 'next/navigation';
 import { ADMIN_EMAIL } from '@/lib/constants';
 import { ReportsClient } from '@/app/admin/reports/ReportsClient';
 import styles from './reports.module.css';
 
 export default async function AdminReportsPage() {
-    const user = await currentUser();
-    const email = user?.primaryEmailAddress?.emailAddress;
+    const dbUser = await syncUser();
 
-    if (email !== ADMIN_EMAIL) {
+    if (dbUser?.email !== ADMIN_EMAIL) {
         redirect('/');
     }
 

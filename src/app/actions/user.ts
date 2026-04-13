@@ -2,15 +2,21 @@
 
 import { getDb } from "@/lib/db";
 import { users, creditCodes } from "@/lib/schema";
-import { currentUser } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { logAction } from "./logs";
+import { syncUser } from "@/lib/user-auth";
+import { cookies } from "next/headers";
+
+export async function logoutUser() {
+  const cookieStore = await cookies();
+  cookieStore.delete("tmp_id");
+}
 
 export async function updateUserProfile(genre: string, socialLinks: string | null) {
   try {
-    const clerkUser = await currentUser();
-    if (!clerkUser) {
+    const dbUser = await syncUser();
+    if (!dbUser) {
       return { success: false, error: "משתמש לא מחובר" };
     }
 
@@ -23,7 +29,7 @@ export async function updateUserProfile(genre: string, socialLinks: string | nul
         socialLinks: socialLinks || null,
         updatedAt: new Date().toISOString()
       })
-      .where(eq(users.id, clerkUser.id));
+      .where(eq(users.id, dbUser.id));
 
     revalidatePath("/dashboard");
     return { success: true };
@@ -39,21 +45,47 @@ export async function updateUserProfile(genre: string, socialLinks: string | nul
 }
 
 export async function updateUserGenre(genre: string) {
-  return updateUserProfile(genre, null);
+  try {
+    const dbUser = await syncUser();
+    if (!dbUser) {
+      return { success: false, error: "משתמש לא מחובר" };
+    }
+
+    const db = await getDb();
+
+    await db
+      .update(users)
+      .set({
+        userGenre: genre || null,
+        updatedAt: new Date().toISOString()
+      })
+      .where(eq(users.id, dbUser.id));
+
+    revalidatePath("/dashboard");
+    return { success: true };
+  } catch (error) {
+    const err = error as Error;
+    await logAction({
+      message: "Failed to update user genre",
+      data: { error: err.message, stack: err.stack, genre },
+      source: "actions/user.ts:updateUserGenre",
+    });
+    return { success: false, error: "אירעה שגיאה בשמירת הז'אנר" };
+  }
 }
 
-export async function getUserData(userId: string) {
-  const db = await getDb();
+export async function getUserData() {
   try {
-    const user = await db.query.users.findFirst({
-      where: (users, { eq }) => eq(users.id, userId),
-      columns: { tokens: true, userGenre: true, socialLinks: true }
-    });
+    const dbUser = await syncUser();
+    if (!dbUser) return { success: false, error: "משתמש לא מחובר" };
+
     return {
       success: true,
-      tokens: user?.tokens ?? 0,
-      userGenre: user?.userGenre ?? null,
-      socialLinks: user?.socialLinks ?? null
+      email: dbUser.email,
+      name: dbUser.name,
+      tokens: dbUser.tokens ?? 0,
+      userGenre: dbUser.userGenre ?? null,
+      socialLinks: dbUser.socialLinks ?? null
     };
   } catch (error) {
     await logAction({
@@ -67,17 +99,13 @@ export async function getUserData(userId: string) {
 
 export async function generateCreditCode(amount: number) {
   try {
-    const clerkUser = await currentUser();
-    if (!clerkUser) return { success: false, error: "משתמש לא מחובר" };
+    const dbUser = await syncUser();
+    if (!dbUser) return { success: false, error: "משתמש לא מחובר" };
     if (amount <= 0) return { success: false, error: "כמות לא תקינה" };
 
     const db = await getDb();
-    const user = await db.query.users.findFirst({
-      where: (users, { eq }) => eq(users.id, clerkUser.id),
-      columns: { tokens: true }
-    });
 
-    if (!user || user.tokens < amount) {
+    if (dbUser.tokens < amount) {
       return { success: false, error: "אין מספיק קרדיטים" };
     }
 
@@ -86,13 +114,13 @@ export async function generateCreditCode(amount: number) {
 
     await db.batch([
       db.update(users).set({
-        tokens: user.tokens - amount,
+        tokens: dbUser.tokens - amount,
         updatedAt: new Date().toISOString()
-      }).where(eq(users.id, clerkUser.id)),
+      }).where(eq(users.id, dbUser.id)),
       db.insert(creditCodes).values({
         code,
         amount,
-        senderId: clerkUser.id,
+        senderId: dbUser.id,
       })
     ]);
 
@@ -111,8 +139,8 @@ export async function generateCreditCode(amount: number) {
 
 export async function redeemCreditCode(code: string) {
   try {
-    const clerkUser = await currentUser();
-    if (!clerkUser) return { success: false, error: "משתמש לא מחובר" };
+    const dbUser = await syncUser();
+    if (!dbUser) return { success: false, error: "משתמש לא מחובר" };
 
     const db = await getDb();
     const { creditCodes } = await import("@/lib/schema");
@@ -123,22 +151,17 @@ export async function redeemCreditCode(code: string) {
 
     if (!creditCode) return { success: false, error: "קוד לא תקין" };
     if (creditCode.isRedeemed) return { success: false, error: "הקוד כבר מומש" };
-    if (creditCode.senderId === clerkUser.id) return { success: false, error: "לא ניתן לממש קוד שאתם יצרתם" };
-
-    const redeemer = await db.query.users.findFirst({
-      where: (users, { eq }) => eq(users.id, clerkUser.id),
-      columns: { tokens: true }
-    });
+    if (creditCode.senderId === dbUser.id) return { success: false, error: "לא ניתן לממש קוד שאתם יצרתם" };
 
     await db.batch([
       db.update(creditCodes).set({
         isRedeemed: true,
-        redeemerId: clerkUser.id,
+        redeemerId: dbUser.id,
       }).where(eq(creditCodes.id, creditCode.id)),
       db.update(users).set({
-        tokens: (redeemer?.tokens ?? 0) + creditCode.amount,
+        tokens: (dbUser.tokens ?? 0) + creditCode.amount,
         updatedAt: new Date().toISOString()
-      }).where(eq(users.id, clerkUser.id))
+      }).where(eq(users.id, dbUser.id))
     ]);
 
     revalidatePath("/dashboard");
