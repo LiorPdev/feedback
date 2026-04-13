@@ -32,7 +32,7 @@
   width: 100%;
   position: relative;
   margin-bottom: 0.8rem;
-  padding: 0.5rem 0;
+  padding: 0.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -44,6 +44,7 @@
   justify-content: center;
   gap: 0.5rem;
   width: 100%;
+  min-width: 0;
 }
 
 .title {
@@ -52,13 +53,17 @@
   font-weight: 900;
   color: var(--brand-contrast);
   margin: 0;
-  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .genreInline {
   font-size: 1rem;
   color: var(--text-muted);
   font-weight: 500;
+  flex-shrink: 0;
 }
 
 .backButton {
@@ -88,6 +93,7 @@
   display: flex;
   align-items: center;
   margin-right: 0.5rem;
+  flex-shrink: 0;
 }
 
 .songCard {
@@ -233,7 +239,6 @@
   max-width: 600px;
   margin: 0.5rem auto 0 auto;
 }
-
 
 @keyframes fadeIn {
   from {
@@ -387,6 +392,15 @@
   margin-bottom: 0.5rem;
 }
 
+.authLockOverlay {
+  width: 100%;
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 20px;
+  border: 1px dashed var(--border-color);
+  animation: fadeIn 0.5s ease-out;
+}
 
 @media (max-width: 700px),
 (max-height: 820px) {
@@ -403,6 +417,11 @@
   .feedWrapper {
     width: 100%;
     align-items: stretch;
+  }
+
+  .title {
+    font-size: 1.6rem;
+    font-weight: 800;
   }
 
   .songCard {
@@ -436,12 +455,14 @@
   }
 }
 
-.authLockOverlay {
-  width: 100%;
-  margin-top: 1.5rem;
-  padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 20px;
-  border: 1px dashed var(--border-color);
-  animation: fadeIn 0.5s ease-out;
+@media (max-width: 555px) {
+
+  .backButton {
+    right: -7px;
+  }
+
+  .title {
+    margin-right: 25px;
+  }
+
 }
