@@ -4,7 +4,7 @@ import React, { forwardRef } from "react";
 import { motion, HTMLMotionProps } from "framer-motion";
 import styles from "./Button.module.css";
 
-type ButtonVariant = "primary" | "outline" | "outline-brand" | "ghost";
+type ButtonVariant = "primary" | "outline" | "outline-brand" | "ghost" | "danger";
 type ButtonSize = "md" | "lg";
 
 interface ButtonProps extends Omit<HTMLMotionProps<"button">, "children"> {

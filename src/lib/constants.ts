@@ -13,7 +13,7 @@ export const GENRES = [
   "אחר"
 ];
 
-export const MAX_SONG_TITLE_LENGTH = 30;
+export const MAX_SONG_TITLE_LENGTH = 27;
 
 // Tokens i get
 export const INITIAL_TOKENS = 100;
@@ -25,8 +25,8 @@ export const REWARD_OVERALL = 1;
 export const REWARD_COMMENT = 10;
 
 // Tokens i spend
-export const SONG_SUBMISSION_COST = 50;
-export const UNLOCK_FEEDBACK_COST = 30;
+export const SONG_SUBMISSION_COST = 40;
+export const UNLOCK_FEEDBACK_COST = 35;
 
 export const MIN_COMMENT_LENGTH = 30;
 export const COMMENT_LENGTH_BONUS = 60;
@@ -40,8 +40,8 @@ export const ADMIN_EMAIL = "lior.porat.music@gmail.com";
 // and fresh talent to be discovered while rewarding consistent high performance.
 // Lower value (e.g. 0.005) means songs stay longer; higher value (e.g. 0.05) means faster turnover.
 export const TOP_RATED_DECAY_FACTOR = 0.06;
-export const TOP_RATED_NOTIFICATION_COOLDOWN_DAYS = 4; // Days a song must stay out of Top 10 to reset its decay and allow new notification
-export const TOP_RATED_MIN_RATINGS_THRESHOLD = 3;
+export const TOP_RATED_NOTIFICATION_COOLDOWN_DAYS = 4;  // Days a song must stay out of Top 10 to reset its decay and allow new notification
+export const TOP_RATED_MIN_RATINGS_THRESHOLD = 5;       // Minimum number of ratings a song must have to be eligible for the Top 10 list
 
 // Rating Weights (Must sum to 1.0)
 export const WEIGHT_PRODUCTION = 0.3;

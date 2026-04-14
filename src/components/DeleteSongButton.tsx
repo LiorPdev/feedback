@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { Trash2, AlertCircle, Loader2 } from "lucide-react";
+import { Trash2, OctagonPause } from "lucide-react";
 import { deleteSong } from "@/app/actions/songs";
 import styles from "./DeleteSongButton.module.css";
 import { motion, AnimatePresence } from "framer-motion";
+import Button from "./ui/Button";
 
 interface DeleteSongButtonProps {
   songId: string;
@@ -54,33 +55,29 @@ export default function DeleteSongButton({ songId, songTitle }: DeleteSongButton
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className={styles.iconCircle}>
-              <AlertCircle size={32} color="#ef4444" />
-            </div>
             <h3>מחיקת השיר</h3>
-            <p>האם אתם בטוחים שברצונכם למחוק את השיר <strong>&quot;{songTitle}&quot;</strong>? פעולה זו היא סופית ותמחק גם את כל הדירוגים שהתקבלו.</p>
+            <p>האם אתם בטוחים שברצונכם למחוק את השיר <strong>&quot;{songTitle}&quot;</strong>? <br />
+              אפשר רק לעצור זמנית ע&quot;י לחיצה על כפתור <OctagonPause size={18} style={{ display: 'inline', verticalAlign: 'middle', margin: '0 4px', color: 'var(--text-muted)' }} />.
+              <br />
+              פעולת המחיקה היא סופית ותמחק גם את כל הדירוגים שהתקבלו.</p>
 
             <div className={styles.actions}>
-              <button
-                className={styles.cancelBtn}
+              <Button
+                variant="outline"
+                className={styles.actionBtn}
                 onClick={() => setShowConfirm(false)}
                 disabled={isDeleting}
               >
                 ביטול
-              </button>
-              <button
-                className={styles.confirmBtn}
+              </Button>
+              <Button
+                variant="danger"
+                className={styles.actionBtn}
                 onClick={handleDelete}
-                disabled={isDeleting}
+                isLoading={isDeleting}
               >
-                {isDeleting ? (
-                  <>
-                    <Loader2 size={18} className={styles.spin} /> מוחק...
-                  </>
-                ) : (
-                  "מחק לצמיתות"
-                )}
-              </button>
+                מחק לצמיתות
+              </Button>
             </div>
           </motion.div>
         </div>

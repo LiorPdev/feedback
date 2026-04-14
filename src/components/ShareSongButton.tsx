@@ -66,7 +66,7 @@ export default function ShareSongButton({ slug, variant = "standard", disabled, 
 
         {variant === "large" && (
           <span className={styles.btnText}>
-            <span className={styles.fullText}>שילחו גם לחברים לקבל פידבק</span>
+            <span className={styles.fullText}>שילחו לחברים לקבל פידבק</span>
             <span className={styles.shortText}>שילחו לחברים</span>
           </span>
         )}

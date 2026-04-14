@@ -64,6 +64,16 @@
   background: transparent;
 }
 
+.danger {
+  background: #ef4444;
+  color: white;
+}
+
+.danger:hover:not(:disabled) {
+  background: #dc2626;
+  box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.2), 0 4px 6px -2px rgba(239, 68, 68, 0.1);
+}
+
 /* Sizes */
 .md {
   padding: 0.7rem 1rem;
@@ -112,8 +122,9 @@
 
 .outline .spinner,
 .secondary .spinner,
-.ghost .spinner {
-  border-color: rgba(0, 0, 0, 0.1);
+.ghost .spinner,
+.danger .spinner {
+  border-color: rgba(255, 255, 255, 0.3);
   border-top-color: currentColor;
 }
 

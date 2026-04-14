@@ -44,17 +44,6 @@
   position: relative;
 }
 
-.iconCircle {
-  width: 64px;
-  height: 64px;
-  background: rgba(239, 68, 68, 0.1);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 1.5rem;
-}
-
 .modal h3 {
   font-size: 1.5rem;
   font-weight: 800;
@@ -64,68 +53,19 @@
 
 .modal p {
   color: var(--text-muted);
-  line-height: 1.6;
+  line-height: 2.0;
   margin-bottom: 2rem;
   font-size: 1.05rem;
 }
 
 .actions {
   display: flex;
+  justify-content: center;
   gap: 1.25rem;
   margin-top: 0.5rem;
 }
 
-.cancelBtn,
-.confirmBtn {
+.actionBtn {
   flex: 1;
-  padding: 1.1rem 0.5rem;
-  border-radius: 14px;
-  font-weight: 700;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.cancelBtn {
-  background: var(--bg-section);
-  color: var(--text-muted);
-  border: none;
-}
-
-.cancelBtn:hover {
-  background: #E2E8F0;
-}
-
-.confirmBtn {
-  background: #ef4444;
-  color: white;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.confirmBtn:hover:not(:disabled) {
-  background: #dc2626;
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
-}
-
-.confirmBtn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.spin {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
+  max-width: 160px;
 }

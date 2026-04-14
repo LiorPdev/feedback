@@ -817,8 +817,8 @@ function getBayesianRatingSql(m: number, C: number | ReturnType<typeof sql>) {
     const weightedCount = sql`SUM(${weightSql})`;
 
     const bayesianAvg = sql<number>`
-        ( (${weightedSum}) + (3.0 * ${C}) )
-        / ( (${weightedCount}) + 3.0 )
+        ( (${weightedSum}) + (${m} * ${C}) )
+        / ( (${weightedCount}) + ${m} )
     `;
 
     // Final score = Bayesian Average - (Days since entry * Decay Factor)
