@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { getAdminSongsReport, getAdminFeedbacksReport, getAdminUsersReport, getAdminLogsReport, getAdminTopRatedReport, deleteAdminFeedback, deleteAdminSong } from '@/app/actions/admin';
-import { ArrowUpDown, ArrowUp, ArrowDown, Trash2, Heart } from 'lucide-react';
+import { ArrowUpDown, ArrowUp, ArrowDown, Trash2, Heart, MessageSquare } from 'lucide-react';
 import styles from './reports.module.css';
 
 type ReportType = 'songs' | 'feedbacks' | 'users' | 'logs' | 'top-rated';
@@ -190,6 +190,8 @@ export function ReportsClient() {
                                     <SortHeader label="שם השיר" sortKey="title" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="משתמש" sortKey="creatorName" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="פידבק אחרון" sortKey="lastFeedbackAt" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="#פידבקים" sortKey="feedbackCount" sortConfig={sortConfig} onSort={handleSort} />
+                                    <th style={{ width: '80px', textAlign: 'center' }}>לשיר</th>
                                 </tr>
                             ) : reportType === 'feedbacks' ? (
                                 <tr>
@@ -257,6 +259,19 @@ export function ReportsClient() {
                                             <td>{item.title}</td>
                                             <td>{item.creatorName || item.creatorEmail}</td>
                                             <td>{item.lastFeedbackAt ? formatDate(item.lastFeedbackAt) : '-'}</td>
+                                            <td style={{ textAlign: 'center' }}>{item.feedbackCount}</td>
+                                            <td style={{ textAlign: 'center' }}>
+                                                <a
+                                                    href={`/give-feedback/${item.slug}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className={styles.feedbackBtn}
+                                                    title="תן פידבק"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    <MessageSquare size={18} />
+                                                </a>
+                                            </td>
                                         </>
                                     )}
                                     {reportType === 'feedbacks' && (

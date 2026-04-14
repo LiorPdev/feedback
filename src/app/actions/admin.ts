@@ -19,25 +19,28 @@ export async function getAdminSongsReport() {
 
     const db = await getDb();
     try {
-        const lastFeedbackSubquery = db.select({
+        const feedbackStatsSubquery = db.select({
             songId: feedbacks.songId,
             lastFeedbackAt: sql<string>`MAX(${feedbacks.createdAt})`.as('lastFeedbackAt'),
+            feedbackCount: sql<number>`COUNT(${feedbacks.id})`.as('feedbackCount'),
         })
         .from(feedbacks)
         .groupBy(feedbacks.songId)
-        .as('lastFeedback');
+        .as('feedbackStats');
 
         const result = await db.select({
             id: songs.id,
             createdAt: songs.createdAt,
             title: songs.title,
+            slug: songs.slug,
             creatorName: users.name,
             creatorEmail: users.email,
-            lastFeedbackAt: lastFeedbackSubquery.lastFeedbackAt
+            lastFeedbackAt: feedbackStatsSubquery.lastFeedbackAt,
+            feedbackCount: sql<number>`COALESCE(${feedbackStatsSubquery.feedbackCount}, 0)`.as('feedbackCount')
         })
         .from(songs)
         .leftJoin(users, eq(songs.userId, users.id))
-        .leftJoin(lastFeedbackSubquery, eq(songs.id, lastFeedbackSubquery.songId))
+        .leftJoin(feedbackStatsSubquery, eq(songs.id, feedbackStatsSubquery.songId))
         .orderBy(desc(songs.createdAt));
 
         return { success: true, data: result };
