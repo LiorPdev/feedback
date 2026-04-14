@@ -56,7 +56,6 @@ export default async function GiveFeedbackFeedPage({
           initialSongs={result.songs}
           initialFeedback={initialFeedback}
           from={from}
-          initialSongSlug={songSlug}
           showInsufficientCredits={insufficient_credits === 'true'}
           backHome={backHome === 'true'}
           isLoggedIn={!!dbUser}
