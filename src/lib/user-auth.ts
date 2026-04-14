@@ -71,7 +71,7 @@ export const syncUser = cache(async () => {
             })
             .where(eq(users.id, dbUser.id))
             .returning();
-          return { ...updatedUser, isNewRecord: true };
+          return updatedUser;
         }
       }
 
@@ -122,7 +122,7 @@ export const syncUser = cache(async () => {
         })
         .returning();
 
-      return { ...newUser, isNewRecord: true };
+      return newUser;
     }
 
     // 2. Guest Identity Path (through Ad registration)

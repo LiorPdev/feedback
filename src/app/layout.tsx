@@ -58,7 +58,6 @@ export const viewport: Viewport = {
 };
 
 import { Suspense } from "react";
-import LeadPixelFire from "@/components/LeadPixelFire";
 import SourceTracker from "@/components/SourceTracker";
 import { syncUser } from "@/lib/user-auth";
 import { ADMIN_EMAIL } from "@/lib/constants";
@@ -74,7 +73,6 @@ async function NavbarWrapper() {
         initialEmail={dbUser?.email || ""}
         isAdmin={dbUser?.email === ADMIN_EMAIL}
       />
-      {dbUser && 'isNewRecord' in dbUser && dbUser.isNewRecord && <LeadPixelFire />}
     </>
   );
 }

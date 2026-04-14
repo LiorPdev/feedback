@@ -10,6 +10,12 @@ import { getMyGivenFeedbacksCount } from "@/app/actions/feedback";
 import { getUserData } from "@/app/actions/user";
 import Footer from "./Footer";
 import HeroGallery from "./HeroGallery";
+
+declare global {
+  interface Window {
+    fbq?: (...args: unknown[]) => void;
+  }
+}
 import { useRouter, useSearchParams } from "next/navigation";
 import { GiPodium } from "react-icons/gi";
 import Image from "next/image";
@@ -84,6 +90,11 @@ export default function LandingClient({
   const handleGetFeedbackClick = (e?: React.MouseEvent) => {
     if (e) e.preventDefault();
     
+    // Identify lead for Meta Ads if in UTM mode
+    if (isUtmMode && typeof window !== "undefined" && window.fbq) {
+      window.fbq("track", "Lead");
+    }
+
     if (isClerkUser || isUtmMode) {
       const dest = `/get-feedback?backHome=true${utmSource ? `&utm_source=${utmSource}` : ""}`;
       router.push(dest);

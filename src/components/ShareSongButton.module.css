@@ -31,12 +31,10 @@
 
 .large {
   color: var(--brand-primary) !important;
-  padding: 12px 24px;
   border-radius: 100px;
   gap: 12px;
   font-weight: 600;
   font-size: 1rem;
-  box-shadow: 0 4px 12px rgba(0, 102, 255, 0.2);
 }
 
 .shareBtn.large:hover:not(:disabled) {

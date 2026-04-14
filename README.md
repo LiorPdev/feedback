@@ -28,4 +28,6 @@ Token value (ffu): cfat_ywHZVFDl0YYXHpA9aZ4lQXyOX7gknw2Z1dyc8ntJ11001334
 https://console.cloud.google.com/apis/credentials
 
 ## How to run Ads
-https://feedback.co.il/?utm_source=meta_ad
+http://localhost:3000/?utm_source=meta_ad
+https://feedback.activitywiz.com/?utm_source=meta_ad
+Command in the code: window.fbq("track", "Lead");

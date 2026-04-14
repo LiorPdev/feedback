@@ -7,9 +7,10 @@ import styles from "./SongPlayer.module.css";
 
 interface SongPlayerProps {
   url: string;
+  className?: string;
 }
 
-export default function SongPlayer({ url }: SongPlayerProps) {
+export default function SongPlayer({ url, className }: SongPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const playerRef = useRef<UrlPlayerHandle>(null);
@@ -44,7 +45,7 @@ export default function SongPlayer({ url }: SongPlayerProps) {
   const embedUrl = getEmbedUrl(url);
 
   return (
-    <div className={styles.playerContainer}>
+    <div className={`${styles.playerContainer} ${className || ""}`}>
       {embedUrl && (
         <button 
           className={`${styles.playButton} ${isPlaying ? styles.isPlaying : ""}`} 

@@ -102,7 +102,7 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
               </span>
             </div>
           </div>
-          <SongPlayer url={song.url} />
+          <SongPlayer url={song.url} className={styles.playerOverride} />
 
           {hasAnyAverage && (
             <div className={styles.averagesSection}>
