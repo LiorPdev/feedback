@@ -40,6 +40,15 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  width: 100% !important;
+}
+
+.googleButtonTextFull {
+  display: inline;
+}
+
+.googleButtonTextShort {
+  display: none;
 }
 
 .googleButton:hover {
@@ -113,10 +122,13 @@
 }
 
 .label {
+  display: block;
   font-size: 0.875rem;
   font-weight: 500;
   color: #27272a;
   text-align: right;
+  margin-bottom: -0.5rem;
+  margin-right: 0.25rem;
 }
 
 .input {
@@ -126,7 +138,8 @@
   padding-left: 0.5rem;
   padding-right: 0.5rem;
   transition: all 0.2s;
-  width: 220px;
+  width: 100%;
+  min-width: 0;
   font-size: 0.8rem;
   direction: ltr;
   text-align: left;
@@ -160,26 +173,7 @@
   transform: scale(1.01);
 }
 
-.submitButton {
-  border-radius: 1rem !important;
-  color: rgba(0, 0, 0, 0.557) !important;
-  font-weight: 600 !important;
-  width: 80px !important;
-  margin: 0 !important;
-  background-color: rgb(243, 243, 243) !important;
-  border: none !important;
-  flex-shrink: 0;
-}
 
-.verifyButton {
-  height: 3.5rem !important;
-  border-radius: 1rem !important;
-  background-color: #27272a !important;
-  color: white !important;
-  font-weight: 700 !important;
-  font-size: 1.125rem !important;
-  width: 100% !important;
-}
 
 .backButton {
   font-size: 0.875rem;
@@ -214,4 +208,30 @@
   padding: 0.5rem;
   border-radius: 0.75rem;
   border: 1px solid #fee2e2;
+}
+
+@media (max-width: 370px) {
+  .googleButtonTextFull {
+    display: none;
+  }
+
+  .googleButtonTextShort {
+    display: inline;
+  }
+
+  .googleButton {
+    font-size: 1rem !important;
+    height: 54px !important;
+  }
+}
+
+@media (max-width: 300px) {
+  .googleIconWrapper {
+    display: none;
+  }
+
+  .googleButton {
+    font-size: 0.95rem !important;
+    padding: 0 0.5rem !important;
+  }
 }

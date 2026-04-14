@@ -180,7 +180,8 @@ export default function UnifiedAuthForm({ onSuccess, onStepChange, redirectUrl }
                   className={styles.googleIcon}
                 />
               </div>
-              מתחברים בקליק עם Google
+              <span className={styles.googleButtonTextFull}>מתחברים בקליק עם Google</span>
+              <span className={styles.googleButtonTextShort}>מתחברים עם Google</span>
             </Button>
 
             <div className={styles.divider}>
@@ -193,9 +194,9 @@ export default function UnifiedAuthForm({ onSuccess, onStepChange, redirectUrl }
             </div>
 
             <form onSubmit={handleIdentify} className={styles.form}>
+              <label htmlFor="email" className={styles.label}>מתחברים עם דוא״ל</label>
               <div className={styles.inlineForm}>
                 <div className={styles.inputGroup}>
-                  <label htmlFor="email" className={styles.label}>מתחברים עם דוא״ל</label>
                   <input
                     id="email"
                     type="email"
@@ -211,8 +212,8 @@ export default function UnifiedAuthForm({ onSuccess, onStepChange, redirectUrl }
 
                 <Button
                   type="submit"
+                  variant="outline"
                   disabled={loading}
-                  className={styles.submitButton}
                 >
                   {loading ? <Loader2 className="animate-spin w-5 h-5" /> : "אישור"}
                 </Button>
@@ -250,8 +251,8 @@ export default function UnifiedAuthForm({ onSuccess, onStepChange, redirectUrl }
 
               <Button
                 type="submit"
+                variant="outline"
                 disabled={loading}
-                className={styles.verifyButton}
                 fullWidth
               >
                 {loading ? <Loader2 className="animate-spin w-5 h-5" /> : "אימות וכניסה"}

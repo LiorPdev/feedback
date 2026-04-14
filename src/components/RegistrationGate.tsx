@@ -2,6 +2,7 @@
 
 import React from "react";
 import AuthOverlay from "./AuthOverlay";
+import styles from "./RegistrationGate.module.css";
 
 export type GateType = "give-feedback" | "get-feedback" | "complete-registration" | "minimal";
 
@@ -35,8 +36,10 @@ export default function RegistrationGate({
     ),
     "get-feedback": (
       <>
-        <strong>אנחנו יודעים, להירשם זה מבאס...</strong>{"\n\n"}
-        אבל בלי זה, אין לנו דרך לשייך את השיר אליך או לשלוח לך את התגובות שהקהילה תכתוב. מתחברים בקלות וממשיכים.{"\n\n"}
+        <strong className={styles.fullText}>אנחנו יודעים, להירשם זה מבאס...</strong>
+        <strong className={styles.shortText}>יודעים, להירשם זה מבאס...</strong>
+        {"\n\n"}
+        אבל בלי זה, אין לנו דרך לשייך את השיר אליך או לשלוח לך את התגובות שהקהילה תכתוב. מתחברים בקלות וממשיכים.{"\n"}
       </>
     ),
     "complete-registration": (

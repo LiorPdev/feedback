@@ -41,7 +41,6 @@ interface FeedContainerProps {
   initialSongs: Song[];
   initialFeedback?: Feedback | null;
   from?: string;
-  initialSongSlug?: string;
   showInsufficientCredits?: boolean;
   backHome?: boolean;
   isLoggedIn: boolean;
@@ -51,7 +50,6 @@ export default function FeedContainer({
   initialSongs,
   initialFeedback,
   from,
-  initialSongSlug,
   showInsufficientCredits = false,
   backHome = false,
   isLoggedIn

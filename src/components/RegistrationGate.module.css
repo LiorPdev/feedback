@@ -1,0 +1,16 @@
+.fullText {
+  display: inline;
+}
+
+.shortText {
+  display: none;
+}
+
+@media (max-width: 315px) {
+  .fullText {
+    display: none;
+  }
+  .shortText {
+    display: inline;
+  }
+}
