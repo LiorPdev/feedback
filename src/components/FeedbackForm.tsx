@@ -177,20 +177,31 @@ export default function FeedbackForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const hasRating = ratings.cat2 > 0 || ratings.cat3 > 0 || ratings.overall > 0;
+    const missingRatings = [];
+    if (ratings.cat2 === 0) missingRatings.push("הפקה");
+    if (ratings.cat3 === 0) missingRatings.push("שירה");
+    if (ratings.overall === 0) missingRatings.push("ציון כללי");
+
     const commentTrimmed = comment.trim();
-    const hasComment = commentTrimmed.length > 0;
+    const isCommentMissing = commentTrimmed.length === 0;
+    const isCommentTooShort = !isCommentMissing && commentTrimmed.length < MIN_COMMENT_LENGTH;
 
-    // Validation logic
-    if (!hasRating && !hasComment) {
+    if (missingRatings.length > 0 || isCommentMissing || isCommentTooShort) {
       setStatus("error");
-      setErrorMsg("אנא דרגו לפחות קטגוריה אחת ו/או כתבו תגובה כדי לשלוח פידבק.");
-      return;
-    }
+      let msg = "";
+      if (missingRatings.length > 0) {
+        msg = `חסר דירוג עבור: ${missingRatings.join(", ")}. `;
+      }
 
-    if (hasComment && commentTrimmed.length < MIN_COMMENT_LENGTH) {
-      setStatus("error");
-      setErrorMsg(`התגובה קצרה מדי. אם בחרתם לכתוב תגובה, היא חייבת להכיל לפחות ${MIN_COMMENT_LENGTH} תווים.`);
+      if (isCommentMissing) {
+        msg += missingRatings.length > 0
+          ? "בנוסף אנא כתבו גם פידבק קצר שיאפשר לאמן ללמוד ולהשתפר."
+          : "אנא כתבו פידבק קצר לאמן. זה ממש חשוב להם.";
+      } else if (isCommentTooShort) {
+        msg += `התגובה קצרה מדי (מינימום ${MIN_COMMENT_LENGTH} תווים). זה ממש חשוב לאמן כדי ללמוד ולהשתפר.`;
+      }
+
+      setErrorMsg(msg.trim());
       return;
     }
 
@@ -288,13 +299,13 @@ export default function FeedbackForm({
             songStats && (
               <div className={styles.successStats}>
                 <p className={styles.successScoreLabel}>
-                  <span className={styles.successScoreText}>הדירוג שלי לשיר:</span>
+                  <span className={styles.successScoreText}>הדירוג שלי לשיר: </span>
                   <span className={styles.successScoreValue}>
                     {((ratings.cat2 + ratings.cat3 + ratings.overall) / 3).toFixed(1)}
                   </span>
                 </p>
                 <p className={styles.successScoreLabel}>
-                  <span className={styles.successScoreText}>דירוג הקהילה לשיר:</span>
+                  <span className={styles.successScoreText}>דירוג הקהילה לשיר: </span>
                   <span className={styles.successScoreValue}>{songStats.averageRating.toFixed(1)}</span>
                 </p>
               </div>
@@ -306,7 +317,6 @@ export default function FeedbackForm({
           key="error-popup"
           isOpen={status === "error"}
           onClose={() => setStatus("idle")}
-          title="שימו לב"
           message={errorMsg}
           icon={<AlertCircle size={34} color="#DC2626" />}
           buttonText="הבנתי"
@@ -347,7 +357,7 @@ export default function FeedbackForm({
             <div className={styles.textareaWrapper}>
               <textarea
                 className={styles.textarea}
-                placeholder={`הוסיפו כמה מילים על מה שאהבתם או מה כדאי לשפר, האמנים באמת מחכים למשוב הזה.`}
+                placeholder={`הוסיפו כמה מילים על מה שאהבתם ומה כדאי לשפר.`}
                 value={comment}
                 onChange={(e) => {
                   const newValue = e.target.value;
@@ -374,7 +384,7 @@ export default function FeedbackForm({
               />
             </div>
             <div className={`${styles.charCounter} ${comment.length === 0 ? "" : (comment.length < MIN_COMMENT_LENGTH ? styles.charCounterLow : styles.charCounterValid)}`}>
-              ({comment.length}/{MIN_COMMENT_LENGTH})
+              {comment.length < MIN_COMMENT_LENGTH && `עוד ${MIN_COMMENT_LENGTH - comment.length} תווים למינימום נדרש`}
             </div>
           </div>
 

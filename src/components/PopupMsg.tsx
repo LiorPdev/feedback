@@ -10,7 +10,7 @@ import styles from "./PopupMsg.module.css";
 interface PopupMsgProps {
   isOpen: boolean;
   onClose: () => void;
-  title: string;
+  title?: string;
   message: ReactNode;
   icon?: ReactNode;
   buttonText: string;
@@ -66,7 +66,7 @@ export default function PopupMsg({
               <X size={20} />
             </button>
             {icon && <div className={styles.iconWrapper}>{icon}</div>}
-            <h2 className={styles.title}>{title}</h2>
+            {title && <h2 className={styles.title}>{title}</h2>}
             <div className={styles.message}>{message}</div>
             <div className={styles.buttonsWrapper}>
               {buttonText && (
