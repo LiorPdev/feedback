@@ -203,6 +203,7 @@ export function ReportsClient() {
                                     <SortHeader label="דירוגים" sortKey="overall" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="לייק" sortKey="isLiked" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="הערה" sortKey="comment" sortConfig={sortConfig} onSort={handleSort} />
+                                    <th style={{ width: '80px', textAlign: 'center' }}>לשיר</th>
                                 </tr>
                             ) : reportType === 'top-rated' ? (
                                 <tr>
@@ -306,6 +307,18 @@ export function ReportsClient() {
                                                 <div className={styles.comment} title={item.comment}>
                                                     {item.comment}
                                                 </div>
+                                            </td>
+                                            <td style={{ textAlign: 'center' }}>
+                                                <a
+                                                    href={`/give-feedback/${item.songSlug}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className={styles.feedbackBtn}
+                                                    title="תן פידבק"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    <MessageSquare size={18} />
+                                                </a>
                                             </td>
                                         </>
                                     )}

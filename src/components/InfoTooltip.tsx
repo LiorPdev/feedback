@@ -46,7 +46,7 @@ export default function InfoTooltip({
 
     let newMode: PositionMode = "top";
 
-    if (viewportWidth < mobileThreshold) {
+    if (viewportWidth <= mobileThreshold) {
       newMode = "centered";
     } else {
       const spaceAbove = triggerRect.top;
@@ -91,8 +91,16 @@ export default function InfoTooltip({
         <motion.div
           key={positionMode}
           ref={tooltipRef}
-          initial={positionMode === "centered" ? { opacity: 0, scale: 0.95 } : { opacity: 0, scale: 0.9, y: positionMode === "bottom" ? -10 : 10 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
+          initial={
+            positionMode === "centered"
+              ? { opacity: 0, scale: 0.95, x: "-50%", y: "-50%" }
+              : { opacity: 0, scale: 0.9, y: positionMode === "bottom" ? -10 : 10 }
+          }
+          animate={
+            positionMode === "centered"
+              ? { opacity: 1, scale: 1, x: "-50%", y: "-50%" }
+              : { opacity: 1, scale: 1, y: 0 }
+          }
           exit={{ opacity: 0, scale: 0.95 }}
           className={`${styles.popup} ${styles[`align-${align}`]} ${positioningClass} ${className}`}
           style={width ? { width: typeof width === "number" ? `${width}px` : width } : {}}

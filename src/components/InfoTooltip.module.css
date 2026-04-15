@@ -159,14 +159,17 @@
     left: 50% !important;
     bottom: auto !important;
     right: auto !important;
-    transform: translate(-50%, -50%) !important;
+    /* We'll let Framer Motion handle the translate if possible to avoid conflicts, 
+       but we keep it as a fallback to ensure it works even if JS is slow */
+    transform: translate(-50%, -50%);
     margin-left: 0 !important;
     width: 90% !important;
-    max-width: 320px !important;
+    max-width: 340px !important;
     max-height: 85vh !important;
     overflow-y: auto !important;
     box-shadow: 0 40px 120px rgba(0, 0, 0, 0.7) !important;
-    z-index: 9999 !important;
+    z-index: 10000 !important;
+    /* Match or exceed desktop z-index */
   }
 
   .popupArrow {
