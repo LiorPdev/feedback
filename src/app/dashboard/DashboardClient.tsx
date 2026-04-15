@@ -22,7 +22,14 @@ interface DashboardSong {
   createdAt: string | number | Date;
   updatedAt: string | number | Date;
   isActive: boolean;
-  feedbacks?: unknown[];
+  feedbacks?: {
+    id: string;
+    cat2: number;
+    cat3: number;
+    overall: number;
+    playedSeconds: number | null;
+    isUnlocked: boolean;
+  }[];
   listenEvents?: { playedSeconds: number }[];
 }
 
