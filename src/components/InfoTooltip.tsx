@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useLayoutEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { HelpCircle, X } from "lucide-react";
 import styles from "./InfoTooltip.module.css";
@@ -33,15 +34,31 @@ export default function InfoTooltip({
   width,
 }: InfoTooltipProps) {
   const tooltipRef = useRef<HTMLDivElement>(null);
-  const [positionMode, setPositionMode] = useState<PositionMode>("top");
+  const [positionMode, setPositionMode] = useState<PositionMode | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (!isOpen || !triggerRef?.current) return;
+    const frame = requestAnimationFrame(() => {
+      setMounted(true);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
+  // Use useLayoutEffect for positioning to avoid flash of wrong position.
+  // We measure the trigger relative to the viewport to decide on the best mode.
+  useLayoutEffect(() => {
+    if (!isOpen || !triggerRef?.current) {
+      if (!isOpen) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setPositionMode(null);
+      }
+      return;
+    }
 
     const triggerRect = triggerRef.current.getBoundingClientRect();
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
-    const tooltipPlaceholderHeight = 450;
+    const tooltipPlaceholderHeight = 400; 
     const mobileThreshold = 450;
 
     let newMode: PositionMode = "top";
@@ -50,8 +67,11 @@ export default function InfoTooltip({
       newMode = "centered";
     } else {
       const spaceAbove = triggerRect.top;
-      if (spaceAbove < tooltipPlaceholderHeight) {
-        const spaceBelow = viewportHeight - triggerRect.bottom;
+      const spaceBelow = viewportHeight - triggerRect.bottom;
+
+      if (spaceAbove < 120) {
+        newMode = spaceBelow >= 200 ? "bottom" : "centered";
+      } else if (spaceAbove < tooltipPlaceholderHeight) {
         if (spaceBelow >= tooltipPlaceholderHeight) {
           newMode = "bottom";
         } else {
@@ -61,9 +81,7 @@ export default function InfoTooltip({
     }
 
     if (newMode !== positionMode) {
-      requestAnimationFrame(() => {
-        setPositionMode(newMode);
-      });
+      setPositionMode(newMode);
     }
   }, [isOpen, triggerRef, positionMode]);
 
@@ -83,11 +101,11 @@ export default function InfoTooltip({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen, onClose, triggerRef]);
 
-  const positioningClass = styles[`pos-${positionMode}`] || "";
+  const positioningClass = positionMode ? styles[`pos-${positionMode}`] : "";
 
-  return (
-    <AnimatePresence mode="wait">
-      {isOpen && (
+  const tooltipElement = (
+    <AnimatePresence>
+      {isOpen && positionMode && (
         <motion.div
           key={positionMode}
           ref={tooltipRef}
@@ -132,9 +150,20 @@ export default function InfoTooltip({
             </div>
           )}
 
-          <div className={`${styles.popupArrow} ${styles[`arrow-${arrowPosition}`]}`} />
+          {positionMode !== "centered" && (
+            <div className={`${styles.popupArrow} ${styles[`arrow-${arrowPosition}`]}`} />
+          )}
         </motion.div>
       )}
     </AnimatePresence>
   );
+
+  if (!isOpen) return null;
+
+  // Use Portal for centered mode to avoid clipping by parent overflow/filters
+  if (positionMode === "centered" && mounted) {
+    return createPortal(tooltipElement, document.body);
+  }
+
+  return tooltipElement;
 }
