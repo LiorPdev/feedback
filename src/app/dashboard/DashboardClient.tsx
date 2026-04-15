@@ -58,7 +58,7 @@ export default function DashboardClient({
   const urlTab = searchParams.get('tab') as "songs" | "insights" | "myFeedbacks" | null;
   const activeTab = urlTab || (onlyFeedbacksGiven ? "myFeedbacks" : "songs");
 
-  const [chartType, setChartType] = useState<"general" | "categories" | "retention" | "trueRating">("trueRating");
+  const [chartType, setChartType] = useState<"categories" | "retention" | "trueRating" | "overallCategories">("trueRating");
 
   const handleTabChange = (tab: "songs" | "insights" | "myFeedbacks") => {
     const params = new URLSearchParams(searchParams.toString());
@@ -145,14 +145,14 @@ export default function DashboardClient({
               className={styles.chartSelector}
               value={chartType}
               onChange={(e) => {
-                setChartType(e.target.value as "general" | "categories" | "retention" | "trueRating");
+                setChartType(e.target.value as "categories" | "retention" | "trueRating" | "overallCategories");
                 e.target.blur();
               }}
             >
               <option value="trueRating">מדד איכות משוקלל</option>
-              <option value="general">ציון ממוצע (כוכבים)</option>
-              <option value="categories">פילוח לפי קטגוריות</option>
               <option value="retention">מדד האזנה</option>
+              <option value="categories">לפי קטגוריית דירוג</option>
+              <option value="overallCategories">ממוצע לפי קטגוריה</option>
             </select>
 
             {hasAnyData ? (
@@ -201,8 +201,6 @@ export default function DashboardClient({
                         {new Date(fb.createdAt).toLocaleDateString("he-IL")}
                       </span>
                     </div>
-
-
 
                     {/* Playtime + Ratings + Comment */}
                     <div className={styles.myFbBody}>

@@ -87,3 +87,9 @@
   color: var(--brand-primary);
   font-weight: 800;
 }
+
+.tooltipFooter {
+  font-size: 0.85rem !important;
+  color: var(--text-muted) !important;
+  margin-top: 1rem !important;
+}

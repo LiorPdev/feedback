@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { eq, sql, and, notInArray, inArray, gt, aliasedTable } from 'drizzle-orm';
 import { users, songs, feedbacks, listenEvents } from '@/lib/schema';
-import { SONG_SUBMISSION_COST, REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH, COMMENT_LENGTH_BONUS, TOP_RATED_MIN_RATINGS_THRESHOLD, TOP_RATED_NOTIFICATION_COOLDOWN_DAYS, WEIGHT_PRODUCTION, WEIGHT_SINGING, WEIGHT_OVERALL, TOP_RATED_DECAY_FACTOR, MAX_SONG_TITLE_LENGTH } from '@/lib/constants';
+import { SONG_SUBMISSION_COST, REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH, COMMENT_LENGTH_BONUS, TOP_RATED_MIN_RATINGS_THRESHOLD, TOP_RATED_NOTIFICATION_COOLDOWN_DAYS, WEIGHT_PRODUCTION, WEIGHT_SINGING, WEIGHT_OVERALL, TOP_RATED_DECAY_FACTOR, MAX_SONG_TITLE_LENGTH, MIN_SONG_DURATION_SECONDS } from '@/lib/constants';
 import { sendFeedbackNotification, sendTopRatedNotification } from '@/lib/mail';
 import { logToDb } from "@/lib/logger";
 import { deleteFileFromR2 } from '@/app/actions/upload';
@@ -16,8 +16,13 @@ import { updateRaterScore } from '@/lib/rater-score';
 import { applyFeedAlgorithm } from '@/lib/feed-algorithms';
 
 export async function createSong(formData: FormData) {
-    // Extract and sanitize data from form
-    const url = formData.get('url') as string;
+    const url = (formData.get('url') as string || "").trim();
+
+    // block Youtube shorts
+    if (url.includes("/shorts")) {
+        return { success: false, error: `אורך השיר חייב להיות לפחות ${MIN_SONG_DURATION_SECONDS} שניות כדי שניתן יהיה לתת עליו פידבק מקצועי` };
+    }
+
     const title = sanitizeInput(formData.get('title') as string).substring(0, MAX_SONG_TITLE_LENGTH);
     const genre = sanitizeInput(formData.get('genre') as string);
     const guestEmail = formData.get('guestEmail') as string | null;
@@ -28,6 +33,19 @@ export async function createSong(formData: FormData) {
 
     if (url && !isYouTube && !isR2) {
         return { success: false, error: "ניתן לשתף קישורים מיוטיוב בלבד" };
+    }
+
+    // Duration validation for full videos & R2 uploads
+    let songDuration = 0;
+    if (isR2) {
+        songDuration = Number(formData.get('duration') || 0);
+    }
+
+    if (songDuration > 0 && songDuration < MIN_SONG_DURATION_SECONDS) {
+        return {
+            success: false,
+            error: `אורך השיר חייב להיות לפחות ${MIN_SONG_DURATION_SECONDS} שניות`
+        };
     }
 
     // Create random slug
@@ -661,6 +679,9 @@ async function searchYouTube(query: string, targetDuration?: number) {
 }
 
 export async function getURLMetadata(url: string) {
+    if (url.includes("/shorts")) {
+        return { success: false, error: `אורך השיר חייב להיות לפחות ${MIN_SONG_DURATION_SECONDS} שניות` };
+    }
     try {
         // Support Spotify OEmbed
         if (url.includes('spotify.com')) {

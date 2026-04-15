@@ -14,6 +14,7 @@ export const GENRES = [
 ];
 
 export const MAX_SONG_TITLE_LENGTH = 27;
+export const MIN_SONG_DURATION_SECONDS = 50;
 
 // Tokens i get
 export const INITIAL_TOKENS = 100;
@@ -48,9 +49,6 @@ export const WEIGHT_PRODUCTION = 0.3;
 export const WEIGHT_SINGING = 0.3;
 export const WEIGHT_OVERALL = 0.4;
 
-// Rater Score Configuration (Weights must sum to 1.0)
-export const RATER_WEIGHT_LIKES = 0.5;             // 50% - Weight for percentage of feeds liked by authors
-export const RATER_WEIGHT_TEXT = 0.3;              // 30% - Weight for simply providing a text comment
-export const RATER_WEIGHT_CONSENSUS = 0.2;         // 20% - Weight for rating similarity to other users
-
-export const RATER_MIN_REVIEWS_TO_COMPARE = 2;     // Minimum ratings on a song before we calculate consensus score
+// Rater Score Configuration
+export const RATER_WEIGHT_LIKES = 1.0;             // 100% - Weight for percentage of feeds liked by authors
+export const RATER_LIKES_THRESHOLD = 0.4;          // 40% likes required for a perfect score in the likes component

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, Heart } from "lucide-react";
 import InfoTooltip from "./InfoTooltip";
 import RaterBadge from "./RaterBadge";
 import styles from "./RaterScoreInfo.module.css";
@@ -48,17 +48,17 @@ export default function RaterScoreInfo({
         isOpen={showInfo}
         onClose={() => setShowInfo(false)}
         triggerRef={triggerRef}
-        title="איך זה מחושב?"
+        title="איך זה נקבע?"
         align="right"
         arrowPosition="center"
         width={280}
         content={
           <div className={styles.tooltipContent}>
             <ul className={styles.formulaLegend}>
-              <li>לפי אחוז הפידבקים שקיבלו <strong>לייק</strong>.</li>
-              <li>לפי רמת <strong>הפירוט והדיוק</strong> של הפידבק.</li>
+              <li>לפי אחוז הפידבקים שלך שקיבלו</li>
+              <li>לייק <Heart size={14} fill="#ef4444" stroke="#ef4444" style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> על ידי האמנים.</li>
             </ul>
-            <p style={{ marginTop: '1rem' }}>
+            <p className={styles.tooltipFooter}>
               הציון המקסימלי הוא 5.
             </p>
           </div>

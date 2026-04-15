@@ -20,7 +20,7 @@ interface SongWithFeedbacks {
 
 interface SongRatingsChartProps {
   songs: SongWithFeedbacks[];
-  type?: "general" | "categories" | "retention" | "trueRating";
+  type?: "categories" | "retention" | "trueRating" | "overallCategories";
   globalAverage?: number;
   minThreshold?: number;
 }
@@ -57,7 +57,22 @@ const CustomLegend = (props: CustomLegendProps) => {
   );
 };
 
-export default function SongRatingsChart({ songs, type = "general", globalAverage = 0, minThreshold = 3 }: SongRatingsChartProps) {
+interface ChartDataPoint {
+  songTitle?: string;
+  name?: string;
+  value?: number;
+  avgProduction?: number;
+  avgSinging?: number;
+  avgOverall?: number;
+  avgListenTime?: number;
+  trueRating?: number;
+  userAverage?: number;
+  feedbacksCount?: number;
+  listenersCount?: number;
+  color?: string;
+}
+
+export default function SongRatingsChart({ songs, type = "trueRating", globalAverage = 0, minThreshold = 3 }: SongRatingsChartProps) {
   const [isMobile, setIsMobile] = React.useState(false);
 
   React.useEffect(() => {
@@ -82,7 +97,7 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
 
     const userAverage = totalReviewsAll > 0 ? totalScoreAll / totalReviewsAll : globalAverage;
 
-    return songs
+    const baseData = songs
       .map((song) => {
         const fbs = (song.feedbacks || []) as Feedback[];
         const events = (song.listenEvents || []) as { playedSeconds: number }[];
@@ -141,30 +156,42 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
           listenersCount: allPlayTimes.length,
         };
       })
-      .filter(Boolean)
-      .sort((a, b) => {
-        if (!a || !b) return 0;
-        if (type === 'trueRating') return b.trueRating - a.trueRating;
-        if (type === 'retention') return b.avgListenTime - a.avgListenTime;
-        if (type === 'categories') {
-          // For stacked bars, sort by the total height (sum of categories)
-          const totalA = a.avgProduction + a.avgSinging + a.avgOverall;
-          const totalB = b.avgProduction + b.avgSinging + b.avgOverall;
-          return totalB - totalA;
-        }
-        // Default to avgOverall for 'general'
-        return b.avgOverall - a.avgOverall;
-      }) as {
-        songTitle: string;
-        avgProduction: number;
-        avgSinging: number;
-        avgOverall: number;
-        avgListenTime: number;
-        trueRating: number;
-        userAverage: number;
-        feedbacksCount: number;
-        listenersCount: number;
-      }[];
+      .filter(Boolean);
+
+    if (type === 'overallCategories') {
+      let sumOverall = 0, sumCat2 = 0, sumCat3 = 0, totalCount = 0;
+      songs.forEach(s => {
+        const fbs = (s.feedbacks || []) as Feedback[];
+        fbs.forEach(fb => {
+          sumOverall += fb.overall || 0;
+          sumCat2 += fb.cat2 || 0;
+          sumCat3 += fb.cat3 || 0;
+          totalCount++;
+        });
+      });
+
+      if (totalCount === 0) return [];
+
+      return [
+        { category: 'הפקה', value: Math.round((sumCat2 / totalCount) * 10) / 10, fill: 'url(#gradientProduction)', feedbacksCount: totalCount },
+        { category: 'שירה', value: Math.round((sumCat3 / totalCount) * 10) / 10, fill: 'url(#gradientSinging)', feedbacksCount: totalCount },
+        { category: 'כללי', value: Math.round((sumOverall / totalCount) * 10) / 10, fill: 'url(#gradientOverall)', feedbacksCount: totalCount },
+      ];
+    }
+
+    return baseData.sort((a, b) => {
+      if (!a || !b) return 0;
+      if (type === 'trueRating') return b.trueRating - a.trueRating;
+      if (type === 'retention') return b.avgListenTime - a.avgListenTime;
+      if (type === 'categories') {
+        // For stacked bars, sort by the total height (sum of categories)
+        const totalA = a.avgProduction + a.avgSinging + a.avgOverall;
+        const totalB = b.avgProduction + b.avgSinging + b.avgOverall;
+        return totalB - totalA;
+      }
+      return 0;
+    }) as ChartDataPoint[];
+
   }, [songs, globalAverage, minThreshold, type]);
 
   if (chartData.length === 0) {
@@ -172,8 +199,8 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
       <div className={styles.noDataMessage}>
         <p>אין מספיק נתונים להצגת הגרף שנבחר.</p>
         <p className={styles.noDataSubText}>
-          {type === 'retention' 
-            ? "שירים יופיעו כאן לאחר שתהיה בהם פעילות האזנה." 
+          {type === 'retention'
+            ? "שירים יופיעו כאן לאחר שתהיה בהם פעילות האזנה."
             : "שירים יופיעו כאן לאחר שיקבלו פידבקים מהקהילה."}
         </p>
       </div>
@@ -184,58 +211,81 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
     <div className={styles.chartWrapper}>
       <ResponsiveContainer width="100%" height="100%" className={styles.responsiveContainer}>
         <BarChart
-          layout="vertical"
+          layout={type === 'overallCategories' ? 'horizontal' : 'vertical'}
           data={chartData}
-          margin={{ top: 0, right: 10, left: 0, bottom: 0 }}
+          margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+          barCategoryGap={type === 'overallCategories' ? "20%" : "10%"}
         >
           <defs>
             <linearGradient id="colorRetentionGradient" x1="0" y1="0" x2="1" y2="0">
               <stop offset="0%" stopColor="var(--brand-primary)" stopOpacity={1} />
               <stop offset="100%" stopColor="#06b6d4" stopOpacity={1} />
             </linearGradient>
+            <linearGradient id="gradientProduction" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#3b82f6" stopOpacity={1} />
+              <stop offset="100%" stopColor="#1e3a8a" stopOpacity={1} />
+            </linearGradient>
+            <linearGradient id="gradientSinging" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#34d399" stopOpacity={1} />
+              <stop offset="100%" stopColor="#10b981" stopOpacity={1} />
+            </linearGradient>
+            <linearGradient id="gradientOverall" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#fbbf24" stopOpacity={1} />
+              <stop offset="100%" stopColor="#f59e0b" stopOpacity={1} />
+            </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f0f0f0" />
-          <XAxis
-            type="number"
-            domain={[0, 'dataMax']}
-            ticks={undefined}
-            allowDecimals={true}
-            tick={false}
-            axisLine={false}
-            tickLine={false}
-          />
-          <YAxis
-            dataKey="songTitle"
-            type="category"
-            width={10}
-            interval={0}
-            axisLine={false}
-            tickLine={false}
-            tick={(props) => {
-              const { x, y, payload } = props;
-              const name = payload.value;
-              const xOffset = 30;
+          <CartesianGrid strokeDasharray="3 3" horizontal={type === 'overallCategories'} vertical={type !== 'overallCategories'} stroke="#f0f0f0" />
+          {type === 'overallCategories' ? (
+            <XAxis dataKey="category" axisLine={false} tickLine={false} tick={{ fill: '#334155', fontWeight: 600 }} />
+          ) : (
+            <XAxis
+              type="number"
+              domain={[0, 'dataMax']}
+              ticks={undefined}
+              allowDecimals={true}
+              tick={false}
+              axisLine={false}
+              tickLine={false}
+            />
+          )}
 
-              return (
-                <g transform={`translate(${Number(x) + xOffset},${Number(y)})`}>
-                  <text
-                    x={0}
-                    y={0}
-                    dy={4}
-                    textAnchor="start"
-                    fill="#fff"
-                    stroke="#000"
-                    strokeWidth={1}
-                    fontSize={isMobile ? 13 : 14}
-                    fontWeight={700}
-                    style={{ direction: 'ltr', paintOrder: 'stroke' }}
-                  >
-                    {name}
-                  </text>
-                </g>
-              );
-            }}
-          />
+          {type === 'overallCategories' ? (
+            <YAxis domain={[0, 5]} axisLine={false} tickLine={false} tick={false} width={0} />
+          ) : (
+            <YAxis
+              dataKey="songTitle"
+              type="category"
+              width={10}
+              interval={0}
+              axisLine={false}
+              tickLine={false}
+              tick={(props) => {
+                const { x, y, payload } = props;
+                const name = payload.value;
+                const xOffset = 30;
+
+                return (
+                  <g transform={`translate(${Number(x) + xOffset},${Number(y)})`}>
+                    <text
+                      x={0}
+                      y={0}
+                      dy={4}
+                      textAnchor="start"
+                      fill="#fff"
+                      stroke="#000"
+                      strokeWidth={1}
+                      fontSize={isMobile ? 13 : 14}
+                      fontWeight={700}
+                      style={{ direction: 'ltr', paintOrder: 'stroke' }}
+                    >
+                      {name}
+                    </text>
+                  </g>
+                );
+              }}
+            />
+          )}
+
           <Tooltip
             cursor={{ fill: 'transparent' }}
             position={{ x: 50 }}
@@ -246,8 +296,8 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
                 const data = payload[0].payload;
                 return (
                   <div className={styles.tooltipContainer} style={{ transform: 'translateY(-30px)' }}>
-                    {type === 'general' && (
-                      <p className={styles.tooltipText}>ציון ממוצע: {data.avgOverall}</p>
+                    {type === 'overallCategories' && (
+                      <p className={styles.tooltipText}>{data.category}: {data.value}</p>
                     )}
                     {type === 'trueRating' && (
                       <div className={styles.tooltipTrueRatingWrapper}>
@@ -280,14 +330,18 @@ export default function SongRatingsChart({ songs, type = "general", globalAverag
           />
           {type === 'categories' && <Legend content={<CustomLegend />} />}
 
-          {type !== 'categories' && (
-            <Bar
-              name={type === 'general' ? "ציון ממוצע" : type === 'trueRating' ? "מדד איכות" : "ממוצע האזנה"}
-              dataKey={type === 'general' ? "avgOverall" : type === 'trueRating' ? "trueRating" : "avgListenTime"}
-              fill="url(#colorRetentionGradient)"
-              radius={[0, 4, 4, 0]}
-              maxBarSize={100}
-            />
+          {type === 'overallCategories' ? (
+            <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={120} />
+          ) : (
+            type !== 'categories' && (
+              <Bar
+                name={type === 'trueRating' ? "מדד איכות" : "ממוצע האזנה"}
+                dataKey={type === 'trueRating' ? "trueRating" : "avgListenTime"}
+                fill="url(#colorRetentionGradient)"
+                radius={[0, 4, 4, 0]}
+                maxBarSize={100}
+              />
+            )
           )}
 
           {type === 'categories' && (

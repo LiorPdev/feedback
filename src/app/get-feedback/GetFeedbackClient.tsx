@@ -10,7 +10,7 @@ import { getPresignedUploadUrl } from "@/app/actions/upload";
 import { logAction } from "@/app/actions/logs";
 import { useRouter } from "next/navigation";
 import styles from "./get-feedback.module.css";
-import { GENRES, SONG_SUBMISSION_COST, MAX_FILE_SIZE, MAX_FILE_SIZE_MB, MAX_SONG_TITLE_LENGTH } from "@/lib/constants";
+import { GENRES, SONG_SUBMISSION_COST, MAX_FILE_SIZE, MAX_FILE_SIZE_MB, MAX_SONG_TITLE_LENGTH, MIN_SONG_DURATION_SECONDS } from "@/lib/constants";
 import RegistrationGate from "@/components/RegistrationGate";
 import PageHeader from "@/components/PageHeader";
 import Button from "@/components/ui/Button";
@@ -41,6 +41,7 @@ export default function GetFeedback({
   const [submissionType, setSubmissionType] = useState<"link" | "upload">("link");
   const [songFile, setSongFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState("");
+  const [linkError, setLinkError] = useState("");
   const [lastFetchedLink, setLastFetchedLink] = useState("");
   const [guestEmail, setGuestEmail] = useState("");
   const [youtubeAlternative, setYoutubeAlternative] = useState<{ url: string, title: string } | null>(null);
@@ -48,6 +49,7 @@ export default function GetFeedback({
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [songDuration, setSongDuration] = useState<number>(0);
   const router = useRouter();
 
   useEffect(() => {
@@ -83,16 +85,21 @@ export default function GetFeedback({
   useEffect(() => {
     const fetchMetadata = async () => {
       // Basic URL validation
-      if (!songLink || !songLink.includes("://") || songLink.length < 10) return;
+      if (!songLink || !songLink.includes("://") || songLink.length < 10) {
+        setLinkError("");
+        return;
+      }
       if (submissionType !== "link") return;
       if (songLink === lastFetchedLink) return;
 
       setIsFetchingMetadata(true);
       try {
-        const result = await getURLMetadata(songLink) as { success: boolean, title?: string, resolvedUrl?: string };
+        const result = await getURLMetadata(songLink) as { success: boolean, title?: string, resolvedUrl?: string, error?: string };
         if (result.success && result.title) {
           setSongTitle(result.title.substring(0, MAX_SONG_TITLE_LENGTH));
           setLastFetchedLink(songLink);
+          setErrorMessage(""); // Clear any previous error
+          setLinkError("");
 
           // SoundCloud resolution: if we got a better URL, use it
           if (result.resolvedUrl && result.resolvedUrl !== songLink) {
@@ -106,6 +113,10 @@ export default function GetFeedback({
           } else {
             setYoutubeAlternative(null);
           }
+        } else if (result.error) {
+          setLinkError(result.error);
+          setSongTitle("");
+          setLastFetchedLink(songLink);
         }
       } catch (error) {
         await logAction({ message: "Metadata fetch error", data: error, source: "get-feedback/page.tsx:fetchMetadata" });
@@ -195,7 +206,7 @@ export default function GetFeedback({
     }
 
     if (submissionType === "upload" && songFile) {
-      if (fileError) return;
+      if (fileError || linkError) return;
 
       try {
         const { url, fileKey } = await getPresignedUploadUrl(songFile.name, songFile.type);
@@ -227,6 +238,9 @@ export default function GetFeedback({
     formData.append("url", finalUrl);
     formData.append("title", songTitle);
     formData.append("genre", selectedGenre);
+    if (submissionType === "upload") {
+      formData.append("duration", songDuration.toString());
+    }
     if (!isLoggedIn && guestEmail) {
       formData.append("guestEmail", guestEmail);
     }
@@ -357,6 +371,20 @@ export default function GetFeedback({
                     </div>
                   )}
                 </div>
+
+                <AnimatePresence>
+                  {linkError && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className={styles.fileError}
+                      style={{ marginTop: '0.5rem', color: '#ff4b4b', fontSize: '0.85rem' }}
+                    >
+                      {linkError}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
                 <AnimatePresence>
                   {songLink.trim() !== "" && isPotentialLink && !isSupportedLink && (
                     <motion.div
@@ -418,8 +446,22 @@ export default function GetFeedback({
                       if (file && file.size > MAX_FILE_SIZE) {
                         setFileError(`קובץ גדול מדי (מקסימום ${MAX_FILE_SIZE_MB}MB)`);
                         await logAction({ message: "File too large upload attempt", data: { size: file.size }, source: "get-feedback/page.tsx:fileUpload" });
+                      } else if (file) {
+                        setFileError("");
+                        // Capture duration
+                        const audio = new Audio();
+                        audio.src = URL.createObjectURL(file);
+                        audio.onloadedmetadata = () => {
+                          const duration = Math.floor(audio.duration);
+                          setSongDuration(duration);
+                          if (duration < MIN_SONG_DURATION_SECONDS) {
+                            setFileError(`אורך השיר חייב להיות לפחות ${MIN_SONG_DURATION_SECONDS} שניות`);
+                          }
+                          URL.revokeObjectURL(audio.src);
+                        };
                       } else {
                         setFileError("");
+                        setSongDuration(0);
                       }
                     }}
                     onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity("אנא בחרו קובץ MP3 להעלאה")}
@@ -542,6 +584,7 @@ export default function GetFeedback({
               variant="primary"
               size="lg"
               isLoading={status === "loading"}
+              disabled={status === "loading" || !!fileError || !!linkError}
               onMouseEnter={() => window.dispatchEvent(new CustomEvent("star-hover-start"))}
               onMouseLeave={() => window.dispatchEvent(new CustomEvent("star-hover-end"))}
               onTouchStart={() => window.dispatchEvent(new CustomEvent("star-hover-start"))}

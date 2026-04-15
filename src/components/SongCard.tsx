@@ -18,13 +18,15 @@ interface SongCardProps {
     slug: string;
     createdAt: string | number | Date;
     updatedAt: string | number | Date;
-    feedbacks?: unknown[];
+    feedbacks?: { isUnlocked: boolean }[];
     isActive: boolean;
   };
   isNew?: boolean;
 }
 
 export default function SongCard({ song }: SongCardProps) {
+  const unreadCount = song.feedbacks?.filter((fb) => !fb.isUnlocked).length || 0;
+
   return (
     <div className={`${styles.songCard} ${!song.isActive ? styles.paused : ""}`}>
       <div className={styles.songHeader}>
@@ -37,7 +39,7 @@ export default function SongCard({ song }: SongCardProps) {
       <div className={styles.songBody}>
         <div className={styles.songActions}>
           <Link href={`/show-feedback/${song.slug}`} className={styles.viewLink}>
-            פידבקים ({song.feedbacks?.length || 0})
+            פידבקים <span className={unreadCount > 0 ? styles.unreadCount : ""}>({song.feedbacks?.length || 0})</span>
           </Link>
           <div className={styles.adminActions}>
             <ShareSongButton slug={song.slug} disabled={!song.isActive} />

@@ -41,7 +41,7 @@ export default function FeedbackForm({
     cat3: 0,
     overall: 0,
   });
-  const [comment, setComment] = useState(initialSource === "top-rated" ? "שמעתי את השיר באיזור השירים המדורגים" : "");
+  const [comment, setComment] = useState(initialSource === "top-rated" ? "שמעתי את השיר ב 10 הגדולים" : "");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [flyers, setFlyers] = useState<{ id: number; x: number; y: number; tx: number; ty: number; value: number; ox?: number; oy?: number }[]>([]);
