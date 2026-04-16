@@ -138,6 +138,17 @@
   color: #166534;
   line-height: 1.5;
   margin: 0;
+  font-weight: 500;
+}
+
+.infoWarningError {
+  background: rgba(239, 68, 68, 0.05) !important;
+  border-color: rgba(239, 68, 68, 0.2) !important;
+}
+
+.infoWarningError .infoMsg {
+  color: #ef4444 !important;
+  font-weight: 700 !important;
 }
 
 .youtubeAlternative {

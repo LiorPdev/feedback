@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { eq, sql, and, notInArray, inArray, gt, aliasedTable } from 'drizzle-orm';
 import { users, songs, feedbacks, listenEvents } from '@/lib/schema';
-import { SONG_SUBMISSION_COST, REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH, COMMENT_LENGTH_BONUS, TOP_RATED_MIN_RATINGS_THRESHOLD, TOP_RATED_NOTIFICATION_COOLDOWN_DAYS, WEIGHT_PRODUCTION, WEIGHT_SINGING, WEIGHT_OVERALL, TOP_RATED_DECAY_FACTOR, MAX_SONG_TITLE_LENGTH, MIN_SONG_DURATION_SECONDS } from '@/lib/constants';
+import { SONG_SUBMISSION_COST, REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH, COMMENT_LENGTH_BONUS, TOP_RATED_MIN_RATINGS_THRESHOLD, TOP_RATED_NOTIFICATION_COOLDOWN_DAYS, WEIGHT_PRODUCTION, WEIGHT_SINGING, WEIGHT_OVERALL, TOP_RATED_DECAY_FACTOR, MIN_SONG_DURATION_SECONDS } from '@/lib/constants';
 import { sendFeedbackNotification, sendTopRatedNotification } from '@/lib/mail';
 import { logToDb } from "@/lib/logger";
 import { deleteFileFromR2 } from '@/app/actions/upload';
@@ -14,28 +14,24 @@ import { syncUser } from '@/lib/user-auth';
 import { sanitizeInput } from '@/lib/utils';
 import { updateRaterScore } from '@/lib/rater-score';
 import { applyFeedAlgorithm } from '@/lib/feed-algorithms';
+import { validateSongUrl, cleanSongTitle, isShortsUrl, isPlaylistUrl, isR2Url, isYouTubeUrl, SONG_VALIDATION_MESSAGES } from '@/lib/song-validation';
 
 export async function createSong(formData: FormData) {
     const url = (formData.get('url') as string || "").trim();
 
-    // block Youtube shorts
-    if (url.includes("/shorts")) {
-        return { success: false, error: `אורך השיר חייב להיות לפחות ${MIN_SONG_DURATION_SECONDS} שניות כדי שניתן יהיה לתת עליו פידבק מקצועי` };
+    // Standard URL validation (Shorts, Playlists, non-YouTube)
+    const urlValidation = validateSongUrl(url);
+    if (!urlValidation.success) {
+        return { success: false, error: urlValidation.error };
     }
 
-    const title = sanitizeInput(formData.get('title') as string).substring(0, MAX_SONG_TITLE_LENGTH);
+    const title = cleanSongTitle(formData.get('title') as string);
     const genre = sanitizeInput(formData.get('genre') as string);
     const guestEmail = formData.get('guestEmail') as string | null;
 
-    // Strict URL validation: Only YouTube or internal R2 uploads
-    const isYouTube = url.includes("youtube.com") || url.includes("youtu.be");
-    const isR2 = url.includes("r2.dev");
+    const isR2 = isR2Url(url);
 
-    if (url && !isYouTube && !isR2) {
-        return { success: false, error: "ניתן לשתף קישורים מיוטיוב בלבד" };
-    }
-
-    // Duration validation for full videos & R2 uploads
+    // Duration validation for R2 uploads
     let songDuration = 0;
     if (isR2) {
         songDuration = Number(formData.get('duration') || 0);
@@ -44,7 +40,7 @@ export async function createSong(formData: FormData) {
     if (songDuration > 0 && songDuration < MIN_SONG_DURATION_SECONDS) {
         return {
             success: false,
-            error: `אורך השיר חייב להיות לפחות ${MIN_SONG_DURATION_SECONDS} שניות`
+            error: SONG_VALIDATION_MESSAGES.MIN_DURATION(MIN_SONG_DURATION_SECONDS)
         };
     }
 
@@ -181,11 +177,12 @@ export async function addFeedback(data: {
         if (dbUser) {
             // Calculate rewards (only for authenticated users)
             let reward = 0;
+            const commentLen = data.comment.trim().length;
             if (data.cat2 > 0) reward += REWARD_PRODUCTION;
             if (data.cat3 > 0) reward += REWARD_VOCALS;
             if (data.overall > 0) reward += REWARD_OVERALL;
-            if (data.comment.trim().length >= MIN_COMMENT_LENGTH) reward += REWARD_COMMENT;
-            if (data.comment.trim().length >= COMMENT_LENGTH_BONUS) reward += REWARD_COMMENT;
+            if (commentLen >= MIN_COMMENT_LENGTH) reward += REWARD_COMMENT;
+            if (commentLen >= COMMENT_LENGTH_BONUS) reward += REWARD_COMMENT;
             if (data.listenCredits) reward += data.listenCredits;
 
             // Grant credits
@@ -200,32 +197,33 @@ export async function addFeedback(data: {
         revalidatePath('/give-feedback/[slug]', 'page');
         revalidatePath('/show-feedback/[slug]', 'page');
 
-        // Send email notification to uploader
-        try {
-            const song = await db.query.songs.findFirst({
+        // Run email fetch and rating averages fetch in parallel — they are independent
+        const [songForEmail, allFeedbacks] = await Promise.all([
+            db.query.songs.findFirst({
                 where: (songs, { eq }) => eq(songs.id, data.songId),
                 with: { user: true }
-            });
+            }),
+            db.query.feedbacks.findMany({
+                where: (feedbacks, { eq, and, gt }) => and(
+                    eq(feedbacks.songId, data.songId),
+                    gt(feedbacks.overall, 0)
+                ),
+                columns: { cat2: true, cat3: true, overall: true }
+            })
+        ]);
 
-            if (song?.user?.email) {
+        // Send email notification to uploader
+        try {
+            if (songForEmail?.user?.email) {
                 await sendFeedbackNotification({
-                    to: song.user.email,
-                    songTitle: song.title,
-                    songSlug: song.slug
+                    to: songForEmail.user.email,
+                    songTitle: songForEmail.title,
+                    songSlug: songForEmail.slug
                 });
             }
         } catch (emailError) {
             await logToDb({ message: "Email notification failed", data: emailError, source: "songs.ts:addFeedback" });
         }
-
-        // Fetch averages for the song after the new feedback (ignoring 0 ratings)
-        const allFeedbacks = await db.query.feedbacks.findMany({
-            where: (feedbacks, { eq, and, gt }) => and(
-                eq(feedbacks.songId, data.songId),
-                gt(feedbacks.overall, 0)
-            ),
-            columns: { cat2: true, cat3: true, overall: true }
-        });
 
         const totalRatedFeedbacks = allFeedbacks.length;
         const averageRating = totalRatedFeedbacks > 0
@@ -243,7 +241,16 @@ export async function addFeedback(data: {
         return { success: true, feedback, averageRating, totalFeedbacks: totalRatedFeedbacks, error: undefined };
 
     } catch (error) {
-        await logToDb({ message: "Failed to add feedback", data: error, source: "songs.ts:addFeedback" });
+        const errorStr = String(error);
+        const isConstraintError =
+            errorStr.includes("UNIQUE constraint failed") ||
+            errorStr.includes("FOREIGN KEY constraint failed") ||
+            (error as { code?: string }).code === "SQLITE_CONSTRAINT_UNIQUE" ||
+            (error as { code?: string }).code === "SQLITE_CONSTRAINT_FOREIGNKEY";
+
+        if (!isConstraintError) {
+            await logToDb({ message: "Failed to add feedback", data: error, source: "songs.ts:addFeedback" });
+        }
         return { success: true, feedback: undefined, averageRating: undefined, totalFeedbacks: undefined, error: undefined };
     }
 }
@@ -269,7 +276,16 @@ export async function recordListenEvent(data: {
 
         return { success: true };
     } catch (error) {
-        await logToDb({ message: "Failed to record listen event", data: error, source: "songs.ts:recordListenEvent" });
+        const errorStr = String(error);
+        const isConstraintError =
+            errorStr.includes("UNIQUE constraint failed") ||
+            errorStr.includes("FOREIGN KEY constraint failed") ||
+            (error as { code?: string }).code === "SQLITE_CONSTRAINT_UNIQUE" ||
+            (error as { code?: string }).code === "SQLITE_CONSTRAINT_FOREIGNKEY";
+
+        if (!isConstraintError) {
+            await logToDb({ message: "Failed to record listen event", data: error, source: "songs.ts:recordListenEvent" });
+        }
         return { success: false };
     }
 }
@@ -277,20 +293,23 @@ export async function recordListenEvent(data: {
 export async function getListenTimeEvents(songId: string) {
     const db = await getDb();
     try {
-        const events = await db.query.listenEvents.findMany({
-            where: (listenEvents, { eq }) => eq(listenEvents.songId, songId),
-            orderBy: (listenEvents, { desc }) => [desc(listenEvents.createdAt)],
-            with: {
-                user: {
-                    columns: { userGenre: true }
+        // Compute average in SQL and fetch event rows in parallel
+        const [events, avgResult] = await Promise.all([
+            db.query.listenEvents.findMany({
+                where: (listenEvents, { eq }) => eq(listenEvents.songId, songId),
+                orderBy: (listenEvents, { desc }) => [desc(listenEvents.createdAt)],
+                with: {
+                    user: {
+                        columns: { userGenre: true }
+                    }
                 }
-            }
-        });
+            }),
+            db.select({
+                avg: sql<number>`ROUND(AVG(${listenEvents.playedSeconds}))`
+            }).from(listenEvents).where(eq(listenEvents.songId, songId))
+        ]);
 
-        // Calculate average listen time
-        const avgSeconds = events.length > 0
-            ? Math.round(events.reduce((sum, e) => sum + e.playedSeconds, 0) / events.length)
-            : 0;
+        const avgSeconds = avgResult[0]?.avg ?? 0;
 
         return { success: true, events, avgSeconds };
     } catch (error) {
@@ -318,7 +337,7 @@ export async function deleteSong(songId: string) {
         }
 
         // Clear R2 if it's an uploaded file
-        if (song.url.includes("r2.dev")) {
+        if (isR2Url(song.url)) {
             try {
                 const fileKey = song.url.split("/").pop();
                 if (fileKey) {
@@ -374,37 +393,30 @@ export async function getFeedSongs(firstSongSlug?: string) {
     const db = await getDb();
 
     try {
-        // Get IDs of songs the user has already rated
-        let ratedSongIds: string[] = [];
-        if (dbUser) {
-            const userFeedbacks = await db.query.feedbacks.findMany({
-                where: (feedbacks, { eq }) => eq(feedbacks.authorId, dbUser.id),
-                columns: { songId: true }
-            });
-            ratedSongIds = userFeedbacks.map(f => f.songId);
-        }
+        // 1. Fetch rated song IDs and first song in parallel (both are independent)
+        const preferredGenre = dbUser?.userGenre ?? null;
 
-        // 1. Get user's preferred genre if authenticated
-        let preferredGenre: string | null = null;
-        if (dbUser) {
-            preferredGenre = dbUser.userGenre ?? null;
-        }
-
-        // 2. Fetch the first song specifically if requested
-        let firstSong = null;
-        if (firstSongSlug) {
-            firstSong = await db.query.songs.findFirst({
-                where: (songs, { eq, and }) => and(eq(songs.slug, firstSongSlug), eq(songs.isActive, true)),
-                with: {
-                    user: {
-                        columns: {
-                            name: true,
-                            socialLinks: true
+        const [ratedSongIds, firstSong] = await Promise.all([
+            dbUser
+                ? db.query.feedbacks.findMany({
+                    where: (feedbacks, { eq }) => eq(feedbacks.authorId, dbUser.id),
+                    columns: { songId: true }
+                }).then(rows => rows.map(f => f.songId))
+                : Promise.resolve([] as string[]),
+            firstSongSlug
+                ? db.query.songs.findFirst({
+                    where: (songs, { eq, and }) => and(eq(songs.slug, firstSongSlug), eq(songs.isActive, true)),
+                    with: {
+                        user: {
+                            columns: {
+                                name: true,
+                                socialLinks: true
+                            }
                         }
                     }
-                }
-            });
-        }
+                })
+                : Promise.resolve(null)
+        ]);
 
         const remainingSongs = await db.query.songs.findMany({
             where: (songs, { ne, and, not, inArray, eq }) => {
@@ -497,16 +509,15 @@ export async function updateSong(songId: string, data: { title: string, url: str
 
         if (!song) return { success: false, error: "לא מורשה" };
 
-        const isYouTube = data.url.includes("youtube.com") || data.url.includes("youtu.be");
-        const isR2 = data.url.includes("r2.dev");
-
-        if (data.url && !isYouTube && !isR2) {
-            return { success: false, error: "ניתן לשתף קישורים מיוטיוב בלבד" };
+        // Standard URL validation (Shorts, Playlists, non-YouTube)
+        const urlValidation = validateSongUrl(data.url);
+        if (!urlValidation.success) {
+            return { success: false, error: urlValidation.error };
         }
 
         await db.update(songs)
             .set({
-                title: sanitizeInput(data.title).substring(0, MAX_SONG_TITLE_LENGTH),
+                title: cleanSongTitle(data.title),
                 url: data.url,
                 genre: sanitizeInput(data.genre)
             })
@@ -679,8 +690,12 @@ async function searchYouTube(query: string, targetDuration?: number) {
 }
 
 export async function getURLMetadata(url: string) {
-    if (url.includes("/shorts")) {
-        return { success: false, error: `אורך השיר חייב להיות לפחות ${MIN_SONG_DURATION_SECONDS} שניות` };
+    if (isShortsUrl(url)) {
+        return { success: false, error: SONG_VALIDATION_MESSAGES.NO_SHORTS };
+    }
+
+    if (isPlaylistUrl(url)) {
+        return { success: false, error: SONG_VALIDATION_MESSAGES.NO_PLAYLIST };
     }
     try {
         // Support Spotify OEmbed
@@ -757,7 +772,7 @@ export async function getURLMetadata(url: string) {
                         }
                     }
                 } catch (e) {
-                    await logToDb({ message: "[Spotify Page Fetch] Error", data: e, source: "songs.ts:getURLMetadata" });
+                    await logToDb({ message: "[Spotify Page Fetch] Error", data: { error: e, url }, source: "songs.ts:getURLMetadata" });
                 }
 
                 // Final Cleanups
@@ -779,7 +794,7 @@ export async function getURLMetadata(url: string) {
         }
 
         // Support YouTube OEmbed
-        if (url.includes('youtube.com') || url.includes('youtu.be')) {
+        if (isYouTubeUrl(url)) {
             const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`;
             const res = await fetch(oembedUrl);
             if (res.ok) {
@@ -816,7 +831,7 @@ export async function getURLMetadata(url: string) {
 
         return { success: false, error: "לא ניתן היה למצוא כותרת באופן אוטומטי" };
     } catch (error) {
-        await logToDb({ message: "Failed to fetch metadata", data: error, source: "songs.ts:getURLMetadata" });
+        await logToDb({ message: "Failed to fetch metadata", data: { error, url }, source: "songs.ts:getURLMetadata" });
         return { success: false, error: "שגיאה בגישה לקישור" };
     }
 }
@@ -943,25 +958,28 @@ export async function checkAndNotifyTopRated() {
         const now = new Date();
         const cooldownMs = TOP_RATED_NOTIFICATION_COOLDOWN_DAYS * 24 * 60 * 60 * 1000;
 
-        // 2. Handle Entries (songs in Top 10 but flag is false)
-        for (let i = 0; i < currentTop10.length; i++) {
-            const song = currentTop10[i];
+        // 2. Handle Entries — batch-fetch all user emails upfront to avoid N+1 queries
+        const newEntries = currentTop10.filter(s => !s.isInTopRated);
 
-            if (!song.isInTopRated) {
+        if (newEntries.length > 0) {
+            const userIds = [...new Set(newEntries.map(s => s.userId))];
+            const userRows = await db.query.users.findMany({
+                where: (users, { inArray }) => inArray(users.id, userIds),
+                columns: { id: true, email: true }
+            });
+            const userEmailMap = new Map(userRows.map(u => [u.id, u.email]));
+
+            for (const song of newEntries) {
                 // ENTRY EVENT!
                 const lastNotified = song.topRatedLastNotified ? new Date(song.topRatedLastNotified) : null;
 
                 // Check if never notified OR cooldown passed
                 if (!lastNotified || (now.getTime() - lastNotified.getTime() >= cooldownMs)) {
-                    // Fetch user email
-                    const user = await db.query.users.findFirst({
-                        where: (users, { eq }) => eq(users.id, song.userId),
-                        columns: { email: true }
-                    });
+                    const email = userEmailMap.get(song.userId);
 
-                    if (user?.email) {
+                    if (email) {
                         const result = await sendTopRatedNotification({
-                            to: user.email,
+                            to: email,
                             songTitle: song.title,
                         });
 

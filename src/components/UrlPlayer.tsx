@@ -13,6 +13,7 @@
 import { useEffect, useRef, forwardRef, useImperativeHandle, useState, useCallback } from "react";
 import { logAction } from "@/app/actions/logs";
 import { recordListenEvent } from "@/app/actions/songs";
+import { isYouTubeUrl, isAudioUrl, getYouTubeVideoId } from "@/lib/song-validation";
 import styles from "./UrlPlayer.module.css";
 
 // Declare global types for APIs
@@ -37,16 +38,13 @@ export const getEmbedUrl = (url: string) => {
   if (!url) return null;
 
   // YouTube
-  const ytMatch = url.match(
-    /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=)?(.+)/
-  );
-  if (ytMatch) {
-    const videoId = ytMatch[1].split(/[&?]/)[0];
+  const videoId = getYouTubeVideoId(url);
+  if (videoId) {
     return `https://www.youtube.com/embed/${videoId}?enablejsapi=1`;
   }
 
   // Audio files
-  if (url.match(/\.(mp3|wav|ogg|m4a|aac)(\?.*)?$/i) || url.includes("r2.dev")) {
+  if (isAudioUrl(url)) {
     return url;
   }
 
@@ -72,8 +70,8 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
     setOrigin(window.location.origin);
   }, []);
 
-  const isYouTube = url.includes("youtube.com") || url.includes("youtu.be");
-  const isAudio = url.match(/\.(mp3|wav|ogg|m4a|aac)(\?.*)?$/i) || url.includes("r2.dev");
+  const isYouTube = isYouTubeUrl(url);
+  const isAudio = isAudioUrl(url);
 
   const embedUrl = getEmbedUrl(url);
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -229,6 +227,8 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
 
     if (isYouTube && iframeRef.current) {
       const initYT = () => {
+        if (isUnmountingRef.current) return;
+
         if (!window.YT || !window.YT.Player) {
           // If YT is loading but not ready, check again shortly
           setTimeout(initYT, 100);
@@ -237,11 +237,14 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
 
         try {
           if (!iframeRef.current) {
-            logAction({
-              message: "YouTube Init: No iframe ref",
-              data: { url, origin },
-              source: "UrlPlayer.tsx:initYT"
-            });
+            // Only log if we are NOT unmounting
+            if (!isUnmountingRef.current) {
+              logAction({
+                message: "YouTube Init: No iframe ref",
+                data: { url, origin },
+                source: "UrlPlayer.tsx:initYT"
+              });
+            }
             return;
           }
 
@@ -306,7 +309,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
         const previousCallback = window.onYouTubeIframeAPIReady;
         window.onYouTubeIframeAPIReady = () => {
           if (previousCallback) previousCallback();
-          initYT();
+          if (!isUnmountingRef.current) initYT();
         };
       } else {
         initYT();

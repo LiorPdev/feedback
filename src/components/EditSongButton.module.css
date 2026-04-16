@@ -91,7 +91,10 @@
 }
 
 .errorText {
-  color: var(--status-error);
-  font-size: 0.75rem;
+  color: #ef4444;
+  font-weight: 700;
+  font-size: 0.85rem;
   margin-top: 0.25rem;
+  display: block;
+  text-align: right;
 }

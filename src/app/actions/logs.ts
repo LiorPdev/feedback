@@ -16,7 +16,9 @@ export async function logAction(params: {
     const finalUserId = params.userId || dbUser?.id || undefined;
 
     await logToDb({
-        ...params,
+        message: params.message,
+        data: params.data,
+        source: params.source,
         userId: finalUserId,
     });
 }

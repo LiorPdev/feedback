@@ -8,6 +8,7 @@ import Image from "next/image";
 import { createSong, getURLMetadata, searchYouTubeVideos } from "@/app/actions/songs";
 import { getPresignedUploadUrl } from "@/app/actions/upload";
 import { logAction } from "@/app/actions/logs";
+import { isYouTubeUrl, isShortsUrl, isPlaylistUrl, SONG_VALIDATION_MESSAGES, validateSongUrl } from "@/lib/song-validation";
 import { useRouter } from "next/navigation";
 import styles from "./get-feedback.module.css";
 import { GENRES, SONG_SUBMISSION_COST, MAX_FILE_SIZE, MAX_FILE_SIZE_MB, MAX_SONG_TITLE_LENGTH, MIN_SONG_DURATION_SECONDS } from "@/lib/constants";
@@ -50,6 +51,8 @@ export default function GetFeedback({
   const [showDropdown, setShowDropdown] = useState(false);
   const [copied, setCopied] = useState(false);
   const [songDuration, setSongDuration] = useState<number>(0);
+  const [isShorts, setIsShorts] = useState(false);
+  const [isPlaylist, setIsPlaylist] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -70,6 +73,11 @@ export default function GetFeedback({
     if (songLink) {
       const el = document.querySelector(`input[placeholder*="הדביקו קישור ליוטיוב"]`) as HTMLInputElement;
       if (el) el.setCustomValidity("");
+      setIsShorts(isShortsUrl(songLink));
+      setIsPlaylist(isPlaylistUrl(songLink));
+    } else {
+      setIsShorts(false);
+      setIsPlaylist(false);
     }
   }, [songLink]);
 
@@ -119,7 +127,11 @@ export default function GetFeedback({
           setLastFetchedLink(songLink);
         }
       } catch (error) {
-        await logAction({ message: "Metadata fetch error", data: error, source: "get-feedback/page.tsx:fetchMetadata" });
+        await logAction({ 
+          message: "Metadata fetch error", 
+          data: error instanceof Error ? { message: error.message, name: error.name } : error, 
+          source: "get-feedback/page.tsx:fetchMetadata" 
+        });
       } finally {
         setIsFetchingMetadata(false);
       }
@@ -159,11 +171,7 @@ export default function GetFeedback({
   }, [songLink, submissionType]);
 
   const isPotentialLink = songLink.includes(".") || songLink.includes("://");
-
-  const isSupportedLink = songLink.trim() !== "" && (
-    songLink.includes("youtube.com") ||
-    songLink.includes("youtu.be")
-  );
+  const isSupportedLink = songLink.trim() !== "" && isYouTubeUrl(songLink);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -179,13 +187,26 @@ export default function GetFeedback({
     }
 
     if (!isLoggedIn && guestEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) {
-      setErrorMessage("כתובת המייל שקישרת אינה תקינה");
+      setErrorMessage("כתובת המייל שרשמת אינה תקינה");
       return;
     }
 
-    if (!songTitle || !selectedGenre) return;
-    if (submissionType === "link" && !songLink) return;
-    if (submissionType === "upload" && !songFile) return;
+    if (!songTitle) {
+      setErrorMessage("יש להזין את שם השיר");
+      return;
+    }
+    if (!selectedGenre) {
+      setErrorMessage("יש לבחור סגנון לשיר");
+      return;
+    }
+    if (submissionType === "link" && !songLink) {
+      setErrorMessage("יש להדביק קישור לשיר");
+      return;
+    }
+    if (submissionType === "upload" && !songFile) {
+      setErrorMessage("יש לבחור קובץ להעלאה");
+      return;
+    }
 
     setStatus("loading");
     setErrorMessage("");
@@ -205,8 +226,27 @@ export default function GetFeedback({
       }
     }
 
+    // Pre-submit validation
+    if (submissionType === "link") {
+      const validation = validateSongUrl(finalUrl);
+      if (!validation.success) {
+        setIsShorts(isShortsUrl(finalUrl));
+        setIsPlaylist(isPlaylistUrl(finalUrl));
+        // If it's a generic validation error not covered by shorts/playlist boxes, show it in errorMessage
+        if (!isShortsUrl(finalUrl) && !isPlaylistUrl(finalUrl)) {
+          setErrorMessage(validation.error || "קישור לא תקין");
+        }
+        setStatus("idle");
+        return;
+      }
+    }
+
     if (submissionType === "upload" && songFile) {
-      if (fileError || linkError) return;
+      if (fileError) {
+        setErrorMessage(fileError);
+        setStatus("idle");
+        return;
+      }
 
       try {
         const { url, fileKey } = await getPresignedUploadUrl(songFile.name, songFile.type);
@@ -227,7 +267,11 @@ export default function GetFeedback({
         const publicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
         finalUrl = `${publicUrl}/${fileKey}`;
       } catch (err) {
-        await logAction({ message: "Upload error", data: err, source: "get-feedback/page.tsx:handleSubmit" });
+        await logAction({ 
+          message: "Upload error", 
+          data: err instanceof Error ? { message: err.message, name: err.name } : err, 
+          source: "get-feedback/page.tsx:handleSubmit" 
+        });
         setErrorMessage("חלה שגיאה בהעלאת הקובץ. נסו שוב.");
         setStatus("idle");
         return;
@@ -258,7 +302,11 @@ export default function GetFeedback({
         setStatus("idle");
       }
     } catch (error) {
-      await logAction({ message: "Unexpected submission error", data: error, source: "get-feedback/page.tsx:handleSubmit" });
+      await logAction({ 
+        message: "Unexpected submission error", 
+        data: error instanceof Error ? { message: error.message, name: error.name } : error, 
+        source: "get-feedback/page.tsx:handleSubmit" 
+      });
       setErrorMessage("חלה שגיאה לא צפויה");
       setStatus("idle");
     }
@@ -373,31 +421,33 @@ export default function GetFeedback({
                 </div>
 
                 <AnimatePresence>
-                  {linkError && (
+                  {linkError && !isShorts && !isPlaylist && isSupportedLink && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
-                      className={styles.fileError}
-                      style={{ marginTop: '0.5rem', color: '#ff4b4b', fontSize: '0.85rem' }}
+                      className={styles.errorMsg}
+                      style={{ marginTop: '0.5rem', textAlign: 'right' }}
                     >
                       {linkError}
                     </motion.div>
                   )}
                 </AnimatePresence>
                 <AnimatePresence>
-                  {songLink.trim() !== "" && isPotentialLink && !isSupportedLink && (
+                  {(songLink.trim() !== "" && isPotentialLink && !isSupportedLink) || isShorts || isPlaylist ? (
                     <motion.div
-                      className={styles.infoWarning}
+                      className={`${styles.infoWarning} ${(isShorts || isPlaylist || !isSupportedLink) ? styles.infoWarningError : ""}`}
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
                     >
                       <p className={styles.infoMsg}>
-                        חלק מהנגנים מגבילים האזנה ממקורות חיצוניים. כדי להבטיח זמינות לכל המאזינים, יש לשתף קישורים מיוטיוב בלבד או להעלות קובץ.
+                        {isShorts ? SONG_VALIDATION_MESSAGES.NO_SHORTS : 
+                         isPlaylist ? SONG_VALIDATION_MESSAGES.NO_PLAYLIST : 
+                         SONG_VALIDATION_MESSAGES.ONLY_YOUTUBE}
                       </p>
 
-                      {songLink.includes("spotify.com") && youtubeAlternative && (
+                      {songLink.includes("spotify.com") && youtubeAlternative && !isShorts && !isPlaylist && (
                         <div className={styles.youtubeAlternative}>
                           <p>מצאנו גרסה אפשרית של השיר ביוטיוב:</p>
                           <div className={styles.alternativeCard}>
@@ -428,7 +478,7 @@ export default function GetFeedback({
                         </div>
                       )}
                     </motion.div>
-                  )}
+                  ) : null}
                 </AnimatePresence>
               </>
             ) : (
@@ -455,7 +505,7 @@ export default function GetFeedback({
                           const duration = Math.floor(audio.duration);
                           setSongDuration(duration);
                           if (duration < MIN_SONG_DURATION_SECONDS) {
-                            setFileError(`אורך השיר חייב להיות לפחות ${MIN_SONG_DURATION_SECONDS} שניות`);
+                            setFileError(SONG_VALIDATION_MESSAGES.MIN_DURATION(MIN_SONG_DURATION_SECONDS));
                           }
                           URL.revokeObjectURL(audio.src);
                         };
@@ -584,7 +634,7 @@ export default function GetFeedback({
               variant="primary"
               size="lg"
               isLoading={status === "loading"}
-              disabled={status === "loading" || !!fileError || !!linkError}
+              disabled={status === "loading"}
               onMouseEnter={() => window.dispatchEvent(new CustomEvent("star-hover-start"))}
               onMouseLeave={() => window.dispatchEvent(new CustomEvent("star-hover-end"))}
               onTouchStart={() => window.dispatchEvent(new CustomEvent("star-hover-start"))}

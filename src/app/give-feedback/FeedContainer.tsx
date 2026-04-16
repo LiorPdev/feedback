@@ -14,6 +14,7 @@ import { MIN_LISTEN_TIME } from "@/lib/constants";
 import { logAction } from "@/app/actions/logs";
 import RegistrationGate from "@/components/RegistrationGate";
 import { useUtmMode } from "@/hooks/useUtmMode";
+import { isYouTubeUrl, isAudioUrl } from "@/lib/song-validation";
 import styles from "./feed.module.css";
 
 interface Song {
@@ -301,8 +302,8 @@ export default function FeedContainer({
     );
   }
 
-  const isYouTube = currentSong.url.includes("youtube.com") || currentSong.url.includes("youtu.be");
-  const isAudio = !!currentSong.url.match(/\.(mp3|wav|ogg|m4a|aac)(\?.*)?$/i) || currentSong.url.includes("r2.dev");
+  const isYouTube = isYouTubeUrl(currentSong.url);
+  const isAudio = isAudioUrl(currentSong.url);
   const isHiddenPlayer = isYouTube || isAudio;
   const showSpinner = isYouTube && isTransitioning;
   const isProminentNext = !isPlaying && hasRatedCurrent;

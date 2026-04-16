@@ -56,7 +56,8 @@ export default function DeleteSongButton({ songId, songTitle }: DeleteSongButton
             onClick={(e) => e.stopPropagation()}
           >
             <h3>מחיקת השיר</h3>
-            <p>האם אתם בטוחים שברצונכם למחוק את השיר <strong>&quot;{songTitle}&quot;</strong>? <br />
+            <p>האם אתם בטוחים שברצונכם למחוק את השיר<br />
+              <strong>&quot;{songTitle}&quot;</strong>? <br />
               אפשר רק לעצור זמנית ע&quot;י לחיצה על כפתור <OctagonPause size={18} style={{ display: 'inline', verticalAlign: 'middle', margin: '0 4px', color: 'var(--text-muted)' }} />.
               <br />
               פעולת המחיקה היא סופית ותמחק גם את כל הדירוגים שהתקבלו.</p>

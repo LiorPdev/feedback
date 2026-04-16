@@ -19,19 +19,56 @@ export async function logToDb({
     try {
         // In development, also log to console for visibility
         if (process.env.NODE_ENV === 'development') {
-            console.log(`[DB LOG] ${source ? `(${source}) ` : ''}${message}`, data || '');
+            const prefix = `[DB LOG] ${source ? `(${source}) ` : ''}${message}`;
+            if (data !== undefined) {
+                console.log(prefix, data);
+            } else {
+                console.log(prefix);
+            }
         }
 
         const db = await getDb();
+        
+        // Custom replacer for JSON.stringify to handle Error objects (including nested ones)
+        const errorReplacer = (_key: string, value: unknown) => {
+            if (value instanceof Error) {
+                return {
+                    message: value.message,
+                    stack: value.stack,
+                    name: value.name,
+                };
+            }
+            if (typeof value === 'function') {
+                return '[Function]';
+            }
+            return value;
+        };
+
+        let serializedData = null;
+        if (data !== undefined && data !== null) {
+            if (typeof data === 'string') {
+                serializedData = data;
+            } else {
+                try {
+                    serializedData = JSON.stringify(data, errorReplacer);
+                } catch (serializeError) {
+                    serializedData = `[Serialization Error: ${serializeError instanceof Error ? serializeError.message : String(serializeError)}]`;
+                }
+            }
+        }
+
         await db.insert(logs).values({
             message,
-            data: data ? (typeof data === 'string' ? data : JSON.stringify(data)) : null,
+            data: serializedData,
             source,
             userId,
         });
     } catch (error) {
         // Fallback to console if DB logging fails
-        console.error("Critical: Failed to log to DB:", error);
-        console.error("Original Log Attempt:", { message, data, source, userId });
+        // Use separate arguments to console.error to avoid string coercion of potential proxies
+        console.error("Critical: Failed to log to DB:", error instanceof Error ? error.message : "Unknown error");
+        console.error("Original Log Attempt message:", message);
+        if (source) console.error("Source:", source);
+        if (data) console.error("Data:", data);
     }
 }

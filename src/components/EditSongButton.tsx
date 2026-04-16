@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { Pencil } from "lucide-react";
 import { updateSong, getURLMetadata } from "@/app/actions/songs";
 import { logAction } from "@/app/actions/logs";
+import { isYouTubeUrl, isShortsUrl, isPlaylistUrl, isR2Url, SONG_VALIDATION_MESSAGES } from "@/lib/song-validation";
 import styles from "./EditSongButton.module.css";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "./ui/Button";
@@ -70,7 +71,10 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
     return () => clearTimeout(timer);
   }, [url, song.url, showModal]);
 
-  const isUnsupportedLink = url.trim() !== "" && !url.includes("youtube.com") && !url.includes("youtu.be") && !url.includes("r2.dev");
+  const isUnsupportedLink = url.trim() !== "" && !isYouTubeUrl(url) && !isR2Url(url);
+  const isShorts = isShortsUrl(url);
+  const isPlaylist = isPlaylistUrl(url);
+  const isInvalid = isUnsupportedLink || isShorts || isPlaylist;
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,13 +113,13 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             onClick={(e) => e.stopPropagation()}
           >
-          <PageHeader
-            title="עריכת פרטי השיר"
-            showClose={true}
-            onClose={() => setShowModal(false)}
-            showBack={false}
-            align="center"
-          />
+            <PageHeader
+              title="עריכת פרטי השיר"
+              showClose={true}
+              onClose={() => setShowModal(false)}
+              showBack={false}
+              align="center"
+            />
 
             <form onSubmit={handleSave} className={styles.form}>
               <div className={styles.field}>
@@ -125,6 +129,8 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
                   className={styles.input}
                   value={title}
                   onChange={(e) => setTitle(e.target.value.substring(0, MAX_SONG_TITLE_LENGTH))}
+                  onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity("אנא הזינו את שם השיר")}
+                  onInput={(e) => (e.target as HTMLInputElement).setCustomValidity("")}
                   required
                   placeholder="לדוגמה: השיר החדש שלי"
                   maxLength={MAX_SONG_TITLE_LENGTH}
@@ -138,12 +144,24 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
                   className={styles.input}
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
+                  onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity("אנא הדביקו קישור ליוטיוב")}
+                  onInput={(e) => (e.target as HTMLInputElement).setCustomValidity("")}
                   required
-                  placeholder="קישור ל-YouTube"
+                  placeholder="e.g. https://www.youtube.com/watch?v=wABCDEFaa8"
                 />
                 {isUnsupportedLink && (
-                  <p className={styles.errorText} style={{ color: 'var(--status-error)', fontSize: '0.75rem', marginTop: '0.25rem' }}>
-                    חלק מהנגנים מגבילים האזנה ממקורות חיצוניים. יש לשתף קישורים מיוטיוב בלבד.
+                  <p className={styles.errorText}>
+                    {SONG_VALIDATION_MESSAGES.ONLY_YOUTUBE}
+                  </p>
+                )}
+                {isShorts && (
+                  <p className={styles.errorText}>
+                    {SONG_VALIDATION_MESSAGES.NO_SHORTS}
+                  </p>
+                )}
+                {isPlaylist && (
+                  <p className={styles.errorText}>
+                    {SONG_VALIDATION_MESSAGES.NO_PLAYLIST}
                   </p>
                 )}
               </div>
@@ -154,6 +172,8 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
                   className={styles.select}
                   value={genre}
                   onChange={(e) => setGenre(e.target.value)}
+                  onInvalid={(e) => (e.target as HTMLSelectElement).setCustomValidity("אנא בחרו סגנון מהרשימה")}
+                  onInput={(e) => (e.target as HTMLSelectElement).setCustomValidity("")}
                   required
                 >
                   {GENRES.map(g => (
@@ -178,7 +198,7 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
                   variant="primary"
                   size="md"
                   isLoading={isUpdating}
-                  disabled={isUnsupportedLink}
+                  disabled={isInvalid}
                   fullWidth
                 >
                   שמור שינויים

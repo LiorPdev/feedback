@@ -2,8 +2,13 @@
 
 import { nanoid } from 'nanoid';
 import { logToDb } from '@/lib/logger';
+import { syncUser } from '@/lib/user-auth';
 
-
+// AWS V4 signing requires encoding ALL chars except: A-Z a-z 0-9 - _ . ~
+// encodeURIComponent leaves ( ) ! ~ * ' unencoded, which causes signature mismatches.
+function awsUriEncode(str: string): string {
+    return encodeURIComponent(str).replace(/[!'()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
+}
 
 // Manual AWS V4 Signer for R2 requests (avoids bulky S3 SDK and fs.readFile issues)
 async function signR2Url({
@@ -31,7 +36,8 @@ async function signR2Url({
     const datetime = new Date().toISOString().replace(/[:-]|\.\d{3}/g, "");
     const date = datetime.slice(0, 8);
     
-    const canonicalUri = `/${bucket}/${key.split('/').map(encodeURIComponent).join('/')}`;
+    const encodedKey = key.split('/').map(awsUriEncode).join('/');
+    const canonicalUri = `/${bucket}/${encodedKey}`;
     const credentialScope = `${date}/${region}/${service}/aws4_request`;
 
     const queryParams: Record<string, string> = {
@@ -74,10 +80,9 @@ async function signR2Url({
     const signature = await hmac(kSigning, stringToSign);
     const signatureHex = Array.from(new Uint8Array(signature)).map(b => b.toString(16).padStart(2, "0")).join("");
 
-    return `${endpoint}/${bucket}/${key.split('/').map(encodeURIComponent).join('/')}?${canonicalQuerystring}&X-Amz-Signature=${signatureHex}`;
+    return `${endpoint}/${bucket}/${encodedKey}?${canonicalQuerystring}&X-Amz-Signature=${signatureHex}`;
 }
 
-import { syncUser } from '@/lib/user-auth';
 
 export async function getPresignedUploadUrl(fileName: string, contentType: string) {
     const dbUser = await syncUser();
@@ -85,8 +90,11 @@ export async function getPresignedUploadUrl(fileName: string, contentType: strin
         throw new Error("Unauthorized: Sync required for upload");
     }
 
-    // Sanitize fileName: replace spaces with underscores, but keep other characters
-    const sanitizedName = fileName.replace(/\s+/g, '_');
+    // Sanitize fileName: replace spaces with underscores, strip chars that can break AWS signing
+    const sanitizedName = fileName
+        .replace(/\s+/g, '_')
+        .replace(/[()[\]!~*'",;@$&+=]/g, '_')
+        .replace(/_+/g, '_');  // collapse multiple underscores
     const fileKey = `${nanoid()}-${sanitizedName}`;
     const url = await signR2Url({
         bucket: process.env.R2_BUCKET_NAME!,
