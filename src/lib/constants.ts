@@ -54,4 +54,4 @@ export const RATER_WEIGHT_LIKES = 1.0;             // 100% - Weight for percenta
 export const RATER_LIKES_THRESHOLD = 0.3;          // 40% likes required for a perfect score in the likes component
 
 // For songs display in the feed algorithm
-export const FEED_LOW_RATING_THRESHOLD = 2.0;      // Rating below this is considered "Low Rated" in the feed
+export const FEED_LOW_RATING_THRESHOLD = 2.8;      // Rating below this is considered "Low Rated" in the feed

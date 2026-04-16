@@ -125,7 +125,7 @@
 }
 
 .comment {
-  max-width: 400px;
+  max-width: 600px;
   min-width: 250px;
   font-size: 0.9rem;
   color: var(--text-main);
@@ -219,5 +219,12 @@
 .feedbackBtn:hover {
   background: rgba(37, 99, 235, 0.1);
   transform: scale(1.1);
+}
+
+.maxWidthCol {
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 

@@ -216,6 +216,7 @@ export function ReportsClient() {
                                     <SortHeader label="Bayesian" sortKey="bayesianAvg" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="התיישנות" sortKey="decay" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="ציון סופי" sortKey="finalScore" sortConfig={sortConfig} onSort={handleSort} />
+                                    <th style={{ width: '80px', textAlign: 'center' }}>לשיר</th>
                                 </tr>
                             ) : reportType === 'users' ? (
                                 <tr>
@@ -287,8 +288,16 @@ export function ReportsClient() {
                                             </td>
                                             <td>{formatDate(item.createdAt)}</td>
                                             <td>{item.songTitle}</td>
-                                            <td>{item.songCreatorName || item.songCreatorEmail}</td>
-                                            <td>{item.authorName || item.authorEmail}</td>
+                                            <td>
+                                                <div className={styles.maxWidthCol} title={item.songCreatorName || item.songCreatorEmail}>
+                                                    {item.songCreatorName || item.songCreatorEmail}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div className={styles.maxWidthCol} title={item.authorName || item.authorEmail}>
+                                                    {item.authorName || item.authorEmail}
+                                                </div>
+                                            </td>
                                             <td>
                                                 <div className={styles.ratings}>
                                                     <span>הפקה:{item.cat2}</span>
@@ -334,6 +343,18 @@ export function ReportsClient() {
                                             <td>{typeof item.decay === 'number' ? item.decay.toFixed(3) : item.decay}</td>
                                             <td style={{ fontWeight: 'bold', color: 'var(--accent)' }}>
                                                 {typeof item.finalScore === 'number' ? item.finalScore.toFixed(4) : item.finalScore}
+                                            </td>
+                                            <td style={{ textAlign: 'center' }}>
+                                                <a
+                                                    href={`/give-feedback/${item.slug}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className={styles.feedbackBtn}
+                                                    title="תן פידבק"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    <MessageSquare size={18} />
+                                                </a>
                                             </td>
                                         </>
                                     )}

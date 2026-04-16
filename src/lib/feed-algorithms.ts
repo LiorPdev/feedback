@@ -123,7 +123,7 @@ export function randomAndRateAlgorithm<T extends SongWithStats>(
 
     // 2. Map to Priority Score (0: New, 1: Good, 2: Bad)
     const getPriority = (s: T) => {
-        if (s.totalFeedbacks === 0) return 0;
+        if (s.totalFeedbacks === 0) return 1;
         return s.averageRating >= FEED_LOW_RATING_THRESHOLD ? 1 : 2;
     };
 

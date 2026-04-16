@@ -257,7 +257,8 @@ export async function getAdminTopRatedReport() {
             weightedSum: weightedSum,
             bayesianAvg: bayesianAvg,
             decay: decay,
-            finalScore: finalScore
+            finalScore: finalScore,
+            slug: songs.slug
         })
         .from(songs)
         .innerJoin(feedbacks, and(eq(songs.id, feedbacks.songId), gt(feedbacks.overall, 0)))
