@@ -2,7 +2,12 @@ import { getDb } from "./db";
 import { logToDb } from "./logger";
 import { feedbacks, users } from "./schema";
 import { eq } from "drizzle-orm";
-import { RATER_WEIGHT_LIKES, RATER_LIKES_THRESHOLD } from "./constants";
+import { 
+  RATER_WEIGHT_LIKES_RATE, 
+  RATER_WEIGHT_FEEDBACKS_COUNT, 
+  RATER_LIKES_THRESHOLD,
+  RATER_FEEDBACKS_VOLUME_THRESHOLD 
+} from "./constants";
 
 interface FeedbackShape {
   isLiked: boolean;
@@ -32,11 +37,20 @@ export async function updateRaterScore(userId: string) {
       if (fb.isLiked) likedCount += 1;
     }
 
-    const count = userFeedbacks.length;
-    const likesRatio = likedCount / count;
-    const likesScore = Math.min(likesRatio / RATER_LIKES_THRESHOLD, 1);
+    const totalCount = userFeedbacks.length;
+    
+    // 1. Likes Rate Score (Quality)
+    const likesRatio = totalCount > 0 ? (likedCount / totalCount) : 0;
+    const likesRateScore = Math.min(likesRatio / RATER_LIKES_THRESHOLD, 1);
+    
+    // 2. Feedbacks Count Score (Quantity)
+    const feedbacksCountScore = Math.min(totalCount / RATER_FEEDBACKS_VOLUME_THRESHOLD, 1);
 
-    const finalScore = (likesScore * RATER_WEIGHT_LIKES) * 5;
+    // Weighted final score (out of 1.0) multiplied by 5 stars
+    const finalScore = (
+      (likesRateScore * RATER_WEIGHT_LIKES_RATE) + 
+      (feedbacksCountScore * RATER_WEIGHT_FEEDBACKS_COUNT)
+    ) * 5;
 
     // Round to 1 decimal place
     const roundedScore = Math.round(finalScore * 10) / 10;

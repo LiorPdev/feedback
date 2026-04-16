@@ -50,8 +50,10 @@ export const WEIGHT_SINGING = 0.3;
 export const WEIGHT_OVERALL = 0.4;
 
 // Rater Score Configuration
-export const RATER_WEIGHT_LIKES = 1.0;             // 100% - Weight for percentage of feeds liked by authors
-export const RATER_LIKES_THRESHOLD = 0.3;          // 40% likes required for a perfect score in the likes component
+export const RATER_WEIGHT_LIKES_RATE = 0.6;        // 60% - Weight for percentage of feeds liked by authors
+export const RATER_WEIGHT_FEEDBACKS_COUNT = 0.4;   // 40% - Weight for volume of feedbacks
+export const RATER_LIKES_THRESHOLD = 0.4;          // 40% likes required for a perfect score in the likes component
+export const RATER_FEEDBACKS_VOLUME_THRESHOLD = 15; // 15 feedbacks required for a perfect volume score
 
 // For songs display in the feed algorithm
 export const FEED_LOW_RATING_THRESHOLD = 2.8;      // Rating below this is considered "Low Rated" in the feed
