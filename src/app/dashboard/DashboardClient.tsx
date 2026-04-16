@@ -222,11 +222,11 @@ export default function DashboardClient({
                       {(fb.cat2 > 0 || fb.cat3 > 0 || fb.overall > 0) && (
                         <div className={styles.myFbRatingsRow}>
                           <strong className={styles.myFbRatingLabel}>דירוג:</strong>
+                          <span className={styles.myFbOverallBadge}>
+                            <strong className={styles.myFbLabel}>ציון לשיר:</strong>{" "}{fb.overall}
+                          </span>
                           <span><strong className={styles.myFbLabel}>הפקה:</strong>{" "}{fb.cat2}</span>
                           <span><strong className={styles.myFbLabel}>שירה:</strong>{" "}{fb.cat3}</span>
-                          <span className={styles.myFbOverallBadge}>
-                            <strong className={styles.myFbLabel}>כללי:</strong>{" "}{fb.overall}
-                          </span>
                         </div>
                       )}
 

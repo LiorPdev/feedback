@@ -300,9 +300,9 @@ export function ReportsClient() {
                                             </td>
                                             <td>
                                                 <div className={styles.ratings}>
+                                                    <span>ציון לשיר:{item.overall}</span>
                                                     <span>הפקה:{item.cat2}</span>
                                                     <span>שירה:{item.cat3}</span>
-                                                    <span>כללי:{item.overall}</span>
                                                 </div>
                                             </td>
                                             <td style={{ textAlign: 'center' }}>

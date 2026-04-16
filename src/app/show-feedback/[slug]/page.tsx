@@ -107,6 +107,14 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
           {hasAnyAverage && (
             <div className={styles.averagesSection}>
               <div className={styles.averagesGrid}>
+                {averages.overall && (
+                  <div className={styles.averageItem}>
+                    <span className={styles.avgLabel}>ציון לשיר</span>
+                    <span className={`${styles.avgValue} ${styles.avgOverall}`}>
+                      {averages.overall}
+                    </span>
+                  </div>
+                )}
                 {averages.cat2 && (
                   <div className={styles.averageItem}>
                     <span className={styles.avgLabel}>הפקה</span>
@@ -117,14 +125,6 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
                   <div className={styles.averageItem}>
                     <span className={styles.avgLabel}>שירה</span>
                     <span className={styles.avgValue}>{averages.cat3}</span>
-                  </div>
-                )}
-                {averages.overall && (
-                  <div className={styles.averageItem}>
-                    <span className={styles.avgLabel}>כללי</span>
-                    <span className={`${styles.avgValue} ${styles.avgOverall}`}>
-                      {averages.overall}
-                    </span>
                   </div>
                 )}
               </div>

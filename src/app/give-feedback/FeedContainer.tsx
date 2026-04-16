@@ -454,9 +454,9 @@ export default function FeedContainer({
 
               <div className={styles.ratedGrid}>
                 {[
+                  { label: "ציון לשיר", value: userFeedback.overall },
                   { label: "הפקה", value: userFeedback.cat2 },
                   { label: "שירה", value: userFeedback.cat3 },
-                  { label: "כללי", value: userFeedback.overall },
                 ].map((item, idx) => (
                   <div key={idx} className={styles.ratedItem}>
                     <span className={styles.ratedLabel}>{item.label}</span>

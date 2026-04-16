@@ -120,9 +120,9 @@ export default function FeedbackForm({
   }, [isPlaying, triggerFlyer]);
 
   const categories = [
+    { key: "overall" as const, name: "ציון לשיר", reward: REWARD_OVERALL },
     { key: "cat2" as const, name: "הפקה", reward: REWARD_PRODUCTION },
     { key: "cat3" as const, name: "שירה", reward: REWARD_VOCALS },
-    { key: "overall" as const, name: "ציון כללי", reward: REWARD_OVERALL },
   ];
 
   const handleRating = (key: keyof typeof ratings, value: number, e?: React.MouseEvent | React.TouchEvent) => {
@@ -180,7 +180,7 @@ export default function FeedbackForm({
     const missingRatings = [];
     if (ratings.cat2 === 0) missingRatings.push("הפקה");
     if (ratings.cat3 === 0) missingRatings.push("שירה");
-    if (ratings.overall === 0) missingRatings.push("ציון כללי");
+    if (ratings.overall === 0) missingRatings.push("ציון לשיר");
 
     const commentTrimmed = comment.trim();
     const isCommentMissing = commentTrimmed.length === 0;

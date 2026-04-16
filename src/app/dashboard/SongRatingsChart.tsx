@@ -39,7 +39,7 @@ const CustomLegend = (props: CustomLegendProps) => {
   if (!payload) return null;
 
   // Define the desired order correctly
-  const order = ['כללי', 'שירה', 'הפקה'];
+  const order = ['ציון לשיר', 'שירה', 'הפקה'];
   const sortedPayload = [...payload].sort((a, b) => order.indexOf(a.value) - order.indexOf(b.value));
 
   return (
@@ -175,7 +175,7 @@ export default function SongRatingsChart({ songs, type = "trueRating", globalAve
       return [
         { category: 'הפקה', value: Math.round((sumCat2 / totalCount) * 10) / 10, fill: 'url(#gradientProduction)', feedbacksCount: totalCount },
         { category: 'שירה', value: Math.round((sumCat3 / totalCount) * 10) / 10, fill: 'url(#gradientSinging)', feedbacksCount: totalCount },
-        { category: 'כללי', value: Math.round((sumOverall / totalCount) * 10) / 10, fill: 'url(#gradientOverall)', feedbacksCount: totalCount },
+        { category: 'ציון לשיר', value: Math.round((sumOverall / totalCount) * 10) / 10, fill: 'url(#gradientOverall)', feedbacksCount: totalCount },
       ];
     }
 
@@ -314,7 +314,7 @@ export default function SongRatingsChart({ songs, type = "trueRating", globalAve
                     )}
                     {type === 'categories' && (
                       <>
-                        <p className={styles.tooltipCategoryText} style={{ color: '#f59e0b' }}>כללי: {data.avgOverall}</p>
+                        <p className={styles.tooltipCategoryText} style={{ color: '#f59e0b' }}>ציון לשיר: {data.avgOverall}</p>
                         <p className={styles.tooltipCategoryText} style={{ color: '#10b981' }}>שירה: {data.avgSinging}</p>
                         <p className={styles.tooltipCategoryText} style={{ color: '#1e3a8a' }}>הפקה: {data.avgProduction}</p>
                       </>
@@ -348,7 +348,7 @@ export default function SongRatingsChart({ songs, type = "trueRating", globalAve
             <>
               <Bar name="הפקה" dataKey="avgProduction" stackId="a" fill="#1e3a8a" maxBarSize={100} />
               <Bar name="שירה" dataKey="avgSinging" stackId="a" fill="#10b981" maxBarSize={100} />
-              <Bar name="כללי" dataKey="avgOverall" stackId="a" fill="#f59e0b" radius={[0, 4, 4, 0]} maxBarSize={100} />
+              <Bar name="ציון לשיר" dataKey="avgOverall" stackId="a" fill="#f59e0b" radius={[0, 4, 4, 0]} maxBarSize={100} />
             </>
           )}
         </BarChart>

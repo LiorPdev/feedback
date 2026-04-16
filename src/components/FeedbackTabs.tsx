@@ -209,9 +209,9 @@ export default function FeedbackTabs({
                       {((fb.cat2 || 0) > 0 || (fb.cat3 || 0) > 0 || (fb.overall || 0) > 0) && (
                         <div className={styles.fbRatingsRow}>
                           <strong className={styles.fbRatingLabel}>דירוג:</strong>
+                          <span className={styles.fbOverallBadge}><strong className={styles.fbLabel}>ציון לשיר:</strong>{fb.overall}</span>
                           <span><strong className={styles.fbLabel}>הפקה:</strong>{fb.cat2}</span>
                           <span><strong className={styles.fbLabel}>שירה:</strong>{fb.cat3}</span>
-                          <span className={styles.fbOverallBadge}><strong className={styles.fbLabel}>כללי:</strong>{fb.overall}</span>
                         </div>
                       )}
                       <p className={styles.fbComment}>
