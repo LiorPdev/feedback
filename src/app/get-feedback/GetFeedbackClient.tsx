@@ -17,6 +17,7 @@ import PageHeader from "@/components/PageHeader";
 import Button from "@/components/ui/Button";
 import PopupMsg from "@/components/PopupMsg";
 import { useUtmMode } from "@/hooks/useUtmMode";
+import PlayButton from "@/components/PlayButton";
 
 interface GetFeedbackProps {
   backHome?: boolean;
@@ -335,7 +336,15 @@ export default function GetFeedback({
                   name="submissionType"
                   className={styles.radioInput}
                   checked={submissionType === "link"}
-                  onChange={() => setSubmissionType("link")}
+                  onChange={() => {
+                    if (submissionType !== "link") {
+                      setSubmissionType("link");
+                      setSongTitle("");
+                      setSongLink("");
+                      setLinkError("");
+                      setYoutubeAlternative(null);
+                    }
+                  }}
                 />
                 קישור לשיר
               </label>
@@ -345,7 +354,14 @@ export default function GetFeedback({
                   name="submissionType"
                   className={styles.radioInput}
                   checked={submissionType === "upload"}
-                  onChange={() => setSubmissionType("upload")}
+                  onChange={() => {
+                    if (submissionType !== "upload") {
+                      setSubmissionType("upload");
+                      setSongTitle("");
+                      setSongFile(null);
+                      setFileError("");
+                    }
+                  }}
                 />
                 העלאת שיר
               </label>
@@ -353,69 +369,75 @@ export default function GetFeedback({
 
             {submissionType === "link" ? (
               <>
-                <div className={styles.inputWrapper}>
-                  <input
-                    type="text"
-                    className={styles.input}
-                    placeholder="קישור מיוטיוב או הקלידו טקסט לחיפוש"
-                    value={songLink}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                      const val = e.target.value;
-                      setSongLink(val);
-                      if (!val) {
-                        setSongTitle("");
-                        setYoutubeAlternative(null);
-                        setSearchResults([]);
-                        setShowDropdown(false);
-                      } else {
-                        setYoutubeAlternative(null);
-                      }
-                    }}
-                    onFocus={() => {
-                      if (searchResults.length > 0) setShowDropdown(true);
-                    }}
-                    onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity("אנא הזינו קישור או חפשו את שם השיר")}
-                    onInput={(e) => (e.target as HTMLInputElement).setCustomValidity("")}
-                    required={submissionType === "link"}
-                    style={{ paddingLeft: isFetchingMetadata || isSearching ? '2.5rem' : '1.25rem' }}
-                  />
-                  {(isFetchingMetadata || isSearching) && (
-                    <div className={styles.inputSpinner}>
-                      <div className={styles.spinnerSmall} />
-                    </div>
-                  )}
-                  {showDropdown && (songLink && !songLink.includes("://")) && (
-                    <div className={styles.searchResultsDropdown}>
-                      {isSearching && searchResults.length === 0 ? (
-                        <div className={styles.searchingIndicator}>מחפש ביוטיוב...</div>
-                      ) : searchResults.length > 0 ? (
-                        searchResults.map((result) => (
-                          <div
-                            key={result.id}
-                            className={styles.searchResultItem}
-                            onClick={() => {
-                              setSongLink(result.url);
-                              setSongTitle(result.title.substring(0, MAX_SONG_TITLE_LENGTH));
-                              setSearchResults([]);
-                              setShowDropdown(false);
-                            }}
-                          >
-                            <Image
-                              src={result.thumbnail}
-                              alt=""
-                              className={styles.resultThumbnail}
-                              width={50}
-                              height={38}
-                              unoptimized
-                            />
-                            <div className={styles.resultInfo}>
-                              <span className={styles.resultTitle}>{result.title}</span>
+                <div className={styles.linkRow}>
+                  <div className={styles.inputWrapper}>
+                    <input
+                      type="text"
+                      className={styles.input}
+                      placeholder="קישור מיוטיוב או הקלידו טקסט לחיפוש"
+                      value={songLink}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        const val = e.target.value;
+                        setSongLink(val);
+                        if (!val) {
+                          setSongTitle("");
+                          setYoutubeAlternative(null);
+                          setSearchResults([]);
+                          setShowDropdown(false);
+                        } else {
+                          setYoutubeAlternative(null);
+                        }
+                      }}
+                      onFocus={() => {
+                        if (searchResults.length > 0) setShowDropdown(true);
+                      }}
+                      onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity("אנא הזינו קישור או חפשו את שם השיר")}
+                      onInput={(e) => (e.target as HTMLInputElement).setCustomValidity("")}
+                      required={submissionType === "link"}
+                    />
+                    {(isFetchingMetadata || isSearching) && !isSupportedLink && (
+                      <div className={styles.inputSpinner}>
+                        <div className={styles.spinnerSmall} />
+                      </div>
+                    )}
+                    {showDropdown && (songLink && !songLink.includes("://")) && (
+                      <div className={styles.searchResultsDropdown}>
+                        {isSearching && searchResults.length === 0 ? (
+                          <div className={styles.searchingIndicator}>מחפש ביוטיוב...</div>
+                        ) : searchResults.length > 0 ? (
+                          searchResults.map((result) => (
+                            <div
+                              key={result.id}
+                              className={styles.searchResultItem}
+                              onClick={() => {
+                                setSongLink(result.url);
+                                setSongTitle(result.title.substring(0, MAX_SONG_TITLE_LENGTH));
+                                setSearchResults([]);
+                                setShowDropdown(false);
+                              }}
+                            >
+                              <Image
+                                src={result.thumbnail}
+                                alt=""
+                                className={styles.resultThumbnail}
+                                width={50}
+                                height={38}
+                                unoptimized
+                              />
+                              <div className={styles.resultInfo}>
+                                <span className={styles.resultTitle}>{result.title}</span>
+                              </div>
                             </div>
-                          </div>
-                        ))
-                      ) : !isSearching && songLink.length >= 2 && (
-                        <div className={styles.searchingIndicator}>לא נמצאו תוצאות</div>
-                      )}
+                          ))
+                        ) : !isSearching && songLink.length >= 2 && (
+                          <div className={styles.searchingIndicator}>לא נמצאו תוצאות</div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  {submissionType === "link" && isSupportedLink && !isFetchingMetadata && !isSearching && (
+                    <div className={styles.playButtonInInput}>
+                      <PlayButton url={songLink} size={42} />
                     </div>
                   )}
                 </div>

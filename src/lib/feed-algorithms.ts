@@ -1,3 +1,5 @@
+import { FEED_LOW_RATING_THRESHOLD } from './constants';
+
 // ----------------------------------------------------
 // Play Order Algorithms
 // ----------------------------------------------------
@@ -5,6 +7,7 @@ export interface SongWithStats {
     userId: string;
     genre: string;
     totalFeedbacks: number;
+    averageRating: number;
 }
 
 // ----------------------------------------------------
@@ -99,6 +102,47 @@ export function noFeedbackPriorityAlgorithm<T extends SongWithStats>(
     return finalArr;
 }
 
+/**
+ * randomAndRate Algorithm
+ * 
+ * Logic (Simplified Order):
+ * 1. Random shuffle all songs.
+ * 2. Status Priority (New > Good > Bad).
+ * 3. Genre Priority (Matches first).
+ * 
+ * Result:
+ * - Genre matches: (New songs first, then Good ratings, then Bad ratings).
+ * - Rest of songs: (New songs first, then Good ratings, then Bad ratings).
+ */
+export function randomAndRateAlgorithm<T extends SongWithStats>(
+    songs: T[],
+    preferredGenres: string[]
+): T[] {
+    // 1. Randomize all first to ensure variety within categories
+    const randomized = [...songs].sort(() => Math.random() - 0.5);
+
+    // 2. Map to Priority Score (0: New, 1: Good, 2: Bad)
+    const getPriority = (s: T) => {
+        if (s.totalFeedbacks === 0) return 0;
+        return s.averageRating >= FEED_LOW_RATING_THRESHOLD ? 1 : 2;
+    };
+
+    // 3. Stable Sort by Priority
+    const sortedByPriority = [...randomized].sort((a, b) => getPriority(a) - getPriority(b));
+
+    // 4. Stable Sort by Genre Match
+    const finalSort = [...sortedByPriority].sort((a, b) => {
+        if (preferredGenres.length > 0) {
+            const aMatch = preferredGenres.includes(a.genre) ? 0 : 1;
+            const bMatch = preferredGenres.includes(b.genre) ? 0 : 1;
+            return aMatch - bMatch;
+        }
+        return 0;
+    });
+
+    return finalSort;
+}
+
 // ----------------------------------------------------
 // Dispatcher
 // ----------------------------------------------------
@@ -107,6 +151,5 @@ export function applyFeedAlgorithm<T extends SongWithStats>(
     songs: T[],
     preferredGenres: string[],
 ): T[] {
-    return randomAlgorithm(songs, preferredGenres);
-    //return noFeedbackPriorityAlgorithm(songs, preferredGenres, firstSongUserId);  // Currently not in use
+    return randomAndRateAlgorithm(songs, preferredGenres);
 }

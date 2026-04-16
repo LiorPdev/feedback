@@ -32,7 +32,7 @@ export const UNLOCK_FEEDBACK_COST = 35;
 export const MIN_COMMENT_LENGTH = 30;
 export const COMMENT_LENGTH_BONUS = 60;
 export const MIN_LISTEN_TIME = 40;
-export const MAX_FILE_SIZE_MB = 10;
+export const MAX_FILE_SIZE_MB = 13;
 export const MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024;
 export const ADMIN_EMAIL = "lior.porat.music@gmail.com";
 
@@ -41,8 +41,8 @@ export const ADMIN_EMAIL = "lior.porat.music@gmail.com";
 // and fresh talent to be discovered while rewarding consistent high performance.
 // Lower value (e.g. 0.005) means songs stay longer; higher value (e.g. 0.05) means faster turnover.
 export const TOP_RATED_DECAY_FACTOR = 0.06;
-export const TOP_RATED_NOTIFICATION_COOLDOWN_DAYS = 4;  // Days a song must stay out of Top 10 to reset its decay and allow new notification
-export const TOP_RATED_MIN_RATINGS_THRESHOLD = 5;       // Minimum number of ratings a song must have to be eligible for the Top 10 list
+export const TOP_RATED_NOTIFICATION_COOLDOWN_DAYS = 3;  // Days a song must stay out of Top 10 to reset its decay and allow new notification
+export const TOP_RATED_MIN_RATINGS_THRESHOLD = 4;       // Minimum number of ratings a song must have to be eligible for the Top 10 list
 
 // Rating Weights (Must sum to 1.0)
 export const WEIGHT_PRODUCTION = 0.3;
@@ -51,4 +51,7 @@ export const WEIGHT_OVERALL = 0.4;
 
 // Rater Score Configuration
 export const RATER_WEIGHT_LIKES = 1.0;             // 100% - Weight for percentage of feeds liked by authors
-export const RATER_LIKES_THRESHOLD = 0.4;          // 40% likes required for a perfect score in the likes component
+export const RATER_LIKES_THRESHOLD = 0.3;          // 40% likes required for a perfect score in the likes component
+
+// For songs display in the feed algorithm
+export const FEED_LOW_RATING_THRESHOLD = 2.0;      // Rating below this is considered "Low Rated" in the feed
