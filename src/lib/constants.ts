@@ -27,9 +27,9 @@ export const REWARD_COMMENT = 10;
 
 // Tokens i spend
 export const SONG_SUBMISSION_COST = 40;
-export const UNLOCK_FEEDBACK_COST = 35;
+export const UNLOCK_FEEDBACK_COST = 40;
 
-export const MIN_COMMENT_LENGTH = 30;
+export const MIN_COMMENT_LENGTH = 40;
 export const COMMENT_LENGTH_BONUS = 60;
 export const MIN_LISTEN_TIME = 40;
 export const MAX_FILE_SIZE_MB = 13;
