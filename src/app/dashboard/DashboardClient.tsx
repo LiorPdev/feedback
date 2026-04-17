@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useRef, useCallback, useMemo, memo } from "react";
+import { useState, useCallback, useMemo, memo } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { BarChart3, MessageSquare, Music, Play, Pause } from "lucide-react";
+import { BarChart3, MessageSquare, Music } from "lucide-react";
 import SongCard from "@/components/SongCard";
 import SongRatingsChart from "./SongRatingsChart";
-import UrlPlayer, { UrlPlayerHandle } from "@/components/UrlPlayer";
 import HeartWithTooltip from "@/components/HeartWithTooltip";
 import Button from "@/components/ui/Button";
 import styles from "./DashboardClient.module.css";
@@ -52,12 +51,9 @@ function formatSeconds(seconds: number | null | undefined) {
 // ── Memoized feedback row — only re-renders when its own isActive/isPlaying state changes ──
 interface FeedbackItemProps {
   fb: GivenFeedbackItem;
-  isActive: boolean;
-  isPlaying: boolean;
-  onPlay: (fb: GivenFeedbackItem) => void;
 }
 
-const FeedbackItem = memo(function FeedbackItem({ fb, isActive, isPlaying, onPlay }: FeedbackItemProps) {
+const FeedbackItem = memo(function FeedbackItem({ fb }: FeedbackItemProps) {
   const dateStr = useMemo(
     () => new Date(fb.createdAt).toLocaleDateString("he-IL"),
     [fb.createdAt]
@@ -72,16 +68,6 @@ const FeedbackItem = memo(function FeedbackItem({ fb, isActive, isPlaying, onPla
     <div className={styles.myFeedbackItem}>
       <div className={styles.myFbHeader}>
         <div className={styles.myFbTitleRow}>
-          <button
-            type="button"
-            className={styles.myFbPlayBtn}
-            onClick={() => onPlay(fb)}
-            aria-label={isActive && isPlaying ? "עצור" : "נגן"}
-          >
-            {isActive && isPlaying
-              ? <Pause size={14} fill="currentColor" />
-              : <Play size={14} fill="currentColor" style={{ marginLeft: "1px" }} />}
-          </button>
           <span className={styles.myFbSongTitle}>{fb.songTitle}</span>
           {fb.isLiked && (
             <HeartWithTooltip rewardAmount={LIKE_FEEDBACK_REWARD} />
@@ -143,33 +129,6 @@ export default function DashboardClient({
   const activeTab = urlTab || (onlyFeedbacksGiven ? "myFeedbacks" : "songs");
 
   const [chartType, setChartType] = useState<"categories" | "retention" | "trueRating" | "overallCategories">("trueRating");
-
-  // Shared single player for myFeedbacks — avoids mounting N iframes simultaneously (mobile crash)
-  const [activeFbId, setActiveFbId] = useState<string | null>(null);
-  const [activePlayerUrl, setActivePlayerUrl] = useState<string>("");
-  const [activePlayerSongId, setActivePlayerSongId] = useState<string>("");
-  const [isPlayerPlaying, setIsPlayerPlaying] = useState(false);
-  const sharedPlayerRef = useRef<UrlPlayerHandle>(null);
-  const pendingPlayRef = useRef(false);
-
-  const handleFbPlay = useCallback((fb: GivenFeedbackItem) => {
-    if (activeFbId === fb.id) {
-      // Same song — toggle play/pause synchronously (iOS-safe)
-      if (isPlayerPlaying) {
-        sharedPlayerRef.current?.pause();
-      } else {
-        sharedPlayerRef.current?.play();
-      }
-    } else {
-      // Different song — switch player.
-      // Mark pending so onReady fires play() once the new UrlPlayer mounts.
-      pendingPlayRef.current = true;
-      setActiveFbId(fb.id);
-      setActivePlayerUrl(fb.songUrl);
-      setActivePlayerSongId(fb.songId);
-      setIsPlayerPlaying(true);
-    }
-  }, [activeFbId, isPlayerPlaying]);
 
   const handleTabChange = useCallback((tab: "songs" | "insights" | "myFeedbacks") => {
     const params = new URLSearchParams(searchParams.toString());
@@ -292,36 +251,10 @@ export default function DashboardClient({
           <div className={styles.myFeedbacksSection}>
             {givenFeedbacks.length > 0 ? (
               <div className={styles.myFeedbacksList}>
-                {/* Single shared player — only ONE iframe/audio is ever mounted. 
-                    We render it as long as there is an active URL to keep it ready. */}
-                {activePlayerUrl && (
-                  <UrlPlayer
-                    key={activePlayerUrl}
-                    ref={sharedPlayerRef}
-                    url={activePlayerUrl}
-                    songId={activePlayerSongId}
-                    isHidden
-                    onReady={() => {
-                      // Consume pending play request (set during song switch)
-                      if (pendingPlayRef.current) {
-                        pendingPlayRef.current = false;
-                        sharedPlayerRef.current?.play();
-                      }
-                    }}
-                    onPlay={() => setIsPlayerPlaying(true)}
-                    onPause={() => setIsPlayerPlaying(false)}
-                    onEnded={() => { setIsPlayerPlaying(false); setActiveFbId(null); }}
-                    onError={() => { setIsPlayerPlaying(false); pendingPlayRef.current = false; }}
-                  />
-                )}
-
                 {givenFeedbacks.map((fb) => (
                   <FeedbackItem
                     key={fb.id}
                     fb={fb}
-                    isActive={activeFbId === fb.id}
-                    isPlaying={isPlayerPlaying}
-                    onPlay={handleFbPlay}
                   />
                 ))}
               </div>

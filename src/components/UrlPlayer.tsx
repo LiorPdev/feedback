@@ -349,6 +349,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
   }
 
   if (!embedUrl) {
+    if (isHidden) return null;
     return (
       <div className={styles.fallbackPlayer}>
         <p>לא ניתן להציג נגן עבור הקישור הזה.</p>
