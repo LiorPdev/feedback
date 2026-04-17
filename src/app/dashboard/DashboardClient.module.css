@@ -189,6 +189,30 @@
   min-width: 0;
 }
 
+.myFbPlayBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: var(--brand-primary);
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.myFbPlayBtn:hover {
+  opacity: 0.85;
+  transform: scale(1.08);
+}
+
+.myFbPlayBtn:active {
+  transform: scale(0.95);
+}
+
 
 .myFbSongTitle {
   font-weight: 700;

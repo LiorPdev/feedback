@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback, useMemo, memo } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { BarChart3, MessageSquare, Music } from "lucide-react";
+import { BarChart3, MessageSquare, Music, Play, Pause } from "lucide-react";
 import SongCard from "@/components/SongCard";
 import SongRatingsChart from "./SongRatingsChart";
-import PlayButton from "@/components/PlayButton";
+import UrlPlayer, { UrlPlayerHandle } from "@/components/UrlPlayer";
 import HeartWithTooltip from "@/components/HeartWithTooltip";
 import Button from "@/components/ui/Button";
 import styles from "./DashboardClient.module.css";
@@ -49,6 +49,80 @@ function formatSeconds(seconds: number | null | undefined) {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
+// ── Memoized feedback row — only re-renders when its own isActive/isPlaying state changes ──
+interface FeedbackItemProps {
+  fb: GivenFeedbackItem;
+  isActive: boolean;
+  isPlaying: boolean;
+  onPlay: (fb: GivenFeedbackItem) => void;
+}
+
+const FeedbackItem = memo(function FeedbackItem({ fb, isActive, isPlaying, onPlay }: FeedbackItemProps) {
+  const dateStr = useMemo(
+    () => new Date(fb.createdAt).toLocaleDateString("he-IL"),
+    [fb.createdAt]
+  );
+
+  const commentParts = useMemo(() => {
+    if (!fb.comment || !fb.comment.trim()) return null;
+    return fb.comment.split(/(\*\*.*?\*\*)/g);
+  }, [fb.comment]);
+
+  return (
+    <div className={styles.myFeedbackItem}>
+      <div className={styles.myFbHeader}>
+        <div className={styles.myFbTitleRow}>
+          <button
+            type="button"
+            className={styles.myFbPlayBtn}
+            onClick={() => onPlay(fb)}
+            aria-label={isActive && isPlaying ? "עצור" : "נגן"}
+          >
+            {isActive && isPlaying
+              ? <Pause size={14} fill="currentColor" />
+              : <Play size={14} fill="currentColor" style={{ marginLeft: "1px" }} />}
+          </button>
+          <span className={styles.myFbSongTitle}>{fb.songTitle}</span>
+          {fb.isLiked && (
+            <HeartWithTooltip rewardAmount={LIKE_FEEDBACK_REWARD} />
+          )}
+        </div>
+        <span className={styles.myFbDate}>{dateStr}</span>
+      </div>
+
+      <div className={styles.myFbBody}>
+        {fb.playedSeconds && fb.playedSeconds > 0 && (
+          <div className={styles.myFbPlaytime}>
+            <strong className={styles.myFbLabel}>זמן השמעה:</strong>{" "}
+            {formatSeconds(fb.playedSeconds)}
+          </div>
+        )}
+
+        {(fb.cat2 > 0 || fb.cat3 > 0 || fb.overall > 0) && (
+          <div className={styles.myFbRatingsRow}>
+            <strong className={styles.myFbRatingLabel}>דירוג:</strong>
+            <span className={styles.myFbOverallBadge}>
+              <strong className={styles.myFbLabel}>ציון לשיר:</strong>{" "}{fb.overall}
+            </span>
+            <span><strong className={styles.myFbLabel}>הפקה:</strong>{" "}{fb.cat2}</span>
+            <span><strong className={styles.myFbLabel}>שירה:</strong>{" "}{fb.cat3}</span>
+          </div>
+        )}
+
+        {commentParts && (
+          <p className={styles.myFbComment}>
+            {commentParts.map((part, i) =>
+              part.startsWith('**') && part.endsWith('**')
+                ? <strong key={i}>{part.slice(2, -2)}</strong>
+                : part
+            )}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+});
+
 export default function DashboardClient({
   songs,
   globalAverage = 0,
@@ -59,7 +133,10 @@ export default function DashboardClient({
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
-  const onlyFeedbacksGiven = songs.length === 0 && givenFeedbacks.length > 0;
+  const onlyFeedbacksGiven = useMemo(
+    () => songs.length === 0 && givenFeedbacks.length > 0,
+    [songs.length, givenFeedbacks.length]
+  );
 
   // Derive active tab from URL param 'tab', fallback to logic-based default
   const urlTab = searchParams.get('tab') as "songs" | "insights" | "myFeedbacks" | null;
@@ -67,18 +144,44 @@ export default function DashboardClient({
 
   const [chartType, setChartType] = useState<"categories" | "retention" | "trueRating" | "overallCategories">("trueRating");
 
-  const handleTabChange = (tab: "songs" | "insights" | "myFeedbacks") => {
+  // Shared single player for myFeedbacks — avoids mounting N iframes simultaneously (mobile crash)
+  const [activeFbId, setActiveFbId] = useState<string | null>(null);
+  const [activePlayerUrl, setActivePlayerUrl] = useState<string>("");
+  const [activePlayerSongId, setActivePlayerSongId] = useState<string>("");
+  const [isPlayerPlaying, setIsPlayerPlaying] = useState(false);
+  const sharedPlayerRef = useRef<UrlPlayerHandle>(null);
+  const pendingPlayRef = useRef(false);
+
+  const handleFbPlay = useCallback((fb: GivenFeedbackItem) => {
+    if (activeFbId === fb.id) {
+      // Same song — toggle play/pause synchronously (iOS-safe)
+      if (isPlayerPlaying) {
+        sharedPlayerRef.current?.pause();
+      } else {
+        sharedPlayerRef.current?.play();
+      }
+    } else {
+      // Different song — switch player.
+      // Mark pending so onReady fires play() once the new UrlPlayer mounts.
+      pendingPlayRef.current = true;
+      setActiveFbId(fb.id);
+      setActivePlayerUrl(fb.songUrl);
+      setActivePlayerSongId(fb.songId);
+      setIsPlayerPlaying(true);
+    }
+  }, [activeFbId, isPlayerPlaying]);
+
+  const handleTabChange = useCallback((tab: "songs" | "insights" | "myFeedbacks") => {
     const params = new URLSearchParams(searchParams.toString());
     params.set('tab', tab);
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-  };
-
+  }, [searchParams, pathname, router]);
 
   // Check if any song has feedbacks or listen events
-  const hasAnyData = songs.some(
+  const hasAnyData = useMemo(() => songs.some(
     (song) => (Array.isArray(song.feedbacks) && song.feedbacks.length > 0) ||
       (Array.isArray(song.listenEvents) && song.listenEvents.length > 0)
-  );
+  ), [songs]);
 
   return (
     <div className={styles.container}>
@@ -189,59 +292,38 @@ export default function DashboardClient({
           <div className={styles.myFeedbacksSection}>
             {givenFeedbacks.length > 0 ? (
               <div className={styles.myFeedbacksList}>
-                {givenFeedbacks.map((fb) => (
-                  <div key={fb.id} className={styles.myFeedbackItem}>
-                    {/* Header: PlayButton + Song title + Date */}
-                    <div className={styles.myFbHeader}>
-                      <div className={styles.myFbTitleRow}>
-                        <PlayButton
-                          url={fb.songUrl}
-                          songId={fb.songId}
-                          size={26}
-                        />
-                        <span className={styles.myFbSongTitle}>{fb.songTitle}</span>
-                        {fb.isLiked && (
-                          <HeartWithTooltip rewardAmount={LIKE_FEEDBACK_REWARD} />
-                        )}
-                      </div>
-                      <span className={styles.myFbDate}>
-                        {new Date(fb.createdAt).toLocaleDateString("he-IL")}
-                      </span>
-                    </div>
-
-                    {/* Playtime + Ratings + Comment */}
-                    <div className={styles.myFbBody}>
-                      {fb.playedSeconds && fb.playedSeconds > 0 && (
-                        <div className={styles.myFbPlaytime}>
-                          <strong className={styles.myFbLabel}>זמן השמעה:</strong>{" "}
-                          {formatSeconds(fb.playedSeconds)}
-                        </div>
-                      )}
-
-                      {/* Ratings row */}
-                      {(fb.cat2 > 0 || fb.cat3 > 0 || fb.overall > 0) && (
-                        <div className={styles.myFbRatingsRow}>
-                          <strong className={styles.myFbRatingLabel}>דירוג:</strong>
-                          <span className={styles.myFbOverallBadge}>
-                            <strong className={styles.myFbLabel}>ציון לשיר:</strong>{" "}{fb.overall}
-                          </span>
-                          <span><strong className={styles.myFbLabel}>הפקה:</strong>{" "}{fb.cat2}</span>
-                          <span><strong className={styles.myFbLabel}>שירה:</strong>{" "}{fb.cat3}</span>
-                        </div>
-                      )}
-
-                      {/* Comment */}
-                      {fb.comment && fb.comment.trim().length > 0 && (
-                        <p className={styles.myFbComment}>
-                          {fb.comment.split(/(\*\*.*?\*\*)/g).map((part, i) =>
-                            part.startsWith('**') && part.endsWith('**')
-                              ? <strong key={i}>{part.slice(2, -2)}</strong>
-                              : part
-                          )}
-                        </p>
-                      )}
-                    </div>
+                {/* Single shared player — only ONE iframe/audio is ever mounted */}
+                {activePlayerUrl && (
+                  <div style={{ display: "none" }}>
+                    <UrlPlayer
+                      key={activePlayerUrl}
+                      ref={sharedPlayerRef}
+                      url={activePlayerUrl}
+                      songId={activePlayerSongId}
+                      isHidden
+                      onReady={() => {
+                        // Consume pending play request (set during song switch)
+                        if (pendingPlayRef.current) {
+                          pendingPlayRef.current = false;
+                          sharedPlayerRef.current?.play();
+                        }
+                      }}
+                      onPlay={() => setIsPlayerPlaying(true)}
+                      onPause={() => setIsPlayerPlaying(false)}
+                      onEnded={() => { setIsPlayerPlaying(false); setActiveFbId(null); }}
+                      onError={() => setIsPlayerPlaying(false)}
+                    />
                   </div>
+                )}
+
+                {givenFeedbacks.map((fb) => (
+                  <FeedbackItem
+                    key={fb.id}
+                    fb={fb}
+                    isActive={activeFbId === fb.id}
+                    isPlaying={isPlayerPlaying}
+                    onPlay={handleFbPlay}
+                  />
                 ))}
               </div>
             ) : (
