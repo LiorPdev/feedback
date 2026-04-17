@@ -292,28 +292,27 @@ export default function DashboardClient({
           <div className={styles.myFeedbacksSection}>
             {givenFeedbacks.length > 0 ? (
               <div className={styles.myFeedbacksList}>
-                {/* Single shared player — only ONE iframe/audio is ever mounted */}
+                {/* Single shared player — only ONE iframe/audio is ever mounted. 
+                    We render it as long as there is an active URL to keep it ready. */}
                 {activePlayerUrl && (
-                  <div style={{ display: "none" }}>
-                    <UrlPlayer
-                      key={activePlayerUrl}
-                      ref={sharedPlayerRef}
-                      url={activePlayerUrl}
-                      songId={activePlayerSongId}
-                      isHidden
-                      onReady={() => {
-                        // Consume pending play request (set during song switch)
-                        if (pendingPlayRef.current) {
-                          pendingPlayRef.current = false;
-                          sharedPlayerRef.current?.play();
-                        }
-                      }}
-                      onPlay={() => setIsPlayerPlaying(true)}
-                      onPause={() => setIsPlayerPlaying(false)}
-                      onEnded={() => { setIsPlayerPlaying(false); setActiveFbId(null); }}
-                      onError={() => setIsPlayerPlaying(false)}
-                    />
-                  </div>
+                  <UrlPlayer
+                    key={activePlayerUrl}
+                    ref={sharedPlayerRef}
+                    url={activePlayerUrl}
+                    songId={activePlayerSongId}
+                    isHidden
+                    onReady={() => {
+                      // Consume pending play request (set during song switch)
+                      if (pendingPlayRef.current) {
+                        pendingPlayRef.current = false;
+                        sharedPlayerRef.current?.play();
+                      }
+                    }}
+                    onPlay={() => setIsPlayerPlaying(true)}
+                    onPause={() => setIsPlayerPlaying(false)}
+                    onEnded={() => { setIsPlayerPlaying(false); setActiveFbId(null); }}
+                    onError={() => { setIsPlayerPlaying(false); pendingPlayRef.current = false; }}
+                  />
                 )}
 
                 {givenFeedbacks.map((fb) => (

@@ -220,6 +220,8 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
   useEffect(() => {
     if (!mounted || !embedUrl) return;
 
+    isUnmountingRef.current = false;
+
     if (isAudio && audioRef.current) {
       // Audio tags are immediately ready to receive play() commands
       guard(onReadyRef.current)();
