@@ -55,8 +55,8 @@ export default function RaterScoreInfo({
         content={
           <div className={styles.tooltipContent}>
             <ul className={styles.formulaLegend}>
-              <li>לפי אחוז הפידבקים שלך שקיבלו</li>
-              <li>לייק <Heart size={14} fill="#ef4444" stroke="#ef4444" style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> על ידי האמנים.</li>
+              <li>לפי כמות הפידבקים ששלחת</li>
+              <li>ואחוז הפידבקים שקיבלו לייק <Heart size={14} fill="#ef4444" stroke="#ef4444" style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />.</li>
             </ul>
             <p className={styles.tooltipFooter}>
               הציון המקסימלי הוא 5.

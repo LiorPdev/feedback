@@ -288,7 +288,8 @@
 }
 
 @media (max-width: 430px) {
-  .tabLabel svg {
+  .tabLabel svg,
+  .tabLabel img {
     display: none;
   }
 }

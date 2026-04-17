@@ -47,12 +47,10 @@ function formatSeconds(seconds: number | null | undefined) {
   if (!seconds || isNaN(seconds) || seconds <= 0) return null;
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
-  const label = <strong className={styles.fbLabel}>זמן השמעה:</strong>;
+  const label = <strong className={styles.fbLabel}>זמן האזנה:</strong>;
   if (m === 0) return <>{label} {s} שנ&apos;</>;
   return <>{label} {m}:{s.toString().padStart(2, "0")}</>;
 }
-
-
 
 export default function FeedbackTabs({
   feedbacks,

@@ -2,7 +2,8 @@
 
 import { useState, useCallback, useMemo, memo } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { BarChart3, MessageSquare, Music } from "lucide-react";
+import { BarChart3, Music } from "lucide-react";
+import Image from "next/image";
 import SongCard from "@/components/SongCard";
 import SongRatingsChart from "./SongRatingsChart";
 import HeartWithTooltip from "@/components/HeartWithTooltip";
@@ -79,7 +80,7 @@ const FeedbackItem = memo(function FeedbackItem({ fb }: FeedbackItemProps) {
       <div className={styles.myFbBody}>
         {fb.playedSeconds && fb.playedSeconds > 0 && (
           <div className={styles.myFbPlaytime}>
-            <strong className={styles.myFbLabel}>זמן השמעה:</strong>{" "}
+            <strong className={styles.myFbLabel}>זמן האזנה:</strong>{" "}
             {formatSeconds(fb.playedSeconds)}
           </div>
         )}
@@ -179,7 +180,7 @@ export default function DashboardClient({
               onClick={() => handleTabChange("myFeedbacks")}
             >
               <div className={styles.tabLabel}>
-                <MessageSquare size={18} />
+                <Image src="/Logo.png" alt="פידבק" width={18} height={18} />
                 <span>הפידבק שנתתי</span>
               </div>
             </button>
@@ -260,7 +261,7 @@ export default function DashboardClient({
               </div>
             ) : (
               <div className={styles.insightsContainer}>
-                <MessageSquare size={48} style={{ marginBottom: '1.5rem', opacity: 0.3 }} />
+                <Image src="/Logo.png" alt="פידבק" width={48} height={48} style={{ marginBottom: '1.5rem', opacity: 0.3 }} />
                 <h3>עדיין לא נתת פידבקים</h3>
                 <p>לאחר שתיתן פידבקים לשירים של יוצרים אחרים, הם יופיעו כאן.</p>
               </div>
