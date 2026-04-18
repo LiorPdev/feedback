@@ -19,6 +19,7 @@ import RegistrationGate, { GateType } from "./RegistrationGate";
 import { useAuth } from "@clerk/nextjs";
 import Button from "./ui/Button";
 import { useUtmMode } from "@/hooks/useUtmMode";
+import { SONG_SUBMISSION_COST } from "@/lib/constants";
 
 interface NavbarProps {
   isLoggedIn: boolean;
@@ -213,7 +214,7 @@ export default function Navbar({ isLoggedIn, initialTokens, initialName = "", in
                     onClose={() => setShowTokensInfo(false)}
                     title="איך עובד מנגנון הקרדיטים?"
                     content={
-                      <p>העלאת שיר וצפיה בפידבק מורידה מתווי הקרדיט. כדי לצבור תווי קרדיט חדשים, פשוט תנו פידבק לשירים של יוצרים אחרים בקהילה.</p>
+                      <p>העלאת שיר וצפיה בפידבק מורידה {SONG_SUBMISSION_COST} תווי קרדיט. כדי לצבור תווי קרדיט חדשים, פשוט תנו פידבק לשירים של יוצרים אחרים בקהילה.</p>
                     }
                     arrowPosition="left"
                     align="left"

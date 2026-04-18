@@ -39,7 +39,7 @@ export default function RegistrationGate({
         <strong className={styles.fullText}>אנחנו יודעים, להירשם זה מבאס...</strong>
         <strong className={styles.shortText}>יודעים, להירשם זה מבאס...</strong>
         {"\n\n"}
-        אבל בלי זה, אין לנו דרך לשייך את השיר אליך או לשלוח לך את התגובות שהקהילה תכתוב. מתחברים בקלות וממשיכים.{"\n"}
+        אבל בלי זה, אין לנו דרך לשייך את השיר אליך או לשלוח לך את התגובות שהקהילה תכתוב.{"\n"}
       </>
     ),
     "complete-registration": (

@@ -13,11 +13,11 @@ export const GENRES = [
   "אחר"
 ];
 
-export const MAX_SONG_TITLE_LENGTH = 27;
+export const MAX_SONG_TITLE_LENGTH = 25;
 export const MIN_SONG_DURATION_SECONDS = 50;
 
 // Tokens i get
-export const INITIAL_TOKENS = 100;
+export const INITIAL_TOKENS = 150;
 export const FREE_FEEDBACKS_FOR_ARTIST = 2;
 export const LIKE_FEEDBACK_REWARD = 20;
 export const REWARD_PRODUCTION = 1;
@@ -25,9 +25,9 @@ export const REWARD_VOCALS = 1;
 export const REWARD_OVERALL = 1;
 export const REWARD_COMMENT = 10;
 
-// Tokens i spend
-export const SONG_SUBMISSION_COST = 40;
-export const UNLOCK_FEEDBACK_COST = 40;
+// Tokens i spend (Try and keep the same amount)
+export const SONG_SUBMISSION_COST = 50;
+export const UNLOCK_FEEDBACK_COST = 50;
 
 export const MIN_COMMENT_LENGTH = 40;
 export const COMMENT_LENGTH_BONUS = 60;

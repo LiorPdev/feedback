@@ -26,6 +26,7 @@ export const songs = sqliteTable('Song', {
     userId: text('userId').notNull().references(() => users.id, { onDelete: 'cascade' }),
     url: text('url').notNull(),
     title: text('title').notNull(),
+    fewWords: text('fewWords'),
     genre: text('genre').notNull(),
     artist: text('artist'),
     isActive: integer('isActive', { mode: 'boolean' }).default(true).notNull(),

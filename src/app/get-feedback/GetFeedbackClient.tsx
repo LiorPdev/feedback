@@ -128,10 +128,10 @@ export default function GetFeedback({
           setLastFetchedLink(songLink);
         }
       } catch (error) {
-        await logAction({ 
-          message: "Metadata fetch error", 
-          data: error instanceof Error ? { message: error.message, name: error.name } : error, 
-          source: "get-feedback/page.tsx:fetchMetadata" 
+        await logAction({
+          message: "Metadata fetch error",
+          data: error instanceof Error ? { message: error.message, name: error.name } : error,
+          source: "get-feedback/page.tsx:fetchMetadata"
         });
       } finally {
         setIsFetchingMetadata(false);
@@ -268,10 +268,10 @@ export default function GetFeedback({
         const publicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
         finalUrl = `${publicUrl}/${fileKey}`;
       } catch (err) {
-        await logAction({ 
-          message: "Upload error", 
-          data: err instanceof Error ? { message: err.message, name: err.name } : err, 
-          source: "get-feedback/page.tsx:handleSubmit" 
+        await logAction({
+          message: "Upload error",
+          data: err instanceof Error ? { message: err.message, name: err.name } : err,
+          source: "get-feedback/page.tsx:handleSubmit"
         });
         setErrorMessage("חלה שגיאה בהעלאת הקובץ. נסו שוב.");
         setStatus("idle");
@@ -303,10 +303,10 @@ export default function GetFeedback({
         setStatus("idle");
       }
     } catch (error) {
-      await logAction({ 
-        message: "Unexpected submission error", 
-        data: error instanceof Error ? { message: error.message, name: error.name } : error, 
-        source: "get-feedback/page.tsx:handleSubmit" 
+      await logAction({
+        message: "Unexpected submission error",
+        data: error instanceof Error ? { message: error.message, name: error.name } : error,
+        source: "get-feedback/page.tsx:handleSubmit"
       });
       setErrorMessage("חלה שגיאה לא צפויה");
       setStatus("idle");
@@ -464,9 +464,9 @@ export default function GetFeedback({
                       exit={{ opacity: 0, height: 0 }}
                     >
                       <p className={styles.infoMsg}>
-                        {isShorts ? SONG_VALIDATION_MESSAGES.NO_SHORTS : 
-                         isPlaylist ? SONG_VALIDATION_MESSAGES.NO_PLAYLIST : 
-                         SONG_VALIDATION_MESSAGES.ONLY_YOUTUBE}
+                        {isShorts ? SONG_VALIDATION_MESSAGES.NO_SHORTS :
+                          isPlaylist ? SONG_VALIDATION_MESSAGES.NO_PLAYLIST :
+                            SONG_VALIDATION_MESSAGES.ONLY_YOUTUBE}
                       </p>
 
                       {songLink.includes("spotify.com") && youtubeAlternative && !isShorts && !isPlaylist && (
@@ -577,9 +577,6 @@ export default function GetFeedback({
               required
               maxLength={MAX_SONG_TITLE_LENGTH}
             />
-            <p className={styles.tipText}>
-              טיפ: את פרטי האמן כדאי לשים ב&apos;כרטיס הביקור המוזיקלי&apos; ולא בשם השיר.
-            </p>
           </div>
 
           <div className={`${styles.formGroup} ${styles.genreGroup}`}>
@@ -662,7 +659,7 @@ export default function GetFeedback({
               onTouchStart={() => window.dispatchEvent(new CustomEvent("star-hover-start"))}
               onTouchEnd={() => window.dispatchEvent(new CustomEvent("star-hover-end"))}
             >
-              שליחה {isLoggedIn && <span className={styles.tokenLabel}>(<Coins size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /> {SONG_SUBMISSION_COST})</span>}
+              שליחה
             </Button>
           </div>
 
