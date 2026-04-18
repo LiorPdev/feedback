@@ -6,23 +6,24 @@ import { Pencil } from "lucide-react";
 import { updateSong, getURLMetadata } from "@/app/actions/songs";
 import { logAction } from "@/app/actions/logs";
 import { isYouTubeUrl, isShortsUrl, isPlaylistUrl, isR2Url, SONG_VALIDATION_MESSAGES } from "@/lib/song-validation";
-import styles from "./EditSongButton.module.css";
+import styles from "./EditSong.module.css";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "./ui/Button";
 import PageHeader from "./PageHeader";
 
-interface EditSongButtonProps {
+interface EditSongProps {
   song: {
     id: string;
     title: string;
     url: string;
     genre: string;
+    fewWords?: string | null;
   };
 }
 
 import { GENRES, MAX_SONG_TITLE_LENGTH } from "@/lib/constants";
 
-export default function EditSongButton({ song }: EditSongButtonProps) {
+export default function EditSong({ song }: EditSongProps) {
   const [showModal, setShowModal] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -30,6 +31,7 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
   const [title, setTitle] = useState(song.title);
   const [url, setUrl] = useState(song.url);
   const [genre, setGenre] = useState(song.genre);
+  const [fewWords, setFewWords] = useState(song.fewWords || "");
 
   useEffect(() => {
     setMounted(true);
@@ -42,6 +44,7 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
       setTitle(song.title);
       setUrl(song.url);
       setGenre(song.genre);
+      setFewWords(song.fewWords || "");
     }
   }, [showModal, song]);
 
@@ -63,7 +66,7 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
           }
         }
       } catch (error) {
-        await logAction({ message: "Metadata fetch error (Edit)", data: error, source: "EditSongButton.tsx:useEffect" });
+        await logAction({ message: "Metadata fetch error (Edit)", data: error, source: "EditSong.tsx:useEffect" });
       }
     };
 
@@ -89,7 +92,7 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
         }
       }
 
-      const result = await updateSong(song.id, { title, url: finalUrl, genre });
+      const result = await updateSong(song.id, { title, url: finalUrl, genre, fewWords });
       if (result.success) {
         setShowModal(false);
       } else {
@@ -123,21 +126,6 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
 
             <form onSubmit={handleSave} className={styles.form}>
               <div className={styles.field}>
-                <label>שם השיר</label>
-                <input
-                  type="text"
-                  className={styles.input}
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value.substring(0, MAX_SONG_TITLE_LENGTH))}
-                  onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity("אנא הזינו את שם השיר")}
-                  onInput={(e) => (e.target as HTMLInputElement).setCustomValidity("")}
-                  required
-                  placeholder="לדוגמה: השיר החדש שלי"
-                  maxLength={MAX_SONG_TITLE_LENGTH}
-                />
-              </div>
-
-              <div className={styles.field}>
                 <label>קישור לשיר</label>
                 <input
                   type="url"
@@ -167,6 +155,21 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
               </div>
 
               <div className={styles.field}>
+                <label>שם השיר</label>
+                <input
+                  type="text"
+                  className={styles.input}
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value.substring(0, MAX_SONG_TITLE_LENGTH))}
+                  onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity("אנא הזינו את שם השיר")}
+                  onInput={(e) => (e.target as HTMLInputElement).setCustomValidity("")}
+                  required
+                  placeholder="לדוגמה: השיר החדש שלי"
+                  maxLength={MAX_SONG_TITLE_LENGTH}
+                />
+              </div>
+
+              <div className={styles.field}>
                 <label>סגנון מוזיקלי</label>
                 <select
                   className={styles.select}
@@ -180,6 +183,18 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
                     <option key={g} value={g}>{g}</option>
                   ))}
                 </select>
+              </div>
+
+              <div className={styles.field}>
+                <label className={styles.label}>מה לשים לב בשיר? (אופציונלי)</label>
+                <textarea
+                  className={styles.textarea}
+                  placeholder="למשל: אשמח להתייחסות לסאונד של השירה, או האם הפזמון מספיק קליט.."
+                  value={fewWords}
+                  onChange={(e) => setFewWords(e.target.value.substring(0, 70))}
+                  rows={2}
+                  maxLength={70}
+                />
               </div>
 
               <div className={styles.actions}>
@@ -201,7 +216,7 @@ export default function EditSongButton({ song }: EditSongButtonProps) {
                   disabled={isInvalid}
                   fullWidth
                 >
-                  שמור שינויים
+                  אישור
                 </Button>
               </div>
             </form>

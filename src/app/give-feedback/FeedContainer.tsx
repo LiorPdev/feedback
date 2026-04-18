@@ -13,6 +13,7 @@ import PopupMsg from "@/components/PopupMsg";
 import { MIN_LISTEN_TIME } from "@/lib/constants";
 import { logAction } from "@/app/actions/logs";
 import RegistrationGate from "@/components/RegistrationGate";
+import Typewriter from "@/components/Typewriter";
 import { useUtmMode } from "@/hooks/useUtmMode";
 import { isYouTubeUrl, isAudioUrl } from "@/lib/song-validation";
 import styles from "./feed.module.css";
@@ -23,6 +24,7 @@ interface Song {
   genre: string;
   url: string;
   slug: string;
+  fewWords?: string | null;
   user?: {
     name: string | null;
     socialLinks?: string | null;
@@ -337,6 +339,8 @@ export default function FeedContainer({
             </div>
           </div>
         </div>
+
+        <Typewriter key={currentSong.id} text={currentSong.fewWords || ""} isPlaying={isPlaying} />
 
         {/* Player Section */}
         <div className={styles.playerSection}>

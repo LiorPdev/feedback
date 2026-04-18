@@ -4,16 +4,16 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Trash2, OctagonPause } from "lucide-react";
 import { deleteSong } from "@/app/actions/songs";
-import styles from "./DeleteSongButton.module.css";
+import styles from "./DeleteSong.module.css";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "./ui/Button";
 
-interface DeleteSongButtonProps {
+interface DeleteSongProps {
   songId: string;
   songTitle: string;
 }
 
-export default function DeleteSongButton({ songId, songTitle }: DeleteSongButtonProps) {
+export default function DeleteSong({ songId, songTitle }: DeleteSongProps) {
   const [showConfirm, setShowConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [mounted, setMounted] = useState(false);

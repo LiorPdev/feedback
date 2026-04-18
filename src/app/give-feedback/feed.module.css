@@ -477,12 +477,20 @@
     margin-right: 0;
   }
 
+  .songCard {
+    padding: 0.8rem 0.5rem;
+  }
+
 }
 
 @media (max-width: 470px) {
 
   .title {
     font-size: 1.3rem;
+  }
+
+  .songCard {
+    padding: 0.5rem 0.5rem;
   }
 
 }

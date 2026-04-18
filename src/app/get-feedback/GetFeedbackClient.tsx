@@ -35,6 +35,7 @@ export default function GetFeedback({
   const [songLink, setSongLink] = useState("");
   const [songTitle, setSongTitle] = useState("");
   const [selectedGenre, setSelectedGenre] = useState("");
+  const [fewWords, setFewWords] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success">("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [showTokenLink, setShowTokenLink] = useState(false);
@@ -58,7 +59,7 @@ export default function GetFeedback({
 
   useEffect(() => {
     if (songTitle) {
-      const el = document.querySelector(`input[placeholder*="לדוגמא: איך שיר נולד"]`) as HTMLInputElement;
+      const el = document.querySelector(`input[placeholder="איך שיר נולד..."]`) as HTMLInputElement;
       if (el) el.setCustomValidity("");
     }
   }, [songTitle]);
@@ -72,7 +73,7 @@ export default function GetFeedback({
 
   useEffect(() => {
     if (songLink) {
-      const el = document.querySelector(`input[placeholder*="הדביקו קישור ליוטיוב"]`) as HTMLInputElement;
+      const el = document.querySelector(`input[placeholder="קישור מיוטיוב או הקלידו טקסט לחיפוש"]`) as HTMLInputElement;
       if (el) el.setCustomValidity("");
       setIsShorts(isShortsUrl(songLink));
       setIsPlaylist(isPlaylistUrl(songLink));
@@ -283,6 +284,9 @@ export default function GetFeedback({
     formData.append("url", finalUrl);
     formData.append("title", songTitle);
     formData.append("genre", selectedGenre);
+    if (!isGuestEligible && fewWords) {
+      formData.append("fewWords", fewWords);
+    }
     if (submissionType === "upload") {
       formData.append("duration", songDuration.toString());
     }
@@ -599,6 +603,23 @@ export default function GetFeedback({
               </select>
             </div>
           </div>
+
+          {!isGuestEligible && (
+            <>
+              <div style={{ height: "20px" }}></div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>מה לשים לב בשיר? (אופציונלי)</label>
+                <textarea
+                  className={styles.textarea}
+                  placeholder="למשל: אשמח להתייחסות לסאונד של השירה, או האם הפזמון מספיק קליט.."
+                  value={fewWords}
+                  onChange={(e) => setFewWords(e.target.value.substring(0, 70))}
+                  rows={2}
+                  maxLength={70}
+                />
+              </div>
+            </>
+          )}
 
           {/* Guest Email Field - Moved here and styled normally */}
           {!isLoggedIn && isGuestEligible && (

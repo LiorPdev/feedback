@@ -68,7 +68,7 @@
 
 .fbLabel {
   font-weight: 800;
-  margin-left: 0.2rem;
+  margin-left: 0.20rem;
 }
 
 .fbRatingsRow span:not(.fbRatingLabel) {
@@ -316,5 +316,11 @@
   .fbRatingsRow {
     display: flex;
     gap: 0.4rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .fbRatingLabel {
+    display: none;
   }
 }

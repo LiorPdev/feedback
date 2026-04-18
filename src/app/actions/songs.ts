@@ -27,6 +27,7 @@ export async function createSong(formData: FormData) {
 
     const title = cleanSongTitle(formData.get('title') as string);
     const genre = sanitizeInput(formData.get('genre') as string);
+    const fewWords = sanitizeInput(formData.get('fewWords') as string || "");
     const guestEmail = formData.get('guestEmail') as string | null;
 
     const isR2 = isR2Url(url);
@@ -118,6 +119,7 @@ export async function createSong(formData: FormData) {
             url,
             title,
             genre,
+            fewWords,
             slug,
         }).returning();
 
@@ -496,7 +498,7 @@ export async function getFeedSongs(firstSongSlug?: string) {
     }
 }
 
-export async function updateSong(songId: string, data: { title: string, url: string, genre: string }) {
+export async function updateSong(songId: string, data: { title: string, url: string, genre: string, fewWords?: string }) {
     try {
         const dbUser = await syncUser();
         if (!dbUser) return { success: false, error: "לא מחובר" };
@@ -519,7 +521,9 @@ export async function updateSong(songId: string, data: { title: string, url: str
             .set({
                 title: cleanSongTitle(data.title),
                 url: data.url,
-                genre: sanitizeInput(data.genre)
+                genre: sanitizeInput(data.genre),
+                fewWords: data.fewWords ? sanitizeInput(data.fewWords).substring(0, 70) : null,
+                updatedAt: new Date().toISOString()
             })
             .where(eq(songs.id, songId));
 

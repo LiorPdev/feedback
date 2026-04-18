@@ -1,9 +1,8 @@
 "use client";
 
-import React from "react";
 import Link from "next/link";
-import DeleteSongButton from "@/components/DeleteSongButton";
-import EditSongButton from "@/components/EditSongButton";
+import DeleteSong from "@/components/DeleteSong";
+import EditSong from "@/components/EditSong";
 import ShareSongButton from "@/components/ShareSongButton";
 import ToggleSongStatusButton from "@/components/ToggleSongStatusButton";
 import styles from "./SongCard.module.css";
@@ -20,6 +19,7 @@ interface SongCardProps {
     updatedAt: string | number | Date;
     feedbacks?: { isUnlocked: boolean }[];
     isActive: boolean;
+    fewWords?: string | null;
   };
   isNew?: boolean;
 }
@@ -43,9 +43,9 @@ export default function SongCard({ song }: SongCardProps) {
           </Link>
           <div className={styles.adminActions}>
             <ShareSongButton slug={song.slug} disabled={!song.isActive} />
-            <EditSongButton song={song} />
+            <EditSong song={song} />
             <ToggleSongStatusButton songId={song.id} isActive={song.isActive} />
-            <DeleteSongButton songId={song.id} songTitle={song.title} />
+            <DeleteSong songId={song.id} songTitle={song.title} />
           </div>
         </div>
       </div>

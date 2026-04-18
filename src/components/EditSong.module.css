@@ -59,6 +59,21 @@
   direction: ltr;
 }
 
+.textarea {
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  font-size: 1rem;
+  color: var(--text-main);
+  background-color: var(--card-bg);
+  transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+  resize: none;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
 .select {
   padding: 0.8rem 1rem;
   padding-left: 2.5rem;
@@ -78,6 +93,7 @@
 }
 
 .input:focus,
+.textarea:focus,
 .select:focus {
   outline: none;
   border-color: var(--brand-primary);
