@@ -32,8 +32,6 @@ export default function RegistrationGate({
     "give-feedback": (
       <>
         <strong>הפידבק שלך ממש חשוב לנו</strong>{"\n\n"}
-        אבל כדי שלא נציג לך שוב ושוב שירים שכבר דירגת, בואו נתחבר בקליק.{"\n\n"}
-        הדירוגים שלך אנונימיים לחלוטין.
       </>
     ),
     "get-feedback": (

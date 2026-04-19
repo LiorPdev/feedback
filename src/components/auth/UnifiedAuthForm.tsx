@@ -184,7 +184,7 @@ export default function UnifiedAuthForm({ onSuccess, onStepChange, redirectUrl }
                   className={styles.googleIcon}
                 />
               </div>
-              <span className={styles.googleButtonTextFull}>מתחברים בקליק עם Google</span>
+              <span className={styles.googleButtonTextFull}>ממשיכים בקליק עם Google</span>
               <span className={styles.googleButtonTextShort}>מתחברים עם Google</span>
             </Button>
 
@@ -198,7 +198,7 @@ export default function UnifiedAuthForm({ onSuccess, onStepChange, redirectUrl }
             </div>
 
             <form onSubmit={handleIdentify} className={styles.form}>
-              <label htmlFor="email" className={styles.label}>מתחברים עם דוא״ל</label>
+              <label htmlFor="email" className={styles.label}>ממשיכים עם דוא״ל</label>
               <div className={styles.inlineForm}>
                 <div className={styles.inputGroup}>
                   <input
