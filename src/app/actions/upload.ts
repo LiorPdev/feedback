@@ -85,10 +85,11 @@ async function signR2Url({
 
 
 export async function getPresignedUploadUrl(fileName: string, contentType: string) {
-    const dbUser = await syncUser();
-    if (!dbUser) {
-        throw new Error("Unauthorized: Sync required for upload");
-    }
+    // In Guest/UTM flow, a user might not have a db record yet.
+    // They obtain the presigned URL, upload, and THEN createSong() creates their shadow account.
+    // Security: The presigned URL is limited to a single unique file key and method.
+    // Identity verification happens in createSong stage.
+    await syncUser();
 
     // Sanitize fileName: replace spaces with underscores, strip chars that can break AWS signing
     const sanitizedName = fileName
