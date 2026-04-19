@@ -63,8 +63,6 @@ const FeedbackItem = memo(function FeedbackItem({ fb, isActive, onActivate }: Fe
     [fb.createdAt]
   );
 
-  const playerRef = useRef<UrlPlayerHandle>(null);
-
   const togglePlay = useCallback(() => {
     if (!isActive) {
       onActivate(fb.id);
@@ -72,12 +70,6 @@ const FeedbackItem = memo(function FeedbackItem({ fb, isActive, onActivate }: Fe
       onActivate(null);
     }
   }, [isActive, fb.id, onActivate]);
-
-  const onPlayerReady = useCallback(() => {
-    if (isActive) {
-      playerRef.current?.play();
-    }
-  }, [isActive]);
 
   const commentParts = useMemo(() => {
     if (!fb.comment || !fb.comment.trim()) return null;
@@ -132,16 +124,6 @@ const FeedbackItem = memo(function FeedbackItem({ fb, isActive, onActivate }: Fe
           </p>
         )}
       </div>
-      
-      {isActive && (
-        <UrlPlayer 
-          ref={playerRef}
-          url={fb.songUrl} 
-          isHidden={true}
-          onReady={onPlayerReady}
-          onEnded={() => onActivate(null)}
-        />
-      )}
     </div>
   );
 });
@@ -157,6 +139,18 @@ export default function DashboardClient({
   const pathname = usePathname();
 
   const [activeFeedbackId, setActiveFeedbackId] = useState<string | null>(null);
+
+  const activeFeedback = useMemo(() => {
+    return givenFeedbacks.find(fb => fb.id === activeFeedbackId);
+  }, [activeFeedbackId, givenFeedbacks]);
+
+  const globalPlayerRef = useRef<UrlPlayerHandle>(null);
+
+  const onGlobalPlayerReady = useCallback(() => {
+    if (activeFeedbackId) {
+      globalPlayerRef.current?.play();
+    }
+  }, [activeFeedbackId]);
 
   const onlyFeedbacksGiven = useMemo(
     () => songs.length === 0 && givenFeedbacks.length > 0,
@@ -309,6 +303,16 @@ export default function DashboardClient({
           </div>
         )}
       </div>
+
+      {activeFeedback && (
+        <UrlPlayer 
+          ref={globalPlayerRef}
+          url={activeFeedback.songUrl} 
+          isHidden={true}
+          onReady={onGlobalPlayerReady}
+          onEnded={() => setActiveFeedbackId(null)}
+        />
+      )}
     </div>
   );
 }
