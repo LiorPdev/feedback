@@ -18,6 +18,13 @@ import { useUtmMode } from "@/hooks/useUtmMode";
 import { isYouTubeUrl, isAudioUrl } from "@/lib/song-validation";
 import styles from "./feed.module.css";
 
+function formatTime(timeInSeconds: number) {
+  if (!timeInSeconds) return "00:00";
+  const m = Math.floor(timeInSeconds / 60);
+  const s = Math.floor(timeInSeconds % 60);
+  return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+}
+
 interface Song {
   id: string;
   title: string;
@@ -408,11 +415,15 @@ export default function FeedContainer({
             )}
           </div>
 
-          <div className={`${styles.progressContainer} ${duration > 0 ? styles.visible : ""}`}>
-            <div
-              className={styles.progressBar}
-              style={{ width: `${duration > 0 ? Math.min((currentTime / duration) * 100, 100) : 0}%` }}
-            />
+          <div className={`${styles.progressRow} ${duration > 0 ? styles.visible : ""}`}>
+            <span className={styles.timeLabel}>{formatTime(currentTime)}</span>
+            <div className={styles.progressContainer}>
+              <div
+                className={styles.progressBar}
+                style={{ width: `${duration > 0 ? Math.min((currentTime / duration) * 100, 100) : 0}%` }}
+              />
+            </div>
+            <span className={styles.timeLabel}>{formatTime(duration)}</span>
           </div>
         </div>
 

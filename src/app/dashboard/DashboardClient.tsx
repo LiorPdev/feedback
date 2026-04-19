@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useCallback, useMemo, memo } from "react";
+import { useState, useCallback, useMemo, memo, useRef } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { BarChart3, Music } from "lucide-react";
+import { BarChart3, Music, Play, SquareStop } from "lucide-react";
 import Image from "next/image";
 import SongCard from "@/components/SongCard";
 import SongRatingsChart from "./SongRatingsChart";
 import HeartWithTooltip from "@/components/HeartWithTooltip";
 import Button from "@/components/ui/Button";
+import UrlPlayer, { UrlPlayerHandle } from "@/components/UrlPlayer";
 import styles from "./DashboardClient.module.css";
 import type { GivenFeedbackItem } from "@/app/actions/feedback";
 import { LIKE_FEEDBACK_REWARD } from "@/lib/constants";
@@ -52,13 +53,31 @@ function formatSeconds(seconds: number | null | undefined) {
 // ── Memoized feedback row — only re-renders when its own isActive/isPlaying state changes ──
 interface FeedbackItemProps {
   fb: GivenFeedbackItem;
+  isActive: boolean;
+  onActivate: (id: string | null) => void;
 }
 
-const FeedbackItem = memo(function FeedbackItem({ fb }: FeedbackItemProps) {
+const FeedbackItem = memo(function FeedbackItem({ fb, isActive, onActivate }: FeedbackItemProps) {
   const dateStr = useMemo(
     () => new Date(fb.createdAt).toLocaleDateString("he-IL"),
     [fb.createdAt]
   );
+
+  const playerRef = useRef<UrlPlayerHandle>(null);
+
+  const togglePlay = useCallback(() => {
+    if (!isActive) {
+      onActivate(fb.id);
+    } else {
+      onActivate(null);
+    }
+  }, [isActive, fb.id, onActivate]);
+
+  const onPlayerReady = useCallback(() => {
+    if (isActive) {
+      playerRef.current?.play();
+    }
+  }, [isActive]);
 
   const commentParts = useMemo(() => {
     if (!fb.comment || !fb.comment.trim()) return null;
@@ -69,6 +88,13 @@ const FeedbackItem = memo(function FeedbackItem({ fb }: FeedbackItemProps) {
     <div className={styles.myFeedbackItem}>
       <div className={styles.myFbHeader}>
         <div className={styles.myFbTitleRow}>
+          <button 
+            className={styles.playIconBtn} 
+            onClick={togglePlay}
+            title={isActive ? "עצור" : "נגן"}
+          >
+            {isActive ? <SquareStop size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" />}
+          </button>
           <span className={styles.myFbSongTitle}>{fb.songTitle}</span>
           {fb.isLiked && (
             <HeartWithTooltip rewardAmount={LIKE_FEEDBACK_REWARD} />
@@ -106,6 +132,16 @@ const FeedbackItem = memo(function FeedbackItem({ fb }: FeedbackItemProps) {
           </p>
         )}
       </div>
+      
+      {isActive && (
+        <UrlPlayer 
+          ref={playerRef}
+          url={fb.songUrl} 
+          isHidden={true}
+          onReady={onPlayerReady}
+          onEnded={() => onActivate(null)}
+        />
+      )}
     </div>
   );
 });
@@ -119,6 +155,8 @@ export default function DashboardClient({
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
+
+  const [activeFeedbackId, setActiveFeedbackId] = useState<string | null>(null);
 
   const onlyFeedbacksGiven = useMemo(
     () => songs.length === 0 && givenFeedbacks.length > 0,
@@ -256,6 +294,8 @@ export default function DashboardClient({
                   <FeedbackItem
                     key={fb.id}
                     fb={fb}
+                    isActive={activeFeedbackId === fb.id}
+                    onActivate={setActiveFeedbackId}
                   />
                 ))}
               </div>

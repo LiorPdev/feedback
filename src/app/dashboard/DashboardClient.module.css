@@ -189,6 +189,24 @@
   min-width: 0;
 }
 
+.playIconBtn {
+  background: none;
+  border: none;
+  color: var(--brand-primary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.playIconBtn:hover {
+  background: rgba(0, 0, 0, 0.05);
+  transform: scale(1.1);
+}
+
 .myFbSongTitle {
   font-weight: 700;
   font-size: 0.9rem;
@@ -264,6 +282,10 @@
   white-space: pre-wrap;
   border-top: 1px solid rgba(0, 0, 0, 0.06);
   padding-top: 0.6rem;
+}
+
+.playerWrapper {
+  padding: 0 1.25rem 0.9rem;
 }
 
 @media (max-width: 768px) {
