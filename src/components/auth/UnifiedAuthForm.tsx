@@ -150,10 +150,14 @@ export default function UnifiedAuthForm({ onSuccess, onStepChange, redirectUrl }
   const handleGoogleLogin = async () => {
     if (!signInLoaded || !signIn) return;
     try {
+      const targetUrl = redirectUrl || "/";
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("sso_callback_url", targetUrl);
+      }
       await signIn.authenticateWithRedirect({
         strategy: "oauth_google",
         redirectUrl: "/sso-callback",
-        redirectUrlComplete: redirectUrl || "/",
+        redirectUrlComplete: targetUrl,
       });
     } catch (err) {
       console.error("Google Auth Error:", err);
