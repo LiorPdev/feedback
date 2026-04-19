@@ -10,6 +10,7 @@ interface RegistrationGateProps {
   isOpen: boolean;
   type: GateType;
   onClose: () => void;
+  onSuccess?: () => void;
   onDismiss?: () => void;
   isModal?: boolean;
   userEmail?: string;
@@ -20,6 +21,7 @@ export default function RegistrationGate({
   isOpen,
   type,
   onClose,
+  onSuccess,
   isModal = true,
   userEmail,
   redirectUrl
@@ -59,6 +61,7 @@ export default function RegistrationGate({
       isModal={isModal}
       message={message}
       onClose={onClose}
+      onSuccess={onSuccess}
       redirectUrl={redirectUrl}
     />
   );

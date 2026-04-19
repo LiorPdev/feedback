@@ -519,6 +519,10 @@ export default function FeedContainer({
           // Return to home if organic user dismisses without logging in
           window.location.href = "/";
         }}
+        onSuccess={() => {
+          window.location.reload();
+        }}
+        redirectUrl={typeof window !== 'undefined' ? window.location.pathname + window.location.search : undefined}
       />
     </div>
   );

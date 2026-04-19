@@ -12,6 +12,7 @@ interface AuthOverlayProps {
   message: ReactNode;
   redirectUrl?: string;
   onClose?: () => void;
+  onSuccess?: () => void;
   onDismiss?: () => void;
   dismissLabel?: string;
   isModal?: boolean;
@@ -21,6 +22,7 @@ export default function AuthOverlay({
   message,
   redirectUrl,
   onClose,
+  onSuccess,
   onDismiss,
   dismissLabel,
   isModal = false
@@ -56,7 +58,7 @@ export default function AuthOverlay({
         {isLoaded && !userId && (
           <div className="mt-4">
             <UnifiedAuthForm 
-              onSuccess={onClose} 
+              onSuccess={onSuccess || onClose || (() => window.location.reload())} 
               redirectUrl={redirectUrl} 
               onStepChange={(step) => setIsVerifyStep(step === "VERIFY")}
             />
