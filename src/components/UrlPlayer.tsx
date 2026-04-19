@@ -65,7 +65,6 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
   const [origin, setOrigin] = useState("");
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
     setOrigin(window.location.origin);
   }, []);
@@ -91,14 +90,26 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
   const isPlayingRef = useRef<boolean>(false);
   const ytPendingPlayRef = useRef<boolean>(false);
 
+  const latestUrlRef = useRef(url);
+  useEffect(() => {
+    latestUrlRef.current = url;
+  }, [url]);
+
+  // Track the initial iframe src so we never trigger a DOM-level reload of the iframe
+  const [ytIframeSrc, setYtIframeSrc] = useState<string | null>(isYouTube ? embedUrl : null);
+  useEffect(() => {
+    if (isYouTube && !ytIframeSrc) {
+      setYtIframeSrc(embedUrl);
+    }
+  }, [isYouTube, embedUrl, ytIframeSrc]);
+
   useEffect(() => {
     onPlayRef.current = onPlay;
     onPauseRef.current = onPause;
     onReadyRef.current = onReady;
     onErrorRef.current = onError;
     onEndedRef.current = onEnded;
-    songIdRef.current = songId;
-  }, [onPlay, onPause, onReady, onError, onEnded, songId]);
+  }, [onPlay, onPause, onReady, onError, onEnded]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const guard = (fn: ((...args: any[]) => void) | undefined) => (...args: any[]) => {
@@ -127,7 +138,8 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
     // Get current playback time to set as start point
     let time = 0;
     if (isYouTube && playerRef.current?.getCurrentTime) {
-      time = playerRef.current.getCurrentTime();
+      // Provide fallback of 0 if throwing
+      try { time = playerRef.current.getCurrentTime(); } catch { time = 0; }
     } else if (isAudio && audioRef.current) {
       time = audioRef.current.currentTime;
     }
@@ -142,6 +154,15 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
     flushListenEvent();
     isPlayingRef.current = false;
   }, [flushListenEvent]);
+
+  // Handle URL/Song changes dynamically to prevent tracking overlap
+  useEffect(() => {
+    if (songIdRef.current && songIdRef.current !== songId) {
+      // Song is switching on the fly. Flush old tracking before assignment.
+      handlePlayStop();
+    }
+    songIdRef.current = songId;
+  }, [songId, handlePlayStop]);
 
   useImperativeHandle(ref, () => ({
     getPlaybackTime: async () => {
@@ -217,6 +238,19 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
     return () => clearInterval(interval);
   }, [isYouTube, isAudio]);
 
+  // NEW EFFECT: Handle URL changes via loadVideoById to prevent losing mobile autoplay context
+  useEffect(() => {
+    if (isYouTube && mounted && playerRef.current && typeof playerRef.current.loadVideoById === "function") {
+      const vidId = getYouTubeVideoId(url);
+      if (vidId) {
+        try {
+          playerRef.current.loadVideoById(vidId);
+          playerRef.current.playVideo();
+        } catch { /* ignore errors */ }
+      }
+    }
+  }, [url, isYouTube, mounted]);
+
   useEffect(() => {
     if (!mounted || !embedUrl) return;
 
@@ -271,6 +305,14 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
               },
               onReady: () => {
                 guard(onReadyRef.current)();
+                
+                // If URL was switched while the SDK was initializing, load the new one now
+                const currentVidId = getYouTubeVideoId(latestUrlRef.current);
+                const initialVidId = getYouTubeVideoId(ytIframeSrc || "");
+                if (currentVidId && initialVidId && currentVidId !== initialVidId) {
+                  try { playerRef.current?.loadVideoById(currentVidId); } catch { /* ignore */ }
+                }
+
                 // If play() was called before the YT player was ready, execute it now
                 if (ytPendingPlayRef.current) {
                   ytPendingPlayRef.current = false;
@@ -336,7 +378,8 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
       }
       playerRef.current = null;
     };
-  }, [embedUrl, url, mounted, origin, isYouTube, isAudio, handlePlayStart, handlePlayStop]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mounted, origin, isYouTube, isAudio, handlePlayStart, handlePlayStop]);
 
   if (!mounted) {
     return (
@@ -396,7 +439,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
           frameBorder="no"
           allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
-          src={embedUrl || ""}
+          src={ytIframeSrc || ""}
           title="Media Player"
           id="player-iframe"
           className={styles.iframe}
