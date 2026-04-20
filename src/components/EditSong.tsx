@@ -186,7 +186,7 @@ export default function EditSong({ song }: EditSongProps) {
               </div>
 
               <div className={styles.field}>
-                <label className={styles.label}>מה לשים לב בשיר? (אופציונלי)</label>
+                <label className={styles.label}>כמה מילים על השיר (אופציונלי)</label>
                 <textarea
                   className={styles.textarea}
                   placeholder="למשל: אשמח להתייחסות לסאונד של השירה, או האם הפזמון מספיק קליט.."

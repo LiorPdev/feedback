@@ -97,7 +97,7 @@ export async function createSong(formData: FormData) {
         }
 
         if (!dbUser) {
-            return { success: false, error: "יש להתחבר כדי לשלוח שיר" };
+            return { success: false, error: "AUTH_REQUIRED" };
         }
 
         // Check if song already exists for this specific user

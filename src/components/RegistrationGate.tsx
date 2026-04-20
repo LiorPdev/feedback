@@ -15,6 +15,7 @@ interface RegistrationGateProps {
   isModal?: boolean;
   userEmail?: string;
   redirectUrl?: string;
+  forceShowForm?: boolean;
 }
 
 export default function RegistrationGate({
@@ -24,7 +25,8 @@ export default function RegistrationGate({
   onSuccess,
   isModal = true,
   userEmail,
-  redirectUrl
+  redirectUrl,
+  forceShowForm
 }: RegistrationGateProps) {
   if (!isOpen) return null;
 
@@ -52,7 +54,9 @@ export default function RegistrationGate({
     "minimal": "\n",
   };
 
-  const message = messages[type];
+  const message = forceShowForm ? (
+    <strong style={{ fontSize: '1.2rem', marginBottom: '1rem', display: 'block' }}>החיבור נותק, אנא התחברו שוב</strong>
+  ) : messages[type];
 
   return (
     <AuthOverlay
@@ -61,6 +65,7 @@ export default function RegistrationGate({
       onClose={onClose}
       onSuccess={onSuccess}
       redirectUrl={redirectUrl}
+      forceShowForm={forceShowForm}
     />
   );
 }

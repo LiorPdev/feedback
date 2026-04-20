@@ -16,6 +16,7 @@ interface AuthOverlayProps {
   onDismiss?: () => void;
   dismissLabel?: string;
   isModal?: boolean;
+  forceShowForm?: boolean;
 }
 
 export default function AuthOverlay({
@@ -25,7 +26,8 @@ export default function AuthOverlay({
   onSuccess,
   onDismiss,
   dismissLabel,
-  isModal = false
+  isModal = false,
+  forceShowForm
 }: AuthOverlayProps) {
   const { userId, isLoaded } = useAuth();
   const [isVerifyStep, setIsVerifyStep] = useState(false);
@@ -55,7 +57,7 @@ export default function AuthOverlay({
         
         {!isVerifyStep && message && <p className={styles.subHeading}>{message}</p>}
         
-        {isLoaded && !userId && (
+        {isLoaded && (!userId || forceShowForm) && (
           <div className="mt-4">
             <UnifiedAuthForm 
               onSuccess={onSuccess || onClose || (() => window.location.reload())} 

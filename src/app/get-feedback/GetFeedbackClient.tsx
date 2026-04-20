@@ -55,6 +55,7 @@ export default function GetFeedback({
   const [songDuration, setSongDuration] = useState<number>(0);
   const [isShorts, setIsShorts] = useState(false);
   const [isPlaylist, setIsPlaylist] = useState(false);
+  const [showAuthGate, setShowAuthGate] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -299,6 +300,9 @@ export default function GetFeedback({
       if (result.success && result.song) {
         const dest = backHome ? "/dashboard?backHome=true" : "/dashboard";
         router.push(dest);
+      } else if (result.error === "AUTH_REQUIRED") {
+        setShowAuthGate(true);
+        setStatus("idle");
       } else {
         setErrorMessage(result.error || "שגיאה בביצוע הפעולה");
         if ((result as { type?: string }).type === 'insufficient_tokens') {
@@ -608,7 +612,7 @@ export default function GetFeedback({
             <>
               <div style={{ height: "20px" }}></div>
               <div className={styles.formGroup}>
-                <label className={styles.label}>מה לשים לב בשיר? (אופציונלי)</label>
+                <label className={styles.label}>כמה מילים על השיר (אופציונלי)</label>
                 <textarea
                   className={styles.textarea}
                   placeholder="למשל: אשמח להתייחסות לסאונד של השירה, או האם הפזמון מספיק קליט.."
@@ -747,10 +751,15 @@ export default function GetFeedback({
         </form>
       </motion.div>
       <RegistrationGate
-        isOpen={!isLoggedIn && !isCheckingGuest && !isGuestEligible}
+        isOpen={(!isLoggedIn && !isCheckingGuest && !isGuestEligible) || showAuthGate}
         type="get-feedback"
+        forceShowForm={showAuthGate}
         onClose={() => {
-          window.location.href = "/";
+          if (showAuthGate) {
+            setShowAuthGate(false);
+          } else {
+            window.location.href = "/";
+          }
         }}
       />
     </div>
