@@ -552,7 +552,10 @@ export async function toggleSongStatus(songId: string, isActive: boolean) {
         }
 
         await db.update(songs)
-            .set({ isActive: isActive })
+            .set({ 
+                isActive: isActive,
+                updatedAt: new Date().toISOString()
+            })
             .where(eq(songs.id, songId));
 
         revalidatePath('/dashboard');
@@ -937,6 +940,19 @@ export async function getTopRatedSongs(): Promise<{ success: boolean; songs?: To
 export async function checkAndNotifyTopRated() {
     const db = await getDb();
     try {
+        const now = new Date();
+
+        // 0. Reset decay for songs that have been out of Top 10 for > 3 days
+        // This gives them a "second life" with fresh scores.
+        const cooldownDays = TOP_RATED_NOTIFICATION_COOLDOWN_DAYS;
+        await db.update(songs)
+            .set({ topRatedLastNotified: null })
+            .where(and(
+                eq(songs.isInTopRated, false),
+                sql`${songs.topRatedLastNotified} IS NOT NULL`,
+                sql`(julianday('now') - julianday(${songs.updatedAt})) >= ${cooldownDays}`
+            ));
+
         // 1. Get current Top 10 using the shared Bayesian logic
         const m = TOP_RATED_MIN_RATINGS_THRESHOLD;
         const C_sql = sql<number>`(SELECT avg(f_global.cat2 * ${WEIGHT_PRODUCTION} + f_global.cat3 * ${WEIGHT_SINGING} + f_global.overall * ${WEIGHT_OVERALL}) FROM Feedback f_global WHERE f_global.overall > 0)`;
@@ -959,7 +975,6 @@ export async function checkAndNotifyTopRated() {
             .limit(10);
 
         const currentTop10Ids = currentTop10.map(s => s.id);
-        const now = new Date();
         const cooldownMs = TOP_RATED_NOTIFICATION_COOLDOWN_DAYS * 24 * 60 * 60 * 1000;
 
         // 2. Handle Entries — batch-fetch all user emails upfront to avoid N+1 queries
@@ -989,10 +1004,11 @@ export async function checkAndNotifyTopRated() {
 
                         if (result.success) {
                             // Update last notified date
-                            await db.update(songs)
+                        await db.update(songs)
                                 .set({
                                     topRatedLastNotified: now.toISOString(),
-                                    isInTopRated: true
+                                    isInTopRated: true,
+                                    updatedAt: now.toISOString()
                                 })
                                 .where(eq(songs.id, song.id));
                         } else {
@@ -1019,7 +1035,10 @@ export async function checkAndNotifyTopRated() {
         // 3. Handle Exits (songs marked as In but not in the current IDs)
         if (currentTop10Ids.length > 0) {
             await db.update(songs)
-                .set({ isInTopRated: false })
+                .set({ 
+                    isInTopRated: false,
+                    updatedAt: now.toISOString()
+                })
                 .where(and(
                     eq(songs.isInTopRated, true),
                     notInArray(songs.id, currentTop10Ids)
