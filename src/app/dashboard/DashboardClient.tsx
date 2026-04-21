@@ -80,8 +80,8 @@ const FeedbackItem = memo(function FeedbackItem({ fb, isActive, onActivate }: Fe
     <div className={styles.myFeedbackItem}>
       <div className={styles.myFbHeader}>
         <div className={styles.myFbTitleRow}>
-          <button 
-            className={styles.playIconBtn} 
+          <button
+            className={styles.playIconBtn}
             onClick={togglePlay}
             title={isActive ? "עצור" : "נגן"}
           >
@@ -106,9 +106,7 @@ const FeedbackItem = memo(function FeedbackItem({ fb, isActive, onActivate }: Fe
         {(fb.cat2 > 0 || fb.cat3 > 0 || fb.overall > 0) && (
           <div className={styles.myFbRatingsRow}>
             <strong className={styles.myFbRatingLabel}>דירוג:</strong>
-            <span className={styles.myFbOverallBadge}>
-              <strong className={styles.myFbLabel}>ציון לשיר:</strong>{" "}{fb.overall}
-            </span>
+            <span className={styles.myFbOverallBadge}><strong className={styles.myFbLabel}>ציון לשיר:</strong>{" "}{fb.overall}</span>
             <span><strong className={styles.myFbLabel}>הפקה:</strong>{" "}{fb.cat2}</span>
             <span><strong className={styles.myFbLabel}>שירה:</strong>{" "}{fb.cat3}</span>
           </div>
@@ -305,9 +303,9 @@ export default function DashboardClient({
       </div>
 
       {activeFeedback && (
-        <UrlPlayer 
+        <UrlPlayer
           ref={globalPlayerRef}
-          url={activeFeedback.songUrl} 
+          url={activeFeedback.songUrl}
           isHidden={true}
           onReady={onGlobalPlayerReady}
           onEnded={() => setActiveFeedbackId(null)}

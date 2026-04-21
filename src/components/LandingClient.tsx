@@ -6,7 +6,7 @@ import { CheckCircle } from "lucide-react";
 import styles from "@/app/landing.module.css";
 import { useState, useEffect } from "react";
 import { getUserSongCount } from "@/app/actions/songs";
-import { getMyGivenFeedbacksCount } from "@/app/actions/feedback";
+import { getMyGivenFeedbacksCount, getDisplayFeedbacksCount } from "@/app/actions/feedback";
 import { getUserData } from "@/app/actions/user";
 import Footer from "./Footer";
 import HeroGallery from "./HeroGallery";
@@ -45,18 +45,21 @@ export default function LandingClient({
   isClerkUser = false,
   initialHasSongs = false,
   initialGenre = "",
-  initialHasFeedbacksGiven = false
+  initialHasFeedbacksGiven = false,
+  totalFeedbacksCount: initialTotalFeedbacksCount = 0
 }: {
   isLoggedIn?: boolean,
   isClerkUser?: boolean,
   initialHasSongs?: boolean,
   initialGenre?: string,
-  initialHasFeedbacksGiven?: boolean
+  initialHasFeedbacksGiven?: boolean,
+  totalFeedbacksCount?: number
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [hasSongs, setHasSongs] = useState(initialHasSongs);
   const [hasFeedbacksGiven, setHasFeedbacksGiven] = useState(initialHasFeedbacksGiven);
+  const [totalFeedbacksCount, setTotalFeedbacksCount] = useState(initialTotalFeedbacksCount);
   const [userGenre, setUserGenre] = useState(initialGenre);
   const [activeGate, setActiveGate] = useState<GateType | null>(null);
   const [targetRedirectUrl, setTargetRedirectUrl] = useState<string | undefined>(undefined);
@@ -65,17 +68,22 @@ export default function LandingClient({
 
   useEffect(() => {
     const handleUpdate = async () => {
-      if (!isLoggedIn) return;
-      const [songResult, feedbackCount, userData] = await Promise.all([
-        getUserSongCount(),
-        getMyGivenFeedbacksCount(),
-        getUserData()
-      ]);
-      setHasSongs(songResult.success && songResult.count > 0);
-      setHasFeedbacksGiven(feedbackCount > 0);
-      if (userData.success) {
-        if (userData.userGenre) setUserGenre(userData.userGenre);
-        if (userData.email) setUserEmail(userData.email);
+      const totalCount = await getDisplayFeedbacksCount();
+      setTotalFeedbacksCount(totalCount);
+
+      if (isLoggedIn) {
+        const [songResult, feedbackCount, userData] = await Promise.all([
+          getUserSongCount(),
+          getMyGivenFeedbacksCount(),
+          getUserData()
+        ]);
+
+        setHasSongs(songResult.success && songResult.count > 0);
+        setHasFeedbacksGiven(feedbackCount > 0);
+        if (userData.success) {
+          if (userData.userGenre) setUserGenre(userData.userGenre);
+          if (userData.email) setUserEmail(userData.email);
+        }
       }
     };
 
@@ -89,7 +97,7 @@ export default function LandingClient({
 
   const handleGetFeedbackClick = (e?: React.MouseEvent) => {
     if (e) e.preventDefault();
-    
+
     // Identify lead for Meta Ads if in UTM mode
     if (isUtmMode && typeof window !== "undefined" && window.fbq) {
       window.fbq("track", "Lead");
@@ -149,6 +157,7 @@ export default function LandingClient({
             <motion.div variants={fadeInUp} style={{ width: '100%' }}>
               <PageHeader
                 title="מישהו מקשיב לך"
+                subtitle={<span className={styles.feedbackStat}>{totalFeedbacksCount} מוזיקאים בקהילה קיבלו פידבק ביממה האחרונה</span>}
                 variant="hero"
                 hideDivider
                 align="center"

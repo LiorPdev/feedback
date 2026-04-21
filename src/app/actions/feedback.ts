@@ -5,7 +5,7 @@ import { feedbacks, users, songs } from "@/lib/schema";
 import { and, eq, lt, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { logAction } from "./logs";
-import { UNLOCK_FEEDBACK_COST, FREE_FEEDBACKS_FOR_ARTIST, LIKE_FEEDBACK_REWARD } from "@/lib/constants";
+import { UNLOCK_FEEDBACK_COST, FREE_FEEDBACKS_FOR_ARTIST, LIKE_FEEDBACK_REWARD, FEEDBACK_COUNT_FACTOR } from "@/lib/constants";
 import { updateRaterScore } from "@/lib/rater-score";
 import { syncUser } from "@/lib/user-auth";
 
@@ -274,5 +274,31 @@ export async function unlikeFeedback(feedbackId: string) {
       source: "actions/feedback:unlikeFeedback",
     });
     return { success: false, error: 'SERVER_ERROR' };
+  }
+}
+
+//
+// Returns a "small cheat" number to display as feedbacks count on the landing page
+//
+export async function getDisplayFeedbacksCount(): Promise<number> {
+  try {
+    const db = await getDb();
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(feedbacks);
+
+    const total = result[0]?.count ?? 0;
+    const base = Math.floor(total / FEEDBACK_COUNT_FACTOR);
+
+    // Calculate dynamic part based on time
+    const now = new Date();
+    const hour = now.getHours();
+    const minutes = now.getMinutes();
+
+    const displayNumber = base + hour + Math.floor(minutes / 5);
+
+    return displayNumber;
+  } catch {
+    return 0;
   }
 }

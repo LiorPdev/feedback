@@ -110,6 +110,8 @@
   line-height: 1.6;
   color: var(--text-main);
   white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
   margin: 0;
 }
 
