@@ -169,6 +169,13 @@
       "when": 1776493093497,
       "tag": "0023_fewWordsNewField",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "6",
+      "when": 1776780556685,
+      "tag": "0024_priorityField",
+      "breakpoints": true
     }
   ]
 }

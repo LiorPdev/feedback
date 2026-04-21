@@ -1,0 +1,1 @@
+ALTER TABLE `Song` ADD `priority` integer DEFAULT 0 NOT NULL;
