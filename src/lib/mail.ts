@@ -191,7 +191,7 @@ export async function sendTopRatedNotification({
             <a href="${songUrl}" style="background: #2563eb; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; display: inline-block; font-weight: bold;">לצפייה בדירוג המלא</a>
           </p>
           <p style="font-size: 16px; color: #64748b;">
-            המוזיקה שלך נוגעת באנשים. המשך ליצור ולשתף!
+            המוזיקה שלך נוגעת באנשים. המשיכו ליצור ולשתף!
           </p>
           <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
           <p style="font-size: 14px; color: #94a3b8; margin-bottom: 0;">

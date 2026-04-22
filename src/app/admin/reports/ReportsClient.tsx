@@ -189,6 +189,7 @@ export function ReportsClient() {
                                     <SortHeader label="תאריך העלאה" sortKey="createdAt" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="שם השיר" sortKey="title" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="משתמש" sortKey="creatorName" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="טוקנים" sortKey="creatorTokens" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="פידבק אחרון" sortKey="lastFeedbackAt" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="#פידבקים" sortKey="feedbackCount" sortConfig={sortConfig} onSort={handleSort} />
                                     <th style={{ width: '80px', textAlign: 'center' }}>לשיר</th>
@@ -222,7 +223,7 @@ export function ReportsClient() {
                                 <tr>
                                     <SortHeader label="מייל" sortKey="email" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="שם" sortKey="name" sortConfig={sortConfig} onSort={handleSort} />
-                                    <SortHeader label="מספר טוקנים" sortKey="tokens" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="טוקנים" sortKey="tokens" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="איכות המדרג" sortKey="raterScore" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="תאריך רישום" sortKey="createdAt" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="כניסה אחרונה" sortKey="lastVisit" sortConfig={sortConfig} onSort={handleSort} />
@@ -260,6 +261,7 @@ export function ReportsClient() {
                                             <td>{formatDate(item.createdAt)}</td>
                                             <td>{item.title}</td>
                                             <td>{item.creatorName || item.creatorEmail}</td>
+                                            <td style={{ textAlign: 'center' }}>{item.creatorTokens}</td>
                                             <td>{item.lastFeedbackAt ? formatDate(item.lastFeedbackAt) : '-'}</td>
                                             <td style={{ textAlign: 'center' }}>{item.feedbackCount}</td>
                                             <td style={{ textAlign: 'center' }}>

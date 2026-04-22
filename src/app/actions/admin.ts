@@ -35,6 +35,7 @@ export async function getAdminSongsReport() {
             slug: songs.slug,
             creatorName: users.name,
             creatorEmail: users.email,
+            creatorTokens: users.tokens,
             lastFeedbackAt: feedbackStatsSubquery.lastFeedbackAt,
             feedbackCount: sql<number>`COALESCE(${feedbackStatsSubquery.feedbackCount}, 0)`.as('feedbackCount')
         })
