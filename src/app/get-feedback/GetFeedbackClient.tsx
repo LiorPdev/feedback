@@ -11,7 +11,7 @@ import { logAction } from "@/app/actions/logs";
 import { isYouTubeUrl, isShortsUrl, isPlaylistUrl, SONG_VALIDATION_MESSAGES, validateSongUrl } from "@/lib/song-validation";
 import { useRouter } from "next/navigation";
 import styles from "./get-feedback.module.css";
-import { GENRES, SONG_SUBMISSION_COST, MAX_FILE_SIZE, MAX_FILE_SIZE_MB, MAX_SONG_TITLE_LENGTH, MIN_SONG_DURATION_SECONDS } from "@/lib/constants";
+import { GENRES, SONG_SUBMISSION_COST, MAX_FILE_SIZE, MAX_FILE_SIZE_MB, MAX_SONG_NAME_LENGTH, MIN_SONG_DURATION_SECONDS } from "@/lib/constants";
 import RegistrationGate from "@/components/RegistrationGate";
 import PageHeader from "@/components/PageHeader";
 import Button from "@/components/ui/Button";
@@ -107,7 +107,7 @@ export default function GetFeedback({
       try {
         const result = await getURLMetadata(songLink) as { success: boolean, title?: string, resolvedUrl?: string, error?: string };
         if (result.success && result.title) {
-          setSongTitle(result.title.substring(0, MAX_SONG_TITLE_LENGTH));
+          setSongTitle(result.title.substring(0, MAX_SONG_NAME_LENGTH));
           setLastFetchedLink(songLink);
           setErrorMessage(""); // Clear any previous error
           setLinkError("");
@@ -419,7 +419,7 @@ export default function GetFeedback({
                               className={styles.searchResultItem}
                               onClick={() => {
                                 setSongLink(result.url);
-                                setSongTitle(result.title.substring(0, MAX_SONG_TITLE_LENGTH));
+                                setSongTitle(result.title.substring(0, MAX_SONG_NAME_LENGTH));
                                 setSearchResults([]);
                                 setShowDropdown(false);
                               }}
@@ -489,7 +489,7 @@ export default function GetFeedback({
                                 size="md"
                                 onClick={() => {
                                   setSongLink(youtubeAlternative.url);
-                                  if (!songTitle) setSongTitle(youtubeAlternative.title.substring(0, MAX_SONG_TITLE_LENGTH));
+                                  if (!songTitle) setSongTitle(youtubeAlternative.title.substring(0, MAX_SONG_NAME_LENGTH));
                                   setYoutubeAlternative(null);
                                 }}
                               >
@@ -579,11 +579,11 @@ export default function GetFeedback({
               className={styles.input}
               placeholder="איך שיר נולד..."
               value={songTitle}
-              onChange={(e) => setSongTitle(e.target.value.substring(0, MAX_SONG_TITLE_LENGTH))}
+              onChange={(e) => setSongTitle(e.target.value.substring(0, MAX_SONG_NAME_LENGTH))}
               onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity("אנא הזינו את שם השיר")}
               onInput={(e) => (e.target as HTMLInputElement).setCustomValidity("")}
               required
-              maxLength={MAX_SONG_TITLE_LENGTH}
+              maxLength={MAX_SONG_NAME_LENGTH}
             />
           </div>
 

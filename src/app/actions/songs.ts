@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { eq, sql, and, notInArray, gt, aliasedTable } from 'drizzle-orm';
 import { users, songs, feedbacks, listenEvents } from '@/lib/schema';
-import { SONG_SUBMISSION_COST, REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH, COMMENT_LENGTH_BONUS, TOP_RATED_MIN_RATINGS_THRESHOLD, TOP_RATED_NOTIFICATION_COOLDOWN_DAYS, WEIGHT_PRODUCTION, WEIGHT_SINGING, WEIGHT_OVERALL, TOP_RATED_DECAY_FACTOR, MIN_SONG_DURATION_SECONDS } from '@/lib/constants';
+import { SONG_SUBMISSION_COST, REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_PER_COMMENT_STEP, COMMENT_STEP_LENGTH, MAX_COMMENT_LENGTH, TOP_RATED_MIN_RATINGS_THRESHOLD, TOP_RATED_NOTIFICATION_COOLDOWN_DAYS, WEIGHT_PRODUCTION, WEIGHT_SINGING, WEIGHT_OVERALL, TOP_RATED_DECAY_FACTOR, MIN_SONG_DURATION_SECONDS } from '@/lib/constants';
 import { sendFeedbackNotification, sendTopRatedNotification } from '@/lib/mail';
 import { logToDb } from "@/lib/logger";
 import { deleteFileFromR2 } from '@/app/actions/upload';
@@ -165,7 +165,7 @@ export async function addFeedback(data: {
             cat2: data.cat2,
             cat3: data.cat3,
             overall: data.overall,
-            comment: sanitizeInput(data.comment),
+            comment: sanitizeInput(data.comment).substring(0, MAX_COMMENT_LENGTH),
             playedSeconds: data.playedSeconds,
         }).returning();
 
@@ -183,8 +183,10 @@ export async function addFeedback(data: {
             if (data.cat2 > 0) reward += REWARD_PRODUCTION;
             if (data.cat3 > 0) reward += REWARD_VOCALS;
             if (data.overall > 0) reward += REWARD_OVERALL;
-            if (commentLen >= MIN_COMMENT_LENGTH) reward += REWARD_COMMENT;
-            if (commentLen >= COMMENT_LENGTH_BONUS) reward += REWARD_COMMENT;
+
+            // Dynamic comment reward: 5 points for every 15 characters
+            reward += Math.floor(commentLen / COMMENT_STEP_LENGTH) * REWARD_PER_COMMENT_STEP;
+
             if (data.listenCredits) reward += data.listenCredits;
 
             // Grant credits
@@ -492,13 +494,13 @@ export async function getFeedSongs(firstSongSlug?: string) {
 
         return { success: true, songs: finalOutputSongs };
     } catch (error) {
-        await logToDb({ 
-            message: "Failed to fetch feed songs", 
-            data: { 
+        await logToDb({
+            message: "Failed to fetch feed songs",
+            data: {
                 error: error instanceof Error ? error.message : String(error),
                 stack: error instanceof Error ? error.stack : undefined
-            }, 
-            source: "songs.ts:getFeedSongs" 
+            },
+            source: "songs.ts:getFeedSongs"
         });
         return { success: false, error: "שגיאה בטעינת השירים" };
     }
@@ -558,7 +560,7 @@ export async function toggleSongStatus(songId: string, isActive: boolean) {
         }
 
         await db.update(songs)
-            .set({ 
+            .set({
                 isActive: isActive,
                 updatedAt: new Date().toISOString()
             })
@@ -1010,7 +1012,7 @@ export async function checkAndNotifyTopRated() {
 
                         if (result.success) {
                             // Update last notified date
-                        await db.update(songs)
+                            await db.update(songs)
                                 .set({
                                     topRatedLastNotified: now.toISOString(),
                                     isInTopRated: true,
@@ -1041,7 +1043,7 @@ export async function checkAndNotifyTopRated() {
         // 3. Handle Exits (songs marked as In but not in the current IDs)
         if (currentTop10Ids.length > 0) {
             await db.update(songs)
-                .set({ 
+                .set({
                     isInTopRated: false,
                     updatedAt: now.toISOString()
                 })

@@ -1,4 +1,4 @@
-import { MAX_SONG_TITLE_LENGTH } from "./constants";
+import { MAX_SONG_NAME_LENGTH } from "./constants";
 import { sanitizeInput } from "./utils";
 
 export const YOUTUBE_DOMAINS = ["youtube.com", "youtu.be"];
@@ -56,7 +56,7 @@ export function validateSongUrl(url: string): { success: boolean; error?: string
 }
 
 export function cleanSongTitle(title: string): string {
-  return sanitizeInput(title).substring(0, MAX_SONG_TITLE_LENGTH);
+  return sanitizeInput(title).substring(0, MAX_SONG_NAME_LENGTH);
 }
 
 /**

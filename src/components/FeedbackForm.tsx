@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Star, AlertCircle, Gift } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { addFeedback, getUserTokens } from "@/app/actions/songs";
-import { REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH, COMMENT_LENGTH_BONUS } from "@/lib/constants";
+import { REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_PER_COMMENT_STEP, COMMENT_STEP_LENGTH, MIN_COMMENT_LENGTH, MAX_COMMENT_LENGTH } from "@/lib/constants";
 import styles from "./FeedbackForm.module.css";
 import AnimatedTokenCounter from "./AnimatedTokenCounter";
 import PopupMsg from "./PopupMsg";
@@ -95,7 +95,7 @@ export default function FeedbackForm({
 
       if (bucketRef.current) {
         const bucketRect = bucketRef.current.getBoundingClientRect();
-        triggerFlyer(bucketRect.left + bucketRect.width / 2, bucketRect.top - 80, 1, bucketRect.left + bucketRect.width / 2, bucketRect.top + bucketRect.height / 2, -40, 50);
+        triggerFlyer(bucketRect.left + bucketRect.width / 2, bucketRect.top - 60, 1, bucketRect.left + bucketRect.width / 2, bucketRect.top + bucketRect.height / 2, -40, 50);
       }
     }
 
@@ -110,7 +110,7 @@ export default function FeedbackForm({
 
           if (bucketRef.current) {
             const bucketRect = bucketRef.current.getBoundingClientRect();
-            triggerFlyer(bucketRect.left + bucketRect.width / 2, bucketRect.top - 80, 1, bucketRect.left + bucketRect.width / 2, bucketRect.top + bucketRect.height / 2, -40, 50);
+            triggerFlyer(bucketRect.left + bucketRect.width / 2, bucketRect.top - 60, 1, bucketRect.left + bucketRect.width / 2, bucketRect.top + bucketRect.height / 2, -40, 50);
           }
         }
       }, 1000);
@@ -170,9 +170,8 @@ export default function FeedbackForm({
   // Calculate live earned credits
   const earnedFromCategories = categories.reduce((sum, cat) => sum + (ratings[cat.key] > 0 ? cat.reward : 0), 0);
   const commentLength = comment.trim().length;
-  const hasValidComment = commentLength >= MIN_COMMENT_LENGTH;
-  const hasBonusComment = commentLength >= COMMENT_LENGTH_BONUS;
-  const currentCredits = earnedFromCategories + (hasValidComment ? REWARD_COMMENT : 0) + (hasBonusComment ? REWARD_COMMENT : 0) + listenCredits;
+  const commentCredits = Math.floor(commentLength / COMMENT_STEP_LENGTH) * REWARD_PER_COMMENT_STEP;
+  const currentCredits = earnedFromCategories + commentCredits + listenCredits;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -358,6 +357,7 @@ export default function FeedbackForm({
               <textarea
                 className={styles.textarea}
                 placeholder={`הוסיפו כמה מילים על מה שאהבתם ומה כדאי לשפר.`}
+                maxLength={MAX_COMMENT_LENGTH}
                 value={comment}
                 onChange={(e) => {
                   const newValue = e.target.value;
@@ -368,14 +368,11 @@ export default function FeedbackForm({
                   const centerX = rect.left + rect.width / 2;
                   const centerY = rect.top + rect.height / 2;
 
-                  // Trigger for MIN_COMMENT_LENGTH (30)
-                  if (prevLength < MIN_COMMENT_LENGTH && nextLength >= MIN_COMMENT_LENGTH) {
-                    triggerFlyer(centerX, centerY, REWARD_COMMENT);
-                  }
+                  const prevSteps = Math.floor(prevLength / COMMENT_STEP_LENGTH);
+                  const nextSteps = Math.floor(nextLength / COMMENT_STEP_LENGTH);
 
-                  // Trigger for COMMENT_LENGTH_BONUS (60)
-                  if (prevLength < COMMENT_LENGTH_BONUS && nextLength >= COMMENT_LENGTH_BONUS) {
-                    triggerFlyer(centerX, centerY, REWARD_COMMENT);
+                  if (nextSteps > prevSteps) {
+                    triggerFlyer(centerX, centerY, REWARD_PER_COMMENT_STEP);
                   }
 
                   setComment(newValue);
@@ -384,7 +381,9 @@ export default function FeedbackForm({
               />
             </div>
             <div className={`${styles.charCounter} ${comment.length === 0 ? "" : (comment.length < MIN_COMMENT_LENGTH ? styles.charCounterLow : styles.charCounterValid)}`}>
-              {comment.length < MIN_COMMENT_LENGTH && `עוד ${MIN_COMMENT_LENGTH - comment.length} תווים למינימום נדרש`}
+              {comment.length < MIN_COMMENT_LENGTH
+                ? `עוד ${MIN_COMMENT_LENGTH - comment.length} תווים למינימום נדרש`
+                : `${comment.length} / ${MAX_COMMENT_LENGTH}`}
             </div>
           </div>
 

@@ -21,7 +21,7 @@ interface EditSongProps {
   };
 }
 
-import { GENRES, MAX_SONG_TITLE_LENGTH } from "@/lib/constants";
+import { GENRES, MAX_SONG_NAME_LENGTH } from "@/lib/constants";
 
 export default function EditSong({ song }: EditSongProps) {
   const [showModal, setShowModal] = useState(false);
@@ -160,12 +160,12 @@ export default function EditSong({ song }: EditSongProps) {
                   type="text"
                   className={styles.input}
                   value={title}
-                  onChange={(e) => setTitle(e.target.value.substring(0, MAX_SONG_TITLE_LENGTH))}
+                  onChange={(e) => setTitle(e.target.value.substring(0, MAX_SONG_NAME_LENGTH))}
                   onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity("אנא הזינו את שם השיר")}
                   onInput={(e) => (e.target as HTMLInputElement).setCustomValidity("")}
                   required
                   placeholder="לדוגמה: השיר החדש שלי"
-                  maxLength={MAX_SONG_TITLE_LENGTH}
+                  maxLength={MAX_SONG_NAME_LENGTH}
                 />
               </div>
 
