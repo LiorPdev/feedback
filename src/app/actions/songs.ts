@@ -4,7 +4,7 @@ import { getDb } from '@/lib/db';
 import { nanoid } from 'nanoid';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
-import { eq, sql, and, notInArray, inArray, gt, aliasedTable } from 'drizzle-orm';
+import { eq, sql, and, notInArray, gt, aliasedTable } from 'drizzle-orm';
 import { users, songs, feedbacks, listenEvents } from '@/lib/schema';
 import { SONG_SUBMISSION_COST, REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_COMMENT, MIN_COMMENT_LENGTH, COMMENT_LENGTH_BONUS, TOP_RATED_MIN_RATINGS_THRESHOLD, TOP_RATED_NOTIFICATION_COOLDOWN_DAYS, WEIGHT_PRODUCTION, WEIGHT_SINGING, WEIGHT_OVERALL, TOP_RATED_DECAY_FACTOR, MIN_SONG_DURATION_SECONDS } from '@/lib/constants';
 import { sendFeedbackNotification, sendTopRatedNotification } from '@/lib/mail';
@@ -391,20 +391,14 @@ export async function getUserSongCount() {
 }
 
 export async function getFeedSongs(firstSongSlug?: string) {
-    const dbUser = await syncUser();
-    const db = await getDb();
-
     try {
+        const dbUser = await syncUser();
+        const db = await getDb();
+
         // 1. Fetch rated song IDs and first song in parallel (both are independent)
         const preferredGenre = dbUser?.userGenre ?? null;
 
-        const [ratedSongIds, firstSong] = await Promise.all([
-            dbUser
-                ? db.query.feedbacks.findMany({
-                    where: (feedbacks, { eq }) => eq(feedbacks.authorId, dbUser.id),
-                    columns: { songId: true }
-                }).then(rows => rows.map(f => f.songId))
-                : Promise.resolve([] as string[]),
+        const [firstSong] = await Promise.all([
             firstSongSlug
                 ? db.query.songs.findFirst({
                     where: (songs, { eq, and }) => and(eq(songs.slug, firstSongSlug), eq(songs.isActive, true)),
@@ -421,7 +415,7 @@ export async function getFeedSongs(firstSongSlug?: string) {
         ]);
 
         const remainingSongs = await db.query.songs.findMany({
-            where: (songs, { ne, and, not, inArray, eq }) => {
+            where: (songs, { ne, and, eq }) => {
                 const filters = [];
 
                 // Don't show user's own songs
@@ -430,8 +424,11 @@ export async function getFeedSongs(firstSongSlug?: string) {
                 }
 
                 // Don't show already rated songs
-                if (ratedSongIds.length > 0) {
-                    filters.push(not(inArray(songs.id, ratedSongIds)));
+                if (dbUser) {
+                    // Optimized exclusion using a subquery: 
+                    // This uses only ONE parameter (userId) instead of listing all rated IDs.
+                    // This allows excluding thousands of songs without hitting D1 limits.
+                    filters.push(sql`id NOT IN (SELECT songId FROM Feedback WHERE authorId = ${dbUser.id})`);
                 }
 
                 // Exclude the first song if it was fetched explicitly
@@ -452,20 +449,22 @@ export async function getFeedSongs(firstSongSlug?: string) {
                     }
                 }
             },
+            limit: 100 // Prevent parameter limit issues and keep feed snappy
         });
 
         const allSongsToProcess = firstSong ? [firstSong, ...remainingSongs] : remainingSongs;
         let songsWithStats = allSongsToProcess.map(s => ({ ...s, averageRating: 0, totalFeedbacks: 0 }));
 
         if (allSongsToProcess.length > 0) {
-            const songIds = allSongsToProcess.map(s => s.id);
+            // Optimization: Fetch stats for ALL active rated feedbacks 
+            // instead of using inArray(songIds) which hits Cloudflare D1 parameter limits (>100).
             const stats = await db.select({
                 songId: feedbacks.songId,
                 total: sql<number>`count(${feedbacks.id})`,
                 avgRating: sql<number>`avg(${feedbacks.cat2} * ${WEIGHT_PRODUCTION} + ${feedbacks.cat3} * ${WEIGHT_SINGING} + ${feedbacks.overall} * ${WEIGHT_OVERALL})`
             })
                 .from(feedbacks)
-                .where(and(inArray(feedbacks.songId, songIds), gt(feedbacks.overall, 0)))
+                .where(gt(feedbacks.overall, 0))
                 .groupBy(feedbacks.songId);
 
             const statsMap = new Map(stats.map(s => [s.songId, s]));
@@ -493,7 +492,14 @@ export async function getFeedSongs(firstSongSlug?: string) {
 
         return { success: true, songs: finalOutputSongs };
     } catch (error) {
-        await logToDb({ message: "Failed to fetch feed songs", data: error, source: "songs.ts:getFeedSongs" });
+        await logToDb({ 
+            message: "Failed to fetch feed songs", 
+            data: { 
+                error: error instanceof Error ? error.message : String(error),
+                stack: error instanceof Error ? error.stack : undefined
+            }, 
+            source: "songs.ts:getFeedSongs" 
+        });
         return { success: false, error: "שגיאה בטעינת השירים" };
     }
 }

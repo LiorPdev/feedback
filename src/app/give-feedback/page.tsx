@@ -40,12 +40,15 @@ export default async function GiveFeedbackFeedPage({
 
   let initialFeedback: Feedback | null = null;
   if (userId && result.songs.length > 0) {
-    const db = await getDb();
-    const existingFeedback = await db.query.feedbacks.findFirst({
-      where: (f, { eq, and }) => and(eq(f.authorId, userId), eq(f.songId, result.songs[0].id))
-    });
-    if (existingFeedback) {
-      initialFeedback = existingFeedback as unknown as Feedback;
+    const firstSong = result.songs[0];
+    if (firstSong) {
+      const db = await getDb();
+      const existingFeedback = await db.query.feedbacks.findFirst({
+        where: (f, { eq, and }) => and(eq(f.authorId, userId), eq(f.songId, firstSong.id))
+      });
+      if (existingFeedback) {
+        initialFeedback = existingFeedback as unknown as Feedback;
+      }
     }
   }
 
