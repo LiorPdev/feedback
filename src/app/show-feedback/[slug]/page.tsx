@@ -118,13 +118,13 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
                 {averages.cat2 && (
                   <div className={styles.averageItem}>
                     <span className={styles.avgLabel}>הפקה</span>
-                    <span className={styles.avgValue}>{averages.cat2}</span>
+                    <span className={`${styles.avgValue} ${styles.avgOverall}`}>{averages.cat2}</span>
                   </div>
                 )}
                 {averages.cat3 && (
                   <div className={styles.averageItem}>
                     <span className={styles.avgLabel}>שירה</span>
-                    <span className={styles.avgValue}>{averages.cat3}</span>
+                    <span className={`${styles.avgValue} ${styles.avgOverall}`}>{averages.cat3}</span>
                   </div>
                 )}
               </div>

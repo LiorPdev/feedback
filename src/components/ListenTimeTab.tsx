@@ -80,7 +80,7 @@ export default function ListenTimeTab({ events, avgSeconds }: ListenTimeTabProps
                 </span>
               </div>
               <div className={styles.fbRaterGenre}>
-                סגנון המדרג: <span className={styles.genreList}>{genres.length > 0 ? genres.join(', ') : "לא הוגדר"}</span>
+                סגנון המאזין: <span className={styles.genreList}>{genres.length > 0 ? genres.join(', ') : "לא הוגדר"}</span>
               </div>
             </div>
           );

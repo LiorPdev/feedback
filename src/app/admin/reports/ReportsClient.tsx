@@ -211,9 +211,9 @@ export function ReportsClient() {
                                     <th style={{ width: '50px' }}>#</th>
                                     <SortHeader label="שם השיר" sortKey="title" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="דירוגים" sortKey="numRatings" sortConfig={sortConfig} onSort={handleSort} />
-                                    <SortHeader label="ממוצע גולמי" sortKey="rawAvg" sortConfig={sortConfig} onSort={handleSort} />
-                                    <SortHeader label="משקל (v)" sortKey="weightedV" sortConfig={sortConfig} onSort={handleSort} />
-                                    <SortHeader label="סכום משוקלל" sortKey="weightedSum" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="ממוצע נקי" sortKey="rawAvg" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="משקל המדרגים" sortKey="weightedV" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="ניקוד מדרגים מצטבר" sortKey="weightedSum" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="Bayesian" sortKey="bayesianAvg" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="התיישנות" sortKey="decay" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="ציון סופי" sortKey="finalScore" sortConfig={sortConfig} onSort={handleSort} />
