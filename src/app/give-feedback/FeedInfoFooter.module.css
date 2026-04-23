@@ -1,0 +1,55 @@
+.footerWrapper {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.infoTriggerWrapper {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.infoTrigger {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  text-decoration: underline;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.infoTrigger:hover {
+  opacity: 1;
+}
+
+.tooltipContent p {
+  margin: 0 0 0.75rem 0;
+  line-height: 1.7;
+  text-align: right;
+}
+
+.tooltipContent strong {
+  color: var(--brand-primary);
+}
+
+.textLink {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--brand-primary);
+  text-decoration: underline;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+}
+
+.textLink:hover {
+  opacity: 0.8;
+}

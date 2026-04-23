@@ -2,7 +2,7 @@
 
 import { getDb } from "@/lib/db";
 import { feedbacks, users, songs } from "@/lib/schema";
-import { and, eq, lt, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { logAction } from "./logs";
 import { UNLOCK_FEEDBACK_COST, FREE_FEEDBACKS_FOR_ARTIST, LIKE_FEEDBACK_REWARD, FEEDBACK_COUNT_FACTOR } from "@/lib/constants";
@@ -104,16 +104,16 @@ export async function unlockFeedback(feedbackId: string) {
       return { success: true };
     }
 
-    // 2. Check if this is one of the artist's first 2 (FREE_FEEDBACKS_FOR_ARTIST) feedbacks ever received (Artist-wide)
-    const prevFeedbacksCount = await db.select({ value: sql<number>`count(*)` })
+    // 2. Check if the artist has already used their free (FREE_FEEDBACKS_FOR_ARTIST) unlocks (Artist-wide)
+    const unlockedFeedbacksCount = await db.select({ value: sql<number>`count(*)` })
       .from(feedbacks)
       .innerJoin(songs, eq(feedbacks.songId, songs.id))
       .where(and(
         eq(songs.userId, dbUser.id),
-        lt(feedbacks.createdAt, feedback.createdAt)
+        eq(feedbacks.isUnlocked, true)
       ));
 
-    const isFree = (prevFeedbacksCount[0]?.value ?? 0) < FREE_FEEDBACKS_FOR_ARTIST;
+    const isFree = (unlockedFeedbacksCount[0]?.value ?? 0) < FREE_FEEDBACKS_FOR_ARTIST;
 
     if (!isFree) {
       if (dbUser.tokens < UNLOCK_FEEDBACK_COST) {

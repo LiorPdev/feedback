@@ -18,7 +18,7 @@ export const MIN_SONG_DURATION_SECONDS = 50;
 
 // Tokens i get
 export const INITIAL_TOKENS = 150;          // Amount of tokens a user gets when signing up.
-export const FREE_FEEDBACKS_FOR_ARTIST = 2; // Number of initial feedbacks an artist receives for free before having to pay to unlock.
+export const FREE_FEEDBACKS_FOR_ARTIST = 1; // Number of initial feedbacks an artist receives for free before having to "pay" to unlock.
 export const LIKE_FEEDBACK_REWARD = 20;     // Amount of tokens a user gets when gets a like on his feedback.
 export const REWARD_PRODUCTION = 1;         // Tokens reward for each production point in a feedback.
 export const REWARD_VOCALS = 1;             // Tokens reward for each vocals point in a feedback.

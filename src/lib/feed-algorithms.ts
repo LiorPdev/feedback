@@ -12,41 +12,32 @@ export interface SongWithStats {
 
 /**
  * 
- * 1. Genere: שירים מהג'אנר שהמשתמש אוהב תמיד יופיעו לפני שירים אחרים.
- * 2. ציון משולב: בתוך הג'אנר, השירים ממוינים לפי ציון משוקלל.
- *    - (Priority): הערך שנקבע ידנית.
- *    - (Quality): ממוצע הדירוגים (0-5). שיר חדש מקבל ציון התחלתי גבוה (4) כדי לתת לו חשיפה.
- *    שיר איכותי מאוד יכול לעקוף שיר עם עדיפות נמוכה, מה שיוצר תחושה טבעית יותר למשתמש.
- * 3. Random: אם הציון המשוקלל זהה, השירים יופיעו בסדר אקראי שמשתנה בכל טעינה.
+ * 1. Genre: שירים מהג'אנר שהמשתמש אוהב תמיד יופיעו לפני שירים אחרים.
+ * 2. Priority: בתוך הג'אנר, שירים עם עדיפות גבוהה יותר יופיעו קודם.
+ * 3. Random: שירים עם אותה רמת עדיפות יופיעו בסדר אקראי שמשתנה בכל טעינה.
  */
 export function feedOrderAlgorithm<T extends SongWithStats>(
     songs: T[],
     preferredGenres: string[]
 ): T[] {
-    // First random all songs
+    // First random all songs to ensure randomness within same priority groups
     const randomized = [...songs].sort(() => Math.random() - 0.5);
 
-    const calculateScore = (s: T) => {
-        // A song with no feedback is considered high quality
-        const quality = s.totalFeedbacks === 0 ? 4 : s.averageRating;
-        // The formula: priority (0-anyNumber) + quality (0-5) multiplied by 10 (which gives up to 50 bonus points)
-        return s.priority + (quality * 10);
-    };
-
     return [...randomized].sort((a, b) => {
-        // Genre first
+        // 1. Genre match first
         if (preferredGenres.length > 0) {
             const aMatch = preferredGenres.includes(a.genre) ? 0 : 1;
             const bMatch = preferredGenres.includes(b.genre) ? 0 : 1;
             if (aMatch !== bMatch) return aMatch - bMatch;
         }
 
-        // Score Sort
-        const aScore = calculateScore(a);
-        const bScore = calculateScore(b);
-        if (aScore !== bScore) return bScore - aScore;
+        // 2. Priority Sort (High to Low)
+        if (a.priority !== b.priority) {
+            return b.priority - a.priority;
+        }
 
-        return 0; // Keep the original random order
+        // 3. Keep the original random order for ties
+        return 0;
     });
 }
 

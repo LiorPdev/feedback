@@ -1,5 +1,6 @@
 import { getFeedSongs } from "@/app/actions/songs";
 import FeedContainer from "./FeedContainer";
+import FeedInfoFooter from "./FeedInfoFooter";
 import styles from "./feed.module.css";
 import { getDb } from "@/lib/db";
 import { syncUser } from "@/lib/user-auth";
@@ -63,6 +64,7 @@ export default async function GiveFeedbackFeedPage({
           backHome={backHome === 'true'}
           isLoggedIn={!!dbUser}
         />
+        <FeedInfoFooter />
       </main>
     </div>
   );
