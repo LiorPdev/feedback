@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Star, AlertCircle, Gift } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import { addFeedback, getUserTokens } from "@/app/actions/songs";
 import { REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_PER_COMMENT_STEP, COMMENT_STEP_LENGTH, MIN_COMMENT_LENGTH, MAX_COMMENT_LENGTH } from "@/lib/constants";
 import styles from "./FeedbackForm.module.css";
@@ -44,14 +44,14 @@ export default function FeedbackForm({
   const [comment, setComment] = useState(initialSource === "top-rated" ? "שמעתי את השיר ב 10 הגדולים" : "");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
-  const [flyers, setFlyers] = useState<{ id: number; x: number; y: number; tx: number; ty: number; value: number; ox?: number; oy?: number }[]>([]);
+  const [flyers, setFlyers] = useState<{ id: number; x: number; y: number; tx: number; ty: number; value: number }[]>([]);
   const bucketRef = useRef<HTMLDivElement>(null);
   const flyerIdRef = useRef(0);
   const [userTokens, setUserTokens] = useState<number>(0);
   const [isGiftPopupOpen, setIsGiftPopupOpen] = useState(false);
   const { isUtmMode } = useUtmMode();
 
-  const triggerFlyer = useCallback((x: number, y: number, value: number, targetX?: number, targetY?: number, initialOffsetX = 0, initialOffsetY = 0) => {
+  const triggerFlyer = useCallback((x: number, y: number, value: number, targetX?: number, targetY?: number) => {
     let finalX = targetX;
     let finalY = targetY;
 
@@ -73,32 +73,16 @@ export default function FeedbackForm({
       y: y + jitter(),
       tx: finalX + jitter(),
       ty: finalY + jitter(),
-      ox: initialOffsetX,
-      oy: initialOffsetY,
       value
     }]);
 
-    // Cleanup after animation finishes (safety timeout)
-    setTimeout(() => {
-      setFlyers(prev => prev.filter(f => f.id !== id));
-    }, 2000);
+    // Flyers are cleaned up via onAnimationComplete in the render loop
   }, []);
 
   const [listenCredits, setListenCredits] = useState(0);
-  const playRewardGivenRef = useRef(false);
   const playTimeSecondsRef = useRef(0);
 
   useEffect(() => {
-    if (isPlaying && !playRewardGivenRef.current) {
-      playRewardGivenRef.current = true;
-      setTimeout(() => setListenCredits(prev => prev + 1), 0);
-
-      if (bucketRef.current) {
-        const bucketRect = bucketRef.current.getBoundingClientRect();
-        triggerFlyer(bucketRect.left + bucketRect.width / 2, bucketRect.top - 60, 1, bucketRect.left + bucketRect.width / 2, bucketRect.top + bucketRect.height / 2, -40, 50);
-      }
-    }
-
     let interval: NodeJS.Timeout;
     if (isPlaying) {
       interval = setInterval(() => {
@@ -107,17 +91,12 @@ export default function FeedbackForm({
         if (playTimeSecondsRef.current >= 5) {
           playTimeSecondsRef.current = 0; // Reset for the next 5s block
           setListenCredits(prev => prev + 1);
-
-          if (bucketRef.current) {
-            const bucketRect = bucketRef.current.getBoundingClientRect();
-            triggerFlyer(bucketRect.left + bucketRect.width / 2, bucketRect.top - 60, 1, bucketRect.left + bucketRect.width / 2, bucketRect.top + bucketRect.height / 2, -40, 50);
-          }
         }
       }, 1000);
     }
 
     return () => clearInterval(interval);
-  }, [isPlaying, triggerFlyer]);
+  }, [isPlaying]);
 
   const categories = [
     { key: "overall" as const, name: "ציון לשיר", reward: REWARD_OVERALL },
@@ -172,6 +151,27 @@ export default function FeedbackForm({
   const commentLength = comment.trim().length;
   const commentCredits = Math.floor(commentLength / COMMENT_STEP_LENGTH) * REWARD_PER_COMMENT_STEP;
   const currentCredits = earnedFromCategories + commentCredits + listenCredits;
+
+  const [displayedCredits, setDisplayedCredits] = useState(currentCredits);
+  const bucketControls = useAnimation();
+
+  // Sync displayed credits with a delay to match flyer animation (1s)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDisplayedCredits(currentCredits);
+    }, currentCredits > displayedCredits ? 1000 : 0); // Only delay when increasing (reward)
+
+    return () => clearTimeout(timer);
+  }, [currentCredits, displayedCredits]);
+
+  useEffect(() => {
+    if (displayedCredits > 0) {
+      bucketControls.start({
+        y: [0, -5, 0],
+        transition: { duration: 0.2, ease: "easeOut" }
+      });
+    }
+  }, [displayedCredits, bucketControls]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -300,7 +300,7 @@ export default function FeedbackForm({
                 <p className={styles.successScoreLabel}>
                   <span className={styles.successScoreText}>הדירוג שלי לשיר: </span>
                   <span className={styles.successScoreValue}>
-                    {((ratings.cat2 + ratings.cat3 + ratings.overall) / 3).toFixed(1)}
+                    {currentAverage.toFixed(1)}
                   </span>
                 </p>
                 <p className={styles.successScoreLabel}>
@@ -390,42 +390,36 @@ export default function FeedbackForm({
           <div className={styles.submitWrapper}>
             <div className={styles.bucketWrapper}>
               <div ref={bucketRef} style={{ display: 'inline-flex', position: 'relative' }}>
-                <AnimatePresence mode="popLayout">
-                  <motion.div
-                    key={currentCredits}
-                    initial={{ scale: 0.5, opacity: 0, y: 10 }}
-                    animate={{ scale: 1, opacity: 1, y: 0 }}
-                    exit={{ scale: 0.5, opacity: 0, y: -10 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                    className={styles.bucketContainer}
+                <motion.div
+                  animate={bucketControls}
+                  className={styles.bucketContainer}
+                >
+                  <svg
+                    width="44"
+                    height="44"
+                    viewBox="0 0 44 44"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className={styles.bucketSvg}
                   >
-                    <svg
-                      width="44"
-                      height="44"
-                      viewBox="0 0 44 44"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      className={styles.bucketSvg}
-                    >
-                      {/* Token Depth/Edge */}
-                      <circle cx="22" cy="24" r="18" fill="currentColor" fillOpacity="0.05" />
+                    {/* Token Depth/Edge */}
+                    <circle cx="22" cy="24" r="18" fill="currentColor" fillOpacity="0.05" />
 
-                      {/* Token Face */}
-                      <circle
-                        cx="22"
-                        cy="20"
-                        r="18"
-                        fill="white"
-                        stroke="currentColor"
-                        strokeWidth="1"
-                        strokeOpacity="0.2"
-                      />
-                    </svg>
-                    <span className={styles.bucketValue}>
-                      +<AnimatedTokenCounter value={currentCredits} />
-                    </span>
-                  </motion.div>
-                </AnimatePresence>
+                    {/* Token Face */}
+                    <circle
+                      cx="22"
+                      cy="20"
+                      r="18"
+                      fill="white"
+                      stroke="currentColor"
+                      strokeWidth="1"
+                      strokeOpacity="0.2"
+                    />
+                  </svg>
+                  <span className={styles.bucketValue}>
+                    +<AnimatedTokenCounter value={displayedCredits} />
+                  </span>
+                </motion.div>
               </div>
             </div>
 
@@ -448,16 +442,14 @@ export default function FeedbackForm({
           <motion.div
             key={flyer.id}
             initial={{
-              x: flyer.x + (flyer.ox || 0),
-              y: flyer.y + (flyer.oy || 0),
-              opacity: 0,
-              scale: 0.5
+              x: flyer.x,
+              y: flyer.y,
+              opacity: 0
             }}
             animate={{
               x: flyer.tx,
               y: flyer.ty,
-              opacity: [0, 1, 1, 0.8],
-              scale: [0.5, 1.5, 1],
+              opacity: [0, 1, 1, 0.8]
             }}
             transition={{
               duration: 1.0,

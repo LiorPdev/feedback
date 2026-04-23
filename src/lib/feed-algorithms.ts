@@ -20,25 +20,26 @@ export function feedOrderAlgorithm<T extends SongWithStats>(
     songs: T[],
     preferredGenres: string[]
 ): T[] {
-    // First random all songs to ensure randomness within same priority groups
-    const randomized = [...songs].sort(() => Math.random() - 0.5);
+    // We map songs to include a random "jitter score" to allow for soft sorting.
+    // This ensures high-priority songs usually appear first, but provides variety.
+    const scoredSongs = songs.map(song => ({
+        song,
+        // Priority + random noise (0-1.5). 
+        // This allows a priority 1 song to occasionally beat a priority 2 song.
+        softScore: song.priority + (Math.random() * 1.5)
+    }));
 
-    return [...randomized].sort((a, b) => {
-        // 1. Genre match first
+    return scoredSongs.sort((a, b) => {
+        // 1. Genre match first (Strict)
         if (preferredGenres.length > 0) {
-            const aMatch = preferredGenres.includes(a.genre) ? 0 : 1;
-            const bMatch = preferredGenres.includes(b.genre) ? 0 : 1;
+            const aMatch = preferredGenres.includes(a.song.genre) ? 0 : 1;
+            const bMatch = preferredGenres.includes(b.song.genre) ? 0 : 1;
             if (aMatch !== bMatch) return aMatch - bMatch;
         }
 
-        // 2. Priority Sort (High to Low)
-        if (a.priority !== b.priority) {
-            return b.priority - a.priority;
-        }
-
-        // 3. Keep the original random order for ties
-        return 0;
-    });
+        // 2. Sort by Soft Score (High to Low)
+        return b.softScore - a.softScore;
+    }).map(item => item.song);
 }
 
 // ----------------------------------------------------
