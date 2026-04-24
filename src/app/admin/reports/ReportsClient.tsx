@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { getAdminSongsReport, getAdminFeedbacksReport, getAdminUsersReport, getAdminLogsReport, getAdminTopRatedReport, deleteAdminFeedback, deleteAdminSong } from '@/app/actions/admin';
-import { ArrowUpDown, ArrowUp, ArrowDown, Trash2, Heart, MessageSquare } from 'lucide-react';
+import { ArrowUpDown, ArrowUp, ArrowDown, Trash2, Heart, Copy } from 'lucide-react';
 import styles from './reports.module.css';
 
 type ReportType = 'songs' | 'feedbacks' | 'users' | 'logs' | 'top-rated';
@@ -188,7 +188,7 @@ export function ReportsClient() {
                                     <th className={styles.checkboxCol}></th>
                                     <SortHeader label="תאריך העלאה" sortKey="createdAt" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="שם השיר" sortKey="title" sortConfig={sortConfig} onSort={handleSort} />
-                                    <SortHeader label="משתמש" sortKey="creatorName" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="אימייל" sortKey="creatorEmail" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="טוקנים" sortKey="creatorTokens" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="פידבק אחרון" sortKey="lastFeedbackAt" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="#פידבקים" sortKey="feedbackCount" sortConfig={sortConfig} onSort={handleSort} />
@@ -204,7 +204,6 @@ export function ReportsClient() {
                                     <SortHeader label="דירוגים" sortKey="overall" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="לייק" sortKey="isLiked" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="הערה" sortKey="comment" sortConfig={sortConfig} onSort={handleSort} />
-                                    <th style={{ width: '80px', textAlign: 'center' }}>לשיר</th>
                                 </tr>
                             ) : reportType === 'top-rated' ? (
                                 <tr>
@@ -260,21 +259,24 @@ export function ReportsClient() {
                                             </td>
                                             <td>{formatDate(item.createdAt)}</td>
                                             <td>{item.title}</td>
-                                            <td>{item.creatorName || item.creatorEmail}</td>
+                                            <td>{item.creatorEmail}</td>
                                             <td style={{ textAlign: 'center' }}>{item.creatorTokens}</td>
                                             <td>{item.lastFeedbackAt ? formatDate(item.lastFeedbackAt) : '-'}</td>
                                             <td style={{ textAlign: 'center' }}>{item.feedbackCount}</td>
                                             <td style={{ textAlign: 'center' }}>
-                                                <a
-                                                    href={`/give-feedback/${item.slug}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
+                                                <button
                                                     className={styles.feedbackBtn}
-                                                    title="תן פידבק"
-                                                    onClick={(e) => e.stopPropagation()}
+                                                    title="העתק קישור (עוקף רישום)"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        const url = `${window.location.origin}/give-feedback/${item.slug}?utm_source=workaround`;
+                                                        navigator.clipboard.writeText(url);
+                                                        alert('הקישור הועתק לזיכרון');
+                                                    }}
+                                                    style={{ border: 'none', cursor: 'pointer' }}
                                                 >
-                                                    <MessageSquare size={18} />
-                                                </a>
+                                                    <Copy size={18} />
+                                                </button>
                                             </td>
                                         </>
                                     )}
@@ -319,18 +321,6 @@ export function ReportsClient() {
                                                     {item.comment}
                                                 </div>
                                             </td>
-                                            <td style={{ textAlign: 'center' }}>
-                                                <a
-                                                    href={`/give-feedback/${item.songSlug}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className={styles.feedbackBtn}
-                                                    title="תן פידבק"
-                                                    onClick={(e) => e.stopPropagation()}
-                                                >
-                                                    <MessageSquare size={18} />
-                                                </a>
-                                            </td>
                                         </>
                                     )}
                                     {reportType === 'top-rated' && (
@@ -347,16 +337,19 @@ export function ReportsClient() {
                                                 {typeof item.finalScore === 'number' ? item.finalScore.toFixed(4) : item.finalScore}
                                             </td>
                                             <td style={{ textAlign: 'center' }}>
-                                                <a
-                                                    href={`/give-feedback/${item.slug}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
+                                                <button
                                                     className={styles.feedbackBtn}
-                                                    title="תן פידבק"
-                                                    onClick={(e) => e.stopPropagation()}
+                                                    title="העתק קישור (עוקף רישום)"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        const url = `${window.location.origin}/give-feedback/${item.slug}?utm_source=workaround`;
+                                                        navigator.clipboard.writeText(url);
+                                                        alert('הקישור הועתק לזיכרון');
+                                                    }}
+                                                    style={{ border: 'none', cursor: 'pointer' }}
                                                 >
-                                                    <MessageSquare size={18} />
-                                                </a>
+                                                    <Copy size={18} />
+                                                </button>
                                             </td>
                                         </>
                                     )}

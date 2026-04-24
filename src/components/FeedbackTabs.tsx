@@ -227,7 +227,7 @@ export default function FeedbackTabs({
                               className={`${styles.likeBtn} ${fb.isLiked || optimisticLiked.has(fb.id) ? styles.liked : ""}`}
                               onClick={() => handleToggleLike(fb.id, fb.isLiked || optimisticLiked.has(fb.id))}
                               disabled={isPending}
-                              title={(fb.isLiked || optimisticLiked.has(fb.id)) ? "ביטול" : "סמנו לייק רק אם התוכן קידם אתכם או עזר לכם בפועל"}
+                              title={(fb.isLiked || optimisticLiked.has(fb.id)) ? "ביטול" : "סמנו אהבתי רק אם התוכן קידם אתכם או עזר לכם בפועל"}
                               whileHover={{ scale: 1.2 }}
                               whileTap={{ scale: 2 }}
                               transition={{ type: "spring", stiffness: 200, damping: 10 }}
