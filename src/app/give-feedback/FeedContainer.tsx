@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Play, SquareStop, CheckCircle2, Coins, Loader2 } from "lucide-react";
+import { Play, SquareStop, Coins, Loader2 } from "lucide-react";
 import FeedbackForm from "@/components/FeedbackForm";
 import UrlPlayer, { getEmbedUrl, type UrlPlayerHandle } from "@/components/UrlPlayer";
 import DashboardLink from "@/components/DashboardLink";
@@ -16,7 +16,6 @@ import RegistrationGate from "@/components/RegistrationGate";
 import Typewriter from "@/components/Typewriter";
 import { useUtmMode } from "@/hooks/useUtmMode";
 import { isYouTubeUrl, isAudioUrl } from "@/lib/song-validation";
-import { getRatingText } from "@/lib/utils";
 import styles from "./feed.module.css";
 
 function formatTime(timeInSeconds: number) {
@@ -436,23 +435,14 @@ export default function FeedContainer({
             />
           )}
 
-
           {hasRatedCurrent && initialFeedback && (
             <div className={styles.ratedContainer}>
               <div className={styles.ratedHeader}>
-                <CheckCircle2 size={18} />
                 <span>כבר נתת פידבק על השיר 👑</span>
               </div>
 
               <div className={styles.ratedGrid}>
                 <div className={styles.ratedItem}>
-                  <span className={styles.ratedLabel}>התרשמות כללית: {getRatingText(initialFeedback.overall)}</span>
-                  <div className={styles.ratedSliderBar}>
-                    <div
-                      className={styles.ratedSliderFill}
-                      style={{ width: `${((initialFeedback.overall - 1) / 9) * 100}%` }}
-                    />
-                  </div>
                   <span className={styles.ratedSliderValue}>{initialFeedback.overall}/10</span>
                 </div>
               </div>

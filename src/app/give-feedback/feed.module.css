@@ -321,75 +321,10 @@
   gap: 4px;
 }
 
-.ratedLabel {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--text-muted);
-}
-
-.ratedStars {
-  display: flex;
-  gap: 2px;
-  color: #fbbf24;
-}
-
-.ratedSliderBar {
-  width: 140px;
-  height: 8px;
-  border-radius: 999px;
-  background: linear-gradient(to right, #ef4444, #3b82f6);
-  position: relative;
-  overflow: hidden;
-}
-
-.ratedSliderFill {
-  position: absolute;
-  top: 0;
-  right: 0;
-  height: 100%;
-  background: rgba(0,0,0,0.18);
-  border-radius: 0 999px 999px 0;
-}
-
 .ratedSliderValue {
   font-size: 0.85rem;
   font-weight: 700;
   color: var(--brand-primary);
-}
-
-.ratedStatsContainer {
-  padding: 1rem 1.5rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  display: grid;
-  grid-template-columns: auto auto;
-  column-gap: 12px;
-  row-gap: 5px;
-  justify-items: start;
-  align-items: center;
-  width: fit-content;
-  margin: 0 auto;
-}
-
-.ratedStatsTitle {
-  display: contents;
-  margin: 0;
-}
-
-.ratedStatsValue {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-main);
-  white-space: nowrap;
-  grid-column: 2;
-}
-
-.ratedStatsLabel {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  white-space: nowrap;
-  grid-column: 1;
 }
 
 .ratedComment {
@@ -424,14 +359,6 @@
   color: var(--text-main);
 }
 
-.loadingSpinner {
-  width: 18px;
-  height: 18px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  border-top-color: white;
-  animation: spin 0.8s linear infinite;
-}
 
 @keyframes spin {
   to {
@@ -448,15 +375,6 @@
   margin-bottom: 0.5rem;
 }
 
-.authLockOverlay {
-  width: 100%;
-  margin-top: 1.5rem;
-  padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 20px;
-  border: 1px dashed var(--border-color);
-  animation: fadeIn 0.5s ease-out;
-}
 
 
 @media (max-width: 700px),

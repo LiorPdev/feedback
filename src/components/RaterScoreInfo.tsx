@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, Heart, Meh } from "lucide-react";
 import InfoTooltip from "./InfoTooltip";
 import RaterBadge from "./RaterBadge";
 import styles from "./RaterScoreInfo.module.css";
@@ -56,6 +56,12 @@ export default function RaterScoreInfo({
           <div className={styles.tooltipContent}>
             <ul className={styles.formulaLegend}>
               <li>לפי כמות ואורך הפידבקים ששלחת</li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                לפי שביעות רצון האמן
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', color: 'var(--text-muted)' }}>
+                  (<Heart size={14} /> / <Meh size={14} />)
+                </span>
+              </li>
             </ul>
           </div>
         }
