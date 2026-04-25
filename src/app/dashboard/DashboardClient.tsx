@@ -25,8 +25,6 @@ interface DashboardSong {
   isActive: boolean;
   feedbacks?: {
     id: string;
-    cat2: number;
-    cat3: number;
     overall: number;
     playedSeconds: number | null;
     isUnlocked: boolean;
@@ -96,20 +94,16 @@ const FeedbackItem = memo(function FeedbackItem({ fb, isActive, onActivate }: Fe
       </div>
 
       <div className={styles.myFbBody}>
-        {fb.playedSeconds && fb.playedSeconds > 0 && (
-          <div className={styles.myFbPlaytime}>
-            <strong className={styles.myFbLabel}>זמן האזנה:</strong>{" "}
-            {formatSeconds(fb.playedSeconds)}
-          </div>
+        {fb.overall !== null && fb.overall > 0 && (
+          <span className={styles.myFbOverall}>
+            דירוג השיר: {fb.overall}
+          </span>
         )}
 
-        {(fb.cat2 > 0 || fb.cat3 > 0 || fb.overall > 0) && (
-          <div className={styles.myFbRatingsRow}>
-            <strong className={styles.myFbRatingLabel}>דירוג:</strong>
-            <span className={styles.myFbOverallBadge}><strong className={styles.myFbLabel}>ציון לשיר:</strong>{" "}{fb.overall}</span>
-            <span><strong className={styles.myFbLabel}>הפקה:</strong>{" "}{fb.cat2}</span>
-            <span><strong className={styles.myFbLabel}>שירה:</strong>{" "}{fb.cat3}</span>
-          </div>
+        {fb.playedSeconds !== null && fb.playedSeconds > 0 && (
+          <span className={styles.myFbPlaytime}>
+            זמן האזנה: {formatSeconds(fb.playedSeconds)}
+          </span>
         )}
 
         {commentParts && (
@@ -159,7 +153,7 @@ export default function DashboardClient({
   const urlTab = searchParams.get('tab') as "songs" | "insights" | "myFeedbacks" | null;
   const activeTab = urlTab || (onlyFeedbacksGiven ? "myFeedbacks" : "songs");
 
-  const [chartType, setChartType] = useState<"categories" | "retention" | "trueRating" | "overallCategories">("trueRating");
+  const [chartType, setChartType] = useState<"retention" | "trueRating">("trueRating");
 
   const handleTabChange = useCallback((tab: "songs" | "insights" | "myFeedbacks") => {
     const params = new URLSearchParams(searchParams.toString());
@@ -245,14 +239,12 @@ export default function DashboardClient({
               className={styles.chartSelector}
               value={chartType}
               onChange={(e) => {
-                setChartType(e.target.value as "categories" | "retention" | "trueRating" | "overallCategories");
+                setChartType(e.target.value as "retention" | "trueRating");
                 e.target.blur();
               }}
             >
               <option value="trueRating">מדד איכות משוקלל</option>
               <option value="retention">מדד האזנה</option>
-              <option value="categories">לפי קטגוריית דירוג</option>
-              <option value="overallCategories">ממוצע לפי קטגוריה</option>
             </select>
 
             {hasAnyData ? (

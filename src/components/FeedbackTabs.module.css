@@ -51,54 +51,27 @@
   color: var(--text-muted);
 }
 
-.fbRatingsRow {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  align-items: center;
-  margin-bottom: 1.25rem;
-}
-
-.fbRatingLabel {
-  font-size: 0.85rem;
-  font-weight: 800;
-  color: var(--text-muted);
-  margin-left: 0.25rem;
-}
-
-.fbLabel {
-  font-weight: 800;
-  margin-left: 0.20rem;
-}
-
-.fbRatingsRow span:not(.fbRatingLabel) {
-  font-size: 0.8rem;
-  font-weight: 400;
-  color: var(--text-muted);
-  background: var(--card-bg);
-  padding: 0.35rem 0.7rem;
-  border-radius: 100px;
-  border: 1px solid var(--border-color);
-}
-
-.fbOverallBadge {
-  color: var(--brand-primary) !important;
-  border-color: var(--brand-light) !important;
-  background: var(--brand-bg) !important;
-}
-
-.fbPlaytime {
-  font-size: 0.85rem !important;
-  color: var(--text-muted) !important;
-  display: flex !important;
-  align-items: center !important;
-}
-
-.fbHeaderBadges {
+.headerMetrics {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
   align-items: flex-start;
+  gap: 1rem;
+}
+
+.listenDuration {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--brand-primary);
+  display: flex;
+  align-items: center;
+}
+
+.listenTime {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
 }
 
 .fbRaterScore {
@@ -301,8 +274,9 @@
 
 .fbFooter {
   display: flex;
-  justify-content: flex-end;
-  margin-top: 0.5rem;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
   width: 100%;
 }
 
@@ -313,16 +287,5 @@
 
   .feedbackItem {
     padding: 1.2rem;
-  }
-
-  .fbRatingsRow {
-    display: flex;
-    gap: 0.4rem;
-  }
-}
-
-@media (max-width: 420px) {
-  .fbRatingLabel {
-    display: none;
   }
 }

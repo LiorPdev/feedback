@@ -9,7 +9,7 @@ import { unlockFeedback } from "@/app/actions/feedback";
 import { UNLOCK_FEEDBACK_COST, LIKE_FEEDBACK_REWARD } from "@/lib/constants";
 import Link from "next/link";
 import styles from "./FeedbackTabs.module.css";
-import { Heart } from "lucide-react";
+import { Heart, Meh } from "lucide-react";
 import { likeFeedback, unlikeFeedback } from "@/app/actions/feedback";
 import Tooltip from "@/components/Tooltip";
 
@@ -19,8 +19,6 @@ interface FeedbackItem {
   createdAt: string;
   authorGenre: string | null;
   isUnlocked: boolean;
-  cat2: number | null;
-  cat3: number | null;
   overall: number | null;
   comment: string | null;
   authorRaterScore?: number;
@@ -38,7 +36,6 @@ interface ListenEvent {
 interface FeedbackTabsProps {
   feedbacks: FeedbackItem[];
   listenEvents: ListenEvent[];
-  listenAvgSeconds: number;
   currentTokens: number;
   isOwner?: boolean;
   initialTab?: string;
@@ -47,15 +44,13 @@ function formatSeconds(seconds: number | null | undefined) {
   if (!seconds || isNaN(seconds) || seconds <= 0) return null;
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
-  const label = <strong className={styles.fbLabel}>זמן האזנה:</strong>;
-  if (m === 0) return <>{label} {s} שנ&apos;</>;
-  return <>{label} {m}:{s.toString().padStart(2, "0")}</>;
+  if (m === 0) return `${s} שנ'`;
+  return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
 export default function FeedbackTabs({
   feedbacks,
   listenEvents,
-  listenAvgSeconds,
   currentTokens,
   isOwner = false,
   initialTab = "feedbacks",
@@ -176,22 +171,31 @@ export default function FeedbackTabs({
                 return (
                   <div key={fb.id} className={`${styles.feedbackItem} ${!isActuallyUnlocked ? styles.lockedFeedback : ""}`}>
                     <div className={!isActuallyUnlocked ? styles.lockedContent : ""}>
-                      {(() => {
-                        const formatted = formatSeconds(fb.playedSeconds);
-                        return (
-                          <div className={styles.fbHeader}>
-                            {formatted && <span className={styles.fbPlaytime}>{formatted}</span>}
-                            <span className={styles.fbDate}>
-                              {new Date(fb.createdAt).toLocaleDateString("he-IL")}
+                      <div className={styles.fbHeader}>
+                        <div className={styles.headerMetrics}>
+                          {isOwner && isActuallyUnlocked && (fb.overall || 0) > 0 && (
+                            <span className={styles.listenDuration}>
+                              דירוג השיר: {fb.overall}
                             </span>
-                          </div>
-                        );
-                      })()}
+                          )}
+                          {(() => {
+                            const formatted = formatSeconds(fb.playedSeconds);
+                            return formatted ? (
+                              <span className={styles.listenTime}>
+                                זמן האזנה: {formatted}
+                              </span>
+                            ) : null;
+                          })()}
+                        </div>
+                        <span className={styles.fbDate}>
+                          {new Date(fb.createdAt).toLocaleDateString("he-IL")}
+                        </span>
+                      </div>
 
                       <div className={styles.fbAuthorInfo}>
                         {genres.length > 0 && (
                           <div className={styles.fbRaterGenre}>
-                            <strong className={styles.fbLabel}>סגנון המדרג:</strong>{" "}
+                            סגנון המדרג:{" "}
                             <span className={styles.genreList}>
                               {genres.join(", ")}
                             </span>
@@ -204,14 +208,6 @@ export default function FeedbackTabs({
                         />
                       </div>
 
-                      {((fb.cat2 || 0) > 0 || (fb.cat3 || 0) > 0 || (fb.overall || 0) > 0) && (
-                        <div className={styles.fbRatingsRow}>
-                          <strong className={styles.fbRatingLabel}>דירוג:</strong>
-                          <span className={styles.fbOverallBadge}><strong className={styles.fbLabel}>ציון לשיר:</strong>{fb.overall}</span>
-                          <span><strong className={styles.fbLabel}>הפקה:</strong>{fb.cat2}</span>
-                          <span><strong className={styles.fbLabel}>שירה:</strong>{fb.cat3}</span>
-                        </div>
-                      )}
                       <p className={styles.fbComment}>
                         {fb.comment?.split(/(\*\*.*?\*\*)/g).map((part, i) => (
                           part.startsWith('**') && part.endsWith('**')
@@ -222,17 +218,27 @@ export default function FeedbackTabs({
 
                       {isOwner && isActuallyUnlocked && (fb.authorId) && (
                         <div className={styles.fbFooter}>
+                          <div /> {/* Spacer to maintain flex layout */}
                           <div className={styles.likeBtnContainer}>
                             <motion.button
                               className={`${styles.likeBtn} ${fb.isLiked || optimisticLiked.has(fb.id) ? styles.liked : ""}`}
                               onClick={() => handleToggleLike(fb.id, fb.isLiked || optimisticLiked.has(fb.id))}
                               disabled={isPending}
-                              title={(fb.isLiked || optimisticLiked.has(fb.id)) ? "ביטול" : "סמנו אהבתי רק אם התוכן קידם אתכם או עזר לכם בפועל"}
+                              title={(fb.isLiked || optimisticLiked.has(fb.id)) ? "ביטול" : "סמנו אהבתי רק אם הפידבק קידם אתכם או עזר לכם בפועל"}
                               whileHover={{ scale: 1.2 }}
                               whileTap={{ scale: 2 }}
                               transition={{ type: "spring", stiffness: 200, damping: 10 }}
                             >
                               <Heart size={18} fill={(fb.isLiked || optimisticLiked.has(fb.id)) ? "currentColor" : "none"} />
+                            </motion.button>
+                            <motion.button
+                              className={styles.likeBtn}
+                              style={{ marginRight: '8px', display: 'none' }}
+                              whileHover={{ scale: 1.2 }}
+                              whileTap={{ scale: 2 }}
+                              title="הפידבק לא כל כך עזר לי"
+                            >
+                              <Meh size={18} />
                             </motion.button>
                             <Tooltip
                               show={showLikeTooltip === fb.id}
@@ -290,7 +296,6 @@ export default function FeedbackTabs({
       {activeTab === "listens" && (
         <ListenTimeTab
           events={listenEvents}
-          avgSeconds={listenAvgSeconds}
         />
       )}
     </>

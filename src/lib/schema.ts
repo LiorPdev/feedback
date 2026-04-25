@@ -49,9 +49,9 @@ export const feedbacks = sqliteTable('Feedback', {
     songId: text('songId').notNull().references(() => songs.id, { onDelete: 'cascade' }),
     authorId: text('authorId').references(() => users.id, { onDelete: 'set null' }), // Internal system ID
     cat1: integer('cat1').notNull(),    // Currently unused
-    cat2: integer('cat2').notNull(),    // Production
-    cat3: integer('cat3').notNull(),    // Singing
-    overall: integer('overall').notNull(),
+    cat2: integer('cat2').notNull(),    // Currently unused
+    cat3: integer('cat3').notNull(),    // Currently unused
+    overall: real('overall').notNull(),
     comment: text('comment').notNull(),
     playedSeconds: integer('playedSeconds'),
     isUnlocked: integer('isUnlocked', { mode: 'boolean' }).default(false).notNull(),

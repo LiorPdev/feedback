@@ -1,6 +1,6 @@
 .fbRaterScore {
   position: relative;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: var(--text-muted);
   display: flex;
   align-items: center;
@@ -12,15 +12,6 @@
   font-weight: 600;
   color: var(--text-muted);
   opacity: 0.8;
-}
-
-.fbLabel {
-  font-weight: 800;
-  margin-left: 0.1rem;
-}
-
-.scoreValue {
-  margin-left: 0.1rem;
 }
 
 .badgeNudge {
@@ -63,16 +54,9 @@
   direction: rtl;
 }
 
-.tooltipContent p {
-  margin: 0 0 0.8rem 0;
-  font-size: 0.9rem;
-  line-height: 1.5;
-  color: var(--text-main);
-}
-
 .formulaLegend {
   padding: 0;
-  margin: 0 0 1rem 0;
+  margin: 0;
   list-style: none;
   font-size: 0.85rem;
   color: var(--text-muted);
@@ -81,15 +65,4 @@
 .formulaLegend li {
   margin-bottom: 0.5rem;
   line-height: 1.4;
-}
-
-.formulaLegend strong {
-  color: var(--brand-primary);
-  font-weight: 800;
-}
-
-.tooltipFooter {
-  font-size: 0.85rem !important;
-  color: var(--text-muted) !important;
-  margin-top: 1rem !important;
 }

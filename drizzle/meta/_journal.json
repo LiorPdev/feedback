@@ -176,6 +176,13 @@
       "when": 1776780556685,
       "tag": "0024_priorityField",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "6",
+      "when": 1777039059136,
+      "tag": "0025_overallRating2Real",
+      "breakpoints": true
     }
   ]
 }

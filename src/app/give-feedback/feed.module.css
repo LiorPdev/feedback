@@ -333,6 +333,30 @@
   color: #fbbf24;
 }
 
+.ratedSliderBar {
+  width: 140px;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(to right, #ef4444, #3b82f6);
+  position: relative;
+  overflow: hidden;
+}
+
+.ratedSliderFill {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  background: rgba(0,0,0,0.18);
+  border-radius: 0 999px 999px 0;
+}
+
+.ratedSliderValue {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--brand-primary);
+}
+
 .ratedStatsContainer {
   padding: 1rem 1.5rem;
   background: rgba(255, 255, 255, 0.05);

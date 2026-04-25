@@ -4,7 +4,7 @@ import { getDb } from '@/lib/db';
 import { syncUser } from '@/lib/user-auth';
 import { desc, eq, aliasedTable, sql, and, gt } from 'drizzle-orm';
 import { users, songs, feedbacks, logs } from '@/lib/schema';
-import { ADMIN_EMAIL, WEIGHT_PRODUCTION, WEIGHT_SINGING, WEIGHT_OVERALL, TOP_RATED_DECAY_FACTOR } from '@/lib/constants';
+import { ADMIN_EMAIL, WEIGHT_OVERALL, TOP_RATED_DECAY_FACTOR } from '@/lib/constants';
 import { logAction } from './logs';
 
 async function getAdminUser() {
@@ -33,6 +33,7 @@ export async function getAdminSongsReport() {
             createdAt: songs.createdAt,
             title: songs.title,
             slug: songs.slug,
+            url: songs.url,
             creatorName: users.name,
             creatorEmail: users.email,
             creatorTokens: users.tokens,
@@ -74,8 +75,6 @@ export async function getAdminFeedbacksReport() {
             songCreatorEmail: songCreator.email,
             authorName: rater.name,
             authorEmail: rater.email,
-            cat2: feedbacks.cat2,
-            cat3: feedbacks.cat3,
             overall: feedbacks.overall,
             comment: feedbacks.comment,
             isLiked: feedbacks.isLiked,
@@ -234,11 +233,11 @@ export async function getAdminTopRatedReport() {
     const rater = aliasedTable(users, 'rater');
     
     try {
-        const C_sql = sql<number>`(SELECT avg(f_global.cat2 * ${WEIGHT_PRODUCTION} + f_global.cat3 * ${WEIGHT_SINGING} + f_global.overall * ${WEIGHT_OVERALL}) FROM Feedback f_global WHERE f_global.overall > 0)`;
+        const C_sql = sql<number>`(SELECT avg(f_global.overall * ${WEIGHT_OVERALL}) FROM Feedback f_global WHERE f_global.overall > 0)`;
         
         // Explicitly define the weighted calculation components
         const weightSql = sql`CAST(COALESCE(${rater.raterScore}, 0) + 1.0 AS REAL)`;
-        const ratingExprSql = sql`(CAST(${feedbacks.cat2} AS REAL) * 0.3 + CAST(${feedbacks.cat3} AS REAL) * 0.3 + CAST(${feedbacks.overall} AS REAL) * 0.4)`;
+        const ratingExprSql = sql`(CAST(${feedbacks.overall} AS REAL) * ${WEIGHT_OVERALL})`;
 
         const weightedSum = sql`SUM(${weightSql} * ${ratingExprSql})`;
         const weightedCount = sql`SUM(${weightSql})`;

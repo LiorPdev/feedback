@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Star, AlertCircle, Gift } from "lucide-react";
+import { AlertCircle, Gift } from "lucide-react";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import { addFeedback, getUserTokens } from "@/app/actions/songs";
-import { REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_PER_COMMENT_STEP, COMMENT_STEP_LENGTH, MIN_COMMENT_LENGTH, MAX_COMMENT_LENGTH } from "@/lib/constants";
+import { REWARD_PER_COMMENT_STEP, COMMENT_STEP_LENGTH, MIN_COMMENT_LENGTH, MAX_COMMENT_LENGTH } from "@/lib/constants";
 import styles from "./FeedbackForm.module.css";
 import AnimatedTokenCounter from "./AnimatedTokenCounter";
 import PopupMsg from "./PopupMsg";
@@ -37,16 +37,16 @@ export default function FeedbackForm({
   isLoggedIn
 }: FeedbackFormProps) {
   const [ratings, setRatings] = useState({
-    cat2: 0,
-    cat3: 0,
-    overall: 0,
+    overall: 5.5,
   });
   const [comment, setComment] = useState(initialSource === "top-rated" ? "שמעתי את השיר ב 10 הגדולים" : "");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [hasInteractedWithSlider, setHasInteractedWithSlider] = useState(false);
   const [flyers, setFlyers] = useState<{ id: number; x: number; y: number; tx: number; ty: number; value: number }[]>([]);
   const bucketRef = useRef<HTMLDivElement>(null);
   const flyerIdRef = useRef(0);
+  const totalListenTimeRef = useRef(0);
   const [userTokens, setUserTokens] = useState<number>(0);
   const [isGiftPopupOpen, setIsGiftPopupOpen] = useState(false);
   const { isUtmMode } = useUtmMode();
@@ -92,65 +92,25 @@ export default function FeedbackForm({
           playTimeSecondsRef.current = 0; // Reset for the next 5s block
           setListenCredits(prev => prev + 1);
         }
+        totalListenTimeRef.current += 1;
       }, 1000);
     }
 
     return () => clearInterval(interval);
   }, [isPlaying]);
 
-  const categories = [
-    { key: "overall" as const, name: "ציון לשיר", reward: REWARD_OVERALL },
-    { key: "cat2" as const, name: "הפקה", reward: REWARD_PRODUCTION },
-    { key: "cat3" as const, name: "שירה", reward: REWARD_VOCALS },
-  ];
-
-  const handleRating = (key: keyof typeof ratings, value: number, e?: React.MouseEvent | React.TouchEvent) => {
-    // Determine if we're gaining a new point for this category (from 0 to >0)
-    const isGaining = ratings[key] === 0 && value > 0;
-    const isSettingToZero = ratings[key] === value;
-
-    setRatings((prev) => ({
-      ...prev,
-      [key]: isSettingToZero ? 0 : value
-    }));
-
-
+  const handleSliderChange = (value: number) => {
+    setRatings({ overall: value });
+    setHasInteractedWithSlider(true);
     if (status === "error") setStatus("idle");
-
-    if (isGaining && e) {
-      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-      const reward = categories.find(c => c.key === key)?.reward || REWARD_PRODUCTION;
-      triggerFlyer(rect.left + rect.width / 2, rect.top + rect.height / 2, reward);
-    }
-  };
-
-  const handleTouch = (e: React.TouchEvent, key: keyof typeof ratings) => {
-    const touch = e.touches[0];
-    const target = e.currentTarget as HTMLElement;
-    const rect = target.getBoundingClientRect();
-
-    // In RTL, the first star (1) is on the right. 
-    // We calculate the distance from the RIGHT edge of the container.
-    const distanceFromRight = rect.right - touch.clientX;
-    const percentage = distanceFromRight / rect.width;
-    let rating = Math.ceil(percentage * 5);
-
-    // Clamp rating between 1 and 5
-    rating = Math.max(1, Math.min(5, rating));
-
-    // Only update if it's a new value to avoid unnecessary re-renders
-    if (ratings[key] !== rating) {
-      handleRating(key, rating, e);
-    }
   };
 
   const [songStats, setSongStats] = useState<{ averageRating: number; totalFeedbacks: number } | null>(null);
 
   // Calculate live earned credits
-  const earnedFromCategories = categories.reduce((sum, cat) => sum + (ratings[cat.key] > 0 ? cat.reward : 0), 0);
   const commentLength = comment.trim().length;
   const commentCredits = Math.floor(commentLength / COMMENT_STEP_LENGTH) * REWARD_PER_COMMENT_STEP;
-  const currentCredits = earnedFromCategories + commentCredits + listenCredits;
+  const currentCredits = commentCredits + listenCredits;
 
   const [displayedCredits, setDisplayedCredits] = useState(currentCredits);
   const bucketControls = useAnimation();
@@ -176,31 +136,26 @@ export default function FeedbackForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const missingRatings = [];
-    if (ratings.cat2 === 0) missingRatings.push("הפקה");
-    if (ratings.cat3 === 0) missingRatings.push("שירה");
-    if (ratings.overall === 0) missingRatings.push("ציון לשיר");
-
     const commentTrimmed = comment.trim();
     const isCommentMissing = commentTrimmed.length === 0;
     const isCommentTooShort = !isCommentMissing && commentTrimmed.length < MIN_COMMENT_LENGTH;
-
-    if (missingRatings.length > 0 || isCommentMissing || isCommentTooShort) {
+    if (isCommentMissing || isCommentTooShort) {
       setStatus("error");
       let msg = "";
-      if (missingRatings.length > 0) {
-        msg = `חסר דירוג עבור: ${missingRatings.join(", ")}. `;
-      }
 
       if (isCommentMissing) {
-        msg += missingRatings.length > 0
-          ? "בנוסף אנא כתבו גם פידבק קצר שיאפשר לאמן ללמוד ולהשתפר."
-          : "אנא כתבו פידבק קצר לאמן. זה ממש חשוב להם.";
+        msg = "אנא כתבו פידבק קצר לאמן. זה ממש חשוב להם.";
       } else if (isCommentTooShort) {
-        msg += `התגובה קצרה מדי (מינימום ${MIN_COMMENT_LENGTH} תווים). זה ממש חשוב לאמן כדי ללמוד ולהשתפר.`;
+        msg = `התגובה קצרה מדי (מינימום ${MIN_COMMENT_LENGTH} תווים). זה ממש חשוב לאמן כדי ללמוד ולהשתפר.`;
       }
 
       setErrorMsg(msg.trim());
+      return;
+    }
+
+    if (!hasInteractedWithSlider) {
+      setStatus("error");
+      setErrorMsg("רק רגע, מה ההתרשמות שלך? הזיזו את הסליידר כדי שנדע מה הרגשת.");
       return;
     }
 
@@ -211,12 +166,14 @@ export default function FeedbackForm({
     if (getPlayedSeconds) {
       playedSeconds = await getPlayedSeconds();
     }
+    // Fallback to internal tracker if player returns 0 or less
+    if (playedSeconds <= 0 && totalListenTimeRef.current > 0) {
+      playedSeconds = totalListenTimeRef.current;
+    }
 
     try {
       const result = await addFeedback({
         songId,
-        cat2: ratings.cat2,
-        cat3: ratings.cat3,
         overall: ratings.overall,
         comment: commentTrimmed,
         playedSeconds,
@@ -268,8 +225,8 @@ export default function FeedbackForm({
     }
   };
 
-  const currentAverage = ((ratings.cat2 + ratings.cat3 + ratings.overall) / 3);
-  const showGiftButton = !isUtmMode && currentAverage >= 4;
+  const currentAverage = ratings.overall;
+  const showGiftButton = !isUtmMode && currentAverage >= 7;
 
   return (
     <div className={styles.form}>
@@ -281,11 +238,7 @@ export default function FeedbackForm({
           onClose={() => {
             setStatus("idle");
             setSongStats(null);
-            setRatings({
-              cat2: 0,
-              cat3: 0,
-              overall: 0,
-            });
+            setRatings({ overall: 0 });
             setComment("");
             onPopupClose?.();
           }}
@@ -298,14 +251,14 @@ export default function FeedbackForm({
             songStats && (
               <div className={styles.successStats}>
                 <p className={styles.successScoreLabel}>
-                  <span className={styles.successScoreText}>הדירוג שלי לשיר: </span>
+                  <span className={styles.successScoreText}>הציון שלי: </span>
                   <span className={styles.successScoreValue}>
-                    {currentAverage.toFixed(1)}
+                    {Math.round(currentAverage * 2) / 2}/10
                   </span>
                 </p>
                 <p className={styles.successScoreLabel}>
-                  <span className={styles.successScoreText}>דירוג הקהילה לשיר: </span>
-                  <span className={styles.successScoreValue}>{songStats.averageRating.toFixed(1)}</span>
+                  <span className={styles.successScoreText}>ממוצע הקהילה: </span>
+                  <span className={styles.successScoreValue}>{songStats.averageRating.toFixed(1)}/10</span>
                 </p>
               </div>
             )
@@ -323,40 +276,15 @@ export default function FeedbackForm({
         />
 
         <form onSubmit={handleSubmit}>
-          <div className={styles.ratingGrid}>
-            {categories.map((cat) => (
-              <div key={cat.key} className={styles.ratingGroup}>
-                <label className={styles.ratingLabel}>
-                  {cat.name}
-                </label>
-                <div
-                  className={styles.stars}
-                  onTouchMove={(e) => handleTouch(e, cat.key)}
-                >
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      className={`${styles.starBtn} ${ratings[cat.key] >= star ? styles.starFilled : ""}`}
-                      onClick={(e) => handleRating(cat.key, star, e)}
-                    >
-                      <Star
-                        size={18 + (star - 1) * 1.5}
-                        fill={ratings[cat.key] >= star ? "currentColor" : "none"}
-                        strokeWidth={1.5}
-                      />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-
+          {/* Text feedback first */}
           <div className={styles.commentGroup}>
+            <label className={styles.commentLabel}>
+              הפידבק שלך עוזר לאמן להשתפר. כתבו בכנות: מה עבד לכם ומה הרגיש פחות מדויק.
+            </label>
             <div className={styles.textareaWrapper}>
               <textarea
                 className={styles.textarea}
-                placeholder={`הוסיפו כמה מילים על מה שאהבתם ומה כדאי לשפר.`}
+                placeholder={`מה תפס אתכם בשיר? (לחן, מילים, שירה). מה הייתם משנים כדי לקחת אותו לשלב הבא? `}
                 maxLength={MAX_COMMENT_LENGTH}
                 value={comment}
                 onChange={(e) => {
@@ -384,6 +312,28 @@ export default function FeedbackForm({
               {comment.length < MIN_COMMENT_LENGTH
                 ? `עוד ${MIN_COMMENT_LENGTH - comment.length} תווים למינימום נדרש`
                 : `${comment.length} / ${MAX_COMMENT_LENGTH}`}
+            </div>
+          </div>
+
+          {/* Overall impression slider */}
+          <div className={styles.sliderGroup}>
+            <label className={styles.sliderLabel}>התרשמות כללית</label>
+            <div className={styles.sliderRow}>
+              <span className={styles.sliderIcon}>❤️</span>
+              <input
+                type="range"
+                min={1}
+                max={10}
+                step={0.1}
+                value={ratings.overall || 5.5}
+                className={styles.sliderInput}
+                style={{
+                  background: `hsl(${(ratings.overall - 1) * 120 / 9}, 80%, ${50 + Math.max(0, 48 - Math.abs(((ratings.overall - 1) * 120 / 9) - 60))
+                    }%)`
+                }}
+                onChange={(e) => handleSliderChange(parseFloat(e.target.value))}
+              />
+              <span className={styles.sliderIcon}>👎</span>
             </div>
           </div>
 

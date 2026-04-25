@@ -7,6 +7,13 @@ import { syncUser } from "@/lib/user-auth";
 
 export const dynamic = "force-dynamic";
 
+interface Feedback {
+  id: string;
+  overall: number;
+  comment: string;
+  createdAt: string;
+}
+
 export default async function GiveFeedbackFeedPage({
   searchParams,
 }: {
@@ -28,15 +35,6 @@ export default async function GiveFeedbackFeedPage({
         </div>
       </div>
     );
-  }
-
-  interface Feedback {
-    id: string;
-    cat2: number;
-    cat3: number;
-    overall: number;
-    comment: string;
-    createdAt: string;
   }
 
   let initialFeedback: Feedback | null = null;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { HelpCircle, Heart } from "lucide-react";
+import { HelpCircle } from "lucide-react";
 import InfoTooltip from "./InfoTooltip";
 import RaterBadge from "./RaterBadge";
 import styles from "./RaterScoreInfo.module.css";
@@ -24,7 +24,7 @@ export default function RaterScoreInfo({
 
   return (
     <span className={`${styles.fbRaterScore} ${className}`}>
-      <strong className={styles.fbLabel}>{label}:</strong>
+      <span>{label}:</span>
       <button
         ref={triggerRef}
         className={styles.triggerButton}
@@ -55,12 +55,8 @@ export default function RaterScoreInfo({
         content={
           <div className={styles.tooltipContent}>
             <ul className={styles.formulaLegend}>
-              <li>לפי כמות הפידבקים ששלחת</li>
-              <li>ואחוז הפידבקים שקיבלו לייק <Heart size={14} fill="#ef4444" stroke="#ef4444" style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />.</li>
+              <li>לפי כמות ואורך הפידבקים ששלחת</li>
             </ul>
-            <p className={styles.tooltipFooter}>
-              הציון המקסימלי הוא 5.
-            </p>
           </div>
         }
       />

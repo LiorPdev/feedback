@@ -32,8 +32,6 @@ export interface GivenFeedbackItem {
   songTitle: string;
   songSlug: string;
   songUrl: string;
-  cat2: number;
-  cat3: number;
   overall: number;
   comment: string;
   playedSeconds: number | null;
@@ -60,8 +58,6 @@ export async function getMyGivenFeedbacks(): Promise<GivenFeedbackItem[]> {
       songTitle: row.song.title,
       songSlug: row.song.slug,
       songUrl: row.song.url,
-      cat2: row.cat2,
-      cat3: row.cat3,
       overall: row.overall,
       comment: row.comment,
       playedSeconds: row.playedSeconds,

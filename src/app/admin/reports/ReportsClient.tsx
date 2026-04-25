@@ -192,7 +192,7 @@ export function ReportsClient() {
                                     <SortHeader label="טוקנים" sortKey="creatorTokens" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="פידבק אחרון" sortKey="lastFeedbackAt" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="#פידבקים" sortKey="feedbackCount" sortConfig={sortConfig} onSort={handleSort} />
-                                    <th style={{ width: '80px', textAlign: 'center' }}>לשיר</th>
+                                    <th style={{ width: '80px', textAlign: 'center' }}>תן פידבק</th>
                                 </tr>
                             ) : reportType === 'feedbacks' ? (
                                 <tr>
@@ -201,7 +201,7 @@ export function ReportsClient() {
                                     <SortHeader label="שם השיר" sortKey="songTitle" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="מעלה השיר" sortKey="songCreatorName" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="שם המדרג" sortKey="authorName" sortConfig={sortConfig} onSort={handleSort} />
-                                    <SortHeader label="דירוגים" sortKey="overall" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="ציון" sortKey="overall" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="לייק" sortKey="isLiked" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="הערה" sortKey="comment" sortConfig={sortConfig} onSort={handleSort} />
                                 </tr>
@@ -209,14 +209,14 @@ export function ReportsClient() {
                                 <tr>
                                     <th style={{ width: '50px' }}>#</th>
                                     <SortHeader label="שם השיר" sortKey="title" sortConfig={sortConfig} onSort={handleSort} />
-                                    <SortHeader label="דירוגים" sortKey="numRatings" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="#דירוגים" sortKey="numRatings" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="ממוצע נקי" sortKey="rawAvg" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="משקל המדרגים" sortKey="weightedV" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="ניקוד מדרגים מצטבר" sortKey="weightedSum" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="Bayesian" sortKey="bayesianAvg" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="התיישנות" sortKey="decay" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="ציון סופי" sortKey="finalScore" sortConfig={sortConfig} onSort={handleSort} />
-                                    <th style={{ width: '80px', textAlign: 'center' }}>לשיר</th>
+                                    <th style={{ width: '80px', textAlign: 'center' }}>תן פידבק</th>
                                 </tr>
                             ) : reportType === 'users' ? (
                                 <tr>
@@ -258,7 +258,17 @@ export function ReportsClient() {
                                                 />
                                             </td>
                                             <td>{formatDate(item.createdAt)}</td>
-                                            <td>{item.title}</td>
+                                            <td 
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    navigator.clipboard.writeText(item.url);
+                                                    alert('קישור השיר הועתק לזיכרון');
+                                                }}
+                                                style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                                                title="העתק קישור לשיר (יוטיוב/קובץ)"
+                                            >
+                                                {item.title}
+                                            </td>
                                             <td>{item.creatorEmail}</td>
                                             <td style={{ textAlign: 'center' }}>{item.creatorTokens}</td>
                                             <td>{item.lastFeedbackAt ? formatDate(item.lastFeedbackAt) : '-'}</td>
@@ -304,9 +314,7 @@ export function ReportsClient() {
                                             </td>
                                             <td>
                                                 <div className={styles.ratings}>
-                                                    <span>ציון לשיר:{item.overall}</span>
-                                                    <span>הפקה:{item.cat2}</span>
-                                                    <span>שירה:{item.cat3}</span>
+                                                    {item.overall}
                                                 </div>
                                             </td>
                                             <td style={{ textAlign: 'center' }}>

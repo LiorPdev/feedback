@@ -72,7 +72,7 @@ export default async function DashboardPage({
 
   // Calculate global average rating (C) for Bayesian True Rating
   const globalStats = await db.select({
-    avgRating: sql<number>`avg((${feedbacks.cat2} + ${feedbacks.cat3} + ${feedbacks.overall}) / 3.0)`
+    avgRating: sql<number>`avg(${feedbacks.overall})`
   }).from(feedbacks);
   const globalAverage = globalStats[0]?.avgRating || 0;
 

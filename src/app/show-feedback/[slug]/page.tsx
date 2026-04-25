@@ -1,15 +1,14 @@
-import { getDb } from "@/lib/db";
 import { notFound, redirect } from "next/navigation";
-import styles from "./show-feedback.module.css";
-import ManualBackButton from "@/components/ManualBackButton";
-import { syncUser } from "@/lib/user-auth";
-export const dynamic = "force-dynamic";
-import DashboardLink from "@/components/DashboardLink";
-import ShareSongButton from "@/components/ShareSongButton";
-import SongPlayer from "./SongPlayer";
-import AuthOverlay from "@/components/AuthOverlay";
 import { getListenTimeEvents } from "@/app/actions/songs";
+import AuthOverlay from "@/components/AuthOverlay";
+import DashboardLink from "@/components/DashboardLink";
 import FeedbackTabs from "@/components/FeedbackTabs";
+import ManualBackButton from "@/components/ManualBackButton";
+import { getDb } from "@/lib/db";
+import { syncUser } from "@/lib/user-auth";
+import SongPlayer from "./SongPlayer";
+import styles from "./show-feedback.module.css";
+export const dynamic = "force-dynamic";
 
 interface ShowFeedbackPageProps {
   params: Promise<{ slug: string }>;
@@ -37,17 +36,24 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
   if (userId && !isOwner) redirect(`/give-feedback/${slug}`);
 
   // Averages
-  const getAverage = (key: 'cat2' | 'cat3' | 'overall') => {
+  const getAverage = (key: 'overall') => {
     const ratings = song.feedbacks.map(f => f[key] as number).filter(r => r > 0);
     if (ratings.length === 0) return null;
     return (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1);
   };
+
+  const formatSeconds = (seconds: number) => {
+    if (!seconds || seconds <= 0) return "0";
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    if (m === 0) return `${s} שנ'`;
+    return `${m}:${s.toString().padStart(2, "0")}`;
+  };
+
   const averages = {
-    cat2: getAverage('cat2'),
-    cat3: getAverage('cat3'),
     overall: getAverage('overall'),
   };
-  const hasAnyAverage = Object.values(averages).some(v => v !== null);
+  const hasAnyAverage = averages.overall !== null;
 
   // Resolve author genres for feedbacks
   const authorIds = Array.from(new Set(song.feedbacks.map(f => f.authorId).filter(Boolean))) as string[];
@@ -70,8 +76,6 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
     isUnlocked: fb.isUnlocked,
     isLiked: fb.isLiked,
     authorId: fb.authorId,
-    cat2: fb.cat2,
-    cat3: fb.cat3,
     overall: fb.overall,
     comment: fb.comment,
   }));
@@ -97,50 +101,33 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
 
             <div className={styles.titleRow}>
               <h1 className={styles.title}>{song.title}</h1>
-              <span className={styles.subDate}>
-                {new Date(song.createdAt).toLocaleDateString('he-IL')}
-              </span>
             </div>
           </div>
           <SongPlayer url={song.url} className={styles.playerOverride} />
 
           {hasAnyAverage && (
-            <div className={styles.averagesSection}>
-              <div className={styles.averagesGrid}>
-                {averages.overall && (
-                  <div className={styles.averageItem}>
-                    <span className={styles.avgLabel}>ציון לשיר</span>
-                    <span className={`${styles.avgValue} ${styles.avgOverall}`}>
-                      {averages.overall}
-                    </span>
-                  </div>
-                )}
-                {averages.cat2 && (
-                  <div className={styles.averageItem}>
-                    <span className={styles.avgLabel}>הפקה</span>
-                    <span className={`${styles.avgValue} ${styles.avgOverall}`}>{averages.cat2}</span>
-                  </div>
-                )}
-                {averages.cat3 && (
-                  <div className={styles.averageItem}>
-                    <span className={styles.avgLabel}>שירה</span>
-                    <span className={`${styles.avgValue} ${styles.avgOverall}`}>{averages.cat3}</span>
-                  </div>
-                )}
-              </div>
-              <p className={styles.weightedNote}>* ממוצע משוקלל של כל הדירוגים</p>
+            <div className={styles.averagesGrid}>
+              {averages.overall && (
+                <div className={styles.averageItem}>
+                  <span className={styles.avgLabel}>דירוג ממוצע לשיר:</span>
+                  <span className={styles.avgValue}>{averages.overall}</span>
+                </div>
+              )}
+              {listenData.avgSeconds > 0 && (
+                <div className={styles.averageItem}>
+                  <span className={styles.avgLabel}>זמן האזנה ממוצע:</span>
+                  <span className={styles.avgValue}>
+                    {formatSeconds(listenData.avgSeconds)}
+                  </span>
+                </div>
+              )}
             </div>
           )}
-
-          <div className={styles.shareWrapper}>
-            <ShareSongButton slug={song.slug} variant="large" />
-          </div>
         </div>
 
         <FeedbackTabs
           feedbacks={feedbacks}
           listenEvents={listenData.events ?? []}
-          listenAvgSeconds={listenData.avgSeconds ?? 0}
           currentTokens={currentUserRecord?.tokens ?? 0}
           isOwner={isOwner}
         />

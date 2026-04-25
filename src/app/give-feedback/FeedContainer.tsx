@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Play, SquareStop, CheckCircle2, Star, Coins, Loader2 } from "lucide-react";
+import { Play, SquareStop, CheckCircle2, Coins, Loader2 } from "lucide-react";
 import FeedbackForm from "@/components/FeedbackForm";
 import UrlPlayer, { getEmbedUrl, type UrlPlayerHandle } from "@/components/UrlPlayer";
 import DashboardLink from "@/components/DashboardLink";
@@ -40,8 +40,6 @@ interface Song {
 
 interface Feedback {
   id: string;
-  cat2: number;
-  cat3: number;
   overall: number;
   comment: string;
   createdAt: string;
@@ -89,31 +87,13 @@ export default function FeedContainer({
   const [originalFirstSongId] = useState(initialSongs[0]?.id);
   const [isJustRated, setIsJustRated] = useState(false);
   const currentSong = songs[currentIndex];
-  const getRequiredTime = useCallback(() => { return MIN_LISTEN_TIME; }, []);
-  const [secondsRemaining, setSecondsRemaining] = useState<number>(getRequiredTime());
+  const [secondsRemaining, setSecondsRemaining] = useState<number>(MIN_LISTEN_TIME);
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  const [sessionRatedSongs, setSessionRatedSongs] = useState<string[]>(() => {
-    if (typeof window === "undefined") return [];
-    try {
-      const stored = sessionStorage.getItem("ad_rated_songs");
-      return stored ? JSON.parse(stored) : [];
-    } catch (e) {
-      logAction({
-        message: "Failed to load session rated songs",
-        source: "FeedContainer",
-        data: { error: String(e) }
-      });
-      return [];
-    }
-  });
-
   const hasRatedCurrent = !isJustRated && (
-    (currentSong?.id === originalFirstSongId && !!initialFeedback) ||
-    (currentSong && sessionRatedSongs.includes(currentSong.id))
+    currentSong?.id === originalFirstSongId && !!initialFeedback
   );
-  const [userFeedback, setUserFeedback] = useState<Feedback | null>(initialFeedback || null);
   const [isTransitioning, setIsTransitioning] = useState(true); // true until player fires onReady
   const [playerError, setPlayerError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
@@ -125,19 +105,18 @@ export default function FeedContainer({
   const playerRef = useRef<UrlPlayerHandle>(null);
 
   const markSongAsRatedInSession = useCallback((songId: string) => {
-    setSessionRatedSongs(prev => {
+    try {
+      const stored = sessionStorage.getItem("ad_rated_songs");
+      const prev = stored ? JSON.parse(stored) : [];
       const next = [...new Set([...prev, songId])];
-      try {
-        sessionStorage.setItem("ad_rated_songs", JSON.stringify(next));
-      } catch (e) {
-        logAction({
-          message: "Failed to save session rated songs",
-          source: "FeedContainer",
-          data: { error: String(e) }
-        });
-      }
-      return next;
-    });
+      sessionStorage.setItem("ad_rated_songs", JSON.stringify(next));
+    } catch (e) {
+      logAction({
+        message: "Failed to save session rated songs",
+        source: "FeedContainer",
+        data: { error: String(e) }
+      });
+    }
   }, []);
 
   const embedUrl = currentSong ? getEmbedUrl(currentSong.url) : null;
@@ -170,12 +149,12 @@ export default function FeedContainer({
   }, []);
 
   const resetSongState = useCallback(() => {
-    setSecondsRemaining(getRequiredTime());
+    setSecondsRemaining(MIN_LISTEN_TIME);
     setIsTimerActive(false);
     setPlayerError(null);
     setCurrentTime(0);
     setDuration(0);
-  }, [getRequiredTime]);
+  }, []);
 
   useEffect(() => {
     if (!isTimerActive) return;
@@ -240,7 +219,6 @@ export default function FeedContainer({
   const handleSkip = () => {
     if (songs.length <= 1) return;
     resetSongState();
-    setUserFeedback(null);
     setIsJustRated(false);
     setIsPlaying(false);
     setIsTransitioning(true);
@@ -262,7 +240,6 @@ export default function FeedContainer({
 
       // Update index if needed
       resetSongState();
-      setUserFeedback(null);
       setIsJustRated(false);
       setIsPlaying(false);
       setIsTransitioning(true);
@@ -439,8 +416,7 @@ export default function FeedContainer({
               isDisabled={secondsRemaining > 0}
               initialSource={from}
               isLoggedIn={isLoggedIn}
-              onSuccess={(feedback) => {
-                setUserFeedback(feedback as Feedback);
+              onSuccess={() => {
                 setIsJustRated(true);
                 // Don't mark as rated in session yet, wait for popup to close
               }}
@@ -452,7 +428,7 @@ export default function FeedContainer({
                 handleRemoveCurrent();
               }}
               disabledMessage={
-                secondsRemaining >= getRequiredTime()
+                secondsRemaining >= MIN_LISTEN_TIME
                   ? (isLoggedIn || isGuestEligible ? `שליחת פידבק` : `שליחת פידבק (אנונימי)`)
                   : `ניתן לשלוח פידבק בעוד ${secondsRemaining} שניות${!isTimerActive ? " (מושהה)" : "..."}`
               }
@@ -460,7 +436,7 @@ export default function FeedContainer({
           )}
 
 
-          {hasRatedCurrent && userFeedback && (
+          {hasRatedCurrent && initialFeedback && (
             <div className={styles.ratedContainer}>
               <div className={styles.ratedHeader}>
                 <CheckCircle2 size={18} />
@@ -468,30 +444,21 @@ export default function FeedContainer({
               </div>
 
               <div className={styles.ratedGrid}>
-                {[
-                  { label: "ציון לשיר", value: userFeedback.overall },
-                  { label: "הפקה", value: userFeedback.cat2 },
-                  { label: "שירה", value: userFeedback.cat3 },
-                ].map((item, idx) => (
-                  <div key={idx} className={styles.ratedItem}>
-                    <span className={styles.ratedLabel}>{item.label}</span>
-                    <div className={styles.ratedStars}>
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star
-                          key={star}
-                          size={14}
-                          fill={item.value >= star ? "currentColor" : "none"}
-                          strokeWidth={2}
-                        />
-                      ))}
-                    </div>
+                <div className={styles.ratedItem}>
+                  <span className={styles.ratedLabel}>התרשמות כללית</span>
+                  <div className={styles.ratedSliderBar}>
+                    <div
+                      className={styles.ratedSliderFill}
+                      style={{ width: `${((initialFeedback.overall - 1) / 9) * 100}%` }}
+                    />
                   </div>
-                ))}
+                  <span className={styles.ratedSliderValue}>{initialFeedback.overall}/10</span>
+                </div>
               </div>
 
-              {userFeedback.comment && (
+              {initialFeedback.comment && (
                 <div className={styles.ratedComment}>
-                  {userFeedback.comment}
+                  {initialFeedback.comment}
                 </div>
               )}
             </div>

@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { eq, sql, and, notInArray, gt, aliasedTable } from 'drizzle-orm';
 import { users, songs, feedbacks, listenEvents } from '@/lib/schema';
-import { SONG_SUBMISSION_COST, REWARD_PRODUCTION, REWARD_VOCALS, REWARD_OVERALL, REWARD_PER_COMMENT_STEP, COMMENT_STEP_LENGTH, MAX_COMMENT_LENGTH, TOP_RATED_MIN_RATINGS_THRESHOLD, TOP_RATED_NOTIFICATION_COOLDOWN_DAYS, WEIGHT_PRODUCTION, WEIGHT_SINGING, WEIGHT_OVERALL, TOP_RATED_DECAY_FACTOR, MIN_SONG_DURATION_SECONDS } from '@/lib/constants';
+import { SONG_SUBMISSION_COST, REWARD_PER_COMMENT_STEP, COMMENT_STEP_LENGTH, MAX_COMMENT_LENGTH, TOP_RATED_MIN_RATINGS_THRESHOLD, TOP_RATED_NOTIFICATION_COOLDOWN_DAYS, WEIGHT_OVERALL, TOP_RATED_DECAY_FACTOR, MIN_SONG_DURATION_SECONDS } from '@/lib/constants';
 import { sendFeedbackNotification, sendTopRatedNotification } from '@/lib/mail';
 import { logToDb } from "@/lib/logger";
 import { deleteFileFromR2 } from '@/app/actions/upload';
@@ -146,8 +146,6 @@ export async function createSong(formData: FormData) {
 
 export async function addFeedback(data: {
     songId: string;
-    cat2: number;
-    cat3: number;
     overall: number;
     comment: string;
     playedSeconds?: number;
@@ -161,10 +159,10 @@ export async function addFeedback(data: {
         const [feedback] = await db.insert(feedbacks).values({
             songId: data.songId,
             authorId: dbUser?.id || null,
-            cat1: 0, // FFU - Not used but required by schema
-            cat2: data.cat2,
-            cat3: data.cat3,
-            overall: data.overall,
+            cat1: 0,
+            cat2: 0,
+            cat3: 0,
+            overall: Math.round(data.overall * 10) / 10, // Store with 1 decimal precision
             comment: sanitizeInput(data.comment).substring(0, MAX_COMMENT_LENGTH),
             playedSeconds: data.playedSeconds,
         }).returning();
@@ -180,11 +178,8 @@ export async function addFeedback(data: {
             // Calculate rewards (only for authenticated users)
             let reward = 0;
             const commentLen = data.comment.trim().length;
-            if (data.cat2 > 0) reward += REWARD_PRODUCTION;
-            if (data.cat3 > 0) reward += REWARD_VOCALS;
-            if (data.overall > 0) reward += REWARD_OVERALL;
 
-            // Dynamic comment reward: 5 points for every 15 characters
+            // Dynamic comment reward
             reward += Math.floor(commentLen / COMMENT_STEP_LENGTH) * REWARD_PER_COMMENT_STEP;
 
             if (data.listenCredits) reward += data.listenCredits;
@@ -212,7 +207,7 @@ export async function addFeedback(data: {
                     eq(feedbacks.songId, data.songId),
                     gt(feedbacks.overall, 0)
                 ),
-                columns: { cat2: true, cat3: true, overall: true }
+                columns: { overall: true }
             })
         ]);
 
@@ -231,7 +226,7 @@ export async function addFeedback(data: {
 
         const totalRatedFeedbacks = allFeedbacks.length;
         const averageRating = totalRatedFeedbacks > 0
-            ? allFeedbacks.reduce((acc, f) => acc + (f.cat2 * WEIGHT_PRODUCTION + f.cat3 * WEIGHT_SINGING + f.overall * WEIGHT_OVERALL), 0) / totalRatedFeedbacks
+            ? allFeedbacks.reduce((acc, f) => acc + (f.overall * WEIGHT_OVERALL), 0) / totalRatedFeedbacks
             : 0;
 
         // Revalidate top-rated as well since it might change
@@ -463,7 +458,7 @@ export async function getFeedSongs(firstSongSlug?: string) {
             const stats = await db.select({
                 songId: feedbacks.songId,
                 total: sql<number>`count(${feedbacks.id})`,
-                avgRating: sql<number>`avg(${feedbacks.cat2} * ${WEIGHT_PRODUCTION} + ${feedbacks.cat3} * ${WEIGHT_SINGING} + ${feedbacks.overall} * ${WEIGHT_OVERALL})`
+                avgRating: sql<number>`avg(${feedbacks.overall} * ${WEIGHT_OVERALL})`
             })
                 .from(feedbacks)
                 .where(gt(feedbacks.overall, 0))
@@ -862,7 +857,7 @@ const authorUsers = aliasedTable(users, 'authorUsers');
  */
 function getBayesianRatingSql(m: number, C: number | ReturnType<typeof sql>) {
     const weightSql = sql`CAST(COALESCE(${authorUsers.raterScore}, 0) + 1.0 AS REAL)`;
-    const ratingExprSql = sql`(CAST(${feedbacks.cat2} AS REAL) * 0.3 + CAST(${feedbacks.cat3} AS REAL) * 0.3 + CAST(${feedbacks.overall} AS REAL) * 0.4)`;
+    const ratingExprSql = sql`CAST(${feedbacks.overall} AS REAL)`;
 
     const weightedSum = sql`SUM(${weightSql} * ${ratingExprSql})`;
     const weightedCount = sql`SUM(${weightSql})`;
@@ -901,7 +896,7 @@ export async function getTopRatedSongs(): Promise<{ success: boolean; songs?: To
     try {
         // Calculate the Bayesian threshold (m) and the global average (C) as a subquery
         const m = TOP_RATED_MIN_RATINGS_THRESHOLD;
-        const C_sql = sql<number>`(SELECT avg(f_global.cat2 * ${WEIGHT_PRODUCTION} + f_global.cat3 * ${WEIGHT_SINGING} + f_global.overall * ${WEIGHT_OVERALL}) FROM Feedback f_global WHERE f_global.overall > 0)`;
+        const C_sql = sql<number>`(SELECT avg(f_global.overall * ${WEIGHT_OVERALL}) FROM Feedback f_global WHERE f_global.overall > 0)`;
 
         const weightedRatingSql = getBayesianRatingSql(m, C_sql);
 
@@ -915,7 +910,7 @@ export async function getTopRatedSongs(): Promise<{ success: boolean; songs?: To
             userId: songs.userId,
             topRatedLastNotified: songs.topRatedLastNotified,
             socialLinks: users.socialLinks,
-            averageRating: sql<number>`CAST(AVG(CAST(${feedbacks.cat2} AS REAL) * 0.3 + CAST(${feedbacks.cat3} AS REAL) * 0.3 + CAST(${feedbacks.overall} AS REAL) * 0.4) AS REAL)`,
+            averageRating: sql<number>`CAST(AVG(${feedbacks.overall}) AS REAL)`,
             totalFeedbacks: sql<number>`count(${feedbacks.id})`,
             weightedRating: weightedRatingSql
         })
@@ -963,7 +958,7 @@ export async function checkAndNotifyTopRated() {
 
         // 1. Get current Top 10 using the shared Bayesian logic
         const m = TOP_RATED_MIN_RATINGS_THRESHOLD;
-        const C_sql = sql<number>`(SELECT avg(f_global.cat2 * ${WEIGHT_PRODUCTION} + f_global.cat3 * ${WEIGHT_SINGING} + f_global.overall * ${WEIGHT_OVERALL}) FROM Feedback f_global WHERE f_global.overall > 0)`;
+        const C_sql = sql<number>`(SELECT avg(f_global.overall * ${WEIGHT_OVERALL}) FROM Feedback f_global WHERE f_global.overall > 0)`;
         const weightedRatingSql = getBayesianRatingSql(m, C_sql);
 
         const currentTop10 = await db.select({
