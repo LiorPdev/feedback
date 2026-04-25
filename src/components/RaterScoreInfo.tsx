@@ -55,12 +55,15 @@ export default function RaterScoreInfo({
         content={
           <div className={styles.tooltipContent}>
             <ul className={styles.formulaLegend}>
-              <li>לפי כמות ואורך הפידבקים ששלחת</li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                לפי שביעות רצון האמן
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', color: 'var(--text-muted)' }}>
-                  (<Heart size={14} /> / <Meh size={14} />)
-                </span>
+              <li>לפי כמות הפידבקים</li>
+              <li>לפי פירוט הפידבקים</li>
+              <li>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', verticalAlign: 'middle' }}>
+                  לפי כמות&nbsp;
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', color: 'var(--text-muted)' }}>
+                    <Heart size={14} /> / <Meh size={14} />
+                  </span>
+                </div>
               </li>
             </ul>
           </div>

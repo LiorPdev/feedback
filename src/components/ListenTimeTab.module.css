@@ -29,10 +29,10 @@
   width: 100%;
 }
 
-.fbDate {
-  font-size: 0.85rem;
+.metaText {
+  font-size: 0.9rem;
+  font-weight: 500;
   color: var(--text-muted);
-  font-weight: 700;
 }
 
 .headerMetrics {
@@ -44,16 +44,11 @@
 
 .listenDuration {
   font-size: 0.95rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--brand-primary);
   display: flex;
   align-items: center;
-}
-
-.fbRaterGenre {
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  margin-bottom: 1rem;
+  padding-left: 1rem;
 }
 
 .genreList {

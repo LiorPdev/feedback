@@ -12,9 +12,9 @@ interface Tier {
 }
 
 const TIERS: Tier[] = [
-  { min: 4.0, icon: Crown },
-  { min: 3.0, icon: Trophy },
-  { min: 2.0, icon: Star },
+  { min: 8.0, icon: Crown },
+  { min: 6.0, icon: Trophy },
+  { min: 4.0, icon: Star },
 ];
 
 interface RaterBadgeProps {

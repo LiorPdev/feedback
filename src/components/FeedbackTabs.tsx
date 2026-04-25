@@ -161,27 +161,27 @@ export default function FeedbackTabs({
                       <div className={styles.fbHeader}>
                         <div className={styles.headerMetrics}>
                           {isOwner && isActuallyUnlocked && (fb.overall || 0) > 0 && (
-                            <span className={styles.listenDuration}>
+                            <span className={styles.overallRate}>
                               התרשמות כללית: {getRatingText(fb.overall!)}
                             </span>
                           )}
                           {(() => {
                             const formatted = formatSeconds(fb.playedSeconds);
                             return formatted ? (
-                              <span className={styles.listenTime}>
+                              <span className={styles.metaText}>
                                 זמן האזנה: {formatted}
                               </span>
                             ) : null;
                           })()}
                         </div>
-                        <span className={styles.fbDate}>
+                        <span className={styles.metaText}>
                           {new Date(fb.createdAt).toLocaleDateString("he-IL")}
                         </span>
                       </div>
 
                       <div className={styles.fbAuthorInfo}>
                         {genres.length > 0 && (
-                          <div className={styles.fbRaterGenre}>
+                          <div className={styles.metaText} style={{ marginBottom: "1rem" }}>
                             סגנון המדרג:{" "}
                             <span className={styles.genreList}>
                               {genres.join(", ")}
@@ -224,9 +224,9 @@ export default function FeedbackTabs({
                             </motion.button>
                             <motion.button
                               className={styles.likeBtn}
-                              style={{ 
+                              style={{
                                 marginRight: '8px',
-                                color: (optimisticReactions[fb.id] !== undefined ? optimisticReactions[fb.id] === -1 : fb.isLiked === -1) ? "#ef4444" : "var(--text-muted)" 
+                                color: (optimisticReactions[fb.id] !== undefined ? optimisticReactions[fb.id] === -1 : fb.isLiked === -1) ? "#ef4444" : "var(--text-muted)"
                               }}
                               onClick={() => {
                                 const currentReaction = optimisticReactions[fb.id] !== undefined ? optimisticReactions[fb.id] : (fb.isLiked || 0);

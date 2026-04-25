@@ -856,7 +856,7 @@ const authorUsers = aliasedTable(users, 'authorUsers');
  * C = global simple average rating
  */
 function getBayesianRatingSql(m: number, C: number | ReturnType<typeof sql>) {
-    const weightSql = sql`CAST(COALESCE(${authorUsers.raterScore}, 0) + 1.0 AS REAL)`;
+    const weightSql = sql`CAST((COALESCE(${authorUsers.raterScore}, 0) / 5.0) + 1.0 AS REAL)`;
     const ratingExprSql = sql`CAST(${feedbacks.overall} AS REAL)`;
 
     const weightedSum = sql`SUM(${weightSql} * ${ratingExprSql})`;
@@ -1005,7 +1005,7 @@ export async function checkAndNotifyTopRated() {
                         where: (f, { eq }) => eq(f.songId, song.id),
                         orderBy: (f, { desc }) => [desc(f.createdAt)]
                     });
-                    
+
                     const lastFeedbackDate = latestFeedback ? new Date(latestFeedback.createdAt) : null;
                     const hasRecentFeedback = lastFeedbackDate && (now.getTime() - lastFeedbackDate.getTime() <= cooldownMs);
 

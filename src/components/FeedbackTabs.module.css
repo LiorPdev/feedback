@@ -28,16 +28,10 @@
   width: 100%;
 }
 
-.fbDate {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  font-weight: 700;
-}
-
-.fbRaterGenre {
+.metaText {
   font-size: 0.9rem;
+  font-weight: 500;
   color: var(--text-muted);
-  margin-bottom: 1rem;
 }
 
 .fbAuthorInfo {
@@ -58,20 +52,13 @@
   gap: 1rem;
 }
 
-.listenDuration {
+.overallRate {
   font-size: 0.95rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--brand-primary);
   display: flex;
   align-items: center;
-}
-
-.listenTime {
-  font-size: 0.9rem;
-  font-weight: 400;
-  color: var(--text-muted);
-  display: flex;
-  align-items: center;
+  padding-left: 1rem;
 }
 
 .fbRaterScore {

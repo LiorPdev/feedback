@@ -24,9 +24,9 @@ export async function getAdminSongsReport() {
             lastFeedbackAt: sql<string>`MAX(${feedbacks.createdAt})`.as('lastFeedbackAt'),
             feedbackCount: sql<number>`COUNT(${feedbacks.id})`.as('feedbackCount'),
         })
-        .from(feedbacks)
-        .groupBy(feedbacks.songId)
-        .as('feedbackStats');
+            .from(feedbacks)
+            .groupBy(feedbacks.songId)
+            .as('feedbackStats');
 
         const result = await db.select({
             id: songs.id,
@@ -40,10 +40,10 @@ export async function getAdminSongsReport() {
             lastFeedbackAt: feedbackStatsSubquery.lastFeedbackAt,
             feedbackCount: sql<number>`COALESCE(${feedbackStatsSubquery.feedbackCount}, 0)`.as('feedbackCount')
         })
-        .from(songs)
-        .leftJoin(users, eq(songs.userId, users.id))
-        .leftJoin(feedbackStatsSubquery, eq(songs.id, feedbackStatsSubquery.songId))
-        .orderBy(desc(songs.createdAt));
+            .from(songs)
+            .leftJoin(users, eq(songs.userId, users.id))
+            .leftJoin(feedbackStatsSubquery, eq(songs.id, feedbackStatsSubquery.songId))
+            .orderBy(desc(songs.createdAt));
 
         return { success: true, data: result };
     } catch (error) {
@@ -80,11 +80,11 @@ export async function getAdminFeedbacksReport() {
             isLiked: feedbacks.isLiked,
             songSlug: songs.slug
         })
-        .from(feedbacks)
-        .leftJoin(songs, eq(feedbacks.songId, songs.id))
-        .leftJoin(songCreator, eq(songs.userId, songCreator.id))
-        .leftJoin(rater, eq(feedbacks.authorId, rater.id))
-        .orderBy(desc(feedbacks.createdAt));
+            .from(feedbacks)
+            .leftJoin(songs, eq(feedbacks.songId, songs.id))
+            .leftJoin(songCreator, eq(songs.userId, songCreator.id))
+            .leftJoin(rater, eq(feedbacks.authorId, rater.id))
+            .orderBy(desc(feedbacks.createdAt));
 
         return { success: true, data: result };
     } catch (error) {
@@ -110,19 +110,19 @@ export async function getAdminUsersReport() {
             authorId: feedbacks.authorId,
             lastGiven: sql<string>`MAX(${feedbacks.createdAt})`.as('lastGiven'),
         })
-        .from(feedbacks)
-        .groupBy(feedbacks.authorId)
-        .as('givenFeedbacks');
+            .from(feedbacks)
+            .groupBy(feedbacks.authorId)
+            .as('givenFeedbacks');
 
         // Subquery for last feedback RECEIVED
         const receivedSubquery = db.select({
             songUserId: songs.userId,
             lastReceived: sql<string>`MAX(${feedbacks.createdAt})`.as('lastReceived'),
         })
-        .from(feedbacks)
-        .innerJoin(songs, eq(feedbacks.songId, songs.id))
-        .groupBy(songs.userId)
-        .as('receivedFeedbacks');
+            .from(feedbacks)
+            .innerJoin(songs, eq(feedbacks.songId, songs.id))
+            .groupBy(songs.userId)
+            .as('receivedFeedbacks');
 
         const result = await db.select({
             id: users.id,
@@ -135,10 +135,10 @@ export async function getAdminUsersReport() {
             lastFeedbackReceived: receivedSubquery.lastReceived,
             lastVisit: users.updatedAt
         })
-        .from(users)
-        .leftJoin(givenSubquery, eq(givenSubquery.authorId, users.id))
-        .leftJoin(receivedSubquery, eq(receivedSubquery.songUserId, users.id))
-        .orderBy(desc(users.createdAt));
+            .from(users)
+            .leftJoin(givenSubquery, eq(givenSubquery.authorId, users.id))
+            .leftJoin(receivedSubquery, eq(receivedSubquery.songUserId, users.id))
+            .orderBy(desc(users.createdAt));
 
         return { success: true, data: result };
     } catch (error) {
@@ -168,9 +168,9 @@ export async function getAdminLogsReport() {
             userName: users.name,
             userEmail: users.email
         })
-        .from(logs)
-        .leftJoin(users, eq(logs.userId, users.id))
-        .orderBy(desc(logs.createdAt));
+            .from(logs)
+            .leftJoin(users, eq(logs.userId, users.id))
+            .orderBy(desc(logs.createdAt));
 
         return { success: true, data: result };
     } catch (error) {
@@ -231,12 +231,12 @@ export async function getAdminTopRatedReport() {
 
     const db = await getDb();
     const rater = aliasedTable(users, 'rater');
-    
+
     try {
         const C_sql = sql<number>`(SELECT avg(f_global.overall * ${WEIGHT_OVERALL}) FROM Feedback f_global WHERE f_global.overall > 0)`;
-        
+
         // Explicitly define the weighted calculation components
-        const weightSql = sql`CAST(COALESCE(${rater.raterScore}, 0) + 1.0 AS REAL)`;
+        const weightSql = sql`CAST((COALESCE(${rater.raterScore}, 0) / 5.0) + 1.0 AS REAL)`;
         const ratingExprSql = sql`(CAST(${feedbacks.overall} AS REAL) * ${WEIGHT_OVERALL})`;
 
         const weightedSum = sql`SUM(${weightSql} * ${ratingExprSql})`;
@@ -260,12 +260,12 @@ export async function getAdminTopRatedReport() {
             finalScore: finalScore,
             slug: songs.slug
         })
-        .from(songs)
-        .innerJoin(feedbacks, and(eq(songs.id, feedbacks.songId), gt(feedbacks.overall, 0)))
-        .leftJoin(rater, eq(feedbacks.authorId, rater.id))
-        .where(eq(songs.isActive, true))
-        .groupBy(songs.id)
-        .orderBy(desc(finalScore));
+            .from(songs)
+            .innerJoin(feedbacks, and(eq(songs.id, feedbacks.songId), gt(feedbacks.overall, 0)))
+            .leftJoin(rater, eq(feedbacks.authorId, rater.id))
+            .where(eq(songs.isActive, true))
+            .groupBy(songs.id)
+            .orderBy(desc(finalScore));
 
         return { success: true, data: result };
     } catch (error) {

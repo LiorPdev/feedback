@@ -55,9 +55,9 @@
 }
 
 .formulaLegend {
-  padding: 0;
+  padding-right: 1.2rem;
   margin: 0;
-  list-style: none;
+  list-style: disc;
   font-size: 0.85rem;
   color: var(--text-muted);
 }

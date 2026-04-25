@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import InfoTooltip from "@/components/InfoTooltip";
 import styles from "./FeedInfoFooter.module.css";
 
-export default function FeedInfoFooter() {
+export default function FeedInfoFooter({ hasSongs }: { hasSongs?: boolean }) {
   const [showInfo, setShowInfo] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
@@ -28,7 +28,7 @@ export default function FeedInfoFooter() {
           triggerRef={triggerRef}
           content={
             <div className={styles.tooltipContent}>
-              <p>סדר הופעת השירים בפיד נקבע לפי הפרמטרים הבאים:</p>
+              <p>סדר הופעת השירים נקבע לפי:</p>
               <p>
                 1. <strong>סגנון מועדף:</strong> שירים מהסגנונות שסימנתם{" "}
                 <button
@@ -46,6 +46,13 @@ export default function FeedInfoFooter() {
               <p>
                 2. <strong>סדר אקראי:</strong> השירים מופיעים בתוך כל קבוצת סגנון בסדר אקראי.
               </p>
+
+              {hasSongs && (
+                <p>
+                  <strong>אבל...</strong> אמן אשר נתן לאחרים פידבק איכותי, יקבל עדיפות.
+                </p>
+              )}
+
               {/* <p>
                 <strong>קידום שירים:</strong> באפשרותכם לקדם את השירים שלכם באיזור האישי תמורת נקודות קרדיט.
               </p> */}

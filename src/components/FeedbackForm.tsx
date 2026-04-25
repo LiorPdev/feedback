@@ -254,12 +254,12 @@ export default function FeedbackForm({
                 <p className={styles.successScoreLabel}>
                   <span className={styles.successScoreText}>הציון שלי: </span>
                   <span className={styles.successScoreValue}>
-                    {Math.round(currentAverage * 2) / 2}/10
+                    {Math.round(currentAverage * 2) / 2}
                   </span>
                 </p>
                 <p className={styles.successScoreLabel}>
                   <span className={styles.successScoreText}>ממוצע הקהילה: </span>
-                  <span className={styles.successScoreValue}>{songStats.averageRating.toFixed(1)}/10</span>
+                  <span className={styles.successScoreValue}>{songStats.averageRating.toFixed(1)}</span>
                 </p>
               </div>
             )

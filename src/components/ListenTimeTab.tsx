@@ -51,11 +51,11 @@ export default function ListenTimeTab({ events }: ListenTimeTabProps) {
                     זמן האזנה: {formatDuration(ev.playedSeconds)}
                   </span>
                 </div>
-                <span className={styles.fbDate}>
+                <span className={styles.metaText}>
                   {new Date(ev.createdAt).toLocaleDateString("he-IL")}
                 </span>
               </div>
-              <div className={styles.fbRaterGenre}>
+              <div className={styles.metaText}>
                 סגנון המאזין: <span className={styles.genreList}>{genres.length > 0 ? genres.join(', ') : "לא הוגדר"}</span>
               </div>
             </div>

@@ -1,4 +1,4 @@
-import { getFeedSongs } from "@/app/actions/songs";
+import { getFeedSongs, getUserSongCount } from "@/app/actions/songs";
 import FeedContainer from "./FeedContainer";
 import FeedInfoFooter from "./FeedInfoFooter";
 import styles from "./feed.module.css";
@@ -23,6 +23,9 @@ export default async function GiveFeedbackFeedPage({
   const result = await getFeedSongs(songSlug);
   const dbUser = await syncUser();
   const userId = dbUser?.id;
+
+  const songCountResult = await getUserSongCount();
+  const hasSongs = (songCountResult.success && songCountResult.count > 0);
 
   if (!result.success || !result.songs) {
     return (
@@ -62,7 +65,7 @@ export default async function GiveFeedbackFeedPage({
           backHome={backHome === 'true'}
           isLoggedIn={!!dbUser}
         />
-        <FeedInfoFooter />
+        <FeedInfoFooter hasSongs={hasSongs} />
       </main>
     </div>
   );

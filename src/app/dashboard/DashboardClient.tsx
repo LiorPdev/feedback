@@ -99,12 +99,12 @@ const FeedbackItem = memo(function FeedbackItem({ fb, isActive, onActivate }: Fe
             <div className={styles.myFbReaction}>
               {fb.isLiked === 1 && (
                 <span title={`האמן אהב את המשוב! קיבלת בונוס של ${LIKE_FEEDBACK_REWARD} נק' קרדיט`} style={{ display: 'flex' }}>
-                  <Heart size={18} fill="#ef4444" color="#ef4444" />
+                  <Heart size={18} fill="#e48989ff" color="#e48989ff" />
                 </span>
               )}
               {fb.isLiked === -1 && (
                 <span title="האמן סימן שהפידבק לא כל כך עזר לו" style={{ display: 'flex' }}>
-                  <Meh size={18} color="#ef4444" />
+                  <Meh size={18} color="#e48989ff" />
                 </span>
               )}
             </div>

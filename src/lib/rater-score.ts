@@ -32,15 +32,16 @@ export async function updateRaterScore(userId: string) {
       return;
     }
 
-    let likedCount = 0;
+    let netLikedScore = 0;
     for (const fb of userFeedbacks) {
-      if (fb.isLiked === 1) likedCount += 1;
+      if (fb.isLiked === 1) netLikedScore += 1;
+      else if (fb.isLiked === -1) netLikedScore -= 1;
     }
 
     const totalCount = userFeedbacks.length;
     
-    // 1. Likes Rate Score (Quality)
-    const likesRatio = totalCount > 0 ? (likedCount / totalCount) : 0;
+    // 1. Quality Score (Net Likes Ratio) - clamped to 0
+    const likesRatio = totalCount > 0 ? Math.max(0, netLikedScore / totalCount) : 0;
     const likesRateScore = Math.min(likesRatio / RATER_LIKES_THRESHOLD, 1);
     
     // 2. Feedbacks Count Score (Quantity)
@@ -50,7 +51,7 @@ export async function updateRaterScore(userId: string) {
     const finalScore = (
       (likesRateScore * RATER_WEIGHT_LIKES_RATE) + 
       (feedbacksCountScore * RATER_WEIGHT_FEEDBACKS_COUNT)
-    ) * 5;
+    ) * 10;
 
     // Round to 1 decimal place
     const roundedScore = Math.round(finalScore * 10) / 10;
