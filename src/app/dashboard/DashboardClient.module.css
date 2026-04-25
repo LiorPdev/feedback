@@ -238,10 +238,21 @@
   align-items: center;
 }
 
+.myFbOverallRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .myFbOverall {
   font-size: 0.95rem;
   font-weight: 800;
   color: var(--brand-primary);
+  display: flex;
+  align-items: center;
+}
+
+.myFbReaction {
   display: flex;
   align-items: center;
 }

@@ -2,11 +2,10 @@
 
 import { useState, useCallback, useMemo, memo, useRef } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { BarChart3, Music, Play, SquareStop } from "lucide-react";
+import { BarChart3, Music, Play, SquareStop, Meh, Heart } from "lucide-react";
 import Image from "next/image";
 import SongCard from "@/components/SongCard";
 import SongRatingsChart from "./SongRatingsChart";
-import HeartWithTooltip from "@/components/HeartWithTooltip";
 import Button from "@/components/ui/Button";
 import UrlPlayer, { UrlPlayerHandle } from "@/components/UrlPlayer";
 import styles from "./DashboardClient.module.css";
@@ -87,18 +86,29 @@ const FeedbackItem = memo(function FeedbackItem({ fb, isActive, onActivate }: Fe
             {isActive ? <SquareStop size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" />}
           </button>
           <span className={styles.myFbSongTitle}>{fb.songTitle}</span>
-          {fb.isLiked === 1 && (
-            <HeartWithTooltip rewardAmount={LIKE_FEEDBACK_REWARD} />
-          )}
         </div>
         <span className={styles.myFbDate}>{dateStr}</span>
       </div>
 
       <div className={styles.myFbBody}>
         {fb.overall !== null && fb.overall > 0 && (
-          <span className={styles.myFbOverall}>
-            התרשמות כללית: {getRatingText(fb.overall)}
-          </span>
+          <div className={styles.myFbOverallRow}>
+            <span className={styles.myFbOverall}>
+              התרשמות כללית: {getRatingText(fb.overall)}
+            </span>
+            <div className={styles.myFbReaction}>
+              {fb.isLiked === 1 && (
+                <span title={`האמן אהב את המשוב! קיבלת בונוס של ${LIKE_FEEDBACK_REWARD} נק' קרדיט`} style={{ display: 'flex' }}>
+                  <Heart size={18} fill="#ef4444" color="#ef4444" />
+                </span>
+              )}
+              {fb.isLiked === -1 && (
+                <span title="האמן סימן שהפידבק לא כל כך עזר לו" style={{ display: 'flex' }}>
+                  <Meh size={18} color="#ef4444" />
+                </span>
+              )}
+            </div>
+          </div>
         )}
 
         {fb.playedSeconds !== null && fb.playedSeconds > 0 && (

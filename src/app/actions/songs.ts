@@ -999,35 +999,40 @@ export async function checkAndNotifyTopRated() {
                 if (!lastNotified || (now.getTime() - lastNotified.getTime() >= cooldownMs)) {
                     const email = userEmailMap.get(song.userId);
 
-                    if (email) {
+                    // NEW CHECK: Did the song receive any actual feedback recently?
+                    // If it just bounced back due to decay reset of itself or other songs, we shouldn't spam the user.
+                    const latestFeedback = await db.query.feedbacks.findFirst({
+                        where: (f, { eq }) => eq(f.songId, song.id),
+                        orderBy: (f, { desc }) => [desc(f.createdAt)]
+                    });
+                    
+                    const lastFeedbackDate = latestFeedback ? new Date(latestFeedback.createdAt) : null;
+                    const hasRecentFeedback = lastFeedbackDate && (now.getTime() - lastFeedbackDate.getTime() <= cooldownMs);
+
+                    if (email && hasRecentFeedback) {
                         const result = await sendTopRatedNotification({
                             to: email,
                             songTitle: song.title,
                         });
 
-                        if (result.success) {
-                            // Update last notified date
-                            await db.update(songs)
-                                .set({
-                                    topRatedLastNotified: now.toISOString(),
-                                    isInTopRated: true,
-                                    updatedAt: now.toISOString()
-                                })
-                                .where(eq(songs.id, song.id));
-                        } else {
+                        if (!result.success) {
                             await logToDb({
                                 message: `Top-Rated notification failed for song: ${song.title}`,
                                 data: result.error,
                                 source: "songs.ts:checkAndNotifyTopRated"
                             });
-                            // Still set the flag to true so we don't keep trying to send email on every feedback
-                            // if it's already in the top 10 (we'll try again next time it "enters").
-                            await db.update(songs).set({ isInTopRated: true }).where(eq(songs.id, song.id));
                         }
-                    } else {
-                        // Mark as In even if no email found
-                        await db.update(songs).set({ isInTopRated: true }).where(eq(songs.id, song.id));
                     }
+
+                    // We always update the flags so it starts decaying and is marked as "In".
+                    // If we skipped emailing because of lack of recent feedback, it still counts as entering silently.
+                    await db.update(songs)
+                        .set({
+                            topRatedLastNotified: now.toISOString(),
+                            isInTopRated: true,
+                            updatedAt: now.toISOString()
+                        })
+                        .where(eq(songs.id, song.id));
                 } else {
                     // Re-entered before cooldown. Mark as In but don't send mail.
                     await db.update(songs).set({ isInTopRated: true }).where(eq(songs.id, song.id));
