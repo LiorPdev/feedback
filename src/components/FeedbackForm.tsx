@@ -11,6 +11,7 @@ import PopupMsg from "./PopupMsg";
 import GiftArtistPopup from "./GiftArtistPopup";
 import Button from "./ui/Button";
 import { useUtmMode } from "@/hooks/useUtmMode";
+import { getRatingText } from "@/lib/utils";
 
 interface FeedbackFormProps {
   songId: string;
@@ -317,7 +318,9 @@ export default function FeedbackForm({
 
           {/* Overall impression slider */}
           <div className={styles.sliderGroup}>
-            <label className={styles.sliderLabel}>התרשמות כללית</label>
+            <label className={styles.sliderLabel}>
+              {hasInteractedWithSlider ? getRatingText(ratings.overall) : "התרשמות כללית"}
+            </label>
             <div className={styles.sliderRow}>
               <span className={styles.sliderIcon}>❤️</span>
               <input

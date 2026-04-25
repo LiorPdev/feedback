@@ -10,7 +10,7 @@ import {
 } from "./constants";
 
 interface FeedbackShape {
-  isLiked: boolean;
+  isLiked: number;
 }
 
 export async function updateRaterScore(userId: string) {
@@ -34,7 +34,7 @@ export async function updateRaterScore(userId: string) {
 
     let likedCount = 0;
     for (const fb of userFeedbacks) {
-      if (fb.isLiked) likedCount += 1;
+      if (fb.isLiked === 1) likedCount += 1;
     }
 
     const totalCount = userFeedbacks.length;

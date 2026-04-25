@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { getAdminSongsReport, getAdminFeedbacksReport, getAdminUsersReport, getAdminLogsReport, getAdminTopRatedReport, deleteAdminFeedback, deleteAdminSong } from '@/app/actions/admin';
-import { ArrowUpDown, ArrowUp, ArrowDown, Trash2, Heart, Copy } from 'lucide-react';
+import { ArrowUpDown, ArrowUp, ArrowDown, Trash2, Heart, Copy, Meh } from 'lucide-react';
 import styles from './reports.module.css';
 
 type ReportType = 'songs' | 'feedbacks' | 'users' | 'logs' | 'top-rated';
@@ -258,7 +258,7 @@ export function ReportsClient() {
                                                 />
                                             </td>
                                             <td>{formatDate(item.createdAt)}</td>
-                                            <td 
+                                            <td
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     navigator.clipboard.writeText(item.url);
@@ -318,8 +318,10 @@ export function ReportsClient() {
                                                 </div>
                                             </td>
                                             <td style={{ textAlign: 'center' }}>
-                                                {item.isLiked ? (
+                                                {item.isLiked === 1 ? (
                                                     <Heart size={18} fill="#ef4444" color="#ef4444" />
+                                                ) : item.isLiked === -1 ? (
+                                                    <Meh size={18} color="#ef4444" />
                                                 ) : (
                                                     <span style={{ color: 'var(--text-muted)', opacity: 0.3 }}>-</span>
                                                 )}

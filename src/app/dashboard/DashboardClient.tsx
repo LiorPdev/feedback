@@ -12,6 +12,7 @@ import UrlPlayer, { UrlPlayerHandle } from "@/components/UrlPlayer";
 import styles from "./DashboardClient.module.css";
 import type { GivenFeedbackItem } from "@/app/actions/feedback";
 import { LIKE_FEEDBACK_REWARD } from "@/lib/constants";
+import { getRatingText } from "@/lib/utils";
 
 interface DashboardSong {
   id: string;
@@ -86,7 +87,7 @@ const FeedbackItem = memo(function FeedbackItem({ fb, isActive, onActivate }: Fe
             {isActive ? <SquareStop size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" />}
           </button>
           <span className={styles.myFbSongTitle}>{fb.songTitle}</span>
-          {fb.isLiked && (
+          {fb.isLiked === 1 && (
             <HeartWithTooltip rewardAmount={LIKE_FEEDBACK_REWARD} />
           )}
         </div>
@@ -96,7 +97,7 @@ const FeedbackItem = memo(function FeedbackItem({ fb, isActive, onActivate }: Fe
       <div className={styles.myFbBody}>
         {fb.overall !== null && fb.overall > 0 && (
           <span className={styles.myFbOverall}>
-            דירוג השיר: {fb.overall}
+            התרשמות כללית: {getRatingText(fb.overall)}
           </span>
         )}
 

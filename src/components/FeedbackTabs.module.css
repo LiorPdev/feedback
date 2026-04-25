@@ -272,6 +272,12 @@
   color: #ff4d4f;
 }
 
+.unlikedSelected {
+  color: var(--brand-primary) !important;
+  background-color: var(--brand-bg);
+  border: 1px solid var(--brand-primary);
+}
+
 .fbFooter {
   display: flex;
   justify-content: space-between;

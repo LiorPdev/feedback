@@ -16,6 +16,7 @@ import RegistrationGate from "@/components/RegistrationGate";
 import Typewriter from "@/components/Typewriter";
 import { useUtmMode } from "@/hooks/useUtmMode";
 import { isYouTubeUrl, isAudioUrl } from "@/lib/song-validation";
+import { getRatingText } from "@/lib/utils";
 import styles from "./feed.module.css";
 
 function formatTime(timeInSeconds: number) {
@@ -445,7 +446,7 @@ export default function FeedContainer({
 
               <div className={styles.ratedGrid}>
                 <div className={styles.ratedItem}>
-                  <span className={styles.ratedLabel}>התרשמות כללית</span>
+                  <span className={styles.ratedLabel}>התרשמות כללית: {getRatingText(initialFeedback.overall)}</span>
                   <div className={styles.ratedSliderBar}>
                     <div
                       className={styles.ratedSliderFill}

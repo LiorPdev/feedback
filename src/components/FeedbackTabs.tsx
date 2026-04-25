@@ -10,8 +10,9 @@ import { UNLOCK_FEEDBACK_COST, LIKE_FEEDBACK_REWARD } from "@/lib/constants";
 import Link from "next/link";
 import styles from "./FeedbackTabs.module.css";
 import { Heart, Meh } from "lucide-react";
-import { likeFeedback, unlikeFeedback } from "@/app/actions/feedback";
+import { setFeedbackReaction } from "@/app/actions/feedback";
 import Tooltip from "@/components/Tooltip";
+import { getRatingText } from "@/lib/utils";
 
 interface FeedbackItem {
   id: string;
@@ -22,7 +23,7 @@ interface FeedbackItem {
   overall: number | null;
   comment: string | null;
   authorRaterScore?: number;
-  isLiked?: boolean;
+  isLiked?: number;
   authorId?: string | null;
 }
 
@@ -59,7 +60,7 @@ export default function FeedbackTabs({
   const [isPending, startTransition] = useTransition();
   const [errorIds, setErrorIds] = useState<Record<string, string>>({});
   const [optimisticUnlocked, setOptimisticUnlocked] = useState<Set<string>>(new Set());
-  const [optimisticLiked, setOptimisticLiked] = useState<Set<string>>(new Set());
+  const [optimisticReactions, setOptimisticReactions] = useState<Record<string, number>>({});
   const [showLikeTooltip, setShowLikeTooltip] = useState<string | null>(null);
 
   const handleUnlock = async (feedbackId: string) => {
@@ -86,54 +87,40 @@ export default function FeedbackTabs({
       }
     });
   };
-  const handleToggleLike = async (feedbackId: string, isCurrentlyLiked: boolean) => {
+  const handleSetReaction = async (feedbackId: string, newReaction: -1 | 0 | 1) => {
     if (isPending) return;
 
     // Optimistically update
-    if (isCurrentlyLiked) {
-      setOptimisticLiked(prev => {
-        const next = new Set(prev);
-        next.delete(feedbackId);
-        return next;
-      });
-      if (showLikeTooltip === feedbackId) setShowLikeTooltip(null);
-    } else {
-      setOptimisticLiked(prev => new Set(prev).add(feedbackId));
+    setOptimisticReactions(prev => ({ ...prev, [feedbackId]: newReaction }));
+
+    if (newReaction === 1) {
+      setShowLikeTooltip(feedbackId);
+      setTimeout(() => setShowLikeTooltip(null), 3000);
+    } else if (showLikeTooltip === feedbackId) {
+      setShowLikeTooltip(null);
     }
 
     startTransition(async () => {
       try {
-        if (isCurrentlyLiked) {
-          const result = await unlikeFeedback(feedbackId);
-          if (!result.success) {
-            // Revert
-            setOptimisticLiked(prev => new Set(prev).add(feedbackId));
-          }
+        const result = await setFeedbackReaction(feedbackId, newReaction);
+        if (result.success) {
+          // Trigger navbar update
+          window.dispatchEvent(new CustomEvent("tokens-updated"));
         } else {
-          const result = await likeFeedback(feedbackId);
-          if (result.success) {
-            setShowLikeTooltip(feedbackId);
-            setTimeout(() => setShowLikeTooltip(null), 4000);
-          } else {
-            // Revert
-            setOptimisticLiked(prev => {
-              const next = new Set(prev);
-              next.delete(feedbackId);
-              return next;
-            });
-          }
-        }
-      } catch {
-        // Revert on error
-        if (isCurrentlyLiked) {
-          setOptimisticLiked(prev => new Set(prev).add(feedbackId));
-        } else {
-          setOptimisticLiked(prev => {
-            const next = new Set(prev);
-            next.delete(feedbackId);
+          // Revert optimistic update
+          setOptimisticReactions(prev => {
+            const next = { ...prev };
+            delete next[feedbackId];
             return next;
           });
         }
+      } catch {
+        // Revert optimistic update
+        setOptimisticReactions(prev => {
+          const next = { ...prev };
+          delete next[feedbackId];
+          return next;
+        });
       }
     });
   };
@@ -175,7 +162,7 @@ export default function FeedbackTabs({
                         <div className={styles.headerMetrics}>
                           {isOwner && isActuallyUnlocked && (fb.overall || 0) > 0 && (
                             <span className={styles.listenDuration}>
-                              דירוג השיר: {fb.overall}
+                              התרשמות כללית: {getRatingText(fb.overall!)}
                             </span>
                           )}
                           {(() => {
@@ -221,22 +208,34 @@ export default function FeedbackTabs({
                           <div /> {/* Spacer to maintain flex layout */}
                           <div className={styles.likeBtnContainer}>
                             <motion.button
-                              className={`${styles.likeBtn} ${fb.isLiked || optimisticLiked.has(fb.id) ? styles.liked : ""}`}
-                              onClick={() => handleToggleLike(fb.id, fb.isLiked || optimisticLiked.has(fb.id))}
+                              className={`${styles.likeBtn} ${(optimisticReactions[fb.id] !== undefined ? optimisticReactions[fb.id] === 1 : fb.isLiked === 1) ? styles.liked : ""
+                                }`}
+                              onClick={() => {
+                                const currentReaction = optimisticReactions[fb.id] !== undefined ? optimisticReactions[fb.id] : (fb.isLiked || 0);
+                                handleSetReaction(fb.id, currentReaction === 1 ? 0 : 1);
+                              }}
                               disabled={isPending}
-                              title={(fb.isLiked || optimisticLiked.has(fb.id)) ? "ביטול" : "סמנו אהבתי רק אם הפידבק קידם אתכם או עזר לכם בפועל"}
+                              title={(optimisticReactions[fb.id] !== undefined ? optimisticReactions[fb.id] === 1 : fb.isLiked === 1) ? "ביטול" : "סמנו אהבתי רק אם הפידבק קידם אתכם או עזר לכם בפועל"}
                               whileHover={{ scale: 1.2 }}
                               whileTap={{ scale: 2 }}
                               transition={{ type: "spring", stiffness: 200, damping: 10 }}
                             >
-                              <Heart size={18} fill={(fb.isLiked || optimisticLiked.has(fb.id)) ? "currentColor" : "none"} />
+                              <Heart size={18} fill={(optimisticReactions[fb.id] !== undefined ? optimisticReactions[fb.id] === 1 : fb.isLiked === 1) ? "currentColor" : "none"} />
                             </motion.button>
                             <motion.button
                               className={styles.likeBtn}
-                              style={{ marginRight: '8px', display: 'none' }}
+                              style={{ 
+                                marginRight: '8px',
+                                color: (optimisticReactions[fb.id] !== undefined ? optimisticReactions[fb.id] === -1 : fb.isLiked === -1) ? "#ef4444" : "var(--text-muted)" 
+                              }}
+                              onClick={() => {
+                                const currentReaction = optimisticReactions[fb.id] !== undefined ? optimisticReactions[fb.id] : (fb.isLiked || 0);
+                                handleSetReaction(fb.id, currentReaction === -1 ? 0 : -1);
+                              }}
                               whileHover={{ scale: 1.2 }}
                               whileTap={{ scale: 2 }}
                               title="הפידבק לא כל כך עזר לי"
+                              disabled={isPending}
                             >
                               <Meh size={18} />
                             </motion.button>
