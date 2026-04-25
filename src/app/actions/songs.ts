@@ -453,15 +453,20 @@ export async function getFeedSongs(firstSongSlug?: string) {
         let songsWithStats = allSongsToProcess.map(s => ({ ...s, averageRating: 0, totalFeedbacks: 0 }));
 
         if (allSongsToProcess.length > 0) {
-            // Optimization: Fetch stats for ALL active rated feedbacks 
-            // instead of using inArray(songIds) which hits Cloudflare D1 parameter limits (>100).
+            const songIds = allSongsToProcess.map(s => s.id);
+            
+            // Optimization: Fetch stats ONLY for the songs we are about to display.
+            // Using inArray is safe here because allSongsToProcess is limited to ~100 songs.
             const stats = await db.select({
                 songId: feedbacks.songId,
                 total: sql<number>`count(${feedbacks.id})`,
                 avgRating: sql<number>`avg(${feedbacks.overall} * ${WEIGHT_OVERALL})`
             })
                 .from(feedbacks)
-                .where(gt(feedbacks.overall, 0))
+                .where(and(
+                    gt(feedbacks.overall, 0),
+                    sql`${feedbacks.songId} IN (SELECT value FROM json_each(${JSON.stringify(songIds)}))`
+                ))
                 .groupBy(feedbacks.songId);
 
             const statsMap = new Map(stats.map(s => [s.songId, s]));

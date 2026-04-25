@@ -41,6 +41,7 @@ export const songs = sqliteTable('Song', {
         userIdCreatedAtIdx: index('Song_userId_createdAt_idx').on(table.userId, table.createdAt),
         createdAtIdx: index('Song_createdAt_idx').on(table.createdAt),
         isActiveIdx: index('Song_isActive_idx').on(table.isActive),
+        isActiveCreatedAtIdx: index('Song_isActive_createdAt_idx').on(table.isActive, table.createdAt),
     };
 });
 
@@ -63,6 +64,7 @@ export const feedbacks = sqliteTable('Feedback', {
         songIdCreatedAtIdx: index('Feedback_songId_createdAt_idx').on(table.songId, table.createdAt),
         authorIdIdx: index('Feedback_authorId_idx').on(table.authorId),
         createdAtIdx: index('Feedback_createdAt_idx').on(table.createdAt),
+        overallIdx: index('Feedback_overall_idx').on(table.overall),
     };
 });
 
