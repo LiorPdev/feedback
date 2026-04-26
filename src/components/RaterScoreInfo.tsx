@@ -59,7 +59,7 @@ export default function RaterScoreInfo({
               <li>לפי פירוט הפידבקים</li>
               <li>
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', verticalAlign: 'middle' }}>
-                  לפי כמות&nbsp;
+                  לפי איכות&nbsp;
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', color: 'var(--text-muted)' }}>
                     <Heart size={14} /> / <Meh size={14} />
                   </span>

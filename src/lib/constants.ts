@@ -19,7 +19,7 @@ export const MIN_SONG_DURATION_SECONDS = 50;
 // Tokens i get
 export const INITIAL_TOKENS = 150;          // Amount of tokens a user gets when signing up.
 export const FREE_FEEDBACKS_FOR_ARTIST = 1; // Number of initial feedbacks an artist receives for free before having to "pay" to unlock.
-export const LIKE_FEEDBACK_REWARD = 20;     // Amount of tokens a user gets when gets a like on his feedback.
+export const LIKE_FEEDBACK_REWARD = 10;     // Amount of tokens a user gets when gets a like on his feedback.
 export const REWARD_PER_COMMENT_STEP = 5;   // Tokens reward for each comment step in a feedback.
 export const COMMENT_STEP_LENGTH = 25;      // Number of characters required to get the reward for comment step.
 
@@ -27,7 +27,7 @@ export const COMMENT_STEP_LENGTH = 25;      // Number of characters required to 
 export const SONG_SUBMISSION_COST = 50;
 export const UNLOCK_FEEDBACK_COST = 50;
 
-export const MIN_COMMENT_LENGTH = 50;
+export const MIN_COMMENT_LENGTH = 60;
 export const MAX_COMMENT_LENGTH = 300;
 export const MIN_LISTEN_TIME = 40;
 export const MAX_FILE_SIZE_MB = 13;

@@ -147,9 +147,13 @@ export default function SongRatingsChart({ songs, type = "trueRating", globalAve
           barCategoryGap={"10%"}
         >
           <defs>
-            <linearGradient id="colorRetentionGradient" x1="0" y1="0" x2="1" y2="0">
+            <linearGradient id="colorRatingGradient" x1="0" y1="0" x2="1" y2="0">
               <stop offset="0%" stopColor="var(--brand-primary)" stopOpacity={1} />
               <stop offset="100%" stopColor="#06b6d4" stopOpacity={1} />
+            </linearGradient>
+            <linearGradient id="colorRetentionGradient" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#6d28d9" stopOpacity={1} />
+              <stop offset="100%" stopColor="#c084fc" stopOpacity={1} />
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" horizontal={false} vertical={true} stroke="#f0f0f0" />
@@ -233,7 +237,7 @@ export default function SongRatingsChart({ songs, type = "trueRating", globalAve
           <Bar
             name={type === 'trueRating' ? "מדד איכות" : "ממוצע האזנה"}
             dataKey={type === 'trueRating' ? "trueRating" : "avgListenTime"}
-            fill="url(#colorRetentionGradient)"
+            fill={type === 'trueRating' ? "url(#colorRatingGradient)" : "url(#colorRetentionGradient)"}
             radius={[0, 4, 4, 0]}
             maxBarSize={100}
           />

@@ -85,7 +85,7 @@ export default async function DashboardPage({
             subtitle={
               <RaterScoreInfo
                 score={user.raterScore}
-                label="איכות הדירוג שלי"
+                label="דירוג אישי"
                 className={styles.raterScoreDashboard}
               />
             }

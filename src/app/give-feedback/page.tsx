@@ -65,7 +65,7 @@ export default async function GiveFeedbackFeedPage({
           backHome={backHome === 'true'}
           isLoggedIn={!!dbUser}
         />
-        <FeedInfoFooter hasSongs={hasSongs} />
+        <FeedInfoFooter hasSongs={hasSongs} raterScore={dbUser?.raterScore} />
       </main>
     </div>
   );

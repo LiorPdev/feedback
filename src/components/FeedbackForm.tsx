@@ -285,8 +285,7 @@ export default function FeedbackForm({
             <div className={styles.textareaWrapper}>
               <textarea
                 className={styles.textarea}
-                placeholder={`מה תפס אתכם בשיר? (לחן, מילים, שירה). מה הייתם משנים כדי לקחת אותו לשלב הבא? `}
-                maxLength={MAX_COMMENT_LENGTH}
+                placeholder="1. משהו אחד שאהבתם במיוחד (למשל: העיבוד). 2. משהו אחד שהייתם משנים (למשל: עוצמת השירה). 3. המלצה לשיפור..." maxLength={MAX_COMMENT_LENGTH}
                 value={comment}
                 onChange={(e) => {
                   const newValue = e.target.value;

@@ -2,9 +2,10 @@
 
 import { useState, useRef } from "react";
 import InfoTooltip from "@/components/InfoTooltip";
+import RaterScoreInfo from "@/components/RaterScoreInfo";
 import styles from "./FeedInfoFooter.module.css";
 
-export default function FeedInfoFooter({ hasSongs }: { hasSongs?: boolean }) {
+export default function FeedInfoFooter({ hasSongs, raterScore }: { hasSongs?: boolean; raterScore?: number }) {
   const [showInfo, setShowInfo] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
@@ -48,9 +49,21 @@ export default function FeedInfoFooter({ hasSongs }: { hasSongs?: boolean }) {
               </p>
 
               {hasSongs && (
-                <p>
-                  <strong>אבל...</strong> אמן אשר נתן לאחרים פידבק איכותי, יקבל עדיפות.
-                </p>
+                <div className={styles.prioritySection}>
+                  <p>
+                    <strong>אבל...</strong> אמן עם דירוג אישי גבוה, אשר נתן לאחרים פידבק איכותי, יקבל עדיפות.
+                  </p>
+                  {raterScore !== undefined && (
+                    <div className={styles.myScoreWrapper}>
+                      <RaterScoreInfo
+                        score={raterScore}
+                        label="הדירוג האישי שלכם"
+                        variant="plain"
+                        className={styles.raterScoreInfo}
+                      />
+                    </div>
+                  )}
+                </div>
               )}
 
               {/* <p>
