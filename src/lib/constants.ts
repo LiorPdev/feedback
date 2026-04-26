@@ -27,8 +27,8 @@ export const COMMENT_STEP_LENGTH = 25;      // Number of characters required to 
 export const SONG_SUBMISSION_COST = 50;
 export const UNLOCK_FEEDBACK_COST = 50;
 
-export const MIN_COMMENT_LENGTH = 60;
-export const MAX_COMMENT_LENGTH = 300;
+export const MIN_COMMENT_LENGTH = 152;
+export const MAX_COMMENT_LENGTH = 500;
 export const MIN_LISTEN_TIME = 40;
 export const MAX_FILE_SIZE_MB = 13;
 export const MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024;

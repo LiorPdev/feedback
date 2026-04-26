@@ -40,7 +40,11 @@ export default function FeedbackForm({
   const [ratings, setRatings] = useState({
     overall: 5.5,
   });
-  const [comment, setComment] = useState(initialSource === "top-rated" ? "שמעתי את השיר ב 10 הגדולים" : "");
+  const [comment, setComment] = useState(
+    initialSource === "top-rated"
+      ? "שמעתי את השיר ב 10 הגדולים"
+      : "אהבתי בשיר את... \nהרגשתי שפחות התחברתי ל... \nלדעתי כדאי לנסות לשפר את..."
+  );
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [hasInteractedWithSlider, setHasInteractedWithSlider] = useState(false);
@@ -285,7 +289,8 @@ export default function FeedbackForm({
             <div className={styles.textareaWrapper}>
               <textarea
                 className={styles.textarea}
-                placeholder="1. משהו אחד שאהבתם במיוחד (למשל: העיבוד). 2. משהו אחד שהייתם משנים (למשל: עוצמת השירה). 3. המלצה לשיפור..." maxLength={MAX_COMMENT_LENGTH}
+                placeholder={"ממש אהבתי את (לדוגמא: העיבוד).\nהרגשתי שפחות התחברתי ל... (לדוגמא: השירה).\nלדעתי כדאי לנסות לשפר את (לדוגמא: סאונד הגיטרה)..."}
+                maxLength={MAX_COMMENT_LENGTH}
                 value={comment}
                 onChange={(e) => {
                   const newValue = e.target.value;
