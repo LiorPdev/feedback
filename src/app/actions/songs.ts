@@ -454,7 +454,7 @@ export async function getFeedSongs(firstSongSlug?: string) {
 
         if (allSongsToProcess.length > 0) {
             const songIds = allSongsToProcess.map(s => s.id);
-            
+
             // Optimization: Fetch stats ONLY for the songs we are about to display.
             // Using inArray is safe here because allSongsToProcess is limited to ~100 songs.
             const stats = await db.select({
@@ -860,7 +860,7 @@ const authorUsers = aliasedTable(users, 'authorUsers');
  * m = minimum ratings threshold (prior weight)
  * C = global simple average rating
  */
-function getBayesianRatingSql(m: number, C: number | ReturnType<typeof sql>) {
+function getBayesianRatingSql(m: number, C: number | ReturnType<typeof sql>, nowStr: string = 'now') {
     const weightSql = sql`CAST((COALESCE(${authorUsers.raterScore}, 0) / 5.0) + 1.0 AS REAL)`;
     const ratingExprSql = sql`CAST(${feedbacks.overall} AS REAL)`;
 
@@ -873,10 +873,11 @@ function getBayesianRatingSql(m: number, C: number | ReturnType<typeof sql>) {
     `;
 
     // Final score = Bayesian Average - (Days since entry * Decay Factor)
+    // We use COALESCE on julianday to prevent NULL scores if the date format is invalid
     return sql<number>`
         ${bayesianAvg} - (CASE 
             WHEN ${songs.topRatedLastNotified} IS NULL THEN 0 
-            ELSE (julianday('now') - julianday(${songs.topRatedLastNotified})) * ${TOP_RATED_DECAY_FACTOR} 
+            ELSE COALESCE(julianday(${nowStr}) - julianday(${songs.topRatedLastNotified}), 0) * ${TOP_RATED_DECAY_FACTOR} 
         END)
     `;
 }
@@ -903,7 +904,8 @@ export async function getTopRatedSongs(): Promise<{ success: boolean; songs?: To
         const m = TOP_RATED_MIN_RATINGS_THRESHOLD;
         const C_sql = sql<number>`(SELECT avg(f_global.overall * ${WEIGHT_OVERALL}) FROM Feedback f_global WHERE f_global.overall > 0)`;
 
-        const weightedRatingSql = getBayesianRatingSql(m, C_sql);
+        const nowStr = new Date().toISOString();
+        const weightedRatingSql = getBayesianRatingSql(m, C_sql, nowStr);
 
         const topSongs = await db.select({
             id: songs.id,
@@ -925,7 +927,7 @@ export async function getTopRatedSongs(): Promise<{ success: boolean; songs?: To
             .leftJoin(authorUsers, eq(feedbacks.authorId, authorUsers.id)) // Feedback author (for quality)
             .where(eq(songs.isActive, true))
             .groupBy(songs.id)
-            .orderBy(sql`${weightedRatingSql} DESC`)
+            .orderBy(sql`${weightedRatingSql} DESC`, songs.id)
             .limit(10);
 
         return { success: true, songs: topSongs };
@@ -940,7 +942,7 @@ export async function getTopRatedSongs(): Promise<{ success: boolean; songs?: To
  * Logic for non-developers:
  * 1. Calculate the current Top 10 songs on the site.
  * 2. If a song just entered the Top 10 (wasn't there before):
- *    - Check if we already sent them an email in the last 7 days (to avoid spam).
+ *    - Check if we already sent them an email in the last 4 days (to avoid spam).
  *    - If not, send a celebratory email and mark them as "In Top 10".
  * 3. If a song is no longer in the Top 10, mark it as "Out" so we can detect its next entry.
  * Runs asynchronously to avoid blocking the main feedback submission flow.
@@ -949,22 +951,23 @@ export async function checkAndNotifyTopRated() {
     const db = await getDb();
     try {
         const now = new Date();
+        const nowStr = now.toISOString();
 
-        // 0. Reset decay for songs that have been out of Top 10 for > 3 days
-        // This gives them a "second life" with fresh scores.
+        // 0. Reset decay for songs that have been out of Top 10 for > cooldown period
         const cooldownDays = TOP_RATED_NOTIFICATION_COOLDOWN_DAYS;
         await db.update(songs)
             .set({ topRatedLastNotified: null })
             .where(and(
                 eq(songs.isInTopRated, false),
                 sql`${songs.topRatedLastNotified} IS NOT NULL`,
-                sql`(julianday('now') - julianday(${songs.updatedAt})) >= ${cooldownDays}`
+                // Use the same nowStr for consistency
+                sql`(julianday(${nowStr}) - julianday(${songs.updatedAt})) >= ${cooldownDays}`
             ));
 
         // 1. Get current Top 10 using the shared Bayesian logic
         const m = TOP_RATED_MIN_RATINGS_THRESHOLD;
         const C_sql = sql<number>`(SELECT avg(f_global.overall * ${WEIGHT_OVERALL}) FROM Feedback f_global WHERE f_global.overall > 0)`;
-        const weightedRatingSql = getBayesianRatingSql(m, C_sql);
+        const weightedRatingSql = getBayesianRatingSql(m, C_sql, nowStr);
 
         const currentTop10 = await db.select({
             id: songs.id,
@@ -973,19 +976,22 @@ export async function checkAndNotifyTopRated() {
             userId: songs.userId,
             topRatedLastNotified: songs.topRatedLastNotified,
             isInTopRated: songs.isInTopRated,
+            updatedAt: songs.updatedAt, // Needed for jitter protection
         })
             .from(songs)
             .innerJoin(feedbacks, and(eq(songs.id, feedbacks.songId), gt(feedbacks.overall, 0)))
-            .leftJoin(authorUsers, eq(feedbacks.authorId, authorUsers.id)) // Feedback author (for quality)
+            .leftJoin(authorUsers, eq(feedbacks.authorId, authorUsers.id))
             .where(eq(songs.isActive, true))
             .groupBy(songs.id)
-            .orderBy(sql`${weightedRatingSql} DESC`)
+            .orderBy(sql`${weightedRatingSql} DESC`, songs.id)
             .limit(10);
 
         const currentTop10Ids = currentTop10.map(s => s.id);
         const cooldownMs = TOP_RATED_NOTIFICATION_COOLDOWN_DAYS * 24 * 60 * 60 * 1000;
+        const tenMinutesMs = 10 * 60 * 1000;
+        const twentyFourHoursMs = 24 * 60 * 60 * 1000;
 
-        // 2. Handle Entries — batch-fetch all user emails upfront to avoid N+1 queries
+        // 2. Handle Entries
         const newEntries = currentTop10.filter(s => !s.isInTopRated);
 
         if (newEntries.length > 0) {
@@ -997,60 +1003,73 @@ export async function checkAndNotifyTopRated() {
             const userEmailMap = new Map(userRows.map(u => [u.id, u.email]));
 
             for (const song of newEntries) {
-                // ENTRY EVENT!
                 const lastNotified = song.topRatedLastNotified ? new Date(song.topRatedLastNotified) : null;
+                const lastStatusChange = song.updatedAt ? new Date(song.updatedAt) : null;
+
+                // Jitter Protection: If it exited very recently (< 24h), don't send a new mail even if cooldown passed
+                const isJitter = lastStatusChange && (now.getTime() - lastStatusChange.getTime() < twentyFourHoursMs);
 
                 // Check if never notified OR cooldown passed
-                if (!lastNotified || (now.getTime() - lastNotified.getTime() >= cooldownMs)) {
-                    const email = userEmailMap.get(song.userId);
+                const cooldownPassed = !lastNotified || (now.getTime() - lastNotified.getTime() >= cooldownMs);
 
-                    // NEW CHECK: Did the song receive any actual feedback recently?
-                    // If it just bounced back due to decay reset of itself or other songs, we shouldn't spam the user.
+                let sentMail = false;
+
+                if (cooldownPassed && !isJitter) {
+                    // TIGHT CHECK: Did the song receive feedback in the last 10 minutes?
+                    // This ensures we only notify if THAT song was recently active.
                     const latestFeedback = await db.query.feedbacks.findFirst({
                         where: (f, { eq }) => eq(f.songId, song.id),
                         orderBy: (f, { desc }) => [desc(f.createdAt)]
                     });
 
                     const lastFeedbackDate = latestFeedback ? new Date(latestFeedback.createdAt) : null;
-                    const hasRecentFeedback = lastFeedbackDate && (now.getTime() - lastFeedbackDate.getTime() <= cooldownMs);
+                    const hasVeryRecentFeedback = lastFeedbackDate && (now.getTime() - lastFeedbackDate.getTime() <= tenMinutesMs);
 
-                    if (email && hasRecentFeedback) {
-                        const result = await sendTopRatedNotification({
-                            to: email,
-                            songTitle: song.title,
-                        });
-
-                        if (!result.success) {
-                            await logToDb({
-                                message: `Top-Rated notification failed for song: ${song.title}`,
-                                data: result.error,
-                                source: "songs.ts:checkAndNotifyTopRated"
+                    if (hasVeryRecentFeedback) {
+                        const email = userEmailMap.get(song.userId);
+                        if (email) {
+                            const result = await sendTopRatedNotification({
+                                to: email,
+                                songTitle: song.title,
                             });
+                            if (result.success) sentMail = true;
                         }
                     }
-
-                    // We always update the flags so it starts decaying and is marked as "In".
-                    // If we skipped emailing because of lack of recent feedback, it still counts as entering silently.
-                    await db.update(songs)
-                        .set({
-                            topRatedLastNotified: now.toISOString(),
-                            isInTopRated: true,
-                            updatedAt: now.toISOString()
-                        })
-                        .where(eq(songs.id, song.id));
-                } else {
-                    // Re-entered before cooldown. Mark as In but don't send mail.
-                    await db.update(songs).set({ isInTopRated: true }).where(eq(songs.id, song.id));
                 }
+
+                // Update status flags
+                const updateData = {
+                    isInTopRated: true,
+                    updatedAt: nowStr,
+                    ...(sentMail || !lastNotified ? { topRatedLastNotified: nowStr } : {})
+                };
+
+                await db.update(songs).set(updateData).where(eq(songs.id, song.id));
             }
         }
 
-        // 3. Handle Exits (songs marked as In but not in the current IDs)
+        // 3. Handle Exits
         if (currentTop10Ids.length > 0) {
+            // Safety: Log if we are about to clear a large number of songs (might indicate a partial query)
+            const songsToExit = await db.select({ id: songs.id })
+                .from(songs)
+                .where(and(
+                    eq(songs.isInTopRated, true),
+                    notInArray(songs.id, currentTop10Ids)
+                ));
+
+            if (songsToExit.length > 3) {
+                await logToDb({
+                    message: "Suspiciously large Top 10 exit event",
+                    data: { count: songsToExit.length, ids: songsToExit.map(s => s.id) },
+                    source: "songs.ts:checkAndNotifyTopRated"
+                });
+            }
+
             await db.update(songs)
                 .set({
                     isInTopRated: false,
-                    updatedAt: now.toISOString()
+                    updatedAt: nowStr
                 })
                 .where(and(
                     eq(songs.isInTopRated, true),
@@ -1058,7 +1077,7 @@ export async function checkAndNotifyTopRated() {
                 ));
         } else {
             // If Top 10 is somehow empty, clear all flags
-            await db.update(songs).set({ isInTopRated: false }).where(eq(songs.isInTopRated, true));
+            await db.update(songs).set({ isInTopRated: false, updatedAt: nowStr }).where(eq(songs.isInTopRated, true));
         }
 
     } catch (error) {
