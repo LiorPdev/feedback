@@ -41,9 +41,7 @@ export default function FeedbackForm({
     overall: 5.5,
   });
   const [comment, setComment] = useState(
-    initialSource === "top-rated"
-      ? "שמעתי את השיר ב 10 הגדולים"
-      : "אהבתי בשיר את... \nהרגשתי שפחות התחברתי ל... \nלדעתי כדאי לנסות לשפר את..."
+    initialSource === "top-rated" ? "שמעתי את השיר ב 10 הגדולים" : ""
   );
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
@@ -289,7 +287,7 @@ export default function FeedbackForm({
             <div className={styles.textareaWrapper}>
               <textarea
                 className={styles.textarea}
-                placeholder={"ממש אהבתי את (לדוגמא: העיבוד).\nהרגשתי שפחות התחברתי ל... (לדוגמא: השירה).\nלדעתי כדאי לנסות לשפר את (לדוגמא: סאונד הגיטרה)..."}
+                placeholder={"אהבתי את...\nפחות התחברתי ל...\nכדאי לנסות לשפר את..."}
                 maxLength={MAX_COMMENT_LENGTH}
                 value={comment}
                 onChange={(e) => {
