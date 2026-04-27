@@ -23,6 +23,8 @@ interface DashboardSong {
   createdAt: string | number | Date;
   updatedAt: string | number | Date;
   isActive: boolean;
+  priority: number;
+  promotedUntil?: string | null;
   feedbacks?: {
     id: string;
     overall: number;
