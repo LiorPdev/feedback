@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { eq, sql, and, notInArray, gt, aliasedTable } from 'drizzle-orm';
 import { users, songs, feedbacks, listenEvents } from '@/lib/schema';
-import { SONG_SUBMISSION_COST, REWARD_PER_COMMENT_STEP, COMMENT_STEP_LENGTH, MAX_COMMENT_LENGTH, TOP_RATED_MIN_RATINGS_THRESHOLD, TOP_RATED_NOTIFICATION_COOLDOWN_DAYS, WEIGHT_OVERALL, TOP_RATED_DECAY_FACTOR, MIN_SONG_DURATION_SECONDS } from '@/lib/constants';
+import { SONG_SUBMISSION_COST, REWARD_PER_COMMENT_STEP, COMMENT_STEP_LENGTH, MAX_COMMENT_LENGTH, TOP_RATED_MIN_RATINGS_THRESHOLD, TOP_RATED_NOTIFICATION_COOLDOWN_DAYS, WEIGHT_OVERALL, TOP_RATED_DECAY_FACTOR, MIN_SONG_DURATION_SECONDS, PROMOTION_COST } from '@/lib/constants';
 import { sendFeedbackNotification, sendTopRatedNotification } from '@/lib/mail';
 import { logToDb } from "@/lib/logger";
 import { deleteFileFromR2 } from '@/app/actions/upload';
@@ -450,7 +450,14 @@ export async function getFeedSongs(firstSongSlug?: string) {
         });
 
         const allSongsToProcess = firstSong ? [firstSong, ...remainingSongs] : remainingSongs;
-        let songsWithStats = allSongsToProcess.map(s => ({ ...s, averageRating: 0, totalFeedbacks: 0 }));
+        const now = new Date().toISOString();
+        let songsWithStats = allSongsToProcess.map(s => ({
+            ...s,
+            // Promotion expired? Reset priority to 0
+            priority: (s.priority === 1 && s.promotedUntil && s.promotedUntil > now) ? 1 : 0,
+            averageRating: 0,
+            totalFeedbacks: 0
+        }));
 
         if (allSongsToProcess.length > 0) {
             const songIds = allSongsToProcess.map(s => s.id);
@@ -472,6 +479,8 @@ export async function getFeedSongs(firstSongSlug?: string) {
             const statsMap = new Map(stats.map(s => [s.songId, s]));
             songsWithStats = allSongsToProcess.map(s => ({
                 ...s,
+                // Promotion expired? Reset priority to 0
+                priority: (s.priority === 1 && s.promotedUntil && s.promotedUntil > now) ? 1 : 0,
                 averageRating: statsMap.get(s.id)?.avgRating ?? 0,
                 totalFeedbacks: statsMap.get(s.id)?.total ?? 0
             }));
@@ -572,6 +581,56 @@ export async function toggleSongStatus(songId: string, isActive: boolean) {
     } catch (error) {
         await logToDb({ message: "Failed to toggle song status", data: error, source: "songs.ts:toggleSongStatus" });
         return { success: false, error: "שגיאה בעדכון סטטוס השיר" };
+    }
+}
+
+export async function promoteSong(songId: string) {
+    const db = await getDb();
+    try {
+        const dbUser = await syncUser();
+        if (!dbUser) return { success: false, error: "לא מחובר" };
+
+        const song = await db.query.songs.findFirst({
+            where: (songs, { eq, and }) => and(eq(songs.id, songId), eq(songs.userId, dbUser.id)),
+        });
+
+        if (!song) return { success: false, error: "לא מורשה" };
+
+        // Check if already promoted
+        const now = new Date();
+        if (song.priority === 1 && song.promotedUntil && new Date(song.promotedUntil) > now) {
+            return { success: false, error: `השיר כבר מקודם עד ${new Date(song.promotedUntil).toLocaleDateString('he-IL')}` };
+        }
+
+        if (dbUser.tokens < PROMOTION_COST) {
+            return { success: false, error: "אין לך מספיק קרדיטים לקידום השיר" };
+        }
+
+        // Calculate promotion expiry (7 days from now)
+        const promotedUntil = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+        await db.batch([
+            // Deduct tokens
+            db.update(users)
+                .set({ tokens: dbUser.tokens - PROMOTION_COST })
+                .where(eq(users.id, dbUser.id)),
+
+            // Update song priority and expiry
+            db.update(songs)
+                .set({
+                    priority: 1,
+                    promotedUntil: promotedUntil,
+                    updatedAt: new Date().toISOString()
+                })
+                .where(eq(songs.id, songId))
+        ]);
+
+        revalidatePath('/dashboard');
+        revalidatePath('/give-feedback');
+        return { success: true };
+    } catch (error) {
+        await logToDb({ message: "Failed to promote song", data: error, source: "songs.ts:promoteSong" });
+        return { success: false, error: error instanceof Error ? error.message : "שגיאה בקידום השיר" };
     }
 }
 

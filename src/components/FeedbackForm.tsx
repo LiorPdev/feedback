@@ -40,9 +40,7 @@ export default function FeedbackForm({
   const [ratings, setRatings] = useState({
     overall: 5.5,
   });
-  const [comment, setComment] = useState(
-    initialSource === "top-rated" ? "שמעתי את השיר ב 10 הגדולים" : ""
-  );
+  const [comment, setComment] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [hasInteractedWithSlider, setHasInteractedWithSlider] = useState(false);
@@ -178,7 +176,7 @@ export default function FeedbackForm({
       const result = await addFeedback({
         songId,
         overall: ratings.overall,
-        comment: commentTrimmed,
+        comment: initialSource === "top-rated" ? `שמעתי את השיר ב 10 הגדולים\n${commentTrimmed}` : commentTrimmed,
         playedSeconds,
         listenCredits,
       });

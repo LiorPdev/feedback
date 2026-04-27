@@ -1,37 +1,37 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { useMotionValue, useTransform, animate } from "framer-motion";
+import { useEffect, useState } from "react";
 
 interface AnimatedTokenCounterProps {
   value: number;
 }
 
 export default function AnimatedTokenCounter({ value }: AnimatedTokenCounterProps) {
+  const count = useMotionValue(value);
+  const rounded = useTransform(count, (latest) => Math.round(latest));
+  const [displayValue, setDisplayValue] = useState(value);
+
+  useEffect(() => {
+    const controls = animate(count, value, {
+      duration: 1.2,
+      ease: "easeOut",
+    });
+    return controls.stop;
+  }, [value, count]);
+
+  useEffect(() => {
+    return rounded.on("change", (v) => setDisplayValue(v));
+  }, [rounded]);
+
   return (
-    <span style={{ 
-      display: "inline-flex", 
-      position: "relative", 
-      overflow: "hidden", 
-      height: "1.2em", 
-      alignItems: "center" 
+    <span style={{
+      display: "inline-flex",
+      alignItems: "center",
+      fontWeight: 800,
+      fontVariantNumeric: "tabular-nums"
     }}>
-      <AnimatePresence mode="popLayout">
-        <motion.span
-          key={value}
-          initial={{ y: 15, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: -15, opacity: 0 }}
-          transition={{ 
-            type: "spring", 
-            stiffness: 400, 
-            damping: 30,
-            opacity: { duration: 0.15 } 
-          }}
-          style={{ display: "inline-block" }}
-        >
-          {value}
-        </motion.span>
-      </AnimatePresence>
+      {displayValue}
     </span>
   );
 }

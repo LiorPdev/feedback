@@ -129,7 +129,7 @@ export default function Navbar({ isLoggedIn, initialTokens, initialName = "", in
     if (tokens !== null && displayedTokens !== null && tokens !== displayedTokens) {
       const updateTimer = setTimeout(() => {
         setDisplayedTokens(tokens);
-      }, 1000);
+      }, 1200);
 
       return () => clearTimeout(updateTimer);
     }

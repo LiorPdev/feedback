@@ -117,7 +117,7 @@ export default function EditSong({ song }: EditSongProps) {
             onClick={(e) => e.stopPropagation()}
           >
             <PageHeader
-              title="עריכת פרטי השיר"
+              title="עריכה"
               showClose={true}
               onClose={() => setShowModal(false)}
               showBack={false}

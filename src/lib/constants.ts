@@ -26,6 +26,7 @@ export const COMMENT_STEP_LENGTH = 25;      // Number of characters required to 
 // Tokens i spend (Try and keep the same amount)
 export const SONG_SUBMISSION_COST = 50;
 export const UNLOCK_FEEDBACK_COST = 50;
+export const PROMOTION_COST = 300;
 
 export const MIN_COMMENT_LENGTH = 70;
 export const MAX_COMMENT_LENGTH = 500;

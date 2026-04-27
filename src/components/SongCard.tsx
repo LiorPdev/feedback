@@ -5,6 +5,7 @@ import DeleteSong from "@/components/DeleteSong";
 import EditSong from "@/components/EditSong";
 import ShareSongButton from "@/components/ShareSongButton";
 import ToggleSongStatusButton from "@/components/ToggleSongStatusButton";
+import PromoteSong from "@/components/PromoteSong";
 import styles from "./SongCard.module.css";
 
 interface SongCardProps {
@@ -20,6 +21,8 @@ interface SongCardProps {
     feedbacks?: { isUnlocked: boolean }[];
     isActive: boolean;
     fewWords?: string | null;
+    priority: number;
+    promotedUntil?: string | null;
   };
   isNew?: boolean;
 }
@@ -39,10 +42,11 @@ export default function SongCard({ song }: SongCardProps) {
       <div className={styles.songBody}>
         <div className={styles.songActions}>
           <Link href={`/show-feedback/${song.slug}`} className={styles.viewLink}>
-            פידבקים <span className={unreadCount > 0 ? styles.unreadCount : ""}>({song.feedbacks?.length || 0})</span>
+            פידבק <span className={unreadCount > 0 ? styles.unreadCount : ""}>({song.feedbacks?.length || 0})</span>
           </Link>
           <div className={styles.adminActions}>
             <ShareSongButton slug={song.slug} disabled={!song.isActive} />
+            <PromoteSong song={song} />
             <EditSong song={song} />
             <ToggleSongStatusButton songId={song.id} isActive={song.isActive} />
             <DeleteSong songId={song.id} songTitle={song.title} />
