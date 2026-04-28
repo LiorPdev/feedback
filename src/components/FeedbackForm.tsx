@@ -280,7 +280,7 @@ export default function FeedbackForm({
           {/* Text feedback first */}
           <div className={styles.commentGroup}>
             <label className={styles.commentLabel}>
-              הפידבק שלך עוזר לאמן להשתפר. כתבו בכנות: מה עבד לכם ומה הרגיש פחות מדויק.
+              כתבו בכנות: מה עבד לכם ומה הרגיש פחות מדויק.
             </label>
             <div className={styles.textareaWrapper}>
               <textarea

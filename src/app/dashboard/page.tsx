@@ -27,19 +27,15 @@ export default async function DashboardPage({
   const { new: newSlug, backHome } = await searchParams;
   const isBackHome = backHome === "true";
 
-  let user;
   const db = await getDb();
+  let userSongs = [];
   try {
-    user = await db.query.users.findFirst({
-      where: (users, { eq }) => eq(users.id, dbUser.id),
+    userSongs = await db.query.songs.findMany({
+      where: (songs, { eq }) => eq(songs.userId, dbUser.id),
+      orderBy: (songs, { desc }) => [desc(songs.createdAt)],
       with: {
-        songs: {
-          orderBy: (songs, { desc }) => [desc(songs.createdAt)],
-          with: {
-            feedbacks: true,
-            listenEvents: true,
-          },
-        },
+        feedbacks: true,
+        listenEvents: true,
       },
     });
   } catch (err: unknown) {
@@ -66,7 +62,7 @@ export default async function DashboardPage({
 
   const givenFeedbacks: GivenFeedbackItem[] = await getMyGivenFeedbacks();
 
-  if (!user || (user.songs.length === 0 && givenFeedbacks.length === 0)) {
+  if (userSongs.length === 0 && givenFeedbacks.length === 0) {
     redirect("/get-feedback?backHome=true");
   }
 
@@ -81,10 +77,10 @@ export default async function DashboardPage({
       <div className={styles.headerWrapper}>
         <div className={styles.headerRow}>
           <PageHeader
-            title={<><span className={styles.welcomeText}>שלום </span>{user.name ? user.name.split(" ")[0] : ""}</>}
+            title={<><span className={styles.welcomeText}>שלום </span>{dbUser.name ? dbUser.name.split(" ")[0] : ""}</>}
             subtitle={
               <RaterScoreInfo
-                score={user.raterScore}
+                score={dbUser.raterScore}
                 label="דירוג אישי"
                 className={styles.raterScoreDashboard}
               />
@@ -104,7 +100,7 @@ export default async function DashboardPage({
 
       <div className={styles.content}>
         <DashboardClient
-          songs={user?.songs ?? []}
+          songs={userSongs}
           newSlug={newSlug}
           globalAverage={globalAverage}
           minThreshold={TOP_RATED_MIN_RATINGS_THRESHOLD}

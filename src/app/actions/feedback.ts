@@ -3,7 +3,7 @@
 import { getDb } from "@/lib/db";
 import { feedbacks, users, songs } from "@/lib/schema";
 import { and, eq, sql } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_cache } from "next/cache";
 import { logAction } from "./logs";
 import { UNLOCK_FEEDBACK_COST, FREE_FEEDBACKS_FOR_ARTIST, LIKE_FEEDBACK_REWARD, FEEDBACK_COUNT_FACTOR } from "@/lib/constants";
 import { updateRaterScore } from "@/lib/rater-score";
@@ -228,17 +228,24 @@ export async function setFeedbackReaction(feedbackId: string, newReaction: -1 | 
   }
 }
 
+const getFeedbacksCount = unstable_cache(
+  async () => {
+    const db = await getDb();
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(feedbacks);
+    return result[0]?.count ?? 0;
+  },
+  ['feedbacks-count'],
+  { revalidate: 3600 }
+);
+
 //
 // Returns a "small cheat" number to display as feedbacks count on the landing page
 //
 export async function getDisplayFeedbacksCount(): Promise<number> {
   try {
-    const db = await getDb();
-    const result = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(feedbacks);
-
-    const total = result[0]?.count ?? 0;
+    const total = await getFeedbacksCount();
     const base = Math.floor(total / FEEDBACK_COUNT_FACTOR);
 
     // Calculate dynamic part based on time

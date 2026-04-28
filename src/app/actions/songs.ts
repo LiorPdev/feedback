@@ -422,10 +422,9 @@ export async function getFeedSongs(firstSongSlug?: string) {
 
                 // Don't show already rated songs
                 if (dbUser) {
-                    // Optimized exclusion using a subquery: 
-                    // This uses only ONE parameter (userId) instead of listing all rated IDs.
-                    // This allows excluding thousands of songs without hitting D1 limits.
-                    filters.push(sql`id NOT IN (SELECT songId FROM Feedback WHERE authorId = ${dbUser.id})`);
+                    // Optimized exclusion using a subquery with NOT EXISTS: 
+                    // This is more efficient in SQLite/D1 than NOT IN for this pattern.
+                    filters.push(sql`NOT EXISTS (SELECT 1 FROM Feedback WHERE authorId = ${dbUser.id} AND songId = ${songs.id})`);
                 }
 
                 // Exclude the first song if it was fetched explicitly
