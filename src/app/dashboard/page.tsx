@@ -9,6 +9,7 @@ import DashboardClient from "./DashboardClient";
 import { getMyGivenFeedbacks } from "@/app/actions/feedback";
 import type { GivenFeedbackItem } from "@/app/actions/feedback";
 import RaterScoreInfo from "@/components/RaterScoreInfo";
+import AddSongButton from "@/components/AddSongButton";
 import { syncUser } from "@/lib/user-auth";
 export const dynamic = "force-dynamic";
 import PageHeader from "@/components/PageHeader";
@@ -66,6 +67,8 @@ export default async function DashboardPage({
     redirect("/get-feedback?backHome=true");
   }
 
+  const activeSongsCount = userSongs.filter((s) => s.isActive).length;
+
   // Calculate global average rating (C) for Bayesian True Rating
   const globalStats = await db.select({
     avgRating: sql<number>`avg(${feedbacks.overall})`
@@ -89,12 +92,12 @@ export default async function DashboardPage({
             backUrl={isBackHome ? "/" : undefined}
             hideDivider
           />
-          <Link
-            href={`/get-feedback?new=true${isBackHome ? "&backHome=true" : ""}`}
+          <AddSongButton
+            activeSongsCount={activeSongsCount}
+            isBackHome={isBackHome}
             className={styles.headerActionBtn}
-          >
-            הוספת שיר
-          </Link>
+            variant="headerActionBtn"
+          />
         </div>
       </div>
 

@@ -6,7 +6,7 @@ import { BarChart3, Music, Play, SquareStop, Meh, Heart } from "lucide-react";
 import Image from "next/image";
 import SongCard from "@/components/SongCard";
 import SongRatingsChart from "./SongRatingsChart";
-import Button from "@/components/ui/Button";
+import AddSongButton from "@/components/AddSongButton";
 import UrlPlayer, { UrlPlayerHandle } from "@/components/UrlPlayer";
 import styles from "./DashboardClient.module.css";
 import type { GivenFeedbackItem } from "@/app/actions/feedback";
@@ -143,6 +143,8 @@ export default function DashboardClient({
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
+  const activeSongsCount = useMemo(() => songs.filter(s => s.isActive).length, [songs]);
+
   const [activeFeedbackId, setActiveFeedbackId] = useState<string | null>(null);
 
   const activeFeedback = useMemo(() => {
@@ -225,13 +227,7 @@ export default function DashboardClient({
         </div>
 
         <div className={`${styles.headerAction} ${styles.hideOnMobile}`}>
-          <Button
-            variant="primary"
-            size="md"
-            onClick={() => router.push(`/get-feedback?new=true${searchParams.get('backHome') === 'true' ? "&backHome=true" : ""}`)}
-          >
-            הוספת שיר
-          </Button>
+          <AddSongButton activeSongsCount={activeSongsCount} />
         </div>
       </div>
 
