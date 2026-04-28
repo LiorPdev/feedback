@@ -236,7 +236,7 @@ export default function DashboardClient({
           <div className={styles.songsSection}>
             <div className={styles.songGrid}>
               {songs.map((song) => (
-                <SongCard key={song.id} song={song} />
+                <SongCard key={song.id} song={song} activeSongsCount={activeSongsCount} />
               ))}
             </div>
           </div>

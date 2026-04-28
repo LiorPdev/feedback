@@ -16,13 +16,18 @@
   justify-content: center;
   transition: all 0.2s ease;
   color: var(--text-muted);
-  opacity: 0.7;
+  opacity: 1;
 }
 
 .toggleBtn:hover {
   background: var(--bg-section);
   color: var(--brand-primary);
   opacity: 1;
+}
+
+.isInactive {
+  opacity: 1 !important;
+  color: var(--brand-primary) !important;
 }
 
 .tooltip {

@@ -68,7 +68,7 @@ function LimitPopup({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
       message={
         <div style={{ textAlign: "right", direction: "rtl", lineHeight: "1.6" }}>
           ניתן להריץ עד {MAX_ACTIVE_SONGS} שירים במקביל.<br />
-          רוצה להעלות משהו חדש? פשוט לחצו על <OctagonPause size={18} style={{ display: "inline-block", verticalAlign: "middle", margin: "0 4px", color: "var(--brand-primary)" }} /> כדי להשהות זמנית שיר קיים, והדרך תתפנה!
+          רוצה להעלות משהו חדש? פשוט לחצו על <OctagonPause size={18} style={{ display: "inline-block", verticalAlign: "middle", margin: "0 4px", color: "var(--brand-primary)" }} /> כדי להשהות זמנית שיר פעיל, והדרך תתפנה!
         </div>
       }
     />

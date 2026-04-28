@@ -37,6 +37,15 @@
   flex: 1;
 }
 
+.songTitleLink {
+  text-decoration: none;
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  position: relative;
+  z-index: 2;
+}
+
 .songDate {
   display: flex;
   align-items: center;
@@ -108,13 +117,25 @@
   opacity: 0.5;
 }
 
+.paused .songTitle {
+  color: var(--text-muted);
+}
+
 .paused .songBody {
   opacity: 0.7;
   filter: grayscale(0.5);
 }
 
+.paused .viewLink {
+  color: var(--text-muted);
+}
+
 .paused .adminActions {
   opacity: 1;
+}
+
+.paused .adminActions > *:not(:nth-child(4)) {
+  opacity: 0.4;
 }
 
 .unreadCount {

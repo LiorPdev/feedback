@@ -14,7 +14,7 @@ export const GENRES = [
 ];
 
 export const MAX_SONG_NAME_LENGTH = 25;
-export const MAX_ACTIVE_SONGS = 5;
+export const MAX_ACTIVE_SONGS = 6;
 export const MIN_SONG_DURATION_SECONDS = 50;
 
 // Tokens i get

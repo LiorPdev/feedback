@@ -18,9 +18,10 @@ interface PromoteSongProps {
     priority: number;
     promotedUntil?: string | null;
   };
+  disabled?: boolean;
 }
 
-export default function PromoteSong({ song }: PromoteSongProps) {
+export default function PromoteSong({ song, disabled }: PromoteSongProps) {
   const [showModal, setShowModal] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -143,6 +144,7 @@ export default function PromoteSong({ song }: PromoteSongProps) {
         onClick={() => setShowModal(true)}
         title="קידום השיר"
         style={{ padding: '8px', minWidth: 'auto' }}
+        disabled={disabled}
       >
         <Megaphone size={16} color={isCurrentlyPromoted ? "#EAB308" : "currentColor"} />
       </Button>
