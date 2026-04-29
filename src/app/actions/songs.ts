@@ -920,7 +920,7 @@ const authorUsers = aliasedTable(users, 'authorUsers');
  */
 function getBayesianRatingSql(m: number, C: number | ReturnType<typeof sql>, nowStr: string = 'now') {
     const weightSql = sql`CAST((COALESCE(${authorUsers.raterScore}, 0) / 5.0) + 1.0 AS REAL)`;
-    const ratingExprSql = sql`CAST(${feedbacks.overall} AS REAL)`;
+    const ratingExprSql = sql`(CAST(${feedbacks.overall} AS REAL) * ${WEIGHT_OVERALL})`;
 
     const weightedSum = sql`SUM(${weightSql} * ${ratingExprSql})`;
     const weightedCount = sql`SUM(${weightSql})`;

@@ -4,7 +4,7 @@ import { getDb } from '@/lib/db';
 import { syncUser } from '@/lib/user-auth';
 import { desc, eq, aliasedTable, sql, and, gt } from 'drizzle-orm';
 import { users, songs, feedbacks, logs } from '@/lib/schema';
-import { ADMIN_EMAIL, WEIGHT_OVERALL, TOP_RATED_DECAY_FACTOR } from '@/lib/constants';
+import { ADMIN_EMAIL, WEIGHT_OVERALL, TOP_RATED_DECAY_FACTOR, TOP_RATED_MIN_RATINGS_THRESHOLD } from '@/lib/constants';
 import { logAction } from './logs';
 
 async function getAdminUser() {
@@ -37,6 +37,8 @@ export async function getAdminSongsReport() {
             creatorName: users.name,
             creatorEmail: users.email,
             creatorTokens: users.tokens,
+            priority: songs.priority,
+            promotedUntil: songs.promotedUntil,
             lastFeedbackAt: feedbackStatsSubquery.lastFeedbackAt,
             feedbackCount: sql<number>`COALESCE(${feedbackStatsSubquery.feedbackCount}, 0)`.as('feedbackCount')
         })
@@ -244,7 +246,7 @@ export async function getAdminTopRatedReport() {
         const rawAvg = sql`AVG(${ratingExprSql})`;
         const numRatings = sql`COUNT(${feedbacks.id})`;
 
-        const bayesianAvg = sql`(((${weightedSum}) + (3.0 * ${C_sql})) / ((${weightedCount}) + 3.0))`;
+        const bayesianAvg = sql`(((${weightedSum}) + (${TOP_RATED_MIN_RATINGS_THRESHOLD} * ${C_sql})) / ((${weightedCount}) + ${TOP_RATED_MIN_RATINGS_THRESHOLD}))`;
         const decay = sql`CASE WHEN ${songs.topRatedLastNotified} IS NULL THEN 0 ELSE (julianday('now') - julianday(${songs.topRatedLastNotified})) * ${TOP_RATED_DECAY_FACTOR} END`;
         const finalScore = sql`(${bayesianAvg}) - (${decay})`;
 

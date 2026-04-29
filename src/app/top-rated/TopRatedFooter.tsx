@@ -37,7 +37,7 @@ export default function TopRatedFooter() {
               <ul className={styles.formulaLegend}>
                 <li><strong>v</strong>: סכום משקלי הדירוגים (מושפע מאיכות המדרג)</li>
                 <li><strong>R</strong>: הציון הממוצע של השיר</li>
-                <li><strong>m</strong>: רף המינימום (3 דירוגים)</li>
+                <li><strong>m</strong>: מינימום דירוגים</li>
                 <li><strong>C</strong>: הציון הממוצע של כלל השירים באתר</li>
               </ul>
               <p>כך אנחנו מבטיחים ששיר עם הרבה דירוגים ומדרגים איכותיים ידורג גבוה יותר.</p>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { getAdminSongsReport, getAdminFeedbacksReport, getAdminUsersReport, getAdminLogsReport, getAdminTopRatedReport, deleteAdminFeedback, deleteAdminSong } from '@/app/actions/admin';
-import { ArrowUpDown, ArrowUp, ArrowDown, Trash2, Heart, Copy, Meh } from 'lucide-react';
+import { ArrowUpDown, ArrowUp, ArrowDown, Trash2, Heart, Copy, Meh, Check } from 'lucide-react';
 import styles from './reports.module.css';
 
 type ReportType = 'songs' | 'feedbacks' | 'users' | 'logs' | 'top-rated';
@@ -192,6 +192,7 @@ export function ReportsClient() {
                                     <SortHeader label="טוקנים" sortKey="creatorTokens" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="פידבק אחרון" sortKey="lastFeedbackAt" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="#פידבקים" sortKey="feedbackCount" sortConfig={sortConfig} onSort={handleSort} />
+                                    <th style={{ width: '60px', textAlign: 'center' }}>פרסום</th>
                                     <th style={{ width: '80px', textAlign: 'center' }}>תן פידבק</th>
                                 </tr>
                             ) : reportType === 'feedbacks' ? (
@@ -244,8 +245,6 @@ export function ReportsClient() {
                                 <tr
                                     key={item.id}
                                     className={selectedId === item.id ? styles.selected : ''}
-                                    onClick={() => canDelete && setSelectedId(selectedId === item.id ? null : item.id)}
-                                    style={{ cursor: canDelete ? 'pointer' : 'default' }}
                                 >
                                     {reportType === 'songs' && (
                                         <>
@@ -273,6 +272,11 @@ export function ReportsClient() {
                                             <td style={{ textAlign: 'center' }}>{item.creatorTokens}</td>
                                             <td>{item.lastFeedbackAt ? formatDate(item.lastFeedbackAt) : '-'}</td>
                                             <td style={{ textAlign: 'center' }}>{item.feedbackCount}</td>
+                                            <td style={{ textAlign: 'center' }}>
+                                                {item.priority === 1 && (!item.promotedUntil || new Date(item.promotedUntil) > new Date()) ? (
+                                                    <Check size={18} color="var(--brand-primary)" />
+                                                ) : null}
+                                            </td>
                                             <td style={{ textAlign: 'center' }}>
                                                 <button
                                                     className={styles.feedbackBtn}
