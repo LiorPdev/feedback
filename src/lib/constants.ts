@@ -37,7 +37,6 @@ export const MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024;
 export const ADMIN_EMAIL = "lior.porat.music@gmail.com";
 
 export const TOP_RATED_DECAY_FACTOR = 0.07;             // Amount of score points a song loses for each day it stays in the Top 10 list. To prevent the same songs from dominating the Top 10 for too long. Lower value (e.g. 0.005) means songs stay longer; higher value (e.g. 0.05) means faster turnover.
-export const TOP_RATED_NOTIFICATION_COOLDOWN_DAYS = 4;  // Days a song must stay out of Top 10 to reset its decay and allow new notification
 export const TOP_RATED_MIN_RATINGS_THRESHOLD = 4;       // Damping factor (m) for Bayesian rating. Higher value means more ratings are needed to overcome the global average and reach the top.
 
 // Rating Weights
