@@ -48,7 +48,7 @@
   box-shadow: var(--shadow-lg);
   border: 1px solid var(--border-color);
   overflow: auto;
-  max-height: calc(100vh - 280px);
+  max-height: calc(100vh - 160px);
 }
 
 .table {

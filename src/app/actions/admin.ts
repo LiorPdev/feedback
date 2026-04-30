@@ -3,8 +3,8 @@
 import { getDb } from '@/lib/db';
 import { syncUser } from '@/lib/user-auth';
 import { desc, eq, aliasedTable, sql, and, gt } from 'drizzle-orm';
-import { users, songs, feedbacks, logs } from '@/lib/schema';
-import { ADMIN_EMAIL, WEIGHT_OVERALL, TOP_RATED_DECAY_FACTOR, TOP_RATED_MIN_RATINGS_THRESHOLD } from '@/lib/constants';
+import { users, songs, feedbacks, logs, listenEvents } from '@/lib/schema';
+import { ADMIN_EMAIL, WEIGHT_OVERALL, TOP_RATED_DECAY_FACTOR, TOP_RATED_MIN_RATINGS_THRESHOLD, LISTEN_TIME_WEIGHT } from '@/lib/constants';
 import { logAction } from './logs';
 
 async function getAdminUser() {
@@ -246,9 +246,19 @@ export async function getAdminTopRatedReport() {
         const rawAvg = sql`AVG(${ratingExprSql})`;
         const numRatings = sql`COUNT(${feedbacks.id})`;
 
+        // Listen stats subquery
+        const listenStats = db.select({
+            songId: listenEvents.songId,
+            avgPlayedSeconds: sql<number>`AVG(${listenEvents.playedSeconds})`.as('avgPlayedSeconds')
+        })
+        .from(listenEvents)
+        .groupBy(listenEvents.songId)
+        .as('listenStats');
+
         const bayesianAvg = sql`(((${weightedSum}) + (${TOP_RATED_MIN_RATINGS_THRESHOLD} * ${C_sql})) / ((${weightedCount}) + ${TOP_RATED_MIN_RATINGS_THRESHOLD}))`;
+        const listenBonus = sql`(COALESCE(${listenStats.avgPlayedSeconds}, 0) / 60.0 * ${LISTEN_TIME_WEIGHT})`;
         const decay = sql`CASE WHEN ${songs.topRatedLastNotified} IS NULL THEN 0 ELSE (julianday('now') - julianday(${songs.topRatedLastNotified})) * ${TOP_RATED_DECAY_FACTOR} END`;
-        const finalScore = sql`(${bayesianAvg}) - (${decay})`;
+        const finalScore = sql`(${bayesianAvg}) + (${listenBonus}) - (${decay})`;
 
         const result = await db.select({
             id: songs.id,
@@ -258,6 +268,8 @@ export async function getAdminTopRatedReport() {
             weightedV: weightedCount,
             weightedSum: weightedSum,
             bayesianAvg: bayesianAvg,
+            listenBonus: listenBonus,
+            avgListenSeconds: sql`COALESCE(${listenStats.avgPlayedSeconds}, 0)`,
             decay: decay,
             finalScore: finalScore,
             slug: songs.slug
@@ -265,6 +277,7 @@ export async function getAdminTopRatedReport() {
             .from(songs)
             .innerJoin(feedbacks, and(eq(songs.id, feedbacks.songId), gt(feedbacks.overall, 0)))
             .leftJoin(rater, eq(feedbacks.authorId, rater.id))
+            .leftJoin(listenStats, eq(songs.id, listenStats.songId))
             .where(eq(songs.isActive, true))
             .groupBy(songs.id)
             .orderBy(desc(finalScore));

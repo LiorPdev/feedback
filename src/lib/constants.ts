@@ -32,9 +32,13 @@ export const PROMOTION_COST = 300;
 export const MIN_COMMENT_LENGTH = 70;
 export const MAX_COMMENT_LENGTH = 500;
 export const MIN_LISTEN_TIME = 40;
+export const MIN_LISTEN_EVENT_SECONDS = 10; // Minimum seconds needed to play a song to be entered into listenEvents table
+
 export const MAX_FILE_SIZE_MB = 13;
 export const MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024;
 export const ADMIN_EMAIL = "lior.porat.music@gmail.com";
+export const LISTEN_TIME_WEIGHT = 0.2; // Every minute of average listening adds this many points to the rating
+
 
 export const TOP_RATED_DECAY_FACTOR = 0.07;             // Amount of score points a song loses for each day it stays in the Top 10 list. To prevent the same songs from dominating the Top 10 for too long. Lower value (e.g. 0.005) means songs stay longer; higher value (e.g. 0.05) means faster turnover.
 export const TOP_RATED_MIN_RATINGS_THRESHOLD = 4;       // Damping factor (m) for Bayesian rating. Higher value means more ratings are needed to overcome the global average and reach the top.

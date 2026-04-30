@@ -212,7 +212,7 @@ export function ReportsClient() {
                                     <SortHeader label="שם השיר" sortKey="title" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="#דירוגים" sortKey="numRatings" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="ממוצע נקי" sortKey="rawAvg" sortConfig={sortConfig} onSort={handleSort} />
-                                    <SortHeader label="משקל המדרגים" sortKey="weightedV" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="ממוצע השמעה" sortKey="avgListenSeconds" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="ניקוד מדרגים מצטבר" sortKey="weightedSum" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="Bayesian" sortKey="bayesianAvg" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="התיישנות" sortKey="decay" sortConfig={sortConfig} onSort={handleSort} />
@@ -343,12 +343,34 @@ export function ReportsClient() {
                                             <td>{item.title}</td>
                                             <td>{item.numRatings}</td>
                                             <td>{typeof item.rawAvg === 'number' ? item.rawAvg.toFixed(3) : item.rawAvg}</td>
-                                            <td>{typeof item.weightedV === 'number' ? item.weightedV.toFixed(2) : item.weightedV}</td>
+                                            <td title={`${item.avgListenSeconds} שניות`}>
+                                                {typeof item.avgListenSeconds === 'number' 
+                                                    ? `${Math.floor(item.avgListenSeconds / 60)}:${(Math.floor(item.avgListenSeconds % 60)).toString().padStart(2, '0')}`
+                                                    : item.avgListenSeconds}
+                                                {typeof item.listenBonus === 'number' && item.listenBonus > 0 && (
+                                                    <span style={{ fontSize: '0.8rem', color: 'var(--brand-primary)', marginRight: '4px' }}>
+                                                        (+{item.listenBonus.toFixed(2)})
+                                                    </span>
+                                                )}
+                                            </td>
                                             <td>{typeof item.weightedSum === 'number' ? item.weightedSum.toFixed(2) : item.weightedSum}</td>
                                             <td>{typeof item.bayesianAvg === 'number' ? item.bayesianAvg.toFixed(3) : item.bayesianAvg}</td>
                                             <td>{typeof item.decay === 'number' ? item.decay.toFixed(3) : item.decay}</td>
-                                            <td style={{ fontWeight: 'bold', color: 'var(--accent)' }}>
-                                                {typeof item.finalScore === 'number' ? item.finalScore.toFixed(4) : item.finalScore}
+                                            <td style={{ fontWeight: 'bold', color: 'var(--accent)', minWidth: '140px', textAlign: 'center' }}>
+                                                <div>{typeof item.finalScore === 'number' ? item.finalScore.toFixed(4) : item.finalScore}</div>
+                                                <div style={{ 
+                                                    fontSize: '0.7rem', 
+                                                    fontWeight: 'normal', 
+                                                    color: 'var(--text-muted)', 
+                                                    marginTop: '2px',
+                                                    direction: 'ltr',
+                                                    unicodeBidi: 'isolate',
+                                                    whiteSpace: 'nowrap'
+                                                }}>
+                                                    ({typeof item.bayesianAvg === 'number' ? item.bayesianAvg.toFixed(2) : item.bayesianAvg} + 
+                                                     {typeof item.listenBonus === 'number' ? item.listenBonus.toFixed(2) : item.listenBonus} - 
+                                                     {typeof item.decay === 'number' ? item.decay.toFixed(2) : item.decay})
+                                                </div>
                                             </td>
                                             <td style={{ textAlign: 'center' }}>
                                                 <button

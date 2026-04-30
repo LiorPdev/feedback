@@ -32,13 +32,14 @@ export default function TopRatedFooter() {
             <div className={styles.tooltipContent}>
               <p>הדירוג נקבע לפי נוסחת ממוצע משוקלל (Bayesian Average):</p>
               <div className={styles.formula}>
-                (v × R + m × C) / (v + m)
+                ((v × R + m × C) / (v + m)) + LF
               </div>
               <ul className={styles.formulaLegend}>
                 <li><strong>v</strong>: סכום משקלי הדירוגים (מושפע מאיכות המדרג)</li>
                 <li><strong>R</strong>: הציון הממוצע של השיר</li>
                 <li><strong>m</strong>: מינימום דירוגים</li>
                 <li><strong>C</strong>: הציון הממוצע של כלל השירים באתר</li>
+                <li><strong>LF</strong>: תוספת המבוססת על זמן ההאזנה הממוצע לשיר.</li>
               </ul>
               <p>כך אנחנו מבטיחים ששיר עם הרבה דירוגים ומדרגים איכותיים ידורג גבוה יותר.</p>
             </div>

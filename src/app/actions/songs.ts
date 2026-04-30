@@ -4,9 +4,9 @@ import { getDb } from '@/lib/db';
 import { nanoid } from 'nanoid';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
-import { eq, sql, and, notInArray, gt, aliasedTable } from 'drizzle-orm';
+import { eq, sql, and, notInArray, gt, aliasedTable, type SQL } from 'drizzle-orm';
 import { users, songs, feedbacks, listenEvents } from '@/lib/schema';
-import { SONG_SUBMISSION_COST, REWARD_PER_COMMENT_STEP, COMMENT_STEP_LENGTH, MAX_COMMENT_LENGTH, TOP_RATED_MIN_RATINGS_THRESHOLD, WEIGHT_OVERALL, TOP_RATED_DECAY_FACTOR, MIN_SONG_DURATION_SECONDS, PROMOTION_COST } from '@/lib/constants';
+import { SONG_SUBMISSION_COST, REWARD_PER_COMMENT_STEP, COMMENT_STEP_LENGTH, MAX_COMMENT_LENGTH, TOP_RATED_MIN_RATINGS_THRESHOLD, WEIGHT_OVERALL, TOP_RATED_DECAY_FACTOR, MIN_SONG_DURATION_SECONDS, PROMOTION_COST, MIN_LISTEN_EVENT_SECONDS, LISTEN_TIME_WEIGHT } from '@/lib/constants';
 import { sendFeedbackNotification, sendTopRatedNotification } from '@/lib/mail';
 import { logToDb } from "@/lib/logger";
 import { deleteFileFromR2 } from '@/app/actions/upload';
@@ -258,8 +258,8 @@ export async function recordListenEvent(data: {
     songId: string;
     playedSeconds: number;
 }) {
-    // Ignore very short listens (< 2 seconds) — noise filter
-    if (!data.playedSeconds || data.playedSeconds < 2) {
+    // Ignore very short listens — noise filter
+    if (!data.playedSeconds || data.playedSeconds < MIN_LISTEN_EVENT_SECONDS) {
         return { success: true, skipped: true };
     }
 
@@ -918,7 +918,7 @@ const authorUsers = aliasedTable(users, 'authorUsers');
  * m = minimum ratings threshold (prior weight)
  * C = global simple average rating
  */
-function getBayesianRatingSql(m: number, C: number | ReturnType<typeof sql>, nowStr: string = 'now') {
+function getBayesianRatingSql(m: number, C: number | SQL, nowStr: string = 'now', avgListenSql: SQL | null = sql`0`) {
     const weightSql = sql`CAST((COALESCE(${authorUsers.raterScore}, 0) / 5.0) + 1.0 AS REAL)`;
     const ratingExprSql = sql`(CAST(${feedbacks.overall} AS REAL) * ${WEIGHT_OVERALL})`;
 
@@ -930,10 +930,10 @@ function getBayesianRatingSql(m: number, C: number | ReturnType<typeof sql>, now
         / ( (${weightedCount}) + ${m} )
     `;
 
-    // Final score = Bayesian Average - (Days since entry * Decay Factor)
+    // Final score = Bayesian Average + (Avg Listen Bonus) - (Days since entry * Decay Factor)
     // We use COALESCE on julianday to prevent NULL scores if the date format is invalid
     return sql<number>`
-        ${bayesianAvg} - (CASE 
+        ${bayesianAvg} + (COALESCE(${avgListenSql}, 0) / 60.0 * ${LISTEN_TIME_WEIGHT}) - (CASE 
             WHEN ${songs.topRatedLastNotified} IS NULL THEN 0 
             ELSE COALESCE(julianday(${nowStr}) - julianday(${songs.topRatedLastNotified}), 0) * ${TOP_RATED_DECAY_FACTOR} 
         END)
@@ -963,7 +963,18 @@ export async function getTopRatedSongs(): Promise<{ success: boolean; songs?: To
         const C_sql = sql<number>`(SELECT avg(f_global.overall * ${WEIGHT_OVERALL}) FROM Feedback f_global WHERE f_global.overall > 0)`;
 
         const nowStr = new Date().toISOString();
-        const weightedRatingSql = getBayesianRatingSql(m, C_sql, nowStr);
+        
+        // Listen stats subquery
+        const listenStats = db.select({
+            songId: listenEvents.songId,
+            avgPlayedSeconds: sql<number>`AVG(${listenEvents.playedSeconds})`.as('avgPlayedSeconds')
+        })
+        .from(listenEvents)
+        .groupBy(listenEvents.songId)
+        .as('listenStats');
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const weightedRatingSql = getBayesianRatingSql(m, C_sql, nowStr, (listenStats as any).avgPlayedSeconds);
 
         const topSongs = await db.select({
             id: songs.id,
@@ -983,6 +994,8 @@ export async function getTopRatedSongs(): Promise<{ success: boolean; songs?: To
             .innerJoin(feedbacks, and(eq(songs.id, feedbacks.songId), gt(feedbacks.overall, 0)))
             .innerJoin(users, eq(songs.userId, users.id)) // Song owner
             .leftJoin(authorUsers, eq(feedbacks.authorId, authorUsers.id)) // Feedback author (for quality)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .leftJoin(listenStats as any, eq(songs.id, (listenStats as any).songId))
             .where(eq(songs.isActive, true))
             .groupBy(songs.id)
             .orderBy(sql`${weightedRatingSql} DESC`, songs.id)
@@ -1025,7 +1038,18 @@ export async function checkAndNotifyTopRated(triggerSongId?: string) {
         // 1. Get current Top 10 using the shared Bayesian logic
         const m = TOP_RATED_MIN_RATINGS_THRESHOLD;
         const C_sql = sql<number>`(SELECT avg(f_global.overall * ${WEIGHT_OVERALL}) FROM Feedback f_global WHERE f_global.overall > 0)`;
-        const weightedRatingSql = getBayesianRatingSql(m, C_sql, nowStr);
+        
+        // Listen stats subquery
+        const listenStats = db.select({
+            songId: listenEvents.songId,
+            avgPlayedSeconds: sql<number>`AVG(${listenEvents.playedSeconds})`.as('avgPlayedSeconds')
+        })
+        .from(listenEvents)
+        .groupBy(listenEvents.songId)
+        .as('listenStats');
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const weightedRatingSql = getBayesianRatingSql(m, C_sql, nowStr, (listenStats as any).avgPlayedSeconds);
 
         const currentTop10 = await db.select({
             id: songs.id,
@@ -1039,6 +1063,8 @@ export async function checkAndNotifyTopRated(triggerSongId?: string) {
             .from(songs)
             .innerJoin(feedbacks, and(eq(songs.id, feedbacks.songId), gt(feedbacks.overall, 0)))
             .leftJoin(authorUsers, eq(feedbacks.authorId, authorUsers.id))
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .leftJoin(listenStats as any, eq(songs.id, (listenStats as any).songId))
             .where(eq(songs.isActive, true))
             .groupBy(songs.id)
             .orderBy(sql`${weightedRatingSql} DESC`, songs.id)
@@ -1112,6 +1138,7 @@ export async function checkAndNotifyTopRated(triggerSongId?: string) {
             }
 
             if (updates.length > 0) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 await db.batch(updates as any);
             }
         }

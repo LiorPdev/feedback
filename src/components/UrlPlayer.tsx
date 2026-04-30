@@ -14,6 +14,7 @@ import { useEffect, useRef, forwardRef, useImperativeHandle, useState, useCallba
 import { logAction } from "@/app/actions/logs";
 import { recordListenEvent } from "@/app/actions/songs";
 import { isYouTubeUrl, isAudioUrl, getYouTubeVideoId } from "@/lib/song-validation";
+import { MIN_LISTEN_EVENT_SECONDS } from "@/lib/constants";
 import styles from "./UrlPlayer.module.css";
 
 // Declare global types for APIs
@@ -123,7 +124,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
     const endTime = currentTimeRef.current;
     const delta = Math.floor(endTime - startTimeRef.current);
 
-    if (delta >= 5) { // 5000ms
+    if (delta >= MIN_LISTEN_EVENT_SECONDS) {
       const id = songIdRef.current;
       recordListenEvent({ songId: id, playedSeconds: delta }).catch(() => null);
     }
