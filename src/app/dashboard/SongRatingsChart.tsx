@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 import { ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Bar } from 'recharts';
 import styles from './SongRatingsChart.module.css';
-import { WEIGHT_OVERALL } from '@/lib/constants';
+
 
 interface Feedback {
   overall: number;
@@ -51,7 +51,7 @@ export default function SongRatingsChart({ songs, type = "trueRating", globalAve
     songs.forEach(s => {
       const fbs = (s.feedbacks || []) as Feedback[];
       fbs.forEach(fb => {
-        totalScoreAll += (fb.overall * WEIGHT_OVERALL);
+        totalScoreAll += fb.overall;
         totalReviewsAll += 1;
       });
     });
@@ -80,7 +80,7 @@ export default function SongRatingsChart({ songs, type = "trueRating", globalAve
         const count = fbs.length;
         // Current song average
         const songAvgRating = count > 0
-          ? (fbs.reduce((sum, fb) => sum + (fb.overall * WEIGHT_OVERALL), 0) / count)
+          ? (fbs.reduce((sum, fb) => sum + fb.overall, 0) / count)
           : 0;
 
         // Bayesian Rating: (v*R + m*C) / (v+m)

@@ -4,7 +4,7 @@ import { getDb } from '@/lib/db';
 import { syncUser } from '@/lib/user-auth';
 import { desc, eq, aliasedTable, sql, and, gt } from 'drizzle-orm';
 import { users, songs, feedbacks, logs, listenEvents } from '@/lib/schema';
-import { ADMIN_EMAIL, WEIGHT_OVERALL, TOP_RATED_DECAY_FACTOR, TOP_RATED_MIN_RATINGS_THRESHOLD, LISTEN_TIME_WEIGHT } from '@/lib/constants';
+import { ADMIN_EMAIL, TOP_RATED_DECAY_FACTOR, TOP_RATED_MIN_RATINGS_THRESHOLD, LISTEN_TIME_WEIGHT } from '@/lib/constants';
 import { logAction } from './logs';
 
 async function getAdminUser() {
@@ -235,11 +235,11 @@ export async function getAdminTopRatedReport() {
     const rater = aliasedTable(users, 'rater');
 
     try {
-        const C_sql = sql<number>`(SELECT avg(f_global.overall * ${WEIGHT_OVERALL}) FROM Feedback f_global WHERE f_global.overall > 0)`;
+        const C_sql = sql<number>`(SELECT avg(f_global.overall) FROM Feedback f_global WHERE f_global.overall > 0)`;
 
         // Explicitly define the weighted calculation components
         const weightSql = sql`CAST((COALESCE(${rater.raterScore}, 0) / 5.0) + 1.0 AS REAL)`;
-        const ratingExprSql = sql`(CAST(${feedbacks.overall} AS REAL) * ${WEIGHT_OVERALL})`;
+        const ratingExprSql = sql`CAST(${feedbacks.overall} AS REAL)`;
 
         const weightedSum = sql`SUM(${weightSql} * ${ratingExprSql})`;
         const weightedCount = sql`SUM(${weightSql})`;
