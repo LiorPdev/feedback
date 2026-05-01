@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { AlertCircle, Gift } from "lucide-react";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import { addFeedback, getUserTokens } from "@/app/actions/songs";
-import { REWARD_PER_COMMENT_STEP, COMMENT_STEP_LENGTH, MIN_COMMENT_LENGTH, MAX_COMMENT_LENGTH } from "@/lib/constants";
+import { REWARD_PER_COMMENT_STEP, COMMENT_STEP_LENGTH, MIN_COMMENT_LENGTH, MAX_COMMENT_LENGTH, LISTEN_REWARD_INTERVAL_SECONDS, LISTEN_REWARD_TOKENS } from "@/lib/constants";
 import styles from "./FeedbackForm.module.css";
 import AnimatedTokenCounter from "./AnimatedTokenCounter";
 import PopupMsg from "./PopupMsg";
@@ -89,9 +89,9 @@ export default function FeedbackForm({
       interval = setInterval(() => {
         playTimeSecondsRef.current += 1;
 
-        if (playTimeSecondsRef.current >= 5) {
-          playTimeSecondsRef.current = 0; // Reset for the next 5s block
-          setListenCredits(prev => prev + 1);
+        if (playTimeSecondsRef.current >= LISTEN_REWARD_INTERVAL_SECONDS) {
+          playTimeSecondsRef.current = 0; // Reset for the next interval block
+          setListenCredits(prev => prev + LISTEN_REWARD_TOKENS);
         }
         totalListenTimeRef.current += 1;
       }, 1000);
