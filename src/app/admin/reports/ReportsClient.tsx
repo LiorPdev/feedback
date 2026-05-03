@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { getAdminSongsReport, getAdminFeedbacksReport, getAdminUsersReport, getAdminLogsReport, getAdminTopRatedReport, deleteAdminFeedback, deleteAdminSong } from '@/app/actions/admin';
-import { ArrowUpDown, ArrowUp, ArrowDown, Trash2, Heart, Copy, Meh, Check } from 'lucide-react';
+import { ArrowUpDown, ArrowUp, ArrowDown, Trash2, Heart, Copy, Meh, Check, ExternalLink } from 'lucide-react';
 import styles from './reports.module.css';
 
 type ReportType = 'songs' | 'feedbacks' | 'users' | 'logs' | 'top-rated';
@@ -200,6 +200,7 @@ export function ReportsClient() {
                                     <th className={styles.checkboxCol}></th>
                                     <SortHeader label="תאריך" sortKey="createdAt" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="שם השיר" sortKey="songTitle" sortConfig={sortConfig} onSort={handleSort} />
+                                    <th style={{ width: '60px', textAlign: 'center' }}>קישור</th>
                                     <SortHeader label="מעלה השיר" sortKey="songCreatorName" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="שם המדרג" sortKey="authorName" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="ציון" sortKey="overall" sortConfig={sortConfig} onSort={handleSort} />
@@ -306,6 +307,20 @@ export function ReportsClient() {
                                             </td>
                                             <td>{formatDate(item.createdAt)}</td>
                                             <td>{item.songTitle}</td>
+                                            <td style={{ textAlign: 'center' }}>
+                                                {item.songUrl && (
+                                                    <a
+                                                        href={item.songUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className={styles.linkIcon}
+                                                        title="פתח קישור לשיר"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                        <ExternalLink size={18} />
+                                                    </a>
+                                                )}
+                                            </td>
                                             <td>
                                                 <div className={styles.maxWidthCol} title={item.songCreatorName || item.songCreatorEmail}>
                                                     {item.songCreatorName || item.songCreatorEmail}

@@ -315,45 +315,49 @@ export default function LandingClient({
           >
             {[
               {
-                title: "פשוט ובחינם לגמרי",
-                desc: "מערכת פתוחה לכולם. בלי הרשמות מסובכות וללא תשלום – פשוט מקום שנועד לעזור ליוצרים לקבל משוב ולקדם אחד את השני.",
+                title: "קהילה של יוצרים",
+                desc: "המערכת פתוחה לכולם וללא שום עלות. פשוט מרחב שיתופי שבו אנחנו עוזרים אחד לשני להשתפר, לדייק את היצירה ולגדול יחד.",
                 icon: <CheckCircle />
               },
               {
-                title: "תובנות אמיתיות, לא רק 'לייק' כדי לצאת ידי חובה",
-                desc: "במקום לייקים מנומסים, תקבלו כאן חוות דעת ממוזיקאים ואנשים שלא מכירים אותך ולא חייבים לך כלום. פשוט פידבק אנונימי אמיתי שיעזור לך להשתפר.",
+                title: "חוות דעת אובייקטיבית",
+                desc: "לפעמים 'לייק' מחברים זה לא מספיק כדי לצמוח. כאן תקבלו נקודת מבט ממוזיקאים ומאוהבי מוזיקה. הפידבק ניתן בצורה אנונימית, מה שמאפשר שיח מקצועי נקי מאגו שמתמקד רק בדבר אחד: איך להפוך את השיר שלכם לטוב ביותר שהוא יכול להיות.",
                 icon: <CheckCircle />
               },
               {
                 title: "פידבק אנונימי",
-                desc: "כשלא יודעים מי כתב את הפידבק, אין אגו ואין חששות. האנונימיות מאפשרת לאנשים לתת ביקורת בונה בלי לסנן מילים. לפעמים זה עלול להיות קצת מאתגר אבל זה בדיוק מה שיקדם אותך.",
+                desc: "אנונימיות היא הסוד לדיוק היצירה. היא מאפשרת למאזינים להעניק לכם משוב כנה וישיר, בלי ה'לא נעים' של חברים. זה המקום לקבל תשובות אמיתיות על מה עובד בשיר ומה דורש ליטוש.",
+                icon: <CheckCircle />
+              },
+              {
+                title: "מרחב בטוח ומכבד",
+                desc: "בקהילה שלנו אין מקום לביקורת פוגענית. הקהילה שלנו מורכבת מיוצרים בדיוק כמוכם, שמגיעים עם רצון אמיתי לעזור, לתרום ולצמוח יחד.",
                 icon: <CheckCircle />
               },
               {
                 title: "לבחור את השיר הנכון",
-                desc: "מתלבטים איזה שיר כדאי לקדם? איזה שיר להוציא כסינגל? לא בטוחים איזה עיבוד עובד טוב יותר? העלו מספר שירים וגלו מה אחרים חושבים. הפידבקים יעזרו לכם לקבל החלטות מושכלות יותר.",
+                desc: "מתלבטים איזה שיר כדאי לקדם? איזה שיר להוציא כסינגל? לא בטוחים איזה עיבוד עובד טוב יותר? העלו מספר שירים או גירסאות שונות ותראו מה אחרים חושבים. הפידבקים יעזרו לכם להשקיע את האנרגיה והתקציב שלכם בשירים עם הפוטנציאל הגבוה ביותר להצליח.",
                 icon: <CheckCircle />
               },
-              {
-                title: "שירים נבחרים יכנסו לפלייליסטים בספוטיפי",
-                desc: (
-                  <ul style={{ listStyleType: "none", padding: 0, marginTop: "0.5rem", textAlign: "center" }}>
-                    <li style={{ marginBottom: "0.5rem" }}>
-                      <a href="https://open.spotify.com/playlist/2pItlRIEcNpVrdrNPvTJiU?si=d2a588f23af24b08" target="_blank" rel="noopener noreferrer" style={{ color: "var(--brand-primary)", textDecoration: "underline" }}>ישראלי שקט רגוע</a>
-                    </li>
-                    <li style={{ marginBottom: "0.5rem" }}>
-                      <a href="https://open.spotify.com/playlist/6VOJdiNq1lGprqQLfOm7pl?si=290c5cc2422e481c" target="_blank" rel="noopener noreferrer" style={{ color: "var(--brand-primary)", textDecoration: "underline" }}>ישראלי איכותי</a>
-                    </li>
-                    <li style={{ marginBottom: "0.5rem" }}>
-                      <a href="https://open.spotify.com/playlist/36YoT388ljvJSssrC0LUMK?si=bc627ffb6efa43b0" target="_blank" rel="noopener noreferrer" style={{ color: "var(--brand-primary)", textDecoration: "underline" }}>רוק ישראלי</a>
-                    </li>
-                    <li style={{ marginBottom: "0.5rem" }}>
-                      <a href="https://open.spotify.com/playlist/0qYgjCnqOmG1WyJ3nZf841?si=31bf2145098d40fc" target="_blank" rel="noopener noreferrer" style={{ color: "var(--brand-primary)", textDecoration: "underline" }}>אינדי ישראלי</a>
-                    </li>
-                  </ul>
-                ),
-                icon: <CheckCircle />
-              }
+              /*
+                            {
+                              title: "פלייליסטים בספוטיפי",
+                              desc: (
+                                <ul style={{ listStyleType: "none", padding: 0, marginTop: "0.5rem", textAlign: "center" }}>
+                                  <li style={{ marginBottom: "0.5rem" }}>
+                                    <a href="https://open.spotify.com/playlist/2pItlRIEcNpVrdrNPvTJiU?si=d2a588f23af24b08" target="_blank" rel="noopener noreferrer" style={{ color: "var(--brand-primary)", textDecoration: "underline" }}>ישראלי שקט רגוע</a>
+                                  </li>
+                                  <li style={{ marginBottom: "0.5rem" }}>
+                                    <a href="https://open.spotify.com/playlist/36YoT388ljvJSssrC0LUMK?si=bc627ffb6efa43b0" target="_blank" rel="noopener noreferrer" style={{ color: "var(--brand-primary)", textDecoration: "underline" }}>רוק ישראלי</a>
+                                  </li>
+                                  <li style={{ marginBottom: "0.5rem" }}>
+                                    <a href="https://open.spotify.com/playlist/0qYgjCnqOmG1WyJ3nZf841?si=31bf2145098d40fc" target="_blank" rel="noopener noreferrer" style={{ color: "var(--brand-primary)", textDecoration: "underline" }}>אינדי ישראלי</a>
+                                  </li>
+                                </ul>
+                              ),
+                              icon: <CheckCircle />
+                            }
+              */
             ].map((feature, idx) => (
               <motion.div key={idx} className={styles.featureCard} variants={fadeInUp}>
                 <div className={styles.featureIcon}>{feature.icon}</div>
