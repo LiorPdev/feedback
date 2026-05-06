@@ -23,6 +23,7 @@ import RegistrationGate, { GateType } from "./RegistrationGate";
 import PageHeader from "./PageHeader";
 import Button from "./ui/Button";
 import { useUtmMode } from "@/hooks/useUtmMode";
+import PrisonerTypewriter from "./PrisonerTypewriter";
 
 // Animation variants
 const fadeInUp = {
@@ -46,14 +47,16 @@ export default function LandingClient({
   initialHasSongs = false,
   initialGenre = "",
   initialHasFeedbacksGiven = false,
-  totalFeedbacksCount: initialTotalFeedbacksCount = 0
+  totalFeedbacksCount: initialTotalFeedbacksCount = 0,
+  randomFeedbacks = []
 }: {
   isLoggedIn?: boolean,
   isClerkUser?: boolean,
   initialHasSongs?: boolean,
   initialGenre?: string,
   initialHasFeedbacksGiven?: boolean,
-  totalFeedbacksCount?: number
+  totalFeedbacksCount?: number,
+  randomFeedbacks?: string[]
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -267,32 +270,9 @@ export default function LandingClient({
           </motion.div>
         </div>
 
-        {!isLoggedIn && (
-          <motion.button
-            className={styles.scrollDownFab}
-            onClick={() => {
-              const featuresSection = document.querySelector(`.${styles.features}`);
-              featuresSection?.scrollIntoView({ behavior: 'smooth' });
-            }}
-            initial={{ opacity: 0, y: -20, x: "-50%" }}
-            animate={{
-              opacity: 1,
-              y: [0, 15, 0],
-              scale: [1, 1.1, 1],
-              x: "-50%"
-            }}
-            transition={{
-              opacity: { duration: 0.5, delay: 1 },
-              y: { repeat: Infinity, duration: 2, ease: "easeInOut" },
-              scale: { repeat: Infinity, duration: 2, ease: "easeInOut" }
-            }}
-            aria-label="גלול למטה"
-          >
-            <svg stroke="currentColor" fill="currentColor" strokeWidth="0" viewBox="0 0 512 512" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
-              <path fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="48" d="m112 184 144 144 144-144"></path>
-            </svg>
-          </motion.button>
-        )}
+        <div className={styles.prisonerTypewriterWrapper}>
+          <PrisonerTypewriter texts={randomFeedbacks.length > 0 ? randomFeedbacks : ["אסיר 1376 מזמין פיצה..."]} />
+        </div>
       </header>
 
       {/* Features Section */}

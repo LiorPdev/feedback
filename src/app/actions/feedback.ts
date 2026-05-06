@@ -260,3 +260,19 @@ export async function getDisplayFeedbacksCount(): Promise<number> {
     return 0;
   }
 }
+
+export async function getRandomFeedbacks() {
+  try {
+    const db = await getDb();
+    const results = await db.query.feedbacks.findMany({
+      where: (f, { gt }) => gt(f.overall, 5),
+      orderBy: (f, { sql }) => sql`random()`,
+      limit: 20,  // limit 20 randow feedbacks
+      columns: { comment: true }
+    });
+    return results.map(r => r.comment);
+  } catch (error) {
+    console.error("Failed to fetch random feedbacks:", error);
+    return [];
+  }
+}
