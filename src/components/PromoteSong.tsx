@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { Megaphone, AlertCircle } from "lucide-react";
 import { promoteSong, getUserTokens } from "@/app/actions/songs";
 import { PROMOTION_COST } from "@/lib/constants";
+import { isSongPromoted } from "@/lib/utils";
 import styles from "./PromoteSong.module.css";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "./ui/Button";
@@ -67,8 +68,7 @@ export default function PromoteSong({ song, disabled }: PromoteSongProps) {
     }
   };
 
-  const now = new Date();
-  const isCurrentlyPromoted = song.priority === 1 && song.promotedUntil && new Date(song.promotedUntil) > now;
+  const isCurrentlyPromoted = isSongPromoted(song.priority, song.promotedUntil);
   const expiryDate = song.promotedUntil ? new Date(song.promotedUntil).toLocaleDateString('he-IL') : "";
 
   const modalContent = (

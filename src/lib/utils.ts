@@ -28,3 +28,15 @@ export function getRatingText(rating: number): string {
   if (rating < 10) return "אהבתי ממש!";
   return "וואו, מעולה!";
 }
+
+/**
+ * Checks if a song is currently promoted based on its priority and expiry date.
+ */
+export function isSongPromoted(priority: number, promotedUntil: string | null | undefined, comparisonDate = new Date()): boolean {
+  if (priority !== 1 || !promotedUntil) return false;
+  try {
+    return new Date(promotedUntil) > comparisonDate;
+  } catch {
+    return false;
+  }
+}

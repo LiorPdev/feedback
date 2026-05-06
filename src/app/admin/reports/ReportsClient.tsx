@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { getAdminSongsReport, getAdminFeedbacksReport, getAdminUsersReport, getAdminLogsReport, getAdminTopRatedReport, deleteAdminFeedback, deleteAdminSong } from '@/app/actions/admin';
 import { ArrowUpDown, ArrowUp, ArrowDown, Trash2, Heart, Copy, Meh, Check, ExternalLink } from 'lucide-react';
+import { isSongPromoted } from '@/lib/utils';
 import styles from './reports.module.css';
 
 type ReportType = 'songs' | 'feedbacks' | 'users' | 'logs' | 'top-rated';
@@ -274,7 +275,7 @@ export function ReportsClient() {
                                             <td>{item.lastFeedbackAt ? formatDate(item.lastFeedbackAt) : '-'}</td>
                                             <td style={{ textAlign: 'center' }}>{item.feedbackCount}</td>
                                             <td style={{ textAlign: 'center' }}>
-                                                {item.priority === 1 && (!item.promotedUntil || new Date(item.promotedUntil) > new Date()) ? (
+                                                {isSongPromoted(item.priority, item.promotedUntil) ? (
                                                     <Check size={18} color="var(--brand-primary)" />
                                                 ) : null}
                                             </td>

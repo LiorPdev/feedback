@@ -11,7 +11,7 @@ import { sendFeedbackNotification, sendTopRatedNotification } from '@/lib/mail';
 import { logToDb } from "@/lib/logger";
 import { deleteFileFromR2 } from '@/app/actions/upload';
 import { syncUser } from '@/lib/user-auth';
-import { sanitizeInput } from '@/lib/utils';
+import { sanitizeInput, isSongPromoted } from '@/lib/utils';
 import { updateRaterScore } from '@/lib/rater-score';
 import { applyFeedAlgorithm } from '@/lib/feed-algorithms';
 import { validateSongUrl, cleanSongTitle, isShortsUrl, isPlaylistUrl, isR2Url, isYouTubeUrl, SONG_VALIDATION_MESSAGES } from '@/lib/song-validation';
@@ -437,6 +437,7 @@ export async function getFeedSongs(firstSongSlug?: string) {
 
                 return filters.length > 0 ? and(...filters) : undefined;
             },
+            orderBy: (songs, { desc }) => [desc(songs.priority), sql`random()`],
             with: {
                 user: {
                     columns: {
@@ -450,10 +451,28 @@ export async function getFeedSongs(firstSongSlug?: string) {
 
         const allSongsToProcess = firstSong ? [firstSong, ...remainingSongs] : remainingSongs;
         const now = new Date().toISOString();
+
+        // 1. Identify expired promotions for DB cleanup
+        const expiredSongIds = allSongsToProcess
+            .filter(s => s.priority === 1 && s.promotedUntil && s.promotedUntil < now)
+            .map(s => s.id);
+
+        if (expiredSongIds.length > 0) {
+            // Background cleanup (we await to ensure the next fetch sees the correct state)
+            db.update(songs)
+                .set({ priority: 0, promotedUntil: null })
+                .where(sql`${songs.id} IN (SELECT value FROM json_each(${JSON.stringify(expiredSongIds)}))`)
+                .catch(err => logToDb({
+                    message: "Failed to cleanup expired promotions",
+                    data: err,
+                    source: "songs.ts:getFeedSongs"
+                }));
+        }
+
         let songsWithStats = allSongsToProcess.map(s => ({
             ...s,
-            // Promotion expired? Reset priority to 0
-            priority: (s.priority === 1 && s.promotedUntil && s.promotedUntil > now) ? 1 : 0,
+            // Promotion expired? Reset priority to 0. Otherwise keep current priority (supports admin boosts).
+            priority: (s.priority === 1 && !isSongPromoted(s.priority, s.promotedUntil, new Date(now))) ? 0 : s.priority,
             averageRating: 0,
             totalFeedbacks: 0
         }));
@@ -478,8 +497,8 @@ export async function getFeedSongs(firstSongSlug?: string) {
             const statsMap = new Map(stats.map(s => [s.songId, s]));
             songsWithStats = allSongsToProcess.map(s => ({
                 ...s,
-                // Promotion expired? Reset priority to 0
-                priority: (s.priority === 1 && s.promotedUntil && s.promotedUntil > now) ? 1 : 0,
+                // Promotion expired? Reset priority to 0. Otherwise keep current priority (supports admin boosts).
+                priority: (s.priority === 1 && !isSongPromoted(s.priority, s.promotedUntil, new Date(now))) ? 0 : s.priority,
                 averageRating: statsMap.get(s.id)?.avgRating ?? 0,
                 totalFeedbacks: statsMap.get(s.id)?.total ?? 0
             }));
@@ -596,10 +615,11 @@ export async function promoteSong(songId: string) {
         if (!song) return { success: false, error: "לא מורשה" };
 
         // Check if already promoted
-        const now = new Date();
-        if (song.priority === 1 && song.promotedUntil && new Date(song.promotedUntil) > now) {
-            return { success: false, error: `השיר כבר מקודם עד ${new Date(song.promotedUntil).toLocaleDateString('he-IL')}` };
+        if (isSongPromoted(song.priority, song.promotedUntil)) {
+            return { success: false, error: `השיר כבר מקודם עד ${new Date(song.promotedUntil!).toLocaleDateString('he-IL')}` };
         }
+        
+        const now = new Date();
 
         if (dbUser.tokens < PROMOTION_COST) {
             return { success: false, error: "אין לך מספיק קרדיטים לקידום השיר" };
