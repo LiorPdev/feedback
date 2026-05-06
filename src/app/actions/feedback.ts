@@ -265,7 +265,12 @@ export async function getRandomFeedbacks() {
   try {
     const db = await getDb();
     const results = await db.query.feedbacks.findMany({
-      where: (f, { gt }) => gt(f.overall, 5),
+      where: (f, { gt, and, ne, isNotNull, sql }) => and(
+        gt(f.overall, 5),
+        isNotNull(f.comment),
+        ne(f.comment, ""),
+        sql`trim(${f.comment}) != ''`
+      ),
       orderBy: (f, { sql }) => sql`random()`,
       limit: 20,  // limit 20 randow feedbacks
       columns: { comment: true }
