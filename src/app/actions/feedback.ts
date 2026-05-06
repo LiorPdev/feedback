@@ -266,7 +266,7 @@ export async function getRandomFeedbacks() {
     const db = await getDb();
     const results = await db.query.feedbacks.findMany({
       where: (f, { gt, and, ne, isNotNull, sql }) => and(
-        gt(f.overall, 5),
+        gt(f.overall, 4), // Overall rate > 4
         isNotNull(f.comment),
         ne(f.comment, ""),
         sql`trim(${f.comment}) != ''`
