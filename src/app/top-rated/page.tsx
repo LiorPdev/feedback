@@ -44,7 +44,10 @@ export default async function TopRatedPage() {
                   <div className={styles.rank}>#{index + 1}</div>
 
                   {/* player */}
-                  <TopRatedPlayer url={song.url} songId={song.id} />
+                  <TopRatedPlayer 
+                    url={song.url} 
+                    songId={song.userId === currentUserId ? undefined : song.id} 
+                  />
 
                   {/* title */}
                   <h2 className={styles.songTitle}>{song.title}</h2>

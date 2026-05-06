@@ -267,6 +267,17 @@ export async function recordListenEvent(data: {
     try {
         const dbUser = await syncUser();
 
+        // Skip if the user is the owner of the song
+        if (dbUser) {
+            const song = await db.query.songs.findFirst({
+                where: (songs, { eq }) => eq(songs.id, data.songId),
+                columns: { userId: true }
+            });
+            if (song?.userId === dbUser.id) {
+                return { success: true, skipped: true };
+            }
+        }
+
         await db.insert(listenEvents).values({
             songId: data.songId,
             userId: dbUser?.id || null,

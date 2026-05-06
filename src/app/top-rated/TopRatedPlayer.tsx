@@ -5,7 +5,7 @@ import styles from "./top-rated.module.css";
 
 interface TopRatedPlayerProps {
   url: string;
-  songId: string;
+  songId?: string;
 }
 
 export default function TopRatedPlayer({ url, songId }: TopRatedPlayerProps) {
