@@ -434,7 +434,7 @@
 @media (max-width: 768px) and (max-height: 750px) {
   .heroWrapper {
     padding-top: 10px !important;
-    gap: 1.5rem !important;
+    gap: 1.2rem !important;
   }
 
   .heroContent {
@@ -442,7 +442,7 @@
   }
 
   .heroMockup {
-    width: 65% !important;
+    width: 85% !important;
   }
 
   .heroButtons {

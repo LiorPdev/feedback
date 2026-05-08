@@ -277,7 +277,7 @@ export async function getRandomFeedbacks() {
     });
     return results.map(r => r.comment);
   } catch (error) {
-    console.error("Failed to fetch random feedbacks:", error);
+    await logAction({ message: "Failed to fetch random feedbacks", data: error, source: "feedback.ts:getRandomFeedbacks" });
     return [];
   }
 }

@@ -5,6 +5,7 @@ import { useSignIn, useSignUp } from "@clerk/nextjs";
 import { Loader2, ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import Button from "../ui/Button";
+import { logAction } from "@/app/actions/logs";
 import styles from "./UnifiedAuthForm.module.css";
 
 type AuthStep = "IDENTIFY" | "VERIFY";
@@ -71,13 +72,13 @@ export default function UnifiedAuthForm({ onSuccess, onStepChange, redirectUrl }
           setStep("VERIFY");
           onStepChange?.("VERIFY");
         } else {
-          console.error("SignIn Error:", err);
+          logAction({ message: "SignIn Error", data: err, source: "UnifiedAuthForm:handleIdentify" });
           setError(err.errors?.[0]?.message || "ארעה שגיאה בחיבור.");
         }
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      console.error("Auth Error:", err);
+      logAction({ message: "Auth Error", data: err, source: "UnifiedAuthForm:handleIdentify" });
       setError(err.errors?.[0]?.message || "ארעה שגיאה. בדקו את המייל ונסו שוב.");
     } finally {
       setLoading(false);
@@ -160,7 +161,7 @@ export default function UnifiedAuthForm({ onSuccess, onStepChange, redirectUrl }
         redirectUrlComplete: targetUrl,
       });
     } catch (err) {
-      console.error("Google Auth Error:", err);
+      logAction({ message: "Google Auth Error", data: err, source: "UnifiedAuthForm:handleGoogleLogin" });
     }
   };
 
