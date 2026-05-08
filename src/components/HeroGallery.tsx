@@ -64,17 +64,22 @@ export default function HeroGallery() {
 
     if (!stats) return null;
 
+    const filterSmallData = (data: StatItem[]) => {
+        const total = data.reduce((sum, item) => sum + item.count, 0);
+        return data.filter(item => (item.count / total) >= 0.03);
+    };
+
     const slides = [
         {
             id: 'songs',
-            title: 'התפלגות סגנון השירים בקהילה',
-            data: stats.songStats,
+            title: 'סגנונות השירים בקהילה',
+            data: filterSmallData(stats.songStats),
             colorOffset: 0
         },
         {
             id: 'users',
-            title: 'התפלגות סגנון המאזינים בקהילה',
-            data: stats.userStats,
+            title: 'סגנונות המאזינים בקהילה',
+            data: filterSmallData(stats.userStats),
             colorOffset: 2
         }
     ];
