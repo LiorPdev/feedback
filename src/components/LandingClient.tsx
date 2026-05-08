@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { CheckCircle } from "lucide-react";
-import styles from "@/app/landing.module.css";
+import styles from "./LandingClient.module.css";
 import { useState, useEffect } from "react";
 import { getUserSongCount } from "@/app/actions/songs";
 import { getMyGivenFeedbacksCount } from "@/app/actions/feedback";
@@ -218,6 +218,10 @@ export default function LandingClient({
 
           </motion.div>
 
+          <FeedbacksTypewriter
+            className={styles.feedbacksTicker}
+          />
+
           <motion.div
             className={styles.heroMockup}
             initial={{ opacity: 0, scale: 0.9 }}
@@ -260,10 +264,6 @@ export default function LandingClient({
             )}
           </motion.div>
         </div>
-
-        <FeedbacksTypewriter
-          className={styles.feedbacksTicker}
-        />
       </header>
 
       {/* Features Section */}

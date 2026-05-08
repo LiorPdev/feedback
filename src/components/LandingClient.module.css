@@ -33,9 +33,13 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 5vw;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas:
+    "content mockup"
+    "ticker ticker";
   align-items: center;
-  gap: 4rem;
+  gap: 2rem 4rem;
   z-index: 2;
   width: 100%;
 }
@@ -46,7 +50,6 @@
   flex-direction: column;
   gap: 2rem;
 }
-
 
 .howItWorks {
   background: var(--brand-bg);
@@ -119,7 +122,7 @@
 }
 
 .heroMockup {
-  flex: 1;
+  grid-area: mockup;
   position: relative;
   z-index: 2;
 }
@@ -285,9 +288,15 @@
 }
 
 .feedbacksTicker {
-  width: calc(100% - 10vw) !important;
+  grid-area: ticker;
+  width: 100% !important;
   max-width: 1200px !important;
-  margin: 0 auto !important;
+  margin: 2rem auto 0 auto !important;
+  position: relative !important;
+  bottom: auto !important;
+  left: auto !important;
+  right: auto !important;
+  transform: none !important;
 }
 
 /* 
@@ -303,15 +312,19 @@
 
 @media (max-width: 968px) {
   .heroWrapper {
-    flex-direction: column;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "content"
+      "ticker"
+      "mockup";
     text-align: center;
     padding-top: 30px;
-    gap: 3rem;
+    gap: 2rem;
   }
 
   .heroContent {
     align-items: center;
-    gap: 1rem;
+    gap: 1.5rem;
   }
 
   .heroTitle {
@@ -325,7 +338,7 @@
 
   .heroButtons {
     width: 100%;
-    max-width: 500px;
+    max-width: 370px;
   }
 
   .heroButtons>* {
@@ -334,6 +347,12 @@
 
   .topRatedLink {
     font-size: 0.8rem !important;
+  }
+
+  .feedbacksTicker {
+    width: 100% !important;
+    max-width: 500px !important;
+    margin: 0 auto 0 auto !important;
   }
 
   .heroMockup {
@@ -406,6 +425,9 @@
     font-size: 2rem !important;
   }
 
+  .heroButtons {
+    max-width: 320px;
+  }
 }
 
 /* Optimization for small device heights */
@@ -429,6 +451,18 @@
 }
 
 @media (max-width: 375px) {
+  .heroWrapper {
+    padding: 0 3vw !important;
+  }
+
+  .howItWorks {
+    padding: 1rem !important;
+  }
+
+  .howItWorksList {
+    margin-right: 1.2rem !important;
+  }
+
   .howItWorksList li {
     font-size: 0.85rem;
   }
@@ -456,10 +490,4 @@
     border-width: 4px !important;
   }
 
-}
-
-@media (max-height: 650px) {
-  .heroWrapper {
-    top: -20px;
-  }
 }
