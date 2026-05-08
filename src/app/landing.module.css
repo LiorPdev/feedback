@@ -18,7 +18,6 @@
   --shadow-xl: var(--shadow-xl);
 }
 
-/* Hero Section */
 .hero {
   padding: 0;
   overflow: hidden;
@@ -48,19 +47,6 @@
   gap: 2rem;
 }
 
-.heroTitle {
-  font-size: 2.4rem;
-  font-weight: 900;
-  color: var(--text-main);
-  padding-bottom: 10px;
-}
-
-.feedbackStat {
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  display: block;
-  margin-top: 10px;
-}
 
 .howItWorks {
   background: var(--brand-bg);
@@ -75,12 +61,6 @@
   font-weight: 700;
   margin-bottom: 0.5rem;
   color: var(--primary-contrast);
-}
-
-.howItWorks p {
-  font-size: 1rem;
-  color: var(--text-muted);
-  line-height: 1.7;
 }
 
 .howItWorksList {
@@ -155,7 +135,6 @@
   background: var(--card-bg);
 }
 
-/* Video Wrapper for YouTube Short (Vertical) */
 .videoWrapper {
   position: relative;
   width: 100%;
@@ -231,7 +210,6 @@
   border-radius: 28px;
 }
 
-/* Features Section */
 .features {
   padding: 80px 5vw 0;
   background: var(--bg-section);
@@ -306,18 +284,16 @@
   line-height: 1.8;
 }
 
-.prisonerTypewriterWrapper {
-  width: 70vw;
-  position: absolute;
-  bottom: 1rem;
-  left: 0;
-  right: 0;
-  margin: 0 auto;
-  z-index: 10;
-  display: flex;
-  justify-content: center;
-  pointer-events: none;
+.feedbacksTicker {
+  width: calc(100% - 10vw) !important;
+  max-width: 1200px !important;
+  margin: 0 auto !important;
 }
+
+/* 
+  Media queries 
+  =============
+*/
 
 @media (max-width: 1100px) {
   .heroButtons>* {
@@ -356,6 +332,10 @@
     font-size: 0.8rem !important;
   }
 
+  .topRatedLink {
+    font-size: 0.8rem !important;
+  }
+
   .heroMockup {
     width: 80%;
     max-width: 500px;
@@ -372,13 +352,11 @@
   .featuresGrid {
     display: flex;
     overflow-x: auto;
-    scroll-snap-type: x mandatory;
     gap: 1.5rem;
     padding: 1rem 5vw 2rem;
     margin: 0 -5vw;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    scroll-padding: 5vw;
   }
 
   .featuresGrid::-webkit-scrollbar {
@@ -387,7 +365,6 @@
 
   .featureCard {
     flex: 0 0 80%;
-    scroll-snap-align: center;
     padding: 2rem;
     box-shadow: var(--shadow);
   }
@@ -412,10 +389,6 @@
     gap: 1.5rem;
   }
 
-  .heroTitle {
-    font-size: 2.15rem;
-  }
-
   .howItWorks {
     padding: 1.25rem 0.3rem 1.25rem 0.8rem;
   }
@@ -433,12 +406,6 @@
     font-size: 2rem !important;
   }
 
-}
-
-@media (max-width: 768px) {
-  .prisonerTypewriterWrapper {
-    bottom: 0.8rem;
-  }
 }
 
 /* Optimization for small device heights */
@@ -467,7 +434,7 @@
   }
 }
 
-@media (max-height: 670px) {
+@media (max-height: 750px) {
   .heroWrapper {
     padding-top: 5px !important;
   }
@@ -478,10 +445,6 @@
 
   .howItWorksList li {
     font-size: 0.9rem !important;
-  }
-
-  .prisonerTypewriterWrapper {
-    bottom: 0rem !important;
   }
 
   .topRatedLinkWrapper {
@@ -495,7 +458,7 @@
 
 }
 
-@media (max-height: 520px) {
+@media (max-height: 650px) {
   .heroWrapper {
     top: -20px;
   }

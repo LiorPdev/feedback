@@ -6,7 +6,7 @@ import { CheckCircle } from "lucide-react";
 import styles from "@/app/landing.module.css";
 import { useState, useEffect } from "react";
 import { getUserSongCount } from "@/app/actions/songs";
-import { getMyGivenFeedbacksCount, getDisplayFeedbacksCount } from "@/app/actions/feedback";
+import { getMyGivenFeedbacksCount } from "@/app/actions/feedback";
 import { getUserData } from "@/app/actions/user";
 import Footer from "./Footer";
 import HeroGallery from "./HeroGallery";
@@ -23,7 +23,7 @@ import RegistrationGate, { GateType } from "./RegistrationGate";
 import PageHeader from "./PageHeader";
 import Button from "./ui/Button";
 import { useUtmMode } from "@/hooks/useUtmMode";
-import PrisonerTypewriter from "./PrisonerTypewriter";
+import FeedbacksTypewriter from "./FeedbacksTypewriter";
 
 // Animation variants
 const fadeInUp = {
@@ -46,23 +46,18 @@ export default function LandingClient({
   isClerkUser = false,
   initialHasSongs = false,
   initialGenre = "",
-  initialHasFeedbacksGiven = false,
-  totalFeedbacksCount: initialTotalFeedbacksCount = 0,
-  randomFeedbacks = []
+  initialHasFeedbacksGiven = false
 }: {
   isLoggedIn?: boolean,
   isClerkUser?: boolean,
   initialHasSongs?: boolean,
   initialGenre?: string,
-  initialHasFeedbacksGiven?: boolean,
-  totalFeedbacksCount?: number,
-  randomFeedbacks?: string[]
+  initialHasFeedbacksGiven?: boolean
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [hasSongs, setHasSongs] = useState(initialHasSongs);
   const [hasFeedbacksGiven, setHasFeedbacksGiven] = useState(initialHasFeedbacksGiven);
-  const [totalFeedbacksCount, setTotalFeedbacksCount] = useState(initialTotalFeedbacksCount);
   const [userGenre, setUserGenre] = useState(initialGenre);
   const [activeGate, setActiveGate] = useState<GateType | null>(null);
   const [targetRedirectUrl, setTargetRedirectUrl] = useState<string | undefined>(undefined);
@@ -71,9 +66,6 @@ export default function LandingClient({
 
   useEffect(() => {
     const handleUpdate = async () => {
-      const totalCount = await getDisplayFeedbacksCount();
-      setTotalFeedbacksCount(totalCount);
-
       if (isLoggedIn) {
         const [songResult, feedbackCount, userData] = await Promise.all([
           getUserSongCount(),
@@ -160,7 +152,6 @@ export default function LandingClient({
             <motion.div variants={fadeInUp} style={{ width: '100%' }}>
               <PageHeader
                 title="מישהו מקשיב לך"
-                subtitle={<span className={styles.feedbackStat}>{totalFeedbacksCount} מוזיקאים בקהילה קיבלו פידבק ביממה האחרונה</span>}
                 variant="hero"
                 hideDivider
                 align="center"
@@ -270,9 +261,9 @@ export default function LandingClient({
           </motion.div>
         </div>
 
-        <div className={styles.prisonerTypewriterWrapper}>
-          <PrisonerTypewriter texts={randomFeedbacks.length > 0 ? randomFeedbacks : ["אסיר 1376 מזמין פיצה..."]} />
-        </div>
+        <FeedbacksTypewriter
+          className={styles.feedbacksTicker}
+        />
       </header>
 
       {/* Features Section */}

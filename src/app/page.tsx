@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import LandingClient from "@/components/LandingClient";
 import { syncUser } from "@/lib/user-auth";
 import { getUserSongCount } from "@/app/actions/songs";
-import { getMyGivenFeedbacksCount, getDisplayFeedbacksCount, getRandomFeedbacks } from "@/app/actions/feedback";
+import { getMyGivenFeedbacksCount } from "@/app/actions/feedback";
 
 export const dynamic = "force-dynamic";
 
@@ -46,10 +46,6 @@ export default async function Home() {
   let initialGenre = "";
   let initialHasFeedbacksGiven = false;
 
-  const [totalFeedbacksCount, randomFeedbacks] = await Promise.all([
-    getDisplayFeedbacksCount(),
-    getRandomFeedbacks(),
-  ]);
 
   if (dbUser) {
     const [songResult, feedbackCount] = await Promise.all([
@@ -75,8 +71,6 @@ export default async function Home() {
       initialHasSongs={initialHasSongs} 
       initialGenre={initialGenre} 
       initialHasFeedbacksGiven={initialHasFeedbacksGiven}
-      totalFeedbacksCount={totalFeedbacksCount}
-      randomFeedbacks={randomFeedbacks}
     />
   );
 }

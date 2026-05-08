@@ -46,10 +46,15 @@ body {
   flex: 1;
   overflow-y: auto;
   position: relative;
-  scroll-snap-type: y mandatory;
   z-index: 2;
   background: transparent;
-  /* Allow the global background to show through */
+  /* Snapping only on desktop */
+}
+
+@media (min-width: 969px) {
+  .scroll-container {
+    scroll-snap-type: y mandatory;
+  }
 }
 
 .heroBackground {
@@ -105,3 +110,4 @@ body {
     background: color-mix(in srgb, #c026d3, transparent 80%);
   }
 }
+
