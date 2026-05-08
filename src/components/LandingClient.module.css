@@ -356,7 +356,7 @@
   }
 
   .heroMockup {
-    width: 80%;
+    width: 100%;
     max-width: 500px;
     margin: 0 auto;
   }
@@ -439,10 +439,6 @@
 
   .heroContent {
     gap: 1rem !important;
-  }
-
-  .heroMockup {
-    width: 85% !important;
   }
 
   .heroButtons {

@@ -87,4 +87,8 @@
   .galleryContainer {
     padding: 1rem;
   }
+
+  .chartSlideWrapper {
+    padding: 0.4rem;
+  }
 }

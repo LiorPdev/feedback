@@ -66,19 +66,19 @@ export default function HeroGallery() {
 
     const filterSmallData = (data: StatItem[]) => {
         const total = data.reduce((sum, item) => sum + item.count, 0);
-        return data.filter(item => (item.count / total) >= 0.03);
+        return data.filter(item => (item.count / total) >= 0.05);
     };
 
     const slides = [
         {
             id: 'songs',
-            title: 'סגנונות השירים בקהילה',
+            title: 'סגנון השירים המוביל בקהילה',
             data: filterSmallData(stats.songStats),
             colorOffset: 0
         },
         {
             id: 'users',
-            title: 'סגנונות המאזינים בקהילה',
+            title: 'סגנון המאזינים המוביל בקהילה',
             data: filterSmallData(stats.userStats),
             colorOffset: 2
         }
@@ -103,7 +103,7 @@ export default function HeroGallery() {
                         <h3 className={styles.chartTitle}>{slides[currentIndex].title}</h3>
                         <div className={styles.chartWrapper} style={{ pointerEvents: 'none' }}>
                             <ResponsiveContainer width="100%" height="100%">
-                                <PieChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
+                                <PieChart margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
                                     <Pie
                                         data={slides[currentIndex].data.map((entry, index) => ({
                                             ...entry,
@@ -112,7 +112,7 @@ export default function HeroGallery() {
                                         cx="50%"
                                         cy="50%"
                                         innerRadius="50%"
-                                        outerRadius="95%"
+                                        outerRadius="98%"
                                         paddingAngle={5}
                                         dataKey="count"
                                         nameKey="genre"
