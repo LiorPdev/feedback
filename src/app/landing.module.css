@@ -95,12 +95,6 @@
   font-size: 1rem;
 }
 
-@media (max-width: 375px) {
-  .howItWorksList li {
-    font-size: 0.85rem;
-  }
-}
-
 .heroButtons {
   display: flex;
   gap: 1rem;
@@ -143,7 +137,6 @@
 .topRatedLink svg {
   transform: translateY(-3px);
 }
-
 
 .heroMockup {
   flex: 1;
@@ -313,6 +306,25 @@
   line-height: 1.8;
 }
 
+.prisonerTypewriterWrapper {
+  width: 70vw;
+  position: absolute;
+  bottom: 1rem;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+@media (max-width: 1100px) {
+  .heroButtons>* {
+    font-size: 1rem !important;
+  }
+}
+
 @media (max-width: 968px) {
   .heroWrapper {
     flex-direction: column;
@@ -340,10 +352,19 @@
     max-width: 500px;
   }
 
+  .heroButtons>* {
+    font-size: 0.8rem !important;
+  }
+
   .heroMockup {
     width: 80%;
     max-width: 500px;
     margin: 0 auto;
+  }
+
+  .videoWrapper {
+    max-width: 220px !important;
+    border-width: 4px !important;
   }
 }
 
@@ -414,17 +435,6 @@
 
 }
 
-.prisonerTypewriterWrapper {
-  position: absolute;
-  bottom: 1rem;
-  left: 0;
-  right: 0;
-  z-index: 10;
-  display: flex;
-  justify-content: center;
-  pointer-events: none;
-}
-
 @media (max-width: 768px) {
   .prisonerTypewriterWrapper {
     bottom: 0.8rem;
@@ -448,5 +458,45 @@
 
   .heroButtons {
     gap: 0.5rem !important;
+  }
+}
+
+@media (max-width: 375px) {
+  .howItWorksList li {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-height: 670px) {
+  .heroWrapper {
+    padding-top: 5px !important;
+  }
+
+  .howItWorks h3 {
+    font-size: 1rem !important;
+  }
+
+  .howItWorksList li {
+    font-size: 0.9rem !important;
+  }
+
+  .prisonerTypewriterWrapper {
+    bottom: 0rem !important;
+  }
+
+  .topRatedLinkWrapper {
+    margin-top: 0rem !important;
+  }
+
+  .videoWrapper {
+    max-width: 220px !important;
+    border-width: 4px !important;
+  }
+
+}
+
+@media (max-height: 520px) {
+  .heroWrapper {
+    top: -20px;
   }
 }

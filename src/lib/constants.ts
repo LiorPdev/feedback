@@ -53,4 +53,4 @@ export const RATER_LIKES_THRESHOLD = 0.5;          // 50% likes required for a p
 export const RATER_FEEDBACKS_VOLUME_THRESHOLD = 20; // 20 feedbacks required for a perfect volume score
 
 // For feedback counter logic on landing page (higher number = less feedbacks shown)
-export const FEEDBACK_COUNT_FACTOR = 30;
+export const FEEDBACK_COUNT_FACTOR = 35;

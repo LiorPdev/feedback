@@ -144,6 +144,7 @@
     top: -20px;
   }
 }
+
 .hero {
   margin-bottom: 0;
 }
@@ -158,5 +159,16 @@
 @media (max-width: 600px) {
   .hero .title {
     font-size: 2.15rem;
+  }
+}
+
+@media (max-height: 670px) {
+
+  .hero .title {
+    font-size: 2rem !important;
+  }
+
+  .subtitle {
+    margin-top: 0.1rem !important;
   }
 }

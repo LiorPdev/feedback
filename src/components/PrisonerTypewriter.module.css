@@ -1,5 +1,4 @@
 .tickerContainer {
-  width: 70vw;
   margin: 0 auto;
   overflow: hidden;
   padding: 0.5rem 0;
@@ -20,7 +19,6 @@
 
   100% {
     transform: translateX(50%);
-    /* Move right in RTL which is left in screen space if it wraps */
   }
 }
 
