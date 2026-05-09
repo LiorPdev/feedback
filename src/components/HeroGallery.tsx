@@ -194,35 +194,52 @@ export default function HeroGallery() {
                                             const x = cx + radius * Math.cos(-midAngle * RADIAN);
                                             const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
+                                            const line1 = slides[currentIndex].id === 'engagement' 
+                                                ? `${props.payload.exactPercent}% מהשירים`
+                                                : genre;
+                                            const line2 = slides[currentIndex].id === 'engagement'
+                                                ? `${genre} פידבקים`
+                                                : `${props.payload.exactPercent}%`;
+
                                             return (
-                                                <text
-                                                    x={x}
-                                                    y={y}
-                                                    fill="white"
-                                                    stroke="black"
-                                                    strokeWidth="1.2px"
-                                                    paintOrder="stroke"
-                                                    textAnchor="middle"
-                                                    dominantBaseline="central"
-                                                    style={{
-                                                        fontSize: '0.8rem',
-                                                        fontWeight: 700,
-                                                        textShadow: '0px 0px 2px rgba(0,0,0,0.8)',
-                                                        pointerEvents: 'none'
-                                                    }}
-                                                >
-                                                    {slides[currentIndex].id === 'engagement' ? (
-                                                        <>
-                                                            <tspan x={x} y={y - 7}>{`${props.payload.exactPercent}% מהשירים`}</tspan>
-                                                            <tspan x={x} y={y + 9}>{`${genre} פידבקים`}</tspan>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <tspan x={x} y={y - 7}>{genre}</tspan>
-                                                            <tspan x={x} y={y + 9}>{`${props.payload.exactPercent}%`}</tspan>
-                                                        </>
-                                                    )}
-                                                </text>
+                                                <g>
+                                                    <text
+                                                        x={x}
+                                                        y={y - 8}
+                                                        fill="white"
+                                                        stroke="black"
+                                                        strokeWidth="1.2px"
+                                                        paintOrder="stroke"
+                                                        textAnchor="middle"
+                                                        dominantBaseline="central"
+                                                        style={{
+                                                            fontSize: '0.8rem',
+                                                            fontWeight: 700,
+                                                            textShadow: '0px 0px 2px rgba(0,0,0,0.8)',
+                                                            pointerEvents: 'none'
+                                                        }}
+                                                    >
+                                                        {line1}
+                                                    </text>
+                                                    <text
+                                                        x={x}
+                                                        y={y + 10}
+                                                        fill="white"
+                                                        stroke="black"
+                                                        strokeWidth="1.2px"
+                                                        paintOrder="stroke"
+                                                        textAnchor="middle"
+                                                        dominantBaseline="central"
+                                                        style={{
+                                                            fontSize: '0.8rem',
+                                                            fontWeight: 700,
+                                                            textShadow: '0px 0px 2px rgba(0,0,0,0.8)',
+                                                            pointerEvents: 'none'
+                                                        }}
+                                                    >
+                                                        {line2}
+                                                    </text>
+                                                </g>
                                             );
                                         }}
                                         stroke="rgba(255, 255, 255, 0.2)"

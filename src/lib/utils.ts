@@ -19,8 +19,8 @@ export function sanitizeInput(str: string | null | undefined): string {
 export function getRatingText(rating: number): string {
   if (rating <= 2) return "דורש עוד עבודה";
   if (rating <= 3) return "פחות התחברתי";
-  if (rating <= 4) return "יש פוטנציאל";
-  if (rating <= 5) return "סביר";
+  if (rating <= 4) return "סביר";
+  if (rating <= 5) return "יש פוטנציאל";
   if (rating <= 6) return "נחמד";
   if (rating <= 7) return "יפה";
   if (rating <= 8) return "יפה מאוד";
