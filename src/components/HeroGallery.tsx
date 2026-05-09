@@ -9,14 +9,14 @@ import UserPreferencesModal from "./UserPreferencesModal";
 import styles from "./HeroGallery.module.css";
 
 const COLORS = [
-    '#6366f1', // Indigo
-    '#ec4899', // Pink
-    '#f59e0b', // Amber
-    '#10b981', // Emerald
-    '#3b82f6', // Blue
-    '#8b5cf6', // Violet
-    '#f43f5e', // Rose
-    '#06b6d4', // Cyan
+    '#6366f1BF', // Indigo
+    '#ec4899BF', // Pink
+    '#f59e0bBF', // Amber
+    '#10b981BF', // Emerald
+    '#3b82f6BF', // Blue
+    '#8b5cf6BF', // Violet
+    '#f43f5eBF', // Rose
+    '#06b6d4BF', // Cyan
 ];
 
 interface StatItem {
@@ -33,6 +33,7 @@ export default function HeroGallery() {
     const [stats, setStats] = useState<{
         songStats: StatItem[];
         userStats: StatItem[];
+        engagementStats: StatItem[];
     } | null>(null);
     const [loading, setLoading] = useState(true);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -55,7 +56,7 @@ export default function HeroGallery() {
     useEffect(() => {
         if (stats) {
             const timer = setInterval(() => {
-                setCurrentIndex((prev) => (prev + 1) % 2);
+                setCurrentIndex((prev) => (prev + 1) % 3);
             }, SLIDE_INTERVAL);
             return () => clearInterval(timer);
         }
@@ -108,6 +109,12 @@ export default function HeroGallery() {
             title: 'סגנון המאזינים המוביל בקהילה',
             data: filterSmallData(stats.userStats),
             colorOffset: 2
+        },
+        {
+            id: 'engagement',
+            title: 'כמות הפידבקים לכל שיר',
+            data: stats.engagementStats,
+            colorOffset: 4
         }
     ];
 
@@ -176,10 +183,19 @@ export default function HeroGallery() {
                                                         pointerEvents: 'none'
                                                     }}
                                                 >
-                                                    {`${genre} ${(percent * 100).toFixed(0)}%`}
+                                                    {slides[currentIndex].id === 'engagement' ? (
+                                                        <>
+                                                            <tspan x={x} dy="-0.5em">{genre}</tspan>
+                                                            <tspan x={x} dy="1.2em">{(percent * 100).toFixed(0)}%</tspan>
+                                                        </>
+                                                    ) : (
+                                                        `${genre} ${(percent * 100).toFixed(0)}%`
+                                                    )}
                                                 </text>
                                             );
                                         }}
+                                        stroke="rgba(255, 255, 255, 0.2)"
+                                        strokeWidth={1}
                                     >
                                     </Pie>
                                 </PieChart>

@@ -13,7 +13,7 @@ export async function getCommunityStats() {
         // 1. Song genre distribution
         const rawSongs = await db.select({ genre: songs.genre }).from(songs).all();
         const songCounts = new Map<string, number>();
-        
+
         rawSongs.forEach(row => {
             if (!row.genre) return;
             // Split by comma or semicolon and trim each part
@@ -29,7 +29,7 @@ export async function getCommunityStats() {
             .from(users)
             .where(sql`${users.userGenre} IS NOT NULL`)
             .all();
-            
+
         const userCounts = new Map<string, number>();
         rawUsers.forEach(row => {
             if (!row.genre) return;
@@ -49,9 +49,30 @@ export async function getCommunityStats() {
         const songStats = formatStats(songCounts);
         const userStats = formatStats(userCounts);
 
+        // 3. Feedback engagement distribution
+        const engagementStats = (await db.all(sql`
+            SELECT 
+              CASE 
+                WHEN feedback_count >= 10 THEN 'מעל 10 פידבקים'
+                WHEN feedback_count >= 6 THEN '6-9 פידבקים'
+                WHEN feedback_count >= 3 THEN '3-5 פידבקים'
+                ELSE '0-2 פידבקים'
+              END as genre,
+              COUNT(*) as count
+            FROM (
+              SELECT s.id, COUNT(f.id) as feedback_count
+              FROM Song s
+              LEFT JOIN Feedback f ON s.id = f.songId
+              GROUP BY s.id
+            )
+            GROUP BY genre
+            ORDER BY MIN(feedback_count) DESC
+        `)) as { genre: string; count: number }[];
+
         return {
             songStats,
-            userStats
+            userStats,
+            engagementStats
         };
     } catch (error) {
         await logAction({ message: "getCommunityStats failed", data: error, source: "stats.ts" });
