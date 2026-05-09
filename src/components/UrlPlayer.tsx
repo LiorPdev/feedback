@@ -33,6 +33,7 @@ interface UrlPlayerProps {
   onError?: (error: unknown) => void;
   onEnded?: () => void;
   isHidden?: boolean;
+  feedbackId?: string | null;
 }
 
 export const getEmbedUrl = (url: string) => {
@@ -60,7 +61,7 @@ export interface UrlPlayerHandle {
   pause: () => void;
 }
 
-const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, onPlay, onPause, onReady, onError, onEnded, isHidden = false }, ref) => {
+const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, onPlay, onPause, onReady, onError, onEnded, isHidden = false, feedbackId = null }, ref) => {
   const isUnmountingRef = useRef(false);
   const [mounted, setMounted] = useState(false);
   const [origin, setOrigin] = useState("");
@@ -84,6 +85,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
   const onErrorRef = useRef(onError);
   const onEndedRef = useRef(onEnded);
   const songIdRef = useRef(songId);
+  const feedbackIdRef = useRef(feedbackId);
 
   // Tracking refs
   const startTimeRef = useRef<number>(0);
@@ -110,7 +112,8 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
     onReadyRef.current = onReady;
     onErrorRef.current = onError;
     onEndedRef.current = onEnded;
-  }, [onPlay, onPause, onReady, onError, onEnded]);
+    feedbackIdRef.current = feedbackId;
+  }, [onPlay, onPause, onReady, onError, onEnded, feedbackId]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const guard = (fn: ((...args: any[]) => void) | undefined) => (...args: any[]) => {
@@ -126,7 +129,12 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
 
     if (delta >= MIN_LISTEN_EVENT_SECONDS) {
       const id = songIdRef.current;
-      recordListenEvent({ songId: id, playedSeconds: delta }).catch(() => null);
+      const fbId = feedbackIdRef.current;
+      recordListenEvent({ 
+        songId: id, 
+        playedSeconds: delta, 
+        feedbackId: fbId || undefined 
+      }).catch(() => null);
     }
 
     // Reset tracking for next session

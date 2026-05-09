@@ -98,6 +98,7 @@ export default function FeedContainer({
   const [playerError, setPlayerError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [lastFeedbackId, setLastFeedbackId] = useState<string | null>(null);
 
   const { isUtmMode: isGuestEligible, isLoaded: isUtmLoaded } = useUtmMode();
   const isCheckingGuest = !isUtmLoaded;
@@ -154,6 +155,7 @@ export default function FeedContainer({
     setPlayerError(null);
     setCurrentTime(0);
     setDuration(0);
+    setLastFeedbackId(null);
   }, []);
 
   useEffect(() => {
@@ -345,6 +347,7 @@ export default function FeedContainer({
                 onReady={() => setIsTransitioning(false)}
                 onError={onPlayerError}
                 isHidden={isHiddenPlayer}
+                feedbackId={lastFeedbackId}
               />
             )}
           </motion.div>
@@ -416,9 +419,11 @@ export default function FeedContainer({
               isDisabled={secondsRemaining > 0}
               initialSource={from}
               isLoggedIn={isLoggedIn}
-              onSuccess={() => {
+              onSuccess={(fb?: { id?: string }) => {
                 setIsJustRated(true);
-                // Don't mark as rated in session yet, wait for popup to close
+                if (fb?.id) {
+                  setLastFeedbackId(fb.id);
+                }
               }}
               onPopupClose={() => {
                 setIsJustRated(false);

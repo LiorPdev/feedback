@@ -16,7 +16,7 @@ import { getRatingText } from "@/lib/utils";
 interface FeedbackFormProps {
   songId: string;
   songSlug?: string;
-  onSuccess?: (feedback: unknown, stats?: { averageRating: number; totalFeedbacks: number }) => void;
+  onSuccess?: (feedback?: { id?: string }, stats?: { averageRating: number; totalFeedbacks: number }) => void;
   getPlayedSeconds?: () => Promise<number>;
   isPlaying?: boolean;
   isDisabled?: boolean;

@@ -6,6 +6,7 @@ import { desc, eq, aliasedTable, sql, and, gt } from 'drizzle-orm';
 import { users, songs, feedbacks, logs, listenEvents } from '@/lib/schema';
 import { ADMIN_EMAIL, TOP_RATED_DECAY_FACTOR, TOP_RATED_MIN_RATINGS_THRESHOLD, LISTEN_TIME_WEIGHT } from '@/lib/constants';
 import { logAction } from './logs';
+import { summarizeFeedbacks } from '@/lib/ai-service';
 
 async function getAdminUser() {
     const user = await syncUser();
@@ -293,5 +294,141 @@ export async function getAdminTopRatedReport() {
             userId: admin.id
         });
         return { success: false, error: "Failed to fetch top rated report" };
+    }
+}
+
+export async function getAdminWakeUpReport() {
+    const admin = await getAdminUser();
+    if (!admin) return { success: false, error: "Unauthorized" };
+
+    const db = await getDb();
+    try {
+        // 1. Get users who have at least one song
+        // 2. AND have no locked feedbacks (isUnlocked = false)
+        // 3. AND sort by last visit (updatedAt)
+
+        // Subquery to count locked feedbacks per user
+        const lockedFeedbacksSubquery = db.select({
+            userId: songs.userId,
+            lockedCount: sql<number>`COUNT(${feedbacks.id})`.as('lockedCount'),
+        })
+            .from(feedbacks)
+            .innerJoin(songs, eq(feedbacks.songId, songs.id))
+            .where(eq(feedbacks.isUnlocked, false))
+            .groupBy(songs.userId)
+            .as('lockedFeedbacks');
+
+        // Subquery to get song feedback counts
+        const songFeedbackCounts = db.select({
+            songId: feedbacks.songId,
+            count: sql<number>`COUNT(${feedbacks.id})`.as('feedbackCount'),
+        })
+            .from(feedbacks)
+            .groupBy(feedbacks.songId)
+            .as('songFeedbackCounts');
+
+        // Main query to get users and their candidate song
+        // We want users who HAVE songs.
+        const result = await db.select({
+            id: users.id,
+            userId: users.id,
+            userName: users.name,
+            userEmail: users.email,
+            userTokens: users.tokens,
+            lastVisit: users.updatedAt,
+            songId: songs.id,
+            songTitle: songs.title,
+            songSlug: songs.slug,
+            feedbackCount: sql<number>`COALESCE(${songFeedbackCounts.count}, 0)`.as('feedbackCount'),
+            lockedCount: lockedFeedbacksSubquery.lockedCount,
+        })
+            .from(users)
+            .innerJoin(songs, eq(users.id, songs.userId))
+            .leftJoin(songFeedbackCounts, eq(songs.id, songFeedbackCounts.songId))
+            .leftJoin(lockedFeedbacksSubquery, eq(users.id, lockedFeedbacksSubquery.userId))
+            .where(eq(songs.isActive, true))
+            .orderBy(users.updatedAt);
+
+        console.log(`Debug Wake Up: Found ${result.length} user/song pairs. Filtering for no locked feedbacks...`);
+        result.forEach(r => console.log(`User: ${r.userEmail}, Locked: ${r.lockedCount}`));
+
+        const filteredResult = result.filter(r => r.lockedCount === null || r.lockedCount === 0);
+        console.log(`After filter: ${filteredResult.length} pairs remaining`);
+
+        type WakeUpRow = (typeof result)[number];
+        const userMap = new Map<string, WakeUpRow>();
+        for (const row of filteredResult) {
+            const existing = userMap.get(row.userId);
+            if (!existing || row.feedbackCount < existing.feedbackCount) {
+                userMap.set(row.userId, row);
+            }
+        }
+
+        const finalData = Array.from(userMap.values());
+
+        // Now for each chosen song, we might want to fetch the actual feedbacks to show in the UI
+        // But let's do that on demand or just fetch all feedbacks for these songs now if the data is not too large.
+        // Actually, fetching all feedbacks for all candidate songs might be too much.
+        // I'll add a separate action to fetch feedbacks for a specific song.
+
+        return { success: true, data: finalData };
+    } catch (error) {
+        const err = error as Error;
+        await logAction({
+            message: "Failed to fetch wake up report",
+            data: { error: err.message, stack: err.stack },
+            source: "actions/admin.ts:getAdminWakeUpReport",
+            userId: admin.id
+        });
+        return { success: false, error: "Failed to fetch wake up report" };
+    }
+}
+
+export async function getSongFeedbacks(songId: string) {
+    const admin = await getAdminUser();
+    if (!admin) return { success: false, error: "Unauthorized" };
+
+    const db = await getDb();
+    try {
+        const result = await db.select({
+            id: feedbacks.id,
+            createdAt: feedbacks.createdAt,
+            overall: feedbacks.overall,
+            comment: feedbacks.comment,
+            authorName: users.name,
+            authorEmail: users.email,
+        })
+            .from(feedbacks)
+            .leftJoin(users, eq(feedbacks.authorId, users.id))
+            .where(eq(feedbacks.songId, songId))
+            .orderBy(desc(feedbacks.createdAt));
+
+        return { success: true, data: result };
+    } catch {
+        return { success: false, error: "Failed to fetch feedbacks" };
+    }
+}
+
+export async function generateAIFeedback(songId: string) {
+    const admin = await getAdminUser();
+    if (!admin) return { success: false, error: "Unauthorized" };
+
+    const db = await getDb();
+    try {
+        const songFeedbacks = await db.select({
+            comment: feedbacks.comment,
+            overall: feedbacks.overall,
+        })
+            .from(feedbacks)
+            .where(eq(feedbacks.songId, songId));
+
+        if (songFeedbacks.length === 0) {
+            return { success: true, data: "אין עדיין פידבקים לשיר זה." };
+        }
+
+        const summary = await summarizeFeedbacks(songFeedbacks);
+        return { success: true, data: summary };
+    } catch {
+        return { success: false, error: "Failed to generate AI feedback" };
     }
 }

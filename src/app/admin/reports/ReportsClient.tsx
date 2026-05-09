@@ -1,12 +1,13 @@
 'use client'
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { getAdminSongsReport, getAdminFeedbacksReport, getAdminUsersReport, getAdminLogsReport, getAdminTopRatedReport, deleteAdminFeedback, deleteAdminSong } from '@/app/actions/admin';
-import { ArrowUpDown, ArrowUp, ArrowDown, Trash2, Heart, Copy, Meh, Check, ExternalLink } from 'lucide-react';
+import { getAdminSongsReport, getAdminFeedbacksReport, getAdminUsersReport, getAdminLogsReport, getAdminTopRatedReport, deleteAdminFeedback, deleteAdminSong, getAdminWakeUpReport, getSongFeedbacks, generateAIFeedback } from '@/app/actions/admin';
+import { ArrowUpDown, ArrowUp, ArrowDown, Trash2, Heart, Copy, Meh, Check, ExternalLink, RefreshCw, Sparkles, Code } from 'lucide-react';
 import { isSongPromoted } from '@/lib/utils';
+import { AI_SUMMARIZE_PROMPT } from '@/lib/ai-constants';
 import styles from './reports.module.css';
 
-type ReportType = 'songs' | 'feedbacks' | 'users' | 'logs' | 'top-rated';
+type ReportType = 'songs' | 'feedbacks' | 'users' | 'logs' | 'top-rated' | 'wake-up';
 
 interface SortHeaderProps {
     label: string;
@@ -45,6 +46,11 @@ export function ReportsClient() {
     const [loading, setLoading] = useState(true);
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({ key: 'createdAt', direction: 'desc' });
     const [selectedId, setSelectedId] = useState<string | null>(null);
+    const [expandedFeedbacks, setExpandedFeedbacks] = useState<{ songId: string, feedbacks: any[] } | null>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
+    const [fetchingFeedbacks, setFetchingFeedbacks] = useState(false);
+    const [aiFeedback, setAiFeedback] = useState<string | null>(null);
+    const [generatingAI, setGeneratingAI] = useState(false);
+    const [copyingPrompt, setCopyingPrompt] = useState(false);
 
     const canDelete = reportType === 'songs' || reportType === 'feedbacks';
 
@@ -87,6 +93,9 @@ export function ReportsClient() {
         } else if (reportType === 'top-rated') {
             result = await getAdminTopRatedReport();
             setSortConfig({ key: 'finalScore', direction: 'desc' });
+        } else if (reportType === 'wake-up') {
+            result = await getAdminWakeUpReport();
+            setSortConfig({ key: 'lastVisit', direction: 'asc' });
         } else {
             result = await getAdminUsersReport();
         }
@@ -105,6 +114,20 @@ export function ReportsClient() {
             direction = 'desc';
         }
         setSortConfig({ key, direction });
+    };
+
+    const handleCopyPrompt = async () => {
+        if (!expandedFeedbacks) return;
+        setCopyingPrompt(true);
+        const feedbacksText = expandedFeedbacks.feedbacks.map(f => f.comment).join('\n---\n');
+        const fullPrompt = `${AI_SUMMARIZE_PROMPT}\n\n${feedbacksText}`;
+
+        try {
+            await navigator.clipboard.writeText(fullPrompt);
+            setTimeout(() => setCopyingPrompt(false), 2000);
+        } catch {
+            setCopyingPrompt(false);
+        }
     };
 
     const sortedData = useMemo(() => {
@@ -145,6 +168,47 @@ export function ReportsClient() {
         }).replace(',', '');
     };
 
+    const formatRelativeTime = (dateStr: string) => {
+        const d = new Date(dateStr);
+        const now = new Date();
+        const diffMs = now.getTime() - d.getTime();
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 0) return 'היום';
+        if (diffDays === 1) return 'אתמול';
+        if (diffDays < 7) return `לפני ${diffDays} ימים`;
+        if (diffDays < 30) return `לפני ${Math.floor(diffDays / 7)} שבועות`;
+        return `לפני ${Math.floor(diffDays / 30)} חודשים`;
+    };
+
+    const handleFetchFeedbacks = async (songId: string) => {
+        if (expandedFeedbacks?.songId === songId) {
+            setExpandedFeedbacks(null);
+            setAiFeedback(null);
+            return;
+        }
+
+        setFetchingFeedbacks(true);
+        setAiFeedback(null);
+        const result = await getSongFeedbacks(songId);
+        if (result.success && result.data) {
+            setExpandedFeedbacks({ songId, feedbacks: result.data });
+        }
+        setFetchingFeedbacks(false);
+    };
+
+    const handleGenerateAI = async () => {
+        if (!expandedFeedbacks) return;
+        setGeneratingAI(true);
+        const result = await generateAIFeedback(expandedFeedbacks.songId);
+        if (result.success && result.data) {
+            setAiFeedback(result.data);
+        } else {
+            alert("נכשלה יצירת פידבק AI");
+        }
+        setGeneratingAI(false);
+    };
+
     return (
         <>
             <div className={styles.controls}>
@@ -160,6 +224,7 @@ export function ReportsClient() {
                     <option value="songs">שירים</option>
                     <option value="feedbacks">פידבקים</option>
                     <option value="top-rated">לפי דירוג</option>
+                    <option value="wake-up">דוח התעוררות</option>
                     <option value="logs">לוגים</option>
                 </select>
 
@@ -231,6 +296,15 @@ export function ReportsClient() {
                                     <SortHeader label="כניסה אחרונה" sortKey="lastVisit" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="לאחרונה נתן פידבק" sortKey="lastFeedbackGiven" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="לאחרונה קיבל פידבק" sortKey="lastFeedbackReceived" sortConfig={sortConfig} onSort={handleSort} />
+                                </tr>
+                            ) : reportType === 'wake-up' ? (
+                                <tr>
+                                    <SortHeader label="שם משתמש" sortKey="userName" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="טוקנים" sortKey="userTokens" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="כניסה אחרונה" sortKey="lastVisit" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="שם השיר" sortKey="songTitle" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="#פידבקים" sortKey="feedbackCount" sortConfig={sortConfig} onSort={handleSort} />
+                                    <th style={{ width: '100px', textAlign: 'center' }}>תן פידבק</th>
                                 </tr>
                             ) : (
                                 <tr>
@@ -360,7 +434,7 @@ export function ReportsClient() {
                                             <td>{item.numRatings}</td>
                                             <td>{typeof item.rawAvg === 'number' ? item.rawAvg.toFixed(3) : item.rawAvg}</td>
                                             <td title={`${item.avgListenSeconds} שניות`}>
-                                                {typeof item.avgListenSeconds === 'number' 
+                                                {typeof item.avgListenSeconds === 'number'
                                                     ? `${Math.floor(item.avgListenSeconds / 60)}:${(Math.floor(item.avgListenSeconds % 60)).toString().padStart(2, '0')}`
                                                     : item.avgListenSeconds}
                                                 {typeof item.listenBonus === 'number' && item.listenBonus > 0 && (
@@ -374,18 +448,18 @@ export function ReportsClient() {
                                             <td>{typeof item.decay === 'number' ? item.decay.toFixed(3) : item.decay}</td>
                                             <td style={{ fontWeight: 'bold', color: 'var(--accent)', minWidth: '140px', textAlign: 'center' }}>
                                                 <div>{typeof item.finalScore === 'number' ? item.finalScore.toFixed(4) : item.finalScore}</div>
-                                                <div style={{ 
-                                                    fontSize: '0.7rem', 
-                                                    fontWeight: 'normal', 
-                                                    color: 'var(--text-muted)', 
+                                                <div style={{
+                                                    fontSize: '0.7rem',
+                                                    fontWeight: 'normal',
+                                                    color: 'var(--text-muted)',
                                                     marginTop: '2px',
                                                     direction: 'ltr',
                                                     unicodeBidi: 'isolate',
                                                     whiteSpace: 'nowrap'
                                                 }}>
-                                                    ({typeof item.bayesianAvg === 'number' ? item.bayesianAvg.toFixed(2) : item.bayesianAvg} + 
-                                                     {typeof item.listenBonus === 'number' ? item.listenBonus.toFixed(2) : item.listenBonus} - 
-                                                     {typeof item.decay === 'number' ? item.decay.toFixed(2) : item.decay})
+                                                    ({typeof item.bayesianAvg === 'number' ? item.bayesianAvg.toFixed(2) : item.bayesianAvg} +
+                                                    {typeof item.listenBonus === 'number' ? item.listenBonus.toFixed(2) : item.listenBonus} -
+                                                    {typeof item.decay === 'number' ? item.decay.toFixed(2) : item.decay})
                                                 </div>
                                             </td>
                                             <td style={{ textAlign: 'center' }}>
@@ -417,6 +491,46 @@ export function ReportsClient() {
                                             <td>{item.lastFeedbackReceived ? formatDate(item.lastFeedbackReceived) : '-'}</td>
                                         </>
                                     )}
+                                    {reportType === 'wake-up' && (
+                                        <>
+                                            <td>
+                                                <div style={{ fontWeight: 'bold' }}>{item.userName}</div>
+                                                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{item.userEmail}</div>
+                                            </td>
+                                            <td style={{ textAlign: 'center' }}>{item.userTokens}</td>
+                                            <td>
+                                                <div>{formatDate(item.lastVisit)}</div>
+                                                <div className={styles.relativeTime}>{formatRelativeTime(item.lastVisit)}</div>
+                                            </td>
+                                            <td>{item.songTitle}</td>
+                                            <td style={{ textAlign: 'center' }}>
+                                                <button
+                                                    className={styles.feedbackCountBtn}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleFetchFeedbacks(item.songId);
+                                                    }}
+                                                >
+                                                    {item.feedbackCount}
+                                                </button>
+                                            </td>
+                                            <td style={{ textAlign: 'center' }}>
+                                                <button
+                                                    className={styles.feedbackBtn}
+                                                    title="העתק קישור (עוקף רישום)"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        const url = `${window.location.origin}/give-feedback/${item.songSlug}?utm_source=wakeup`;
+                                                        navigator.clipboard.writeText(url);
+                                                        alert('הקישור הועתק לזיכרון');
+                                                    }}
+                                                    style={{ border: 'none', cursor: 'pointer' }}
+                                                >
+                                                    <Copy size={18} />
+                                                </button>
+                                            </td>
+                                        </>
+                                    )}
                                     {reportType === 'logs' && (
                                         <>
                                             <td>{formatDate(item.createdAt)}</td>
@@ -436,6 +550,78 @@ export function ReportsClient() {
                     </table>
                 )}
             </div>
+
+            {expandedFeedbacks && (
+                <div className={styles.modalOverlay} onClick={() => { setExpandedFeedbacks(null); setAiFeedback(null); }}>
+                    <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+                        <div className={styles.modalHeader}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <h3>פידבקים לשיר</h3>
+                                <button
+                                    className={styles.aiBtn}
+                                    onClick={handleGenerateAI}
+                                    disabled={generatingAI || expandedFeedbacks.feedbacks.length === 0}
+                                    title="צור סיכום פידבק באמצעות AI"
+                                >
+                                    {generatingAI ? <RefreshCw className={styles.spinning} size={16} /> : <Sparkles size={16} />}
+                                    <span>הפעל AI</span>
+                                </button>
+                                <button
+                                    className={`${styles.aiBtn} ${styles.promptBtn}`}
+                                    onClick={handleCopyPrompt}
+                                    disabled={expandedFeedbacks.feedbacks.length === 0}
+                                    title="העתק לזיכרון את הפרומפט המלא עבור שימוש ב-AI"
+                                >
+                                    {copyingPrompt ? <Check size={16} /> : <Code size={16} />}
+                                    <span>פרומפט</span>
+                                </button>
+                            </div>
+                            <button className={styles.closeBtn} onClick={() => { setExpandedFeedbacks(null); setAiFeedback(null); }}>&times;</button>
+                        </div>
+                        <div className={styles.modalBody}>
+                            {aiFeedback && (
+                                <div className={styles.aiFeedbackBox}>
+                                    <div className={styles.aiFeedbackHeader}>
+                                        <Sparkles size={14} />
+                                        <span>פידבק מוצע (AI):</span>
+                                        <button
+                                            className={styles.copySmallBtn}
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(aiFeedback);
+                                                alert("הפידבק הועתק!");
+                                            }}
+                                            title="העתק פידבק AI"
+                                        >
+                                            <Copy size={14} />
+                                        </button>
+                                    </div>
+                                    <div className={styles.aiFeedbackText}>{aiFeedback}</div>
+                                </div>
+                            )}
+                            {expandedFeedbacks.feedbacks.length === 0 ? (
+                                <div className={styles.noData}>אין פידבקים לשיר זה</div>
+                            ) : (
+                                expandedFeedbacks.feedbacks.map((fb) => (
+                                    <div key={fb.id} className={styles.feedbackItem}>
+                                        <div className={styles.feedbackMeta}>
+                                            <strong>{fb.authorName || fb.authorEmail}</strong>
+                                            <span>{formatDate(fb.createdAt)}</span>
+                                            <span className={styles.fbScore}>{fb.overall}</span>
+                                        </div>
+                                        <div className={styles.feedbackComment}>{fb.comment}</div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {fetchingFeedbacks && (
+                <div className={styles.loadingOverlay}>
+                    <RefreshCw className={styles.spinning} />
+                </div>
+            )}
         </>
     );
 }

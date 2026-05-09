@@ -3,6 +3,7 @@
  */
 import { callGemini } from "./gemini";
 import { logToDb } from "./logger";
+import { AI_SUMMARIZE_PROMPT } from "./ai-constants";
 
 /**
  * Checks if the given text (Hebrew) is offensive, hateful, or inappropriate.
@@ -37,5 +38,27 @@ export async function checkIsOffensive(text: string): Promise<{ isOffensive: boo
       source: "src/lib/ai-service.ts:checkIsOffensive",
     });
     return { isOffensive: false }; // Fail-open
+  }
+}
+
+/**
+ * Summarizes existing feedbacks into a concise new feedback.
+ */
+export async function summarizeFeedbacks(feedbacks: { comment: string, overall: number }[]): Promise<string | null> {
+  if (!feedbacks || feedbacks.length === 0) {
+    return "נראה שעדיין אין פידבקים לשיר זה. אולי כדאי להיות הראשון שנותן פידבק?";
+  }
+
+  const feedbacksText = feedbacks.map(f => f.comment).join('\n---\n');
+
+  try {
+    return await callGemini(AI_SUMMARIZE_PROMPT, feedbacksText);
+  } catch (error) {
+    await logToDb({
+      message: "summarizeFeedbacks error",
+      data: error,
+      source: "src/lib/ai-service.ts:summarizeFeedbacks",
+    });
+    return null;
   }
 }

@@ -257,6 +257,7 @@ export async function addFeedback(data: {
 export async function recordListenEvent(data: {
     songId: string;
     playedSeconds: number;
+    feedbackId?: string;
 }) {
     // Ignore very short listens — noise filter
     if (!data.playedSeconds || data.playedSeconds < MIN_LISTEN_EVENT_SECONDS) {
@@ -283,6 +284,13 @@ export async function recordListenEvent(data: {
             userId: dbUser?.id || null,
             playedSeconds: data.playedSeconds,
         });
+
+        // Sync feedback time if this listen was associated with a feedback submission
+        if (data.feedbackId) {
+            await db.update(feedbacks)
+                .set({ playedSeconds: data.playedSeconds })
+                .where(eq(feedbacks.id, data.feedbackId));
+        }
 
         return { success: true };
     } catch (error) {
