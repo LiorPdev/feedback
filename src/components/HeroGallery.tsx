@@ -24,7 +24,7 @@ interface StatItem {
     count: number;
 }
 
-const SLIDE_INTERVAL = 13000;         // interval between slides
+const SLIDE_INTERVAL = 20000;         // interval between slides
 const TRANSITION_DURATION = 0.3;      // duration of slide transition
 const PIE_ANIMATION_DURATION = 1500;  // duration of pie animation
 const MIN_PERCENTAGE = 0.07;          // ignore genres with less than 6% of the data
@@ -172,21 +172,21 @@ export default function HeroGallery() {
                                                     y={y}
                                                     fill="white"
                                                     stroke="black"
-                                                    strokeWidth="0.7px"
+                                                    strokeWidth="1.2px"
                                                     paintOrder="stroke"
                                                     textAnchor="middle"
                                                     dominantBaseline="central"
                                                     style={{
-                                                        fontSize: '0.7rem',
-                                                        fontWeight: 600,
-                                                        textShadow: '0px 0px 4px rgba(0,0,0,0.5)',
+                                                        fontSize: '0.8rem',
+                                                        fontWeight: 700,
+                                                        textShadow: '0px 0px 2px rgba(0,0,0,0.8)',
                                                         pointerEvents: 'none'
                                                     }}
                                                 >
                                                     {slides[currentIndex].id === 'engagement' ? (
                                                         <>
-                                                            <tspan x={x} dy="-0.5em">{genre}</tspan>
-                                                            <tspan x={x} dy="1.2em">{(percent * 100).toFixed(0)}%</tspan>
+                                                            <tspan x={x} dy="-0.4em">{(percent * 100).toFixed(0)}% מהשירים קיבלו</tspan>
+                                                            <tspan x={x} dy="1.1em">{genre} פידבקים</tspan>
                                                         </>
                                                     ) : (
                                                         `${genre} ${(percent * 100).toFixed(0)}%`

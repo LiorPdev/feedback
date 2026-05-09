@@ -53,10 +53,9 @@ export async function getCommunityStats() {
         const engagementStats = (await db.all(sql`
             SELECT 
               CASE 
-                WHEN feedback_count >= 10 THEN 'מעל 10 פידבקים'
-                WHEN feedback_count >= 6 THEN '6-9 פידבקים'
-                WHEN feedback_count >= 3 THEN '3-5 פידבקים'
-                ELSE '0-2 פידבקים'
+                WHEN feedback_count >= 11 THEN 'מעל 10'
+                WHEN feedback_count >= 6 THEN '6-10'
+                ELSE '0-5'
               END as genre,
               COUNT(*) as count
             FROM (
