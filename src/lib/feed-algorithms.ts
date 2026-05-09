@@ -2,6 +2,12 @@
 // ----------------------------------------------------
 // Play Order Algorithms
 // ----------------------------------------------------
+import { 
+    FEED_PRIORITY_WEIGHT, 
+    FEED_RANDOM_JITTER_RANGE, 
+    FEED_FEEDBACK_BOOST_COEFFICIENT 
+} from "./constants";
+
 export interface SongWithStats {
     userId: string;
     genre: string;
@@ -11,23 +17,31 @@ export interface SongWithStats {
 }
 
 /**
- * 
- * 1. Genre: שירים מהג'אנר שהמשתמש אוהב תמיד יופיעו לפני שירים אחרים.
- * 2. Priority: בתוך הג'אנר, שירים עם עדיפות גבוהה יותר יופיעו קודם.
- * 3. Random: שירים עם אותה רמת עדיפות יופיעו בסדר אקראי שמשתנה בכל טעינה.
+ * Feed Ordering Algorithm (אלגוריתם סדר השירים בפיד):
+ * 1. Genre: שירים מהג'אנר המועדף על המשתמש תמיד יופיעו לפני שירים אחרים (עדיפות מוחלטת).
+ * 2. Weighted Priority: שירים שקודמו (בתשלום או ע"י מנהל) מקבלים משקל גבוה יותר במיקום.
+ * 3. Random Jitter: מוסיף רכיב אקראי כדי שהפיד לא יהיה סטטי וישתנה בכל טעינה.
+ * 4. Feedback Boost: שירים עם מעט פידבקים מקבלים "דחיפה" כדי לעזור להם לקבל חשיפה ראשונית.
  */
 export function feedOrderAlgorithm<T extends SongWithStats>(
     songs: T[],
     preferredGenres: string[]
 ): T[] {
-    // We map songs to include a random "jitter score" to allow for soft sorting.
-    // This ensures high-priority songs usually appear first, but provides variety.
-    const scoredSongs = songs.map(song => ({
-        song,
-        // Priority + random noise (0-1.5). 
-        // This allows a priority 1 song to occasionally beat a priority 2 song.
-        softScore: song.priority + (Math.random() * 1.5)
-    }));
+    const scoredSongs = songs.map(song => {
+        // The algorithm gives a head start to songs with fewer feedbacks to ensure 
+        // every song gets a chance to be heard.
+        const feedbackBoost = FEED_FEEDBACK_BOOST_COEFFICIENT / (song.totalFeedbacks + 1);
+        
+        return {
+            song,
+            // (Priority * Weight) ensures priority is the main driver.
+            // Random Jitter ensures the feed isn't static.
+            // Feedback Boost ensures new content reaches the top.
+            softScore: (song.priority * FEED_PRIORITY_WEIGHT) + 
+                       (Math.random() * FEED_RANDOM_JITTER_RANGE) + 
+                       feedbackBoost
+        };
+    });
 
     return scoredSongs.sort((a, b) => {
         // 1. Genre match first (Strict)

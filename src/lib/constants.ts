@@ -26,7 +26,7 @@ export const INITIAL_TOKENS = 150;          // Amount of tokens a user gets when
 export const FREE_FEEDBACKS_FOR_ARTIST = 1; // Number of initial feedbacks an artist receives for free before having to "pay" to unlock.
 export const LIKE_FEEDBACK_REWARD = 10;     // Amount of tokens a user gets when gets a like on his feedback.
 export const REWARD_PER_COMMENT_STEP = 5;   // Tokens reward for each comment step in a feedback.
-export const COMMENT_STEP_LENGTH = 30;      // Number of characters required to get the reward for comment step.
+export const COMMENT_STEP_LENGTH = 25;      // Number of characters required to get the reward for comment step.
 export const LISTEN_REWARD_INTERVAL_SECONDS = 10; // Seconds of playback required to get the reward.
 export const LISTEN_REWARD_TOKENS = 1;           // Amount of tokens rewarded for each interval.
 
@@ -54,3 +54,9 @@ export const RATER_FEEDBACKS_VOLUME_THRESHOLD = 20; // 20 feedbacks required for
 
 // For feedback counter logic on landing page (higher number = less feedbacks shown)
 export const FEEDBACK_COUNT_FACTOR = 35;
+
+// Feed Algorithm Configuration
+// Algorithm: (Priority from DB * FEED_PRIORITY_WEIGHT) + FEED_RANDOM_JITTER_RANGE + (FEED_FEEDBACK_BOOST_COEFFICIENT / (totalFeedbacks + 1))
+export const FEED_PRIORITY_WEIGHT = 2.0;            // Multiplier for the song's priority level
+export const FEED_RANDOM_JITTER_RANGE = 1.5;        // Range of random noise (0 to 1.5)
+export const FEED_FEEDBACK_BOOST_COEFFICIENT = 0.5; // Max boost for songs with 0 feedbacks
