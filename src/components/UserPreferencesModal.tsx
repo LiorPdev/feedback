@@ -1,17 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Button from "./ui/Button";
 import SocialIcon from "./SocialIcon";
 import { motion, AnimatePresence } from "framer-motion";
 import { GENRES } from "@/lib/constants";
+import { getUserData } from "@/app/actions/user";
 import styles from "./UserPreferencesModal.module.css";
 
 interface UserPreferencesModalProps {
   isOpen: boolean;
   onClose: () => void;
-  initialGenre: string;
-  initialSocialLinks: string;
 }
 
 interface SocialLinks {
@@ -26,30 +26,41 @@ interface SocialLinks {
 export default function UserPreferencesModal({
   isOpen,
   onClose,
-  initialGenre,
-  initialSocialLinks,
 }: UserPreferencesModalProps) {
   const [localGenres, setLocalGenres] = useState<string[]>([]);
   const [socialLinks, setSocialLinks] = useState<SocialLinks>({});
   const [isSaving, setIsSaving] = useState(false);
 
+  const [isLoading, setIsLoading] = useState(false);
+
   useEffect(() => {
-    if (initialGenre) {
-      setLocalGenres(initialGenre.split(",").map(g => g.trim()).filter(Boolean));
-    } else {
-      setLocalGenres([]);
+    if (!isOpen) return;
+
+    async function loadData() {
+      setIsLoading(true);
+      const res = await getUserData();
+      if (res.success) {
+        if (res.userGenre) {
+          setLocalGenres(res.userGenre.split(",").map(g => g.trim()).filter(Boolean));
+        } else {
+          setLocalGenres([]);
+        }
+
+        if (res.socialLinks) {
+          try {
+            setSocialLinks(JSON.parse(res.socialLinks));
+          } catch {
+            setSocialLinks({});
+          }
+        } else {
+          setSocialLinks({});
+        }
+      }
+      setIsLoading(false);
     }
 
-    if (initialSocialLinks) {
-      try {
-        setSocialLinks(JSON.parse(initialSocialLinks));
-      } catch {
-        setSocialLinks({});
-      }
-    } else {
-      setSocialLinks({});
-    }
-  }, [initialGenre, initialSocialLinks, isOpen]);
+    loadData();
+  }, [isOpen]);
 
   const toggleGenre = (genre: string) => {
     setLocalGenres(prev =>
@@ -89,7 +100,14 @@ export default function UserPreferencesModal({
     }
   };
 
-  return (
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <div className={styles.overlay} onClick={onClose}>
@@ -105,17 +123,21 @@ export default function UserPreferencesModal({
               <div className={styles.formGroup}>
                 <h3 className={styles.sectionTitle}>הסגנון המועדף עלי</h3>
                 <div className={styles.genreGrid}>
-                  {GENRES.map((g) => (
-                    <button
-                      key={g}
-                      type="button"
-                      className={`${styles.genreChip} ${localGenres.includes(g) ? styles.selectedChip : ""}`}
-                      onClick={() => toggleGenre(g)}
-                      disabled={isSaving}
-                    >
-                      {g}
-                    </button>
-                  ))}
+                  {isLoading ? (
+                    <div className={styles.loadingState}>טוען...</div>
+                  ) : (
+                    GENRES.map((g) => (
+                      <button
+                        key={g}
+                        type="button"
+                        className={`${styles.genreChip} ${localGenres.includes(g) ? styles.selectedChip : ""}`}
+                        onClick={() => toggleGenre(g)}
+                        disabled={isSaving}
+                      >
+                        {g}
+                      </button>
+                    ))
+                  )}
                 </div>
               </div>
 
@@ -273,6 +295,7 @@ export default function UserPreferencesModal({
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

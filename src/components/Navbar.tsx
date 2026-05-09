@@ -33,8 +33,6 @@ export default function Navbar({ isLoggedIn, initialTokens, initialName = "", in
   const pathname = usePathname();
   const { userId, isLoaded: authLoaded } = useAuth();
   const [tokens, setTokens] = useState<number | null>(isLoggedIn ? initialTokens : null);
-  const [userGenre, setUserGenre] = useState<string>("");
-  const [userSocialLinks, setUserSocialLinks] = useState<string>("");
   const [userEmail, setUserEmail] = useState<string>(initialEmail);
   const [userName, setUserName] = useState<string>(initialName);
   const [displayedTokens, setDisplayedTokens] = useState<number | null>(isLoggedIn ? initialTokens : null);
@@ -68,8 +66,6 @@ export default function Navbar({ isLoggedIn, initialTokens, initialName = "", in
             setGlowMode(result.tokens > tokens ? "positive" : "negative");
           }
           setTokens(result.tokens);
-          setUserGenre(result.userGenre || "");
-          setUserSocialLinks(result.socialLinks || "");
           setUserEmail(result.email || "");
           setUserName(result.name || "");
           if (displayedTokens === null) {
@@ -244,8 +240,6 @@ export default function Navbar({ isLoggedIn, initialTokens, initialName = "", in
       <UserPreferencesModal
         isOpen={showPreferencesModal}
         onClose={handleClosePrefs}
-        initialGenre={userGenre}
-        initialSocialLinks={userSocialLinks}
       />
       <CreditTransferModal
         isOpen={showCreditModal}

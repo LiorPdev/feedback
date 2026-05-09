@@ -59,6 +59,12 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.chartContainer * {
+  cursor: pointer !important;
 }
 
 .chartTitle {

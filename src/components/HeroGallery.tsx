@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { PieChart, Pie, ResponsiveContainer } from "recharts";
 import { getCommunityStats } from "@/app/actions/stats";
 import { logAction } from "@/app/actions/logs";
+import UserPreferencesModal from "./UserPreferencesModal";
 import styles from "./HeroGallery.module.css";
 
 const COLORS = [
@@ -23,10 +24,10 @@ interface StatItem {
     count: number;
 }
 
-const SLIDE_INTERVAL = 10000;         // interval between slides
+const SLIDE_INTERVAL = 13000;         // interval between slides
 const TRANSITION_DURATION = 0.3;      // duration of slide transition
 const PIE_ANIMATION_DURATION = 1500;  // duration of pie animation
-const MIN_PERCENTAGE = 0.06;          // ignore genres with less than 6% of the data
+const MIN_PERCENTAGE = 0.07;          // ignore genres with less than 6% of the data
 
 export default function HeroGallery() {
     const [stats, setStats] = useState<{
@@ -35,6 +36,7 @@ export default function HeroGallery() {
     } | null>(null);
     const [loading, setLoading] = useState(true);
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         async function fetchData() {
@@ -113,6 +115,10 @@ export default function HeroGallery() {
         setCurrentIndex(index);
     };
 
+    const handleChartClick = () => {
+        setIsModalOpen(true);
+    };
+
     return (
         <div className={styles.galleryContainer}>
             <AnimatePresence mode="wait">
@@ -124,9 +130,9 @@ export default function HeroGallery() {
                     transition={{ duration: TRANSITION_DURATION }}
                     className={styles.chartSlideWrapper}
                 >
-                    <div className={styles.chartContainer}>
+                    <div className={styles.chartContainer} onClick={handleChartClick}>
                         <h3 className={styles.chartTitle}>{slides[currentIndex].title}</h3>
-                        <div className={styles.chartWrapper} style={{ pointerEvents: 'none' }}>
+                        <div className={styles.chartWrapper}>
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
                                     <Pie
@@ -193,6 +199,11 @@ export default function HeroGallery() {
                     />
                 ))}
             </div>
+
+            <UserPreferencesModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+            />
         </div>
     );
 }
