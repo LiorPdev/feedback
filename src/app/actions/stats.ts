@@ -69,10 +69,18 @@ export async function getCommunityStats() {
             ORDER BY MIN(feedback_count) DESC
         `)) as { genre: string; count: number }[];
 
+        // 4. Average listen time from Feedbacks
+        const avgListenTimeResult = (await db.all(sql`
+            SELECT AVG(playedSeconds) / 60.0 as avgMinutes FROM Feedback
+        `)) as { avgMinutes: number }[];
+        
+        const averageListenTime = avgListenTimeResult[0]?.avgMinutes || 0;
+
         return {
             songStats,
             userStats,
-            engagementStats
+            engagementStats,
+            averageListenTime
         };
     } catch (error) {
         await logAction({ message: "getCommunityStats failed", data: error, source: "stats.ts" });
