@@ -204,8 +204,6 @@ export default function HeroGallery() {
                                                     paintOrder="stroke"
                                                     textAnchor="middle"
                                                     dominantBaseline="central"
-                                                    direction="rtl"
-                                                    unicodeBidi="plaintext"
                                                     style={{
                                                         fontSize: '0.8rem',
                                                         fontWeight: 700,
@@ -215,13 +213,13 @@ export default function HeroGallery() {
                                                 >
                                                     {slides[currentIndex].id === 'engagement' ? (
                                                         <>
-                                                            <tspan x={x} dy="-0.5em">{`\u200e${props.payload.exactPercent}%\u200e`} מהשירים</tspan>
-                                                            <tspan x={x} dy="1.2em">{genre === 'מעל 10' ? genre : `\u200e${genre}\u200e`} פידבקים</tspan>
+                                                            <tspan x={x} y={y - 7}>{`${props.payload.exactPercent}% מהשירים`}</tspan>
+                                                            <tspan x={x} y={y + 9}>{`${genre} פידבקים`}</tspan>
                                                         </>
                                                     ) : (
                                                         <>
-                                                            <tspan x={x} dy="-0.5em">{genre}</tspan>
-                                                            <tspan x={x} dy="1.2em">{`\u200e${props.payload.exactPercent}%\u200e`}</tspan>
+                                                            <tspan x={x} y={y - 7}>{genre}</tspan>
+                                                            <tspan x={x} y={y + 9}>{`${props.payload.exactPercent}%`}</tspan>
                                                         </>
                                                     )}
                                                 </text>
