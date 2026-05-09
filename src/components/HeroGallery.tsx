@@ -23,6 +23,11 @@ interface StatItem {
     count: number;
 }
 
+const SLIDE_INTERVAL = 10000;         // interval between slides
+const TRANSITION_DURATION = 0.3;      // duration of slide transition
+const PIE_ANIMATION_DURATION = 1500;  // duration of pie animation
+const MIN_PERCENTAGE = 0.06;          // ignore genres with less than 6% of the data
+
 export default function HeroGallery() {
     const [stats, setStats] = useState<{
         songStats: StatItem[];
@@ -49,7 +54,7 @@ export default function HeroGallery() {
         if (stats) {
             const timer = setInterval(() => {
                 setCurrentIndex((prev) => (prev + 1) % 2);
-            }, 10000);
+            }, SLIDE_INTERVAL);
             return () => clearInterval(timer);
         }
     }, [stats]);
@@ -66,7 +71,27 @@ export default function HeroGallery() {
 
     const filterSmallData = (data: StatItem[]) => {
         const total = data.reduce((sum, item) => sum + item.count, 0);
-        return data.filter(item => (item.count / total) >= 0.05);
+        if (total === 0) return [];
+
+        const mainItems = data.filter(item =>
+            (item.count / total) >= MIN_PERCENTAGE &&
+            item.genre !== 'אחר' &&
+            item.genre !== null
+        );
+
+        const othersCount = data
+            .filter(item =>
+                (item.count / total) < MIN_PERCENTAGE ||
+                item.genre === 'אחר' ||
+                item.genre === null
+            )
+            .reduce((sum, item) => sum + item.count, 0);
+
+        if (othersCount > 0) {
+            return [...mainItems, { genre: 'אחר', count: othersCount }];
+        }
+
+        return mainItems;
     };
 
     const slides = [
@@ -96,7 +121,7 @@ export default function HeroGallery() {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.5 }}
+                    transition={{ duration: TRANSITION_DURATION }}
                     className={styles.chartSlideWrapper}
                 >
                     <div className={styles.chartContainer}>
@@ -105,6 +130,7 @@ export default function HeroGallery() {
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
                                     <Pie
+                                        animationDuration={PIE_ANIMATION_DURATION}
                                         data={slides[currentIndex].data.map((entry, index) => ({
                                             ...entry,
                                             fill: COLORS[(index + slides[currentIndex].colorOffset) % COLORS.length]
@@ -138,8 +164,8 @@ export default function HeroGallery() {
                                                     textAnchor="middle"
                                                     dominantBaseline="central"
                                                     style={{
-                                                        fontSize: '0.75rem',
-                                                        fontWeight: 700,
+                                                        fontSize: '0.7rem',
+                                                        fontWeight: 600,
                                                         textShadow: '0px 0px 4px rgba(0,0,0,0.5)',
                                                         pointerEvents: 'none'
                                                     }}
@@ -163,7 +189,7 @@ export default function HeroGallery() {
                         key={idx}
                         className={`${styles.dot} ${currentIndex === idx ? styles.dotActive : ""}`}
                         onClick={() => handleDotClick(idx)}
-                        aria-label={`Go to slide ${idx + 1}`}
+                        aria-label={`הצג גרף ${idx + 1}`}
                     />
                 ))}
             </div>
