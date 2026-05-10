@@ -22,13 +22,13 @@ export const MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024;
 export const MIN_SONG_DURATION_SECONDS = 50;
 
 // Tokens i get
-export const INITIAL_TOKENS = 150;          // Amount of tokens a user gets when signing up.
-export const FREE_FEEDBACKS_FOR_ARTIST = 1; // Number of initial feedbacks an artist receives for free before having to "pay" to unlock.
-export const LIKE_FEEDBACK_REWARD = 10;     // Amount of tokens a user gets when gets a like on his feedback.
-export const REWARD_PER_COMMENT_STEP = 5;   // Tokens reward for each comment step in a feedback.
-export const COMMENT_STEP_LENGTH = 25;      // Number of characters required to get the reward for comment step.
+export const INITIAL_TOKENS = 150;                // Amount of tokens a user gets when signing up.
+export const FREE_FEEDBACKS_FOR_ARTIST = 1;       // Number of initial feedbacks an artist receives for free before having to "pay" to unlock.
+export const LIKE_FEEDBACK_REWARD = 10;           // Amount of tokens a user gets when gets a like on his feedback.
+export const REWARD_PER_COMMENT_STEP = 5;         // Tokens reward for each comment step in a feedback.
+export const COMMENT_STEP_LENGTH = 25;            // Number of characters required to get the reward for comment step.
 export const LISTEN_REWARD_INTERVAL_SECONDS = 10; // Seconds of playback required to get the reward.
-export const LISTEN_REWARD_TOKENS = 1;           // Amount of tokens rewarded for each interval.
+export const LISTEN_REWARD_TOKENS = 1;            // Amount of tokens rewarded for each interval.
 
 // Tokens i spend (Try and keep the same amount 50/50)
 export const SONG_SUBMISSION_COST = 50;
@@ -39,7 +39,7 @@ export const PROMOTION_COST = 300;
 export const MIN_COMMENT_LENGTH = 70;
 export const MAX_COMMENT_LENGTH = 500;
 export const MIN_LISTEN_TIME = 40;
-export const MIN_LISTEN_EVENT_SECONDS = 15 // Minimum seconds needed to play a song to be entered into listenEvents table
+export const MIN_LISTEN_EVENT_SECONDS = 20;       // Minimum seconds needed to play a song to be entered into listenEvents table
 
 // Top Rated List Configuration
 export const LISTEN_TIME_WEIGHT = 0.3;            // Every minute of average listening adds this many points to the rating

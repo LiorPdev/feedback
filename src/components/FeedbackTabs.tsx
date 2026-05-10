@@ -71,6 +71,7 @@ export default function FeedbackTabs({
         if (result.success) {
           // Trigger navbar update
           window.dispatchEvent(new CustomEvent("tokens-updated"));
+          window.dispatchEvent(new CustomEvent("feedbacks-updated"));
           setOptimisticUnlocked(prev => new Set(prev).add(feedbackId));
         } else {
           if (result.error === 'INSUFFICIENT_CREDITS') {

@@ -20,22 +20,11 @@
   overflow: hidden;
 }
 
-@media (max-width: 968px) {
-  .container {
-    position: relative;
-    bottom: auto;
-    left: auto;
-    right: auto;
-    width: 100%;
-    margin: 1rem 0;
-  }
-}
-
 .title {
   font-family: 'Courier New', Courier, monospace;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   color: var(--text-main);
-  opacity: 0.8;
+  opacity: 0.6;
   font-weight: 800;
 }
 
@@ -73,6 +62,16 @@
   animation: scrollTicker linear infinite;
 }
 
+@media (max-width: 968px) {
+  .container {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    right: auto;
+    width: 100%;
+    margin: 1rem 0;
+  }
+}
 
 @media (max-width: 768px) {
   .title {

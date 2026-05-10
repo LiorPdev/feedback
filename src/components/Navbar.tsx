@@ -36,6 +36,8 @@ export default function Navbar({ isLoggedIn, initialTokens, initialName = "", in
   const [userEmail, setUserEmail] = useState<string>(initialEmail);
   const [userName, setUserName] = useState<string>(initialName);
   const [displayedTokens, setDisplayedTokens] = useState<number | null>(isLoggedIn ? initialTokens : null);
+  const [unreadCount, setUnreadCount] = useState<number>(0);
+  const [firstUnreadSlug, setFirstUnreadSlug] = useState<string | null>(null);
   const [glowMode, setGlowMode] = useState<"positive" | "negative" | null>(null);
   const [showTokensInfo, setShowTokensInfo] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
@@ -61,15 +63,23 @@ export default function Navbar({ isLoggedIn, initialTokens, initialName = "", in
     const fetchUserData = async () => {
       if (isLoggedIn) {
         const result = await getUserData();
-        if (result.success && result.tokens !== undefined) {
-          if (tokens !== null && result.tokens !== tokens) {
-            setGlowMode(result.tokens > tokens ? "positive" : "negative");
+        if (result.success) {
+          if (result.tokens !== undefined) {
+            if (tokens !== null && result.tokens !== tokens) {
+              setGlowMode(result.tokens > tokens ? "positive" : "negative");
+            }
+            setTokens(result.tokens);
+            if (displayedTokens === null) {
+              setDisplayedTokens(result.tokens);
+            }
           }
-          setTokens(result.tokens);
           setUserEmail(result.email || "");
           setUserName(result.name || "");
-          if (displayedTokens === null) {
-            setDisplayedTokens(result.tokens);
+          if (result.unreadFeedbacksCount !== undefined) {
+            setUnreadCount(result.unreadFeedbacksCount);
+          }
+          if (result.firstUnreadSongSlug !== undefined) {
+            setFirstUnreadSlug(result.firstUnreadSongSlug);
           }
         }
       }
@@ -81,6 +91,7 @@ export default function Navbar({ isLoggedIn, initialTokens, initialName = "", in
     };
 
     window.addEventListener("tokens-updated", handleUpdate);
+    window.addEventListener("feedbacks-updated", handleUpdate);
 
     const handleOpenPrefs = (e: Event) => {
       const customEvent = e as CustomEvent<{ redirectTo?: string }>;
@@ -99,6 +110,7 @@ export default function Navbar({ isLoggedIn, initialTokens, initialName = "", in
 
     return () => {
       window.removeEventListener("tokens-updated", handleUpdate);
+      window.removeEventListener("feedbacks-updated", handleUpdate);
       window.removeEventListener("open-preferences-modal", handleOpenPrefs);
       window.removeEventListener("open-registration-gate", handleOpenAuth);
     };
@@ -217,6 +229,16 @@ export default function Navbar({ isLoggedIn, initialTokens, initialName = "", in
                     triggerRef={tokenTriggerRef}
                   />
                 </div>
+              )}
+
+              {unreadCount > 0 && (
+                <Link 
+                  href={pathname === "/dashboard" && firstUnreadSlug ? `/show-feedback/${firstUnreadSlug}` : "/dashboard?tab=songs"} 
+                  className={styles.unreadBadge}
+                  title={`${unreadCount} פידבקים חדשים מחכים לך!`}
+                >
+                  {unreadCount}
+                </Link>
               )}
 
               <UserMenu

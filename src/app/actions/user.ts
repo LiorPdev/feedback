@@ -1,8 +1,8 @@
 "use server";
 
 import { getDb } from "@/lib/db";
-import { users, creditCodes } from "@/lib/schema";
-import { eq } from "drizzle-orm";
+import { users, creditCodes, feedbacks, songs } from "@/lib/schema";
+import { eq, and, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { logAction } from "./logs";
 import { syncUser } from "@/lib/user-auth";
@@ -79,13 +79,32 @@ export async function getUserData() {
     const dbUser = await syncUser();
     if (!dbUser) return { success: false, error: "משתמש לא מחובר" };
 
+    const db = await getDb();
+    const unreadData = await db
+      .select({ 
+        count: sql<number>`count(*)`,
+        firstSlug: sql<string>`MAX(${songs.slug})`
+      })
+      .from(feedbacks)
+      .innerJoin(songs, eq(feedbacks.songId, songs.id))
+      .where(
+        and(
+          eq(songs.userId, dbUser.id),
+          eq(feedbacks.isUnlocked, false)
+        )
+      );
+
+    const stats = unreadData[0];
+
     return {
       success: true,
       email: dbUser.email,
       name: dbUser.name,
       tokens: dbUser.tokens ?? 0,
       userGenre: dbUser.userGenre ?? null,
-      socialLinks: dbUser.socialLinks ?? null
+      socialLinks: dbUser.socialLinks ?? null,
+      unreadFeedbacksCount: stats?.count ?? 0,
+      firstUnreadSongSlug: stats?.firstSlug ?? null
     };
   } catch (error) {
     await logAction({

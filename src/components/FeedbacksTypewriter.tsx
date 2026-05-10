@@ -53,7 +53,7 @@ export default function FeedbacksTypewriter({
   return (
     <div className={`${styles.container} ${className || ""}`}>
       <div className={styles.title}>
-        פידבק חי מהקהילה:
+        פידבק חי מהקהילה
       </div>
       <div className={styles.tickerContainer}>
         <div className={styles.tickerWrapper}>

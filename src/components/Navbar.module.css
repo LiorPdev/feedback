@@ -54,7 +54,7 @@
 .navLinks {
   display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: 1.25rem;
 }
 
 .navLink {
@@ -83,7 +83,7 @@
   gap: 6px;
   background: color-mix(in srgb, var(--brand-primary), transparent 98%);
   color: var(--brand-primary);
-  padding: 0.35rem 0.75rem;
+  padding: 0.35rem 0.75rem 0.25rem;
   border-radius: 12px;
   font-size: 0.85rem;
   font-weight: 700;
@@ -170,5 +170,42 @@
     padding-right: 1rem;
     font-size: 0.95rem;
     height: 2.4rem;
+  }
+}
+
+.unreadBadge {
+  background: #ff4d4d;
+  color: white;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 10px rgba(255, 77, 77, 0.4);
+  animation: blink 1.5s infinite ease-in-out;
+  cursor: pointer;
+  user-select: none;
+  border: 1.5px solid var(--card-bg);
+  line-height: 1;
+}
+
+@keyframes blink {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 5px rgba(255, 77, 77, 0.3);
+  }
+
+  50% {
+    transform: scale(1.15);
+    box-shadow: 0 0 15px rgba(255, 77, 77, 0.7);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 5px rgba(255, 77, 77, 0.3);
   }
 }

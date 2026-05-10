@@ -35,7 +35,7 @@ interface StatItem {
 
 const SLIDE_INTERVAL = 20000;         // interval between slides
 const TRANSITION_DURATION = 0.3;      // duration of slide transition
-const PIE_ANIMATION_DURATION = 1000;   // duration of pie animation
+const PIE_ANIMATION_DURATION = 900;   // duration of pie animation
 const MIN_PERCENTAGE = 0.07;          // ignore genres with less than 6% of the data
 
 type Slide = {
