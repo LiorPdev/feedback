@@ -53,7 +53,7 @@ const FeedbackShareCard: React.FC<FeedbackShareCardProps> = ({ isOpen, onClose, 
         const dataUrl = await toPng(cardRef.current, {
           width: 1080,
           height: ratio === 'story' ? 1920 : 1080,
-          pixelRatio: 1,
+          pixelRatio: 0.5,
           skipAutoScale: true,
         });
         const response = await fetch(dataUrl);
@@ -112,8 +112,18 @@ const FeedbackShareCard: React.FC<FeedbackShareCardProps> = ({ isOpen, onClose, 
             setIsGenerating(false);
             return;
           }
-        } catch (shareErr) {
-          await logAction({ message: 'Instant Share failed', data: shareErr, source: 'FeedbackShareCard' });
+        } catch (shareErr: unknown) {
+          // If user cancelled the share sheet (AbortError), stop quietly — don't re-open
+          if (shareErr instanceof DOMException && shareErr.name === 'AbortError') {
+            setIsGenerating(false);
+            return;
+          }
+          // Any other error: log it and fall through to normal flow
+          await logAction({
+            message: 'Instant Share failed',
+            data: shareErr instanceof Error ? shareErr.message : String(shareErr),
+            source: 'FeedbackShareCard',
+          });
         }
       }
 
@@ -127,7 +137,7 @@ const FeedbackShareCard: React.FC<FeedbackShareCardProps> = ({ isOpen, onClose, 
       const dataUrl = await toPng(cardRef.current, {
         width: targetWidth,
         height: targetHeight,
-        pixelRatio: isMobile ? 2 : 1, // Keep high quality for mobile fallback
+        pixelRatio: 0.5,
         skipAutoScale: true,
       });
 
