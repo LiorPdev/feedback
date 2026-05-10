@@ -169,19 +169,15 @@
     padding-left: 1rem;
     padding-right: 1rem;
     font-size: 0.95rem;
-    height: 2.4rem;
   }
 }
 
 .unreadBadge {
   background: #ff4d4d;
   color: white;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 6px;
-  border-radius: 10px;
-  font-size: 0.75rem;
-  font-weight: 800;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -190,7 +186,6 @@
   cursor: pointer;
   user-select: none;
   border: 1.5px solid var(--card-bg);
-  line-height: 1;
 }
 
 @keyframes blink {

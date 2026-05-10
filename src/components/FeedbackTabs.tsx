@@ -275,15 +275,17 @@ const FeedbackRow = memo(({
 
         {isOwner && isActuallyUnlocked && (fb.authorId) && (
           <div className={styles.fbFooter}>
-            <motion.button
-              className={styles.shareBadge}
-              onClick={() => onShare(fb.comment || "")}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Share2 size={14} />
-              <span>שיתוף לסטורי</span>
-            </motion.button>
+            {(fb.overall || 0) >= 8 && (
+              <motion.button
+                className={styles.shareBadge}
+                onClick={() => onShare(fb.comment || "")}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Share2 size={14} />
+                <span>שיתוף לסטורי</span>
+              </motion.button>
+            )}
             <div className={styles.likeBtnContainer}>
               <motion.button
                 ref={infoTriggerRef}

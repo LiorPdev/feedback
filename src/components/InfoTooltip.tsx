@@ -19,6 +19,10 @@ interface InfoTooltipProps {
   align?: "left" | "center" | "right";
   triggerRef?: React.RefObject<HTMLElement | null>;
   width?: number | string;
+  showIcon?: boolean;
+  arrowOffset?: number | string;
+  forceRelative?: boolean;
+  autoCloseMs?: number;
 }
 
 export default function InfoTooltip({
@@ -32,6 +36,10 @@ export default function InfoTooltip({
   align = "left",
   triggerRef,
   width,
+  showIcon = true,
+  arrowOffset,
+  forceRelative = false,
+  autoCloseMs,
 }: InfoTooltipProps) {
   const tooltipRef = useRef<HTMLDivElement>(null);
   const [positionMode, setPositionMode] = useState<PositionMode | null>(null);
@@ -58,12 +66,12 @@ export default function InfoTooltip({
     const triggerRect = triggerRef.current.getBoundingClientRect();
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
-    const tooltipPlaceholderHeight = 400; 
+    const tooltipPlaceholderHeight = 400;
     const mobileThreshold = 450;
 
     let newMode: PositionMode = "top";
 
-    if (viewportWidth <= mobileThreshold) {
+    if (viewportWidth <= mobileThreshold && !forceRelative) {
       newMode = "centered";
     } else {
       const spaceAbove = triggerRect.top;
@@ -83,7 +91,7 @@ export default function InfoTooltip({
     if (newMode !== positionMode) {
       setPositionMode(newMode);
     }
-  }, [isOpen, triggerRef, positionMode]);
+  }, [isOpen, triggerRef, positionMode, forceRelative]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -101,13 +109,22 @@ export default function InfoTooltip({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen, onClose, triggerRef]);
 
+  useEffect(() => {
+    if (isOpen && autoCloseMs) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, autoCloseMs);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, autoCloseMs, onClose]);
+
   const positioningClass = positionMode ? styles[`pos-${positionMode}`] : "";
 
   const tooltipElement = (
     <AnimatePresence>
       {isOpen && positionMode && (
         <motion.div
-          key={positionMode}
+          key="tooltip-content"
           ref={tooltipRef}
           initial={
             positionMode === "centered"
@@ -116,16 +133,16 @@ export default function InfoTooltip({
           }
           animate={
             positionMode === "centered"
-              ? { opacity: 1, scale: 1, x: "-50%", y: "-50%" }
+              ? { opacity: 1, scale: 1, y: "-50%", x: "-50%" }
               : { opacity: 1, scale: 1, y: 0 }
           }
-          exit={{ opacity: 0, scale: 0.95 }}
-          className={`${styles.popup} ${styles[`align-${align}`]} ${positioningClass} ${className}`}
+          exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.3, ease: "easeIn" } }}
+          className={`${styles.popup} ${styles[`align-${align}`]} ${positioningClass} ${className} ${forceRelative ? styles.forceRelative : ""}`}
           style={width ? { width: typeof width === "number" ? `${width}px` : width } : {}}
         >
           <div className={styles.popupHeader}>
             <div className={styles.headerTitleGroup}>
-              <HelpCircle size={18} className={styles.helpIcon} />
+              {showIcon && <HelpCircle size={18} className={styles.helpIcon} />}
               <h3>{title}</h3>
             </div>
             <button
@@ -151,14 +168,15 @@ export default function InfoTooltip({
           )}
 
           {positionMode !== "centered" && (
-            <div className={`${styles.popupArrow} ${styles[`arrow-${arrowPosition}`]}`} />
+            <div
+              className={`${styles.popupArrow} ${styles[`arrow-${arrowPosition}`]}`}
+              style={arrowOffset !== undefined ? { [arrowPosition === 'right' ? 'right' : 'left']: arrowOffset } : {}}
+            />
           )}
         </motion.div>
       )}
     </AnimatePresence>
   );
-
-  if (!isOpen) return null;
 
   // Use Portal for centered mode to avoid clipping by parent overflow/filters
   if (positionMode === "centered" && mounted) {

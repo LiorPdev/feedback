@@ -175,4 +175,49 @@
   .popupArrow {
     display: none !important;
   }
+  .forceRelative {
+    position: absolute !important;
+    transform: none !important;
+    width: 260px !important;
+    max-width: calc(100vw - 2rem) !important;
+    margin: 0 !important;
+    z-index: 10000 !important;
+    overflow: visible !important;
+  }
+
+  .forceRelative.pos-bottom {
+    top: calc(100% + 13px) !important;
+  }
+
+  .forceRelative.pos-top {
+    bottom: calc(100% + 13px) !important;
+  }
+
+  .forceRelative.align-left {
+    left: -10px !important;
+    right: auto !important;
+  }
+
+  .forceRelative.align-right {
+    right: -10px !important;
+    left: auto !important;
+  }
+
+  .forceRelative.pos-bottom .popupArrow {
+    display: block !important;
+    top: -6px !important;
+    transform: rotate(-135deg) !important;
+    border-top: 1px solid var(--border-color) !important;
+    border-right: 1px solid var(--border-color) !important;
+    z-index: 10001 !important;
+  }
+
+  .forceRelative.pos-top .popupArrow {
+    display: block !important;
+    bottom: -6px !important;
+    transform: rotate(45deg) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    border-right: 1px solid var(--border-color) !important;
+    z-index: 10001 !important;
+  }
 }

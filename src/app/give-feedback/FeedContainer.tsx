@@ -418,7 +418,6 @@ export default function FeedContainer({
               isPlaying={isPlaying}
               isDisabled={secondsRemaining > 0}
               initialSource={from}
-              isLoggedIn={isLoggedIn}
               onSuccess={(fb?: { id?: string }) => {
                 setIsJustRated(true);
                 if (fb?.id) {

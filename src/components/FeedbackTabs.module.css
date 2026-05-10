@@ -231,7 +231,7 @@
   position: relative;
   display: flex;
   align-items: center;
-  margin-right: -4px;
+  margin-right: auto;
 }
 
 .likeBtn {
@@ -292,7 +292,6 @@
 
 .fbFooter {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   margin-top: 1.5rem;
   width: 100%;

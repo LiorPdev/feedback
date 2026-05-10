@@ -1,16 +1,14 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { AlertCircle, Gift } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
-import { addFeedback, getUserTokens } from "@/app/actions/songs";
+import { addFeedback } from "@/app/actions/songs";
 import { REWARD_PER_COMMENT_STEP, COMMENT_STEP_LENGTH, MIN_COMMENT_LENGTH, MAX_COMMENT_LENGTH, LISTEN_REWARD_INTERVAL_SECONDS, LISTEN_REWARD_TOKENS } from "@/lib/constants";
 import styles from "./FeedbackForm.module.css";
 import AnimatedTokenCounter from "./AnimatedTokenCounter";
 import PopupMsg from "./PopupMsg";
-import GiftArtistPopup from "./GiftArtistPopup";
 import Button from "./ui/Button";
-import { useUtmMode } from "@/hooks/useUtmMode";
 import { getRatingText } from "@/lib/utils";
 
 interface FeedbackFormProps {
@@ -23,7 +21,6 @@ interface FeedbackFormProps {
   disabledMessage?: string;
   initialSource?: string;
   onPopupClose?: () => void;
-  isLoggedIn: boolean;
 }
 
 export default function FeedbackForm({
@@ -35,7 +32,6 @@ export default function FeedbackForm({
   disabledMessage,
   initialSource,
   onPopupClose,
-  isLoggedIn
 }: FeedbackFormProps) {
   const [ratings, setRatings] = useState({
     overall: 5.5,
@@ -48,9 +44,7 @@ export default function FeedbackForm({
   const bucketRef = useRef<HTMLDivElement>(null);
   const flyerIdRef = useRef(0);
   const totalListenTimeRef = useRef(0);
-  const [userTokens, setUserTokens] = useState<number>(0);
-  const [isGiftPopupOpen, setIsGiftPopupOpen] = useState(false);
-  const { isUtmMode } = useUtmMode();
+
 
   const triggerFlyer = useCallback((x: number, y: number, value: number, targetX?: number, targetY?: number) => {
     let finalX = targetX;
@@ -181,12 +175,6 @@ export default function FeedbackForm({
         listenCredits,
       });
 
-      if (isLoggedIn) {
-        // Fetch user stats for the Gift feature
-        const tokensResult = await getUserTokens();
-        if (tokensResult.success) setUserTokens(tokensResult.tokens);
-      }
-
       if (result.success) {
         // --- ADDED BUCKET -> NAVBAR ANIMATION --- //
         const navTokenElement = document.querySelector('[class*="tokenDisplay"]');
@@ -227,7 +215,6 @@ export default function FeedbackForm({
   };
 
   const currentAverage = ratings.overall;
-  const showGiftButton = !isUtmMode && currentAverage >= 7;
 
   return (
     <div className={styles.form}>
@@ -235,7 +222,7 @@ export default function FeedbackForm({
       <div>
         <PopupMsg
           key="success-popup"
-          isOpen={status === "success" && !isGiftPopupOpen}
+          isOpen={status === "success"}
           onClose={() => {
             setStatus("idle");
             setSongStats(null);
@@ -245,9 +232,6 @@ export default function FeedbackForm({
           }}
           title="תודה על הפידבק!"
           buttonText="שיר הבא"
-          secondaryButtonText={showGiftButton ? "תנו מתנה קטנה לאמן" : undefined}
-          secondaryButtonIcon={showGiftButton ? <Gift size={18} /> : undefined}
-          onSecondaryClick={showGiftButton ? () => setIsGiftPopupOpen(true) : undefined}
           message={
             songStats && (
               <div className={styles.successStats}>
@@ -421,17 +405,7 @@ export default function FeedbackForm({
         ))}
       </AnimatePresence>
 
-      <GiftArtistPopup
-        isOpen={isGiftPopupOpen}
-        onClose={() => setIsGiftPopupOpen(false)}
-        songId={songId}
-        songTitle={songStats ? "השיר שדירגת" : "השיר"} // We don't have song title here easily unless passed in, but we can use "השיר שדירגת"
-        maxTokens={userTokens}
-        onSuccess={() => {
-          setStatus("idle");
-          onPopupClose?.();
-        }}
-      />
+
     </div>
   );
 }

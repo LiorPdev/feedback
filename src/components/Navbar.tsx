@@ -6,6 +6,7 @@ import { useEffect, useState, useRef } from "react";
 import ContactModal from "./ContactModal";
 import InfoTooltip from "./InfoTooltip";
 import Image from "next/image";
+import { Bell } from "lucide-react";
 import { getUserData } from "@/app/actions/user";
 import UserPreferencesModal from "./UserPreferencesModal";
 import CreditTransferModal from "./CreditTransferModal";
@@ -40,6 +41,7 @@ export default function Navbar({ isLoggedIn, initialTokens, initialName = "", in
   const [firstUnreadSlug, setFirstUnreadSlug] = useState<string | null>(null);
   const [glowMode, setGlowMode] = useState<"positive" | "negative" | null>(null);
   const [showTokensInfo, setShowTokensInfo] = useState(false);
+  const [showUnreadInfo, setShowUnreadInfo] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
   const [showPreferencesModal, setShowPreferencesModal] = useState(false);
   const [showCreditModal, setShowCreditModal] = useState(false);
@@ -48,6 +50,7 @@ export default function Navbar({ isLoggedIn, initialTokens, initialName = "", in
   const [pendingRedirect, setPendingRedirect] = useState<string | null>(null);
   const redirectUrlRef = useRef<string | null>(null);
   const tokenTriggerRef = useRef<HTMLDivElement>(null);
+  const unreadTriggerRef = useRef<HTMLAnchorElement>(null);
   const router = useRouter();
   const { share, copied } = useShare();
   const { isUtmMode } = useUtmMode();
@@ -232,13 +235,32 @@ export default function Navbar({ isLoggedIn, initialTokens, initialName = "", in
               )}
 
               {unreadCount > 0 && (
-                <Link 
-                  href={pathname === "/dashboard" && firstUnreadSlug ? `/show-feedback/${firstUnreadSlug}` : "/dashboard?tab=songs"} 
-                  className={styles.unreadBadge}
-                  title={`${unreadCount} פידבקים חדשים מחכים לך!`}
-                >
-                  {unreadCount}
-                </Link>
+                <div className={styles.tokenWrapper}>
+                  <Link
+                    href={pathname === "/dashboard" && firstUnreadSlug ? `/show-feedback/${firstUnreadSlug}` : "/dashboard?tab=songs"}
+                    className={styles.unreadBadge}
+                    onClick={() => setShowUnreadInfo(!showUnreadInfo)}
+                    ref={unreadTriggerRef}
+                  >
+                    <Bell size={16} fill="currentColor" />
+                  </Link>
+
+                  <InfoTooltip
+                    isOpen={showUnreadInfo}
+                    onClose={() => setShowUnreadInfo(false)}
+                    title={`מחכים לך ${unreadCount} פידבקים חדשים!`}
+                    content={
+                      <p></p>
+                    }
+                    arrowPosition="left"
+                    align="left"
+                    triggerRef={unreadTriggerRef}
+                    showIcon={false}
+                    arrowOffset={14}
+                    forceRelative={true}
+                    autoCloseMs={2000}
+                  />
+                </div>
               )}
 
               <UserMenu

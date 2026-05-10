@@ -1,3 +1,4 @@
+/* [UNUSED] This action is currently not in use as the Gift feature is disabled. */
 "use server";
 
 import { getDb } from "@/lib/db";

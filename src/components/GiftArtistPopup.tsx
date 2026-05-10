@@ -1,3 +1,4 @@
+/* [UNUSED] This component is currently not in use as the Gift feature is disabled in FeedbackForm.tsx. */
 "use client";
 
 import { useState, useEffect } from "react";
