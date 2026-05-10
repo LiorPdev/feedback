@@ -1,0 +1,365 @@
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  padding: 1rem;
+  padding-top: calc(55px + 20px);
+  direction: rtl;
+}
+
+.modalContent {
+  position: relative;
+  max-width: 26rem;
+  width: 100%;
+  height: calc(100vh - 55px - 40px);
+  max-height: 850px;
+  background-color: #ffffff;
+  border-radius: 2.5rem;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.closeButton {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 50;
+  padding: 0.5rem;
+  border-radius: 9999px;
+  color: #64748b;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.closeButton:hover {
+  color: white;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.previewContainer {
+  padding: 2.8rem 1.5rem 1.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.ratioSelector {
+  display: flex;
+  gap: 0.5rem;
+  background-color: #f1f5f9;
+  padding: 0.35rem;
+  border-radius: 1rem;
+  margin-bottom: 0.5rem;
+  width: fit-content;
+  z-index: 10;
+}
+
+.ratioBtn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #64748b;
+  background: transparent;
+}
+
+.ratioBtnActive {
+  background-color: #ffffff;
+  color: #1e3a8a;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.scalingWrapper {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  margin: 0.5rem 0 1rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1.5rem;
+  overflow: hidden;
+}
+
+.scaledContent {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1080px;
+  height: 1920px;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+.editSection {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.75rem 0; /* Only vertical padding since it's now borderless */
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.textInput,
+.textArea {
+  width: 100%;
+  background-color: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 0.7rem;
+  color: #1e293b;
+  font-family: inherit;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.textInput:focus,
+.textArea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.textArea {
+  min-height: 80px;
+  resize: none;
+}
+
+.buttonContainer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  padding-top: 0;
+  flex-shrink: 0;
+}
+
+.hiddenCardWrapper {
+  position: fixed;
+  top: -9999px;
+  left: -9999px;
+  pointer-events: none;
+}
+
+/* ── Card Content Styles (DESIGNED FOR 1080x1920) ────────────────── */
+
+.cardContent {
+  width: 1080px;
+  height: 1920px;
+  background: linear-gradient(to bottom right, #1e3a8a, #0f172a, black);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8%;
+  color: white;
+  text-align: center;
+  position: relative;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+}
+
+.cardContentSquare {
+  height: 1080px !important;
+  padding: 60px !important;
+}
+
+.cardContentSquare .titleSection {
+  margin-bottom: 40px !important;
+  gap: 1.5rem !important;
+}
+
+.cardContentSquare .songTitle {
+  font-size: 5rem !important;
+}
+
+.cardContentSquare .feedbackCard {
+  padding: 140px 8% 60px 8% !important;
+  border-radius: 4rem !important;
+}
+
+.cardContentSquare .commentText {
+  font-size: 2.6rem !important;
+  -webkit-line-clamp: 5 !important;
+  line-height: 1.8 !important;
+}
+
+.cardContentSquare .cardFooter {
+  margin-bottom: 20px !important;
+  padding-top: 40px !important;
+}
+
+.cardContentSquare .domainText {
+  font-size: 2.5rem !important;
+}
+
+.cardContentSquare .subtitle {
+  font-size: 1.8rem !important;
+}
+
+.cardContentSquare .quoteWrapper {
+  width: 80px !important;
+  height: 80px !important;
+  padding: 0 !important;
+  top: 55px !important;
+}
+
+.cardContentSquare .quoteIcon {
+  width: 1.8rem !important;
+  height: 1.8rem !important;
+}
+
+.waveform {
+  position: absolute;
+  inset: 0;
+  opacity: 0.65;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.contentWrapper {
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  padding: 0 1%;
+}
+
+.titleSection {
+  width: 100%;
+  margin-bottom: 8%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3rem;
+}
+
+.subtitle {
+  font-size: 2.2rem;
+  color: #d9eafe;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-align: center;
+}
+
+.songTitle {
+  width: 100%;
+  font-size: 6rem;
+  font-weight: 900;
+  line-height: 1.1;
+  background: linear-gradient(to bottom, white, rgba(255, 255, 255, 0.7));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-align: center;
+  word-wrap: break-word;
+}
+
+.feedbackCard {
+  width: 100%;
+  margin-bottom: auto;
+  background-color: rgba(255, 255, 255, 0.08);
+  /* Slightly more solid */
+  backdrop-filter: blur(20px);
+  border-radius: 6rem;
+  padding: 160px 10% 10% 10%;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  /* Slightly more visible but softer */
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.3),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  /* Soft inner glow */
+  position: relative;
+  overflow: visible !important;
+}
+
+.quoteWrapper {
+  position: absolute;
+  top: 70px;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #1e3a8a;
+  z-index: 50;
+  padding: 1.5rem;
+  border-radius: 9999px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 40px 50px -10px rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quoteIcon {
+  color: #93c5fd;
+  fill: #93c5fd;
+  width: 3.5rem;
+  height: 3.5rem;
+}
+
+.commentText {
+  font-weight: 700;
+  font-style: italic;
+  line-height: 1.9;
+  font-size: 2.9rem;
+  color: rgba(255, 255, 255, 0.95);
+  text-align: center;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 9;
+  -webkit-box-orient: vertical;
+  text-overflow: ellipsis;
+  word-break: break-word;
+}
+
+.cardFooter {
+  width: 100%;
+  margin-top: auto;
+  margin-bottom: 10%;
+  padding-top: 5%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.joinText {
+  font-size: 2rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.domainText {
+  font-size: 3.125rem;
+  font-weight: 900;
+  background: linear-gradient(to right, #60a5fa, #93c5fd);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-align: center;
+}

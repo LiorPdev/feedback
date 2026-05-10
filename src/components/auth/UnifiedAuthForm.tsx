@@ -41,21 +41,42 @@ export default function UnifiedAuthForm({ onSuccess, onStepChange, redirectUrl }
 
         if (result.status === "needs_first_factor") {
           // User exists, send code
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const factor = (result.supportedFirstFactors as any[]).find(
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (f: any) => f.strategy === "email_code"
-          );
+          const factors = result.supportedFirstFactors as Array<{ strategy: string; emailAddressId?: string; email_address_id?: string }>;
+          const factor = factors.find((f) => f.strategy === "email_code");
 
-          if (factor && "emailAddressId" in factor) {
-            await signIn.prepareFirstFactor({
-              strategy: "email_code",
-              emailAddressId: factor.emailAddressId,
-            });
-            setMode("signIn");
-            setStep("VERIFY");
-            onStepChange?.("VERIFY");
+          if (factor) {
+            const emailAddressId = factor.emailAddressId || factor.email_address_id;
+            if (emailAddressId) {
+              try {
+                await signIn.prepareFirstFactor({
+                  strategy: "email_code",
+                  emailAddressId: emailAddressId,
+                });
+                setMode("signIn");
+                setStep("VERIFY");
+                onStepChange?.("VERIFY");
+              } catch (prepErr) {
+                logAction({
+                  message: "Prepare Factor Error",
+                  data: prepErr,
+                  source: "UnifiedAuthForm:handleIdentify"
+                });
+                setError("ארעה שגיאה בשליחת הקוד. נסו שוב מאוחר יותר.");
+              }
+            } else {
+              logAction({
+                message: "Email Factor Not Found",
+                data: { supportedFactors: result.supportedFirstFactors, email },
+                source: "UnifiedAuthForm:handleIdentify"
+              });
+              setError("משהו השתבש בשליחת הקוד. נסו שוב.");
+            }
           } else {
+            logAction({
+              message: "Email Factor Not Found",
+              data: { supportedFactors: result.supportedFirstFactors, email },
+              source: "UnifiedAuthForm:handleIdentify"
+            });
             setError("משהו השתבש בשליחת הקוד. נסו שוב.");
           }
         }

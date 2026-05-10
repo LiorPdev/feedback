@@ -4,7 +4,7 @@ import { useState, useTransition, useRef, memo } from "react";
 import { motion } from "framer-motion";
 import ListenTimeTab from "@/components/ListenTimeTab";
 import RaterScoreInfo from "@/components/RaterScoreInfo";
-import { Eye, Loader2, Heart, Meh, CircleHelp } from "lucide-react";
+import { Eye, Loader2, Heart, Meh, CircleHelp, Share2 } from "lucide-react";
 import { unlockFeedback, setFeedbackReaction } from "@/app/actions/feedback";
 import { UNLOCK_FEEDBACK_COST, LIKE_FEEDBACK_REWARD } from "@/lib/constants";
 import Link from "next/link";
@@ -12,6 +12,7 @@ import styles from "./FeedbackTabs.module.css";
 import Tooltip from "@/components/Tooltip";
 import InfoTooltip from "./InfoTooltip";
 import { getRatingText } from "@/lib/utils";
+import FeedbackShareCard from "./FeedbackShareCard";
 
 interface FeedbackItem {
   id: string;
@@ -39,7 +40,9 @@ interface FeedbackTabsProps {
   currentTokens: number;
   isOwner?: boolean;
   initialTab?: string;
+  songTitle: string;
 }
+
 function formatSeconds(seconds: number | null | undefined) {
   if (!seconds || isNaN(seconds) || seconds <= 0) return null;
   const m = Math.floor(seconds / 60);
@@ -54,6 +57,7 @@ export default function FeedbackTabs({
   currentTokens,
   isOwner = false,
   initialTab = "feedbacks",
+  songTitle,
 }: FeedbackTabsProps) {
   const [activeTab, setActiveTab] = useState(initialTab);
   const [isPending, startTransition] = useTransition();
@@ -61,6 +65,7 @@ export default function FeedbackTabs({
   const [optimisticUnlocked, setOptimisticUnlocked] = useState<Set<string>>(new Set());
   const [optimisticReactions, setOptimisticReactions] = useState<Record<string, number>>({});
   const [showLikeTooltip, setShowLikeTooltip] = useState<string | null>(null);
+  const [shareData, setShareData] = useState<{ comment: string } | null>(null);
 
   const handleUnlock = async (feedbackId: string) => {
     if (isPending) return;
@@ -161,6 +166,7 @@ export default function FeedbackTabs({
                   showLikeTooltip={showLikeTooltip}
                   handleUnlock={handleUnlock}
                   handleSetReaction={handleSetReaction}
+                  onShare={(comment) => setShareData({ comment })}
                 />
               ))}
             </div>
@@ -176,6 +182,13 @@ export default function FeedbackTabs({
           events={listenEvents}
         />
       )}
+
+      <FeedbackShareCard
+        isOpen={!!shareData}
+        onClose={() => setShareData(null)}
+        songTitle={songTitle}
+        comment={shareData?.comment || ""}
+      />
     </>
   );
 }
@@ -190,7 +203,8 @@ const FeedbackRow = memo(({
   optimisticReactions,
   showLikeTooltip,
   handleUnlock,
-  handleSetReaction
+  handleSetReaction,
+  onShare,
 }: {
   fb: FeedbackItem;
   isOwner: boolean;
@@ -202,6 +216,7 @@ const FeedbackRow = memo(({
   showLikeTooltip: string | null;
   handleUnlock: (id: string) => void;
   handleSetReaction: (id: string, reaction: -1 | 0 | 1) => void;
+  onShare: (comment: string) => void;
 }) => {
   const [showInfo, setShowInfo] = useState(false);
   const infoTriggerRef = useRef<HTMLButtonElement>(null);
@@ -260,7 +275,15 @@ const FeedbackRow = memo(({
 
         {isOwner && isActuallyUnlocked && (fb.authorId) && (
           <div className={styles.fbFooter}>
-            <div /> {/* Spacer to maintain flex layout */}
+            <motion.button
+              className={styles.shareBadge}
+              onClick={() => onShare(fb.comment || "")}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Share2 size={14} />
+              <span>שיתוף לסטורי</span>
+            </motion.button>
             <div className={styles.likeBtnContainer}>
               <motion.button
                 ref={infoTriggerRef}
@@ -323,14 +346,14 @@ const FeedbackRow = memo(({
                           <Heart size={16} className={styles.inlineIcon} style={{ color: '#ff4d4f' }} />
                           <strong>אהבתי:</strong>
                         </div>
-                        <p>סמנו אם הפידבק מועיל ועזר לכם. זה יעלה את ערך נותן המשוב ובעקיפין את חשיפת השירים שלו.</p>
+                        <p>סמנו אהבתי אם הפידבק מושקע ומועיל. זה יעלה את ערך נותן המשוב ובעקיפין את חשיפת השירים שלו.</p>
                       </li>
                       <li>
                         <div className={styles.tooltipItemHeader}>
                           <Meh size={16} className={styles.inlineIcon} />
                           <strong>פחות עזר:</strong>
                         </div>
-                        <p>סמנו אם הפידבק כללי וללא תרומה ממשית. זה יוריד את ערך נותן המשוב.</p>
+                        <p>סמנו אם הפידבק סתמי, ללא תרומה או משתמש בשפה לא נעימה. זה יוריד את ערך נותן המשוב.</p>
                       </li>
                     </ul>
                   </div>

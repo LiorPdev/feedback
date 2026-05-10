@@ -130,6 +130,7 @@ export default async function ShowFeedbackPage({ params }: ShowFeedbackPageProps
           listenEvents={listenData.events ?? []}
           currentTokens={currentUserRecord?.tokens ?? 0}
           isOwner={isOwner}
+          songTitle={song.title}
         />
 
         <DashboardLink />

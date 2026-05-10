@@ -265,6 +265,31 @@
   border: 1px solid var(--brand-primary);
 }
 
+.shareBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--brand-bg);
+  color: var(--brand-primary);
+  border: 1px solid color-mix(in srgb, var(--brand-primary), transparent 80%);
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.shareBadge:hover {
+  background-color: var(--brand-primary);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.shareBadge:active {
+  transform: translateY(0);
+}
+
 .fbFooter {
   display: flex;
   justify-content: space-between;

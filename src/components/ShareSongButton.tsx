@@ -36,7 +36,7 @@ export default function ShareSongButton({ slug, variant = "standard", disabled, 
       <button
         className={`${styles.shareBtn} ${variant === "large" ? styles.large : ""}`}
         onClick={handleCopy}
-        title={disabled ? "" : "שיתוף קישור לקבלת פידבק"}
+        title={disabled ? "" : "בקשו מחבר או אמן שאתם סומכים עליו לתת לכם פידבק"}
         type="button"
         disabled={disabled}
       >
@@ -74,7 +74,7 @@ export default function ShareSongButton({ slug, variant = "standard", disabled, 
         <Tooltip
           show={copied}
           align={tooltipAlign}
-          message="הועתק! שילחו לחברים את הקישור כדי שיתנו לכם פידבק על השיר"
+          message="הועתק! שילחו את הקישור כדי לקבל פידבק נוסף על השיר"
         />
       </button>
     </div>
