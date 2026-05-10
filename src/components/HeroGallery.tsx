@@ -27,16 +27,18 @@ const PIE_LABEL_STYLE = {
     pointerEvents: 'none' as const
 };
 
-interface StatItem {
+export interface StatItem {
     genre: string | null;
     count: number;
     exactPercent?: number;
 }
 
-const SLIDE_INTERVAL = 20000;         // interval between slides
-const TRANSITION_DURATION = 0.3;      // duration of slide transition
-const PIE_ANIMATION_DURATION = 900;   // duration of pie animation
-const MIN_PERCENTAGE = 0.07;          // ignore genres with less than 6% of the data
+export interface CommunityStats {
+    songStats: StatItem[];
+    userStats: StatItem[];
+    engagementStats: StatItem[];
+    averageListenTime: number;
+}
 
 type Slide = {
     id: string;
@@ -45,6 +47,13 @@ type Slide = {
     value?: number;
     colorOffset: number;
 };
+
+const SLIDE_INTERVAL = 20000;         // interval between slides
+const TRANSITION_DURATION = 0.3;      // duration of slide transition
+const PIE_ANIMATION_DURATION = 900;   // duration of pie animation
+const MIN_PERCENTAGE = 0.07;          // ignore genres with less than 6% of the data
+
+let cachedStats: CommunityStats | null = null;
 
 function formatTime(minutes: number) {
     const totalSeconds = Math.round(minutes * 60);
@@ -72,14 +81,9 @@ function getRoundedPercentages(data: StatItem[]) {
     return rounded;
 }
 
-export default function HeroGallery() {
-    const [stats, setStats] = useState<{
-        songStats: StatItem[];
-        userStats: StatItem[];
-        engagementStats: StatItem[];
-        averageListenTime: number;
-    } | null>(null);
-    const [loading, setLoading] = useState(true);
+export default function HeroGallery({ initialData }: { initialData?: CommunityStats | null }) {
+    const [stats, setStats] = useState<CommunityStats | null>(initialData || cachedStats);
+    const [loading, setLoading] = useState(!initialData && !cachedStats);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -87,6 +91,7 @@ export default function HeroGallery() {
         async function fetchData() {
             try {
                 const data = await getCommunityStats();
+                cachedStats = data;
                 setStats(data);
             } catch (error) {
                 logAction({ message: "Failed to fetch stats", data: error, source: "HeroGallery" });

@@ -3,6 +3,7 @@ import LandingClient from "@/components/LandingClient";
 import { syncUser } from "@/lib/user-auth";
 import { getUserSongCount } from "@/app/actions/songs";
 import { getMyGivenFeedbacksCount } from "@/app/actions/feedback";
+import { getCommunityStats } from "@/app/actions/stats";
 
 export const dynamic = "force-dynamic";
 
@@ -64,6 +65,8 @@ export default async function Home() {
     }
   }
 
+  const initialCommunityStats = await getCommunityStats().catch(() => null);
+
   return (
     <LandingClient 
       isLoggedIn={!!dbUser}
@@ -71,6 +74,7 @@ export default async function Home() {
       initialHasSongs={initialHasSongs} 
       initialGenre={initialGenre} 
       initialHasFeedbacksGiven={initialHasFeedbacksGiven}
+      initialCommunityStats={initialCommunityStats}
     />
   );
 }

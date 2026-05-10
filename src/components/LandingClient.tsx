@@ -9,7 +9,7 @@ import { getUserSongCount } from "@/app/actions/songs";
 import { getMyGivenFeedbacksCount } from "@/app/actions/feedback";
 import { getUserData } from "@/app/actions/user";
 import Footer from "./Footer";
-import HeroGallery from "./HeroGallery";
+import HeroGallery, { CommunityStats } from "./HeroGallery";
 
 declare global {
   interface Window {
@@ -46,13 +46,15 @@ export default function LandingClient({
   isClerkUser = false,
   initialHasSongs = false,
   initialGenre = "",
-  initialHasFeedbacksGiven = false
+  initialHasFeedbacksGiven = false,
+  initialCommunityStats = null
 }: {
   isLoggedIn?: boolean,
   isClerkUser?: boolean,
   initialHasSongs?: boolean,
   initialGenre?: string,
-  initialHasFeedbacksGiven?: boolean
+  initialHasFeedbacksGiven?: boolean,
+  initialCommunityStats?: CommunityStats | null
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -229,7 +231,7 @@ export default function LandingClient({
             transition={{ duration: 0.8, delay: 0.4 }}
           >
             {isLoggedIn ? (
-              <HeroGallery />
+              <HeroGallery initialData={initialCommunityStats} />
             ) : (
               <div className={styles.videoWrapper}>
                 {!showVideo ? (
