@@ -305,7 +305,7 @@ const CardContent = ({ songTitle, comment, ratio }: { songTitle: string, comment
         </div>
 
         <div className={styles.cardFooter}>
-          <p className={styles.joinText}>הצטרפו גם אתם אלינו לקהילה</p>
+          <p className={styles.joinText}>רוצים פידבק כזה על השיר שלכם? הצטרפו אלינו לקהילה.</p>
           <p className={styles.domainText}>feedback.activitywiz.com</p>
         </div>
       </div>

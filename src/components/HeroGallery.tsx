@@ -140,6 +140,12 @@ export default function HeroGallery({ initialData }: { initialData?: CommunitySt
 
         return [
             {
+                id: 'listenTime',
+                title: 'ממוצע זמן האזנה לשיר בקהילה',
+                value: stats.averageListenTime,
+                colorOffset: 6
+            },
+            {
                 id: 'songs',
                 title: 'התפלגות סגנונות השירים בקהילה',
                 data: filterSmallData(stats.songStats),
@@ -156,12 +162,6 @@ export default function HeroGallery({ initialData }: { initialData?: CommunitySt
                 title: 'כמה פידבקים מקבלים השירים בקהילה?',
                 data: stats.engagementStats,
                 colorOffset: 4
-            },
-            {
-                id: 'listenTime',
-                title: 'ממוצע זמן האזנה לשיר בקהילה',
-                value: stats.averageListenTime,
-                colorOffset: 6
             }
         ].map(slide => {
             if (slide.data) {

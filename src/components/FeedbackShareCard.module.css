@@ -113,7 +113,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  padding: 0.75rem 0; /* Only vertical padding since it's now borderless */
+  padding: 0.75rem 0;
+  /* Only vertical padding since it's now borderless */
 }
 
 .inputGroup {
@@ -193,7 +194,7 @@
 }
 
 .cardContentSquare .songTitle {
-  font-size: 5rem !important;
+  font-size: 4rem !important;
 }
 
 .cardContentSquare .feedbackCard {
@@ -204,7 +205,7 @@
 .cardContentSquare .commentText {
   font-size: 2.6rem !important;
   -webkit-line-clamp: 5 !important;
-  line-height: 1.8 !important;
+  line-height: 2 !important;
 }
 
 .cardContentSquare .cardFooter {
@@ -212,12 +213,8 @@
   padding-top: 40px !important;
 }
 
-.cardContentSquare .domainText {
-  font-size: 2.5rem !important;
-}
-
 .cardContentSquare .subtitle {
-  font-size: 1.8rem !important;
+  font-size: 2.2rem !important;
 }
 
 .cardContentSquare .quoteWrapper {
@@ -262,7 +259,7 @@
 }
 
 .subtitle {
-  font-size: 2.2rem;
+  font-size: 2.4rem;
   color: #d9eafe;
   font-weight: 700;
   text-transform: uppercase;
@@ -272,30 +269,28 @@
 
 .songTitle {
   width: 100%;
-  font-size: 6rem;
+  font-size: 5rem;
   font-weight: 900;
   line-height: 1.1;
   background: linear-gradient(to bottom, white, rgba(255, 255, 255, 0.7));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   text-align: center;
-  word-wrap: break-word;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .feedbackCard {
   width: 100%;
   margin-bottom: auto;
   background-color: rgba(255, 255, 255, 0.08);
-  /* Slightly more solid */
   backdrop-filter: blur(20px);
   border-radius: 6rem;
-  padding: 160px 10% 10% 10%;
+  padding: 160px 8% 8% 8%;
   border: 1px solid rgba(255, 255, 255, 0.15);
-  /* Slightly more visible but softer */
   box-shadow:
     0 20px 40px rgba(0, 0, 0, 0.3),
     inset 0 0 0 1px rgba(255, 255, 255, 0.1);
-  /* Soft inner glow */
   position: relative;
   overflow: visible !important;
 }
@@ -326,7 +321,7 @@
 .commentText {
   font-weight: 700;
   font-style: italic;
-  line-height: 1.9;
+  line-height: 2.3;
   font-size: 2.9rem;
   color: rgba(255, 255, 255, 0.95);
   text-align: center;
@@ -349,17 +344,25 @@
 }
 
 .joinText {
-  font-size: 2rem;
+  font-size: 2.4rem;
   color: rgba(255, 255, 255, 0.8);
   margin-bottom: 1rem;
   text-align: center;
 }
 
+.cardContentSquare .joinText {
+  font-size: 2.1rem;
+}
+
 .domainText {
-  font-size: 3.125rem;
+  font-size: 3.4rem;
   font-weight: 900;
   background: linear-gradient(to right, #60a5fa, #93c5fd);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   text-align: center;
+}
+
+.cardContentSquare .domainText {
+  font-size: 2.7rem !important;
 }
