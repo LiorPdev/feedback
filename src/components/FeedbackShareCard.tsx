@@ -24,20 +24,50 @@ const FeedbackShareCard: React.FC<FeedbackShareCardProps> = ({ isOpen, onClose, 
   const [scale, setScale] = useState(0.2);
   const [isMobile, setIsMobile] = useState(false);
   const [ratio, setRatio] = useState<Ratio>('story');
-  
+
   // Editable state
   const [editableTitle, setEditableTitle] = useState(songTitle);
   const [editableComment, setEditableComment] = useState(comment);
+  const [preGeneratedBlob, setPreGeneratedBlob] = useState<Blob | null>(null);
+  const [isPreGenerating, setIsPreGenerating] = useState(false);
 
-  // Sync state when modal opens and detect device
+  // 1. Sync state when modal opens and detect device (must run BEFORE background gen)
   useEffect(() => {
     if (isOpen) {
       setEditableTitle(songTitle);
       setEditableComment(comment);
       setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
       setRatio('story'); // Default to story
+      setPreGeneratedBlob(null); // Reset pre-generated blob on open
     }
   }, [isOpen, songTitle, comment]);
+
+  // 2. Background generation for mobile (runs after isMobile is set)
+  useEffect(() => {
+    if (!isMobile || !isOpen || !cardRef.current) return;
+
+    const timer = setTimeout(async () => {
+      if (!cardRef.current) return;
+      setIsPreGenerating(true);
+      try {
+        const dataUrl = await toPng(cardRef.current, {
+          width: 1080,
+          height: ratio === 'story' ? 1920 : 1080,
+          pixelRatio: 1,
+          skipAutoScale: true,
+        });
+        const response = await fetch(dataUrl);
+        const blob = await response.blob();
+        setPreGeneratedBlob(blob);
+      } catch {
+        // Silent fail for background gen
+      } finally {
+        setIsPreGenerating(false);
+      }
+    }, 800); // 800ms debounce
+
+    return () => clearTimeout(timer);
+  }, [editableTitle, editableComment, ratio, isMobile, isOpen]);
 
   // Use layout effect to calculate scale based on the container width and height
   useLayoutEffect(() => {
@@ -66,7 +96,28 @@ const FeedbackShareCard: React.FC<FeedbackShareCardProps> = ({ isOpen, onClose, 
     if (!cardRef.current) return;
 
     setIsGenerating(true);
+    const fileName = `feedback-${ratio}-${editableTitle.replace(/\s+/g, '-').toLowerCase()}.png`;
+
     try {
+      // 1. Try instant share on mobile if image is already pre-generated
+      if (isMobile && navigator.share && preGeneratedBlob && !isPreGenerating) {
+        try {
+          const file = new File([preGeneratedBlob], fileName, { type: 'image/png' });
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              files: [file],
+              title: `פידבק על ${editableTitle}`,
+              text: `תראו איזה פידבק קיבלתי על "${editableTitle}" בפידבק ספייס!`,
+            });
+            setIsGenerating(false);
+            return;
+          }
+        } catch (shareErr) {
+          await logAction({ message: 'Instant Share failed', data: shareErr, source: 'FeedbackShareCard' });
+        }
+      }
+
+      // 2. Normal flow (Desktop or if pre-gen not ready)
       // Small delay to ensure everything is rendered
       await new Promise(resolve => setTimeout(resolve, 100));
 
@@ -76,46 +127,37 @@ const FeedbackShareCard: React.FC<FeedbackShareCardProps> = ({ isOpen, onClose, 
       const dataUrl = await toPng(cardRef.current, {
         width: targetWidth,
         height: targetHeight,
-        pixelRatio: 1,
+        pixelRatio: isMobile ? 2 : 1, // Keep high quality for mobile fallback
         skipAutoScale: true,
       });
 
-      const fileName = `feedback-${ratio}-${editableTitle.replace(/\s+/g, '-').toLowerCase()}.png`;
-
-      // Always allow download on desktop, try share on mobile
-      if (isMobile && navigator.share && navigator.canShare && navigator.canShare({ files: [] })) {
+      // Try share one last time with fresh image (may still work on Android even after await)
+      if (isMobile && navigator.share) {
         try {
           const response = await fetch(dataUrl);
           const blob = await response.blob();
           const file = new File([blob], fileName, { type: 'image/png' });
 
-          await navigator.share({
-            files: [file],
-            title: `פידבק על ${editableTitle}`,
-            text: `תראו איזה פידבק קיבלתי על "${editableTitle}" בפידבק ספייס!`,
-          });
-          return;
-        } catch (shareErr) {
-          await logAction({
-            message: 'Web Share API failed',
-            data: shareErr,
-            source: 'FeedbackShareCard',
-          });
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              files: [file],
+              title: `פידבק על ${editableTitle}`,
+              text: `תראו איזה פידבק קיבלתי על "${editableTitle}" בפידבק ספייס!`,
+            });
+            return;
+          }
+        } catch {
+          // Native share failed — fall through to download
         }
       }
 
-      // Fallback or Desktop: Download
+      // Final fallback: download the image (works on all platforms)
       const link = document.createElement('a');
       link.download = fileName;
       link.href = dataUrl;
       link.click();
-      
     } catch (err) {
-      await logAction({
-        message: 'Feedback share generation failed',
-        data: err,
-        source: 'FeedbackShareCard',
-      });
+      await logAction({ message: 'Feedback share generation failed', data: err, source: 'FeedbackShareCard' });
     } finally {
       setIsGenerating(false);
     }
@@ -140,14 +182,14 @@ const FeedbackShareCard: React.FC<FeedbackShareCardProps> = ({ isOpen, onClose, 
           <div className={styles.previewContainer}>
             {/* Ratio Selector */}
             <div className={styles.ratioSelector}>
-              <button 
+              <button
                 className={`${styles.ratioBtn} ${ratio === 'story' ? styles.ratioBtnActive : ''}`}
                 onClick={() => setRatio('story')}
               >
                 <Smartphone size={16} />
                 <span>Story (9:16)</span>
               </button>
-              <button 
+              <button
                 className={`${styles.ratioBtn} ${ratio === 'feed' ? styles.ratioBtnActive : ''}`}
                 onClick={() => setRatio('feed')}
               >
@@ -160,7 +202,7 @@ const FeedbackShareCard: React.FC<FeedbackShareCardProps> = ({ isOpen, onClose, 
             <div className={styles.scalingWrapper} ref={containerRef}>
               <div
                 className={styles.scaledContent}
-                style={{ 
+                style={{
                   transform: `translate(-50%, -50%) scale(${scale})`,
                   width: 1080,
                   height: ratio === 'story' ? 1920 : 1080
@@ -173,17 +215,17 @@ const FeedbackShareCard: React.FC<FeedbackShareCardProps> = ({ isOpen, onClose, 
             {/* Editable Fields Section */}
             <div className={styles.editSection}>
               <div className={styles.inputGroup}>
-                <input 
-                  type="text" 
-                  value={editableTitle} 
+                <input
+                  type="text"
+                  value={editableTitle}
                   onChange={(e) => setEditableTitle(e.target.value)}
                   className={styles.textInput}
                   placeholder="עריכת שם השיר..."
                 />
               </div>
               <div className={styles.inputGroup}>
-                <textarea 
-                  value={editableComment} 
+                <textarea
+                  value={editableComment}
                   onChange={(e) => setEditableComment(e.target.value)}
                   className={styles.textArea}
                   placeholder="עריכת הציטוט..."
@@ -200,8 +242,8 @@ const FeedbackShareCard: React.FC<FeedbackShareCardProps> = ({ isOpen, onClose, 
               leftIcon={isMobile ? <Share2 size={18} /> : <Download size={18} />}
               size="md"
             >
-              {isMobile 
-                ? (ratio === 'story' ? "שתפו לסטורי" : "שתפו לפיד") 
+              {isMobile
+                ? (ratio === 'story' ? "שתפו לסטורי" : "שתפו לפיד")
                 : (ratio === 'story' ? "הורדת תמונה לסטורי" : "הורדת תמונה לפיד")}
             </Button>
           </div>

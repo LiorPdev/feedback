@@ -26,6 +26,7 @@ export default function UnifiedAuthForm({ onSuccess, onStepChange, redirectUrl }
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<"signIn" | "signUp" | null>(null);
+  const [selectedStrategy, setSelectedStrategy] = useState<string>("email_code");
 
   const handleIdentify = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,16 +43,18 @@ export default function UnifiedAuthForm({ onSuccess, onStepChange, redirectUrl }
         if (result.status === "needs_first_factor") {
           // User exists, send code
           const factors = result.supportedFirstFactors as Array<{ strategy: string; emailAddressId?: string; email_address_id?: string }>;
-          const factor = factors.find((f) => f.strategy === "email_code");
-
+          // Look for email_code first, then any other email strategy (like reset_password_email_code)
+          const factor = factors.find((f) => f.strategy === "email_code") || factors.find((f) => f.strategy.includes("email"));
+ 
           if (factor) {
             const emailAddressId = factor.emailAddressId || factor.email_address_id;
             if (emailAddressId) {
               try {
                 await signIn.prepareFirstFactor({
-                  strategy: "email_code",
+                  strategy: factor.strategy as "email_code",
                   emailAddressId: emailAddressId,
                 });
+                setSelectedStrategy(factor.strategy);
                 setMode("signIn");
                 setStep("VERIFY");
                 onStepChange?.("VERIFY");
@@ -143,7 +146,7 @@ export default function UnifiedAuthForm({ onSuccess, onStepChange, redirectUrl }
       try {
         if (mode === "signIn" && signIn) {
           const result = await signIn.attemptFirstFactor({
-            strategy: "email_code",
+            strategy: selectedStrategy as "email_code",
             code: cleanCode,
           });
           if (result.status === "complete") {
