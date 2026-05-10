@@ -323,3 +323,96 @@ export async function sendGiftNotification({
     return { success: false, error: "Gift notification sending error" };
   }
 }
+
+export async function sendUnreadFeedbackReminder({
+  to,
+  songTitle,
+  unreadCount,
+}: {
+  to: string;
+  songTitle?: string;
+  unreadCount: number;
+}) {
+  const BREVO_API_KEY = process.env.BREVO_API_KEY;
+  if (!BREVO_API_KEY) {
+    await logToDb({
+      message: "BREVO_API_KEY is missing, skipping unread feedback reminder",
+      source: "mail.ts:sendUnreadFeedbackReminder",
+    });
+    return { success: false, error: "Email service not configured" };
+  }
+
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const dashboardUrl = `${baseUrl}/dashboard?tab=songs`;
+
+  const url = "https://api.brevo.com/v3/smtp/email";
+
+  const body = {
+    sender: { name: "Feedback Space", email: "contact@feedback.activitywiz.com" },
+    to: [{ email: to }],
+    subject: `היי, מחכים לך פידבקים חדשים שטרם קראת`,
+    htmlContent: `
+      <div dir="rtl" style="font-family: sans-serif; line-height: 1.6; text-align: right; background-color: #f8fafc; padding: 20px; border-radius: 12px;">
+        <div style="background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
+          <p style="font-size: 18px; color: #475569;">
+            היי,
+          </p>
+          <p style="font-size: 16px; color: #475569;">
+            רצינו להזכיר שמחכים לך <strong>${unreadCount}</strong> פידבקים חדשים ${songTitle ? `מחברי הקהילה על השיר <strong>${songTitle}</strong>,` : "מחברי הקהילה על השירים שלך,"} שטרם קראת.
+          </p>
+          <p style="font-size: 15px; color: #475569; margin: 25px 0; padding: 16px; background-color: #f8fafc; border-radius: 8px; border-right: 4px solid #cbd5e1; line-height: 1.5;">
+            <strong style="color: #1e293b;">חשוב לדעת:</strong> 
+            שירים עם פידבקים שטרם נקראו מוסתרים זמנית כדי למנוע השקעת מאמץ מיותר מצד הקהילה. 
+            מיד לאחר קריאת הפידבקים החדשים, השיר יחזור להופיע בפיד. 
+            <span style="display: block; margin-top: 8px; font-size: 14px; color: #64748b;">
+              לתשומת לבך, שירים עם פידבקים שלא ייקראו לאורך זמן יוסרו מהמערכת.
+            </span>
+          </p>
+          <p style="font-size: 16px; color: #475569; margin-top: 24px;">
+            לצפייה בפידבקים שלך כנסו לאיזור האישי:
+          </p>
+          <p>
+            <a href="${dashboardUrl}" style="background: #2563eb; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; display: inline-block; font-weight: bold;">לצפייה בפידבקים</a>
+          </p>
+          <br />
+          <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
+          <p style="font-size: 14px; color: #94a3b8; margin-bottom: 0;">
+            בברכה,<br />
+            <strong>צוות Feedback Space</strong>
+          </p>
+        </div>
+      </div>
+    `,
+  };
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "api-key": BREVO_API_KEY,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      await logToDb({
+        message: "Brevo API error (unread feedback reminder)",
+        data: errorData,
+        source: "mail.ts:sendUnreadFeedbackReminder",
+      });
+      return { success: false, error: "Failed to send reminder" };
+    }
+
+    return { success: true };
+  } catch (error) {
+    await logToDb({
+      message: "Error sending reminder email",
+      data: error,
+      source: "mail.ts:sendUnreadFeedbackReminder",
+    });
+    return { success: false, error: "Reminder email sending error" };
+  }
+}

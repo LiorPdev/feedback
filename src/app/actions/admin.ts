@@ -7,6 +7,7 @@ import { users, songs, feedbacks, logs, listenEvents } from '@/lib/schema';
 import { ADMIN_EMAIL, TOP_RATED_DECAY_FACTOR, TOP_RATED_MIN_RATINGS_THRESHOLD, LISTEN_TIME_WEIGHT } from '@/lib/constants';
 import { logAction } from './logs';
 import { summarizeFeedbacks } from '@/lib/ai-service';
+import { sendUnreadFeedbackReminder } from '@/lib/mail';
 
 async function getAdminUser() {
     const user = await syncUser();
@@ -430,5 +431,64 @@ export async function generateAIFeedback(songId: string) {
         return { success: true, data: summary };
     } catch {
         return { success: false, error: "Failed to generate AI feedback" };
+    }
+}
+
+export async function getAdminUnreadFeedbacksReport() {
+    const admin = await getAdminUser();
+    if (!admin) return { success: false, error: "Unauthorized" };
+
+    const db = await getDb();
+    try {
+        const result = await db.select({
+            id: users.id,
+            creatorName: users.name,
+            creatorEmail: users.email,
+            unreadCount: sql<number>`COUNT(${feedbacks.id})`.as('unreadCount'),
+            userId: users.id
+        })
+            .from(users)
+            .innerJoin(songs, eq(users.id, songs.userId))
+            .innerJoin(feedbacks, eq(songs.id, feedbacks.songId))
+            .where(eq(feedbacks.isUnlocked, false))
+            .groupBy(users.id, users.name, users.email)
+            .orderBy(desc(sql`COUNT(${feedbacks.id})`));
+
+        return { success: true, data: result };
+    } catch (error) {
+        const err = error as Error;
+        await logAction({
+            message: "Failed to fetch unread feedbacks report",
+            data: { error: err.message, stack: err.stack },
+            source: "actions/admin.ts:getAdminUnreadFeedbacksReport",
+            userId: admin.id
+        });
+        return { success: false, error: "Failed to fetch report" };
+    }
+}
+
+export async function sendUnreadReminderAction({
+    unreadCount,
+    email
+}: {
+    unreadCount: number;
+    email: string;
+}) {
+    const admin = await getAdminUser();
+    if (!admin) return { success: false, error: "Unauthorized" };
+
+    try {
+        const result = await sendUnreadFeedbackReminder({
+            to: email,
+            unreadCount
+        });
+
+        if (result.success) {
+            // Success logged to console or handled by result return
+        }
+
+        return result;
+    } catch {
+        return { success: false, error: "Failed to send reminder" };
     }
 }

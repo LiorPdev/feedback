@@ -1,13 +1,21 @@
 'use client'
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { getAdminSongsReport, getAdminFeedbacksReport, getAdminUsersReport, getAdminLogsReport, getAdminTopRatedReport, deleteAdminFeedback, deleteAdminSong, getAdminWakeUpReport, getSongFeedbacks, generateAIFeedback } from '@/app/actions/admin';
-import { ArrowUpDown, ArrowUp, ArrowDown, Trash2, Heart, Copy, Meh, Check, ExternalLink, RefreshCw, Sparkles, Code } from 'lucide-react';
+import { getAdminSongsReport, getAdminFeedbacksReport, getAdminUsersReport, getAdminLogsReport, getAdminTopRatedReport, deleteAdminFeedback, deleteAdminSong, getAdminWakeUpReport, getSongFeedbacks, generateAIFeedback, getAdminUnreadFeedbacksReport, sendUnreadReminderAction } from '@/app/actions/admin';
+import { ArrowUpDown, ArrowUp, ArrowDown, Trash2, Heart, Copy, Meh, Check, ExternalLink, RefreshCw, Sparkles, Code, Mail } from 'lucide-react';
 import { isSongPromoted } from '@/lib/utils';
 import { AI_SUMMARIZE_PROMPT } from '@/lib/ai-constants';
 import styles from './reports.module.css';
 
-type ReportType = 'songs' | 'feedbacks' | 'users' | 'logs' | 'top-rated' | 'wake-up';
+type ReportType = 'songs' | 'feedbacks' | 'users' | 'logs' | 'top-rated' | 'wake-up' | 'unread-feedbacks';
+
+interface UnreadFeedbackRow {
+    id: string;
+    creatorName: string;
+    creatorEmail: string;
+    unreadCount: number;
+    userId: string;
+}
 
 interface SortHeaderProps {
     label: string;
@@ -96,6 +104,8 @@ export function ReportsClient() {
         } else if (reportType === 'wake-up') {
             result = await getAdminWakeUpReport();
             setSortConfig({ key: 'lastVisit', direction: 'asc' });
+        } else if (reportType === 'unread-feedbacks') {
+            result = await getAdminUnreadFeedbacksReport();
         } else {
             result = await getAdminUsersReport();
         }
@@ -209,6 +219,21 @@ export function ReportsClient() {
         setGeneratingAI(false);
     };
 
+    const handleSendReminder = async (item: UnreadFeedbackRow) => {
+        if (!window.confirm(`לשלוח מייל תזכורת ל-${item.creatorName}?`)) return;
+        
+        const result = await sendUnreadReminderAction({
+            unreadCount: item.unreadCount,
+            email: item.creatorEmail
+        });
+
+        if (result.success) {
+            alert("המייל נשלח בהצלחה!");
+        } else {
+            alert(result.error || "שליחת המייל נכשלה");
+        }
+    };
+
     return (
         <>
             <div className={styles.controls}>
@@ -225,6 +250,7 @@ export function ReportsClient() {
                     <option value="feedbacks">פידבקים</option>
                     <option value="top-rated">לפי דירוג</option>
                     <option value="wake-up">דוח התעוררות</option>
+                    <option value="unread-feedbacks">תזכורת שיש פידבקים</option>
                     <option value="logs">לוגים</option>
                 </select>
 
@@ -306,13 +332,20 @@ export function ReportsClient() {
                                     <SortHeader label="#פידבקים" sortKey="feedbackCount" sortConfig={sortConfig} onSort={handleSort} />
                                     <th style={{ width: '100px', textAlign: 'center' }}>תן פידבק</th>
                                 </tr>
-                            ) : (
+                            ) : reportType === 'logs' ? (
                                 <tr>
                                     <SortHeader label="תאריך" sortKey="createdAt" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="הודעה" sortKey="message" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="מידע" sortKey="data" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="מקור" sortKey="source" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="שם משתמש" sortKey="userName" sortConfig={sortConfig} onSort={handleSort} />
+                                </tr>
+                            ) : (
+                                <tr>
+                                    <SortHeader label="הועלה על ידי" sortKey="creatorName" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="אימייל" sortKey="creatorEmail" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="פידבקים שלא נפתחו" sortKey="unreadCount" sortConfig={sortConfig} onSort={handleSort} />
+                                    <th style={{ width: '80px', textAlign: 'center' }}>שלח תזכורת</th>
                                 </tr>
                             )}
                         </thead>
@@ -542,6 +575,26 @@ export function ReportsClient() {
                                             </td>
                                             <td>{item.source}</td>
                                             <td>{item.userName || item.userEmail || "מערכת"}</td>
+                                        </>
+                                    )}
+                                    {reportType === 'unread-feedbacks' && (
+                                        <>
+                                            <td>{item.creatorName}</td>
+                                            <td>{item.creatorEmail}</td>
+                                            <td style={{ textAlign: 'center', fontWeight: 'bold', color: 'var(--accent)' }}>{item.unreadCount}</td>
+                                            <td style={{ textAlign: 'center' }}>
+                                                <button
+                                                    className={styles.feedbackBtn}
+                                                    title="שלח מייל תזכורת"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleSendReminder(item);
+                                                    }}
+                                                    style={{ border: 'none', cursor: 'pointer', color: 'var(--brand-primary)' }}
+                                                >
+                                                    <Mail size={18} />
+                                                </button>
+                                            </td>
                                         </>
                                     )}
                                 </tr>
