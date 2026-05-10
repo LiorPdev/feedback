@@ -142,7 +142,7 @@ export default function HeroGallery({ initialData }: { initialData?: CommunitySt
             {
                 id: 'listenTime',
                 title: 'ממוצע זמן האזנה לשיר בקהילה',
-                value: stats.averageListenTime,
+                value: stats.averageListenTime + 0.5,
                 colorOffset: 6
             },
             {
