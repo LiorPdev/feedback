@@ -92,13 +92,13 @@ export default function FeedbackTabs({
       }
     });
   };
-  const handleSetReaction = async (feedbackId: string, newReaction: -1 | 0 | 1) => {
+  const handleSetReaction = async (feedbackId: string, newReaction: -1 | 0 | 1, hasAuthor: boolean) => {
     if (isPending) return;
 
     // Optimistically update
     setOptimisticReactions(prev => ({ ...prev, [feedbackId]: newReaction }));
 
-    if (newReaction === 1) {
+    if (newReaction === 1 && hasAuthor) {
       setShowLikeTooltip(feedbackId);
       setTimeout(() => setShowLikeTooltip(null), 3000);
     } else if (showLikeTooltip === feedbackId) {
@@ -165,7 +165,7 @@ export default function FeedbackTabs({
                   optimisticReactions={optimisticReactions}
                   showLikeTooltip={showLikeTooltip}
                   handleUnlock={handleUnlock}
-                  handleSetReaction={handleSetReaction}
+                  handleSetReaction={(id, reaction) => handleSetReaction(id, reaction, !!fb.authorId)}
                   onShare={(comment) => setShareData({ comment })}
                 />
               ))}
@@ -273,9 +273,9 @@ const FeedbackRow = memo(({
           ))}
         </p>
 
-        {isOwner && isActuallyUnlocked && (fb.authorId) && (
+        {isOwner && isActuallyUnlocked && (
           <div className={styles.fbFooter}>
-            {(fb.overall || 0) >= 8 && (
+            {(fb.overall || 0) >= 7 && (
               <motion.button
                 className={styles.shareBadge}
                 onClick={() => onShare(fb.comment || "")}
@@ -290,7 +290,6 @@ const FeedbackRow = memo(({
               <motion.button
                 ref={infoTriggerRef}
                 className={styles.likeBtn}
-                style={{ marginLeft: '4px' }}
                 onClick={() => setShowInfo(!showInfo)}
                 title="מה זה אומר?"
                 whileHover={{ scale: 1.2 }}
@@ -317,7 +316,6 @@ const FeedbackRow = memo(({
               <motion.button
                 className={styles.likeBtn}
                 style={{
-                  marginRight: '8px',
                   color: (optimisticReactions[fb.id] !== undefined ? optimisticReactions[fb.id] === -1 : fb.isLiked === -1) ? "#ef4444" : "var(--text-muted)"
                 }}
                 onClick={() => {

@@ -26,7 +26,6 @@ const FeedbackShareCard: React.FC<FeedbackShareCardProps> = ({ isOpen, onClose, 
   const [ratio, setRatio] = useState<Ratio>('story');
 
   // Editable state
-  const [editableTitle, setEditableTitle] = useState(songTitle);
   const [editableComment, setEditableComment] = useState(comment);
   const [preGeneratedBlob, setPreGeneratedBlob] = useState<Blob | null>(null);
   const [isPreGenerating, setIsPreGenerating] = useState(false);
@@ -34,7 +33,6 @@ const FeedbackShareCard: React.FC<FeedbackShareCardProps> = ({ isOpen, onClose, 
   // 1. Sync state when modal opens and detect device (must run BEFORE background gen)
   useEffect(() => {
     if (isOpen) {
-      setEditableTitle(songTitle);
       setEditableComment(comment);
       setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
       setRatio('story'); // Default to story
@@ -67,7 +65,7 @@ const FeedbackShareCard: React.FC<FeedbackShareCardProps> = ({ isOpen, onClose, 
     }, 800); // 800ms debounce
 
     return () => clearTimeout(timer);
-  }, [editableTitle, editableComment, ratio, isMobile, isOpen]);
+  }, [songTitle, editableComment, ratio, isMobile, isOpen]);
 
   // Use layout effect to calculate scale based on the container width and height
   useLayoutEffect(() => {
@@ -96,7 +94,7 @@ const FeedbackShareCard: React.FC<FeedbackShareCardProps> = ({ isOpen, onClose, 
     if (!cardRef.current) return;
 
     setIsGenerating(true);
-    const fileName = `feedback-${ratio}-${editableTitle.replace(/\s+/g, '-').toLowerCase()}.png`;
+    const fileName = `feedback-${ratio}-${songTitle.replace(/\s+/g, '-').toLowerCase()}.png`;
 
     try {
       // 1. Try instant share on mobile if image is already pre-generated
@@ -106,8 +104,8 @@ const FeedbackShareCard: React.FC<FeedbackShareCardProps> = ({ isOpen, onClose, 
           if (navigator.canShare && navigator.canShare({ files: [file] })) {
             await navigator.share({
               files: [file],
-              title: `פידבק על ${editableTitle}`,
-              text: `תראו איזה פידבק קיבלתי על "${editableTitle}" בפידבק ספייס!`,
+              title: `פידבק על ${songTitle}`,
+              text: `תראו איזה פידבק קיבלתי על "${songTitle}" בפידבק ספייס!`,
             });
             setIsGenerating(false);
             return;
@@ -151,8 +149,8 @@ const FeedbackShareCard: React.FC<FeedbackShareCardProps> = ({ isOpen, onClose, 
           if (navigator.canShare && navigator.canShare({ files: [file] })) {
             await navigator.share({
               files: [file],
-              title: `פידבק על ${editableTitle}`,
-              text: `תראו איזה פידבק קיבלתי על "${editableTitle}" בפידבק ספייס!`,
+              title: `פידבק על ${songTitle}`,
+              text: `תראו איזה פידבק קיבלתי על "${songTitle}" בפידבק ספייס!`,
             });
             return;
           }
@@ -218,21 +216,12 @@ const FeedbackShareCard: React.FC<FeedbackShareCardProps> = ({ isOpen, onClose, 
                   height: ratio === 'story' ? 1920 : 1080
                 }}
               >
-                <CardContent songTitle={editableTitle} comment={editableComment} ratio={ratio} />
+                <CardContent songTitle={songTitle} comment={editableComment} ratio={ratio} />
               </div>
             </div>
 
             {/* Editable Fields Section */}
             <div className={styles.editSection}>
-              <div className={styles.inputGroup}>
-                <input
-                  type="text"
-                  value={editableTitle}
-                  onChange={(e) => setEditableTitle(e.target.value)}
-                  className={styles.textInput}
-                  placeholder="עריכת שם השיר..."
-                />
-              </div>
               <div className={styles.inputGroup}>
                 <textarea
                   value={editableComment}
@@ -262,7 +251,7 @@ const FeedbackShareCard: React.FC<FeedbackShareCardProps> = ({ isOpen, onClose, 
         {/* Hidden but identical copy for image generation */}
         <div className={styles.hiddenCardWrapper}>
           <div ref={cardRef}>
-            <CardContent songTitle={editableTitle} comment={editableComment} ratio={ratio} />
+            <CardContent songTitle={songTitle} comment={editableComment} ratio={ratio} />
           </div>
         </div>
       </div>
@@ -305,7 +294,7 @@ const CardContent = ({ songTitle, comment, ratio }: { songTitle: string, comment
         </div>
 
         <div className={styles.cardFooter}>
-          <p className={styles.joinText}>רוצים פידבק כזה על השיר שלכם? הצטרפו אלינו לקהילה.</p>
+          <p className={styles.joinText}>מישהו מקשיב לך...</p>
           <p className={styles.domainText}>feedback.activitywiz.com</p>
         </div>
       </div>

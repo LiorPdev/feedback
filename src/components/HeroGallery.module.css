@@ -92,16 +92,16 @@
 }
 
 .statsValue {
-  font-size: clamp(2rem, 10vw, 3.8rem);
-  font-weight: 900;
+  font-size: clamp(1.3rem, 10vw, 3rem);
+  font-weight: 800;
   text-align: center;
-  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  background: linear-gradient(135deg, #3b82f6, #000000);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.3));
+  filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.4));
   direction: ltr;
   opacity: 0.7;
-  transform: translateY(-10px);
+  transform: translateY(-40px);
 }
 
 @media (max-width: 768px) {

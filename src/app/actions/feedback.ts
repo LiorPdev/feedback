@@ -175,7 +175,6 @@ export async function setFeedbackReaction(feedbackId: string, newReaction: -1 | 
     if (!feedback) return { success: false, error: 'FEEDBACK_NOT_FOUND' };
     if (feedback.isLiked === newReaction) return { success: false, error: 'ALREADY_SET' };
     if (feedback.song.userId !== dbUser.id) return { success: false, error: 'UNAUTHORIZED' };
-    if (!feedback.authorId) return { success: false, error: 'ANONYMOUS_FEEDBACK' };
 
     // 2. Handle token rewards/deductions
     const previousReaction = feedback.isLiked;
@@ -189,7 +188,7 @@ export async function setFeedbackReaction(feedbackId: string, newReaction: -1 | 
       tokenDelta = -LIKE_FEEDBACK_REWARD;
     }
 
-    if (tokenDelta !== 0) {
+    if (tokenDelta !== 0 && feedback.authorId) {
       const rater = await db.query.users.findFirst({
         where: (u, { eq }) => eq(u.id, feedback.authorId!),
         columns: { tokens: true }
@@ -212,8 +211,10 @@ export async function setFeedbackReaction(feedbackId: string, newReaction: -1 | 
 
     revalidatePath(`/show-feedback/${feedback.song.slug}`);
 
-    // Update rater quality index
-    await updateRaterScore(feedback.authorId!);
+    // Update rater quality index (if author is registered)
+    if (feedback.authorId) {
+      await updateRaterScore(feedback.authorId);
+    }
 
     return { success: true };
 

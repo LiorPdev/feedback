@@ -146,10 +146,10 @@ export default function HeroGallery({ initialData }: { initialData?: CommunitySt
                 colorOffset: 6
             },
             {
-                id: 'songs',
-                title: 'התפלגות סגנונות השירים בקהילה',
-                data: filterSmallData(stats.songStats),
-                colorOffset: 0
+                id: 'engagement',
+                title: 'כמה פידבקים מקבלים השירים בקהילה?',
+                data: stats.engagementStats,
+                colorOffset: 4
             },
             {
                 id: 'users',
@@ -158,10 +158,10 @@ export default function HeroGallery({ initialData }: { initialData?: CommunitySt
                 colorOffset: 2
             },
             {
-                id: 'engagement',
-                title: 'כמה פידבקים מקבלים השירים בקהילה?',
-                data: stats.engagementStats,
-                colorOffset: 4
+                id: 'songs',
+                title: 'התפלגות סגנונות השירים בקהילה',
+                data: filterSmallData(stats.songStats),
+                colorOffset: 0
             }
         ].map(slide => {
             if (slide.data) {
