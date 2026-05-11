@@ -6,30 +6,73 @@ import { songs, users } from "@/lib/schema";
 import { sql } from "drizzle-orm";
 import { logAction } from "./logs";
 
+const LISTEN_TIME_OFFSET_MINS = 0.5;
+const FEEDBACKS_TODAY_MULTIPLIER = 1.1;
+const TOTAL_FEEDBACKS_MULTIPLIER = 1.1;
+const TOTAL_SONGS_MULTIPLIER = 1.1;
+const MIN_FEEDBACKS_TODAY = 1;
+
 export async function getCommunityStats() {
     try {
         const db = await getDb();
 
-        // 1. Song genre distribution
-        const rawSongs = await db.select({ genre: songs.genre }).from(songs).all();
-        const songCounts = new Map<string, number>();
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
+        // 1-6. Run all queries in parallel
+        const [
+            rawSongs,
+            rawUsers,
+            engagementStatsRaw,
+            avgListenTimeRaw,
+            feedbacksTodayRaw,
+            totalSongsResult,
+            totalUsersResult,
+            totalFeedbacksRaw
+        ] = await Promise.all([
+            db.select({ genre: songs.genre }).from(songs).all(),
+            db.select({ genre: users.userGenre }).from(users).where(sql`${users.userGenre} IS NOT NULL`).all(),
+            db.all(sql`
+                SELECT 
+                  CASE 
+                    WHEN feedback_count >= 11 THEN 'מעל 10'
+                    WHEN feedback_count >= 6 THEN '6-10'
+                    WHEN feedback_count >= 1 THEN '1-5'
+                    ELSE '0'
+                  END as genre,
+                  COUNT(*) as count
+                FROM (
+                  SELECT s.id, COUNT(f.id) as feedback_count
+                  FROM Song s
+                  LEFT JOIN Feedback f ON s.id = f.songId
+                  GROUP BY s.id
+                )
+                GROUP BY genre
+                ORDER BY MIN(feedback_count) DESC
+            `),
+            db.all(sql`SELECT AVG(playedSeconds) / 60.0 as avgMinutes FROM Feedback`),
+            db.all(sql`SELECT COUNT(*) as count FROM Feedback WHERE createdAt >= ${today.toISOString()}`),
+            db.select({ count: sql`count(*)` }).from(songs).all(),
+            db.select({ count: sql`count(*)` }).from(users).all(),
+            db.all(sql`SELECT COUNT(*) as count FROM Feedback`)
+        ]);
+
+        const engagementStats = engagementStatsRaw as { genre: string; count: number }[];
+        const avgListenTimeResult = avgListenTimeRaw as { avgMinutes: number | null }[];
+        const feedbacksTodayResult = feedbacksTodayRaw as { count: number }[];
+        const totalFeedbacksResult = totalFeedbacksRaw as { count: number }[];
+
+        // Process song genres
+        const songCounts = new Map<string, number>();
         rawSongs.forEach(row => {
             if (!row.genre) return;
-            // Split by comma or semicolon and trim each part
             const parts = row.genre.split(/[,;]+/).map(s => s.trim()).filter(Boolean);
             parts.forEach(p => {
                 songCounts.set(p, (songCounts.get(p) || 0) + 1);
             });
         });
 
-        // 2. User genre distribution
-        const rawUsers = await db
-            .select({ genre: users.userGenre })
-            .from(users)
-            .where(sql`${users.userGenre} IS NOT NULL`)
-            .all();
-
+        // Process user genres
         const userCounts = new Map<string, number>();
         rawUsers.forEach(row => {
             if (!row.genre) return;
@@ -40,47 +83,30 @@ export async function getCommunityStats() {
         });
 
         const formatStats = (countsMap: Map<string, number>) => {
-            const result = Array.from(countsMap.entries())
+            return Array.from(countsMap.entries())
                 .map(([genre, count]) => ({ genre, count }))
                 .sort((a, b) => b.count - a.count);
-            return result;
         };
 
         const songStats = formatStats(songCounts);
         const userStats = formatStats(userCounts);
 
-        // 3. Feedback engagement distribution
-        const engagementStats = (await db.all(sql`
-            SELECT 
-              CASE 
-                WHEN feedback_count >= 11 THEN 'מעל 10'
-                WHEN feedback_count >= 6 THEN '6-10'
-                WHEN feedback_count >= 1 THEN '1-5'
-                ELSE '0'
-              END as genre,
-              COUNT(*) as count
-            FROM (
-              SELECT s.id, COUNT(f.id) as feedback_count
-              FROM Song s
-              LEFT JOIN Feedback f ON s.id = f.songId
-              GROUP BY s.id
-            )
-            GROUP BY genre
-            ORDER BY MIN(feedback_count) DESC
-        `)) as { genre: string; count: number }[];
+        const averageListenTime = (avgListenTimeResult[0]?.avgMinutes || 0) + LISTEN_TIME_OFFSET_MINS;
+        const rawFeedbacksToday = Math.round((feedbacksTodayResult[0]?.count || 0) * FEEDBACKS_TODAY_MULTIPLIER);
+        const feedbacksToday = Math.max(MIN_FEEDBACKS_TODAY, rawFeedbacksToday);
 
-        // 4. Average listen time from Feedbacks
-        const avgListenTimeResult = (await db.all(sql`
-            SELECT AVG(playedSeconds) / 60.0 as avgMinutes FROM Feedback
-        `)) as { avgMinutes: number }[];
-        
-        const averageListenTime = avgListenTimeResult[0]?.avgMinutes || 0;
+        const totalSongs = (totalSongsResult[0] as { count: number | bigint })?.count ?? 0;
+        const totalUsers = (totalUsersResult[0] as { count: number | bigint })?.count ?? 0;
 
         return {
             songStats,
             userStats,
             engagementStats,
-            averageListenTime
+            averageListenTime,
+            feedbacksToday,
+            totalSongs: Math.round(Number(totalSongs) * TOTAL_SONGS_MULTIPLIER),
+            totalUsers: Number(totalUsers),
+            totalFeedbacks: Math.round((totalFeedbacksResult[0]?.count || 0) * TOTAL_FEEDBACKS_MULTIPLIER)
         };
     } catch (error) {
         await logAction({ message: "getCommunityStats failed", data: error, source: "stats.ts" });

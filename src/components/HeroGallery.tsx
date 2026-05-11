@@ -38,6 +38,10 @@ export interface CommunityStats {
     userStats: StatItem[];
     engagementStats: StatItem[];
     averageListenTime: number;
+    feedbacksToday: number;
+    totalSongs: number;
+    totalUsers: number;
+    totalFeedbacks: number;
 }
 
 type Slide = {
@@ -45,6 +49,7 @@ type Slide = {
     title: string;
     data?: StatItem[];
     value?: number;
+    secondaryStats?: { label: string; value: string | number; icon?: string }[];
     colorOffset: number;
 };
 
@@ -141,8 +146,26 @@ export default function HeroGallery({ initialData }: { initialData?: CommunitySt
         return [
             {
                 id: 'listenTime',
-                title: 'ממוצע זמן האזנה לשיר בקהילה',
-                value: stats.averageListenTime + 0.5,
+                title: 'מה קורה בקהילה שלנו?',
+                value: stats.averageListenTime,
+                secondaryStats: [
+                    { 
+                        label: 'ממוצע זמן האזנה לשיר', 
+                        value: formatTime(stats.averageListenTime) 
+                    },
+                    { 
+                        label: 'פידבקים שניתנו היום', 
+                        value: stats.feedbacksToday 
+                    },
+                    {
+                        label: 'סה"כ פידבקים בקהילה',
+                        value: stats.totalFeedbacks.toLocaleString()
+                    },
+                    {
+                        label: 'שירים בקהילה',
+                        value: stats.totalSongs
+                    }
+                ],
                 colorOffset: 6
             },
             {
@@ -214,10 +237,13 @@ export default function HeroGallery({ initialData }: { initialData?: CommunitySt
                         <h3 className={styles.chartTitle}>{currentSlide.title}</h3>
                         <div className={styles.chartWrapper}>
                             {currentSlide.id === 'listenTime' ? (
-                                <div className={styles.statsValueWrapper}>
-                                    <div className={styles.statsValue}>
-                                        {formatTime(currentSlide.value || 0)}
-                                    </div>
+                                <div className={styles.multiStatsWrapper}>
+                                    {currentSlide.secondaryStats?.map((stat, i) => (
+                                        <div key={i} className={styles.statBox}>
+                                            <div className={styles.statLabel}>{stat.label}</div>
+                                            <div className={styles.statValueCompact}>{stat.value}</div>
+                                        </div>
+                                    ))}
                                 </div>
                             ) : (
                                 <ResponsiveContainer width="100%" height="100%">
