@@ -7,17 +7,18 @@ import { sql } from "drizzle-orm";
 import { logAction } from "./logs";
 
 const LISTEN_TIME_OFFSET_MINS = 0.5;
-const FEEDBACKS_TODAY_MULTIPLIER = 1.1;
-const TOTAL_FEEDBACKS_MULTIPLIER = 1.1;
+const FEEDBACKS_WEEKLY_MULTIPLIER = 1.5;
+const TOTAL_FEEDBACKS_MULTIPLIER = 1.3;
 const TOTAL_SONGS_MULTIPLIER = 1.1;
-const MIN_FEEDBACKS_TODAY = 1;
+const MIN_FEEDBACKS_WEEKLY = 10;
 
 export async function getCommunityStats() {
     try {
         const db = await getDb();
 
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        const lastWeek = new Date();
+        lastWeek.setDate(lastWeek.getDate() - 7);
+        lastWeek.setHours(0, 0, 0, 0);
 
         // 1-6. Run all queries in parallel
         const [
@@ -25,7 +26,7 @@ export async function getCommunityStats() {
             rawUsers,
             engagementStatsRaw,
             avgListenTimeRaw,
-            feedbacksTodayRaw,
+            feedbacksWeeklyRaw,
             totalSongsResult,
             totalUsersResult,
             totalFeedbacksRaw
@@ -51,7 +52,7 @@ export async function getCommunityStats() {
                 ORDER BY MIN(feedback_count) DESC
             `),
             db.all(sql`SELECT AVG(playedSeconds) / 60.0 as avgMinutes FROM Feedback`),
-            db.all(sql`SELECT COUNT(*) as count FROM Feedback WHERE createdAt >= ${today.toISOString()}`),
+            db.all(sql`SELECT COUNT(*) as count FROM Feedback WHERE createdAt >= ${lastWeek.toISOString()}`),
             db.select({ count: sql`count(*)` }).from(songs).all(),
             db.select({ count: sql`count(*)` }).from(users).all(),
             db.all(sql`SELECT COUNT(*) as count FROM Feedback`)
@@ -59,7 +60,7 @@ export async function getCommunityStats() {
 
         const engagementStats = engagementStatsRaw as { genre: string; count: number }[];
         const avgListenTimeResult = avgListenTimeRaw as { avgMinutes: number | null }[];
-        const feedbacksTodayResult = feedbacksTodayRaw as { count: number }[];
+        const feedbacksWeeklyResult = feedbacksWeeklyRaw as { count: number }[];
         const totalFeedbacksResult = totalFeedbacksRaw as { count: number }[];
 
         // Process song genres
@@ -92,8 +93,8 @@ export async function getCommunityStats() {
         const userStats = formatStats(userCounts);
 
         const averageListenTime = (avgListenTimeResult[0]?.avgMinutes || 0) + LISTEN_TIME_OFFSET_MINS;
-        const rawFeedbacksToday = Math.round((feedbacksTodayResult[0]?.count || 0) * FEEDBACKS_TODAY_MULTIPLIER);
-        const feedbacksToday = Math.max(MIN_FEEDBACKS_TODAY, rawFeedbacksToday);
+        const rawFeedbacksWeekly = Math.round((feedbacksWeeklyResult[0]?.count || 0) * FEEDBACKS_WEEKLY_MULTIPLIER);
+        const feedbacksWeekly = Math.max(MIN_FEEDBACKS_WEEKLY, rawFeedbacksWeekly);
 
         const totalSongs = (totalSongsResult[0] as { count: number | bigint })?.count ?? 0;
         const totalUsers = (totalUsersResult[0] as { count: number | bigint })?.count ?? 0;
@@ -103,7 +104,7 @@ export async function getCommunityStats() {
             userStats,
             engagementStats,
             averageListenTime,
-            feedbacksToday,
+            feedbacksWeekly,
             totalSongs: Math.round(Number(totalSongs) * TOTAL_SONGS_MULTIPLIER),
             totalUsers: Number(totalUsers),
             totalFeedbacks: Math.round((totalFeedbacksResult[0]?.count || 0) * TOTAL_FEEDBACKS_MULTIPLIER)

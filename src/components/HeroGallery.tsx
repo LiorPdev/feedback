@@ -38,7 +38,7 @@ export interface CommunityStats {
     userStats: StatItem[];
     engagementStats: StatItem[];
     averageListenTime: number;
-    feedbacksToday: number;
+    feedbacksWeekly: number;
     totalSongs: number;
     totalUsers: number;
     totalFeedbacks: number;
@@ -154,8 +154,8 @@ export default function HeroGallery({ initialData }: { initialData?: CommunitySt
                         value: formatTime(stats.averageListenTime) 
                     },
                     { 
-                        label: 'פידבקים שניתנו היום', 
-                        value: stats.feedbacksToday 
+                        label: 'פידבקים שניתנו בשבוע האחרון', 
+                        value: stats.feedbacksWeekly 
                     },
                     {
                         label: 'סה"כ פידבקים בקהילה',
