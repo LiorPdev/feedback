@@ -8,9 +8,9 @@ import { logAction } from "./logs";
 
 const LISTEN_TIME_OFFSET_MINS = 0.5;
 const FEEDBACKS_WEEKLY_MULTIPLIER = 1.5;
-const TOTAL_FEEDBACKS_MULTIPLIER = 1.3;
+const TOTAL_FEEDBACKS_MULTIPLIER = 1.5;
 const TOTAL_SONGS_MULTIPLIER = 1.1;
-const MIN_FEEDBACKS_WEEKLY = 10;
+const MIN_FEEDBACKS_WEEKLY = 30;
 
 export async function getCommunityStats() {
     try {

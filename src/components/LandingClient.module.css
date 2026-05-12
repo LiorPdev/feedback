@@ -64,6 +64,8 @@
   font-weight: 700;
   margin-bottom: 0.5rem;
   color: var(--primary-contrast);
+  text-align: right;
+  padding-right: 0.7rem;
 }
 
 .howItWorksList {
@@ -127,32 +129,49 @@
   z-index: 2;
 }
 
-.mockupStatic {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16/10;
-  border-radius: 20px;
-  box-shadow: var(--shadow-xl);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  background: var(--card-bg);
+.videoSection {
+  padding: 80px 5vw;
+  background: var(--bg-section);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-top: 1px solid var(--border-color);
+  scroll-snap-align: start;
 }
 
-.videoWrapper {
+.videoSectionContent {
+  max-width: 1200px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.videoContainerLarge {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.videoWrapperLarge {
   position: relative;
   width: 100%;
-  max-width: 280px;
-  margin: 0 auto;
+  max-width: 320px;
   aspect-ratio: 9/16;
-  border-radius: 28px;
+  border-radius: 32px;
   overflow: hidden;
   box-shadow: var(--shadow-xl);
-  border: 6px solid #1a1a1a;
+  border: 8px solid #1a1a1a;
   background: #000;
-  transform: rotate(0deg);
+  transition: transform 0.3s ease;
 }
 
-.videoWrapper iframe {
+.videoWrapperLarge:hover {
+  transform: scale(1.02);
+}
+
+.videoWrapperLarge iframe {
   position: absolute;
   top: 0;
   left: 0;
@@ -161,7 +180,7 @@
   border: none;
 }
 
-.videoThumbnail {
+.videoThumbnailLarge {
   position: relative;
   width: 100%;
   height: 100%;
@@ -172,7 +191,7 @@
   justify-content: center;
 }
 
-.thumbnailImage {
+.thumbnailImageLarge {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -180,14 +199,14 @@
   transition: opacity 0.3s ease;
 }
 
-.videoThumbnail:hover .thumbnailImage {
+.videoThumbnailLarge:hover .thumbnailImageLarge {
   opacity: 0.6;
 }
 
-.playButton {
+.playButtonLarge {
   position: absolute;
-  width: 80px;
-  height: 80px;
+  width: 100px;
+  height: 100px;
   background: rgba(0, 0, 0, 0.65);
   border-radius: 50%;
   display: flex;
@@ -198,19 +217,10 @@
   border: 2px solid rgba(255, 255, 255, 0.4);
 }
 
-.videoThumbnail:hover .playButton {
+.videoThumbnailLarge:hover .playButtonLarge {
   transform: scale(1.1);
   background: var(--brand-primary);
   border-color: #fff;
-}
-
-.heroPlaceholder {
-  width: 100%;
-  max-width: 320px;
-  margin: 0 auto;
-  aspect-ratio: 9/16;
-  background: color-mix(in srgb, var(--text-main), transparent 95%);
-  border-radius: 28px;
 }
 
 .features {
@@ -234,7 +244,7 @@
   text-align: center;
   font-size: 2.5rem;
   font-weight: 800;
-  margin-bottom: 4rem;
+  margin-bottom: 2rem;
   color: var(--text-main);
 }
 
@@ -282,9 +292,9 @@
   color: var(--text-main);
 }
 
-.featureCard p {
+.featureDesc {
   color: var(--text-muted);
-  line-height: 1.8;
+  line-height: 2;
 }
 
 .feedbacksTicker {
@@ -299,11 +309,16 @@
   transform: none !important;
 }
 
+.heroHeaderWrapper {
+  width: 100%;
+}
+
+
+
 /* 
   Media queries 
   =============
 */
-
 @media (max-width: 1100px) {
   .heroButtons>* {
     font-size: 1rem !important;
@@ -361,7 +376,7 @@
     margin: 0 auto;
   }
 
-  .videoWrapper {
+  .videoWrapperLarge {
     max-width: 220px !important;
     border-width: 4px !important;
   }
@@ -481,7 +496,7 @@
     margin-top: 0rem !important;
   }
 
-  .videoWrapper {
+  .videoWrapperLarge {
     max-width: 220px !important;
     border-width: 4px !important;
   }

@@ -151,7 +151,7 @@ export default function LandingClient({
             animate="visible"
             variants={staggerContainer}
           >
-            <motion.div variants={fadeInUp} style={{ width: '100%' }}>
+            <motion.div variants={fadeInUp} className={styles.heroHeaderWrapper}>
               <PageHeader
                 title="מישהו מקשיב לך"
                 variant="hero"
@@ -161,7 +161,7 @@ export default function LandingClient({
             </motion.div>
             {!isLoggedIn && (
               <motion.div className={styles.howItWorks} variants={fadeInUp}>
-                <h3 style={{ textAlign: "right", paddingRight: "0.7rem" }}>איך זה עובד?</h3>
+                <h3>איך זה עובד?</h3>
                 <ul className={styles.howItWorksList}>
                   <li><strong>מעלים</strong> שיר (קישור או קובץ)</li>
                   <li><strong>מקבלים</strong> חוות דעת כנה ואנונימית מהקהילה</li>
@@ -230,26 +230,51 @@ export default function LandingClient({
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.4 }}
           >
-            {isLoggedIn ? (
-              <HeroGallery initialData={initialCommunityStats} />
-            ) : (
-              <div className={styles.videoWrapper}>
+            <HeroGallery
+              initialData={initialCommunityStats}
+              isLoggedIn={isLoggedIn}
+              onUnauthorizedClick={() => setActiveGate("give-feedback")}
+            />
+          </motion.div>
+        </div>
+      </header>
+
+      {/* Video Section for unregistered users */}
+      {!isLoggedIn && (
+        <section className={styles.videoSection}>
+          <div className={styles.videoSectionContent}>
+            <motion.h2
+              className={styles.sectionTitle}
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+            >
+              איך זה עובד?
+            </motion.h2>
+            <motion.div
+              className={styles.videoContainerLarge}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <div className={styles.videoWrapperLarge}>
                 {!showVideo ? (
                   <div
-                    className={styles.videoThumbnail}
+                    className={styles.videoThumbnailLarge}
                     onClick={() => setShowVideo(true)}
                   >
                     <Image
                       src="https://img.youtube.com/vi/4kxbf8gNDzk/maxresdefault.jpg"
                       alt="Play Video"
-                      className={styles.thumbnailImage}
+                      className={styles.thumbnailImageLarge}
                       width={1280}
                       height={720}
-                      loading="eager"
+                      loading="lazy"
                       unoptimized
                     />
-                    <div className={styles.playButton}>
-                      <svg viewBox="0 0 24 24" width="48" height="48" fill="white">
+                    <div className={styles.playButtonLarge}>
+                      <svg viewBox="0 0 24 24" width="64" height="64" fill="white">
                         <path d="M8 5v14l11-7z" />
                       </svg>
                     </div>
@@ -263,10 +288,10 @@ export default function LandingClient({
                   ></iframe>
                 )}
               </div>
-            )}
-          </motion.div>
-        </div>
-      </header>
+            </motion.div>
+          </div>
+        </section>
+      )}
 
       {/* Features Section */}
       <section className={styles.features}>
@@ -294,7 +319,7 @@ export default function LandingClient({
               },
               {
                 title: "חוות דעת אובייקטיבית",
-                desc: "לפעמים 'לייק' מחברים זה לא מספיק כדי לצמוח. כאן תקבלו נקודת מבט ממוזיקאים ומאוהבי מוזיקה. הפידבק ניתן בצורה אנונימית, מה שמאפשר שיח מקצועי נקי מאגו שמתמקד רק בדבר אחד: איך להפוך את השיר שלכם לטוב ביותר שהוא יכול להיות.",
+                desc: "לפעמים 'לייק' מחברים זה לא מספיק כדי לצמוח. כאן תקבלו נקודת מבט ממוזיקאים וממאזינים שאוהבים מוזיקה כמוכם. השיח מקצועי ומתמקד רק בדבר אחד: איך אתם יכולים להשתפר עוד ועוד.",
                 icon: <CheckCircle />
               },
               {
@@ -312,25 +337,6 @@ export default function LandingClient({
                 desc: "מתלבטים איזה שיר כדאי לקדם? איזה שיר להוציא כסינגל? לא בטוחים איזה עיבוד עובד טוב יותר? העלו מספר שירים או גירסאות שונות ותראו מה אחרים חושבים. הפידבקים יעזרו לכם להשקיע את האנרגיה והתקציב שלכם בשירים עם הפוטנציאל הגבוה ביותר להצליח.",
                 icon: <CheckCircle />
               },
-              /*
-                            {
-                              title: "פלייליסטים בספוטיפי",
-                              desc: (
-                                <ul style={{ listStyleType: "none", padding: 0, marginTop: "0.5rem", textAlign: "center" }}>
-                                  <li style={{ marginBottom: "0.5rem" }}>
-                                    <a href="https://open.spotify.com/playlist/2pItlRIEcNpVrdrNPvTJiU?si=d2a588f23af24b08" target="_blank" rel="noopener noreferrer" style={{ color: "var(--brand-primary)", textDecoration: "underline" }}>ישראלי שקט רגוע</a>
-                                  </li>
-                                  <li style={{ marginBottom: "0.5rem" }}>
-                                    <a href="https://open.spotify.com/playlist/36YoT388ljvJSssrC0LUMK?si=bc627ffb6efa43b0" target="_blank" rel="noopener noreferrer" style={{ color: "var(--brand-primary)", textDecoration: "underline" }}>רוק ישראלי</a>
-                                  </li>
-                                  <li style={{ marginBottom: "0.5rem" }}>
-                                    <a href="https://open.spotify.com/playlist/0qYgjCnqOmG1WyJ3nZf841?si=31bf2145098d40fc" target="_blank" rel="noopener noreferrer" style={{ color: "var(--brand-primary)", textDecoration: "underline" }}>אינדי ישראלי</a>
-                                  </li>
-                                </ul>
-                              ),
-                              icon: <CheckCircle />
-                            }
-              */
             ].map((feature, idx) => (
               <motion.div key={idx} className={styles.featureCard} variants={fadeInUp}>
                 <div className={styles.featureIcon}>{feature.icon}</div>

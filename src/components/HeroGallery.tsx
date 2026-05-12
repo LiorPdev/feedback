@@ -86,7 +86,15 @@ function getRoundedPercentages(data: StatItem[]) {
     return rounded;
 }
 
-export default function HeroGallery({ initialData }: { initialData?: CommunityStats | null }) {
+export default function HeroGallery({ 
+    initialData, 
+    isLoggedIn, 
+    onUnauthorizedClick 
+}: { 
+    initialData?: CommunityStats | null;
+    isLoggedIn?: boolean;
+    onUnauthorizedClick?: () => void;
+}) {
     const [stats, setStats] = useState<CommunityStats | null>(initialData || cachedStats);
     const [loading, setLoading] = useState(!initialData && !cachedStats);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -207,8 +215,12 @@ export default function HeroGallery({ initialData }: { initialData?: CommunitySt
     }, []);
 
     const handleChartClick = useCallback(() => {
-        setIsModalOpen(true);
-    }, []);
+        if (isLoggedIn) {
+            setIsModalOpen(true);
+        } else if (onUnauthorizedClick) {
+            onUnauthorizedClick();
+        }
+    }, [isLoggedIn, onUnauthorizedClick]);
 
     if (loading) {
         return (

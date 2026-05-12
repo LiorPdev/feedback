@@ -134,7 +134,7 @@
   direction: ltr;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 430px) {
   .galleryContainer {
     aspect-ratio: 1/1;
   }
