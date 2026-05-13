@@ -19,11 +19,11 @@ declare global {
 import { useRouter, useSearchParams } from "next/navigation";
 import { GiPodium } from "react-icons/gi";
 import Image from "next/image";
-import RegistrationGate, { GateType } from "./RegistrationGate";
 import PageHeader from "./PageHeader";
 import Button from "./ui/Button";
 import { useUtmMode } from "@/hooks/useUtmMode";
 import FeedbacksTypewriter from "./FeedbacksTypewriter";
+import { openRegistrationGate } from "@/lib/auth-events";
 
 // Animation variants
 const fadeInUp = {
@@ -61,8 +61,6 @@ export default function LandingClient({
   const [hasSongs, setHasSongs] = useState(initialHasSongs);
   const [hasFeedbacksGiven, setHasFeedbacksGiven] = useState(initialHasFeedbacksGiven);
   const [userGenre, setUserGenre] = useState(initialGenre);
-  const [activeGate, setActiveGate] = useState<GateType | null>(null);
-  const [targetRedirectUrl, setTargetRedirectUrl] = useState<string | undefined>(undefined);
   const [userEmail, setUserEmail] = useState<string | undefined>(undefined);
   const { isUtmMode, utmSource } = useUtmMode();
 
@@ -104,8 +102,11 @@ export default function LandingClient({
       const dest = `/get-feedback?backHome=true${utmSource ? `&utm_source=${utmSource}` : ""}`;
       router.push(dest);
     } else {
-      setTargetRedirectUrl("/get-feedback");
-      setActiveGate(isLoggedIn ? "complete-registration" : "get-feedback");
+      openRegistrationGate({
+        type: isLoggedIn ? "complete-registration" : "get-feedback",
+        redirectUrl: "/get-feedback",
+        userEmail: userEmail
+      });
     }
   };
 
@@ -122,8 +123,11 @@ export default function LandingClient({
         router.push(dest);
       }
     } else {
-      setTargetRedirectUrl("/give-feedback");
-      setActiveGate(isLoggedIn ? "complete-registration" : "give-feedback");
+      openRegistrationGate({
+        type: isLoggedIn ? "complete-registration" : "give-feedback",
+        redirectUrl: "/give-feedback",
+        userEmail: userEmail
+      });
     }
   };
 
@@ -131,16 +135,6 @@ export default function LandingClient({
 
   return (
     <div className={styles.landingPage}>
-      <RegistrationGate
-        isOpen={!!activeGate}
-        type={activeGate || "give-feedback"}
-        onClose={() => {
-          setActiveGate(null);
-          setTargetRedirectUrl(undefined);
-        }}
-        userEmail={userEmail}
-        redirectUrl={targetRedirectUrl}
-      />
 
       {/* Hero Section */}
       <header className={styles.hero}>
@@ -233,7 +227,7 @@ export default function LandingClient({
             <HeroGallery
               initialData={initialCommunityStats}
               isLoggedIn={isLoggedIn}
-              onUnauthorizedClick={() => setActiveGate("give-feedback")}
+              onUnauthorizedClick={() => openRegistrationGate({ type: "give-feedback" })}
             />
           </motion.div>
         </div>

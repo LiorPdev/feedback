@@ -8,6 +8,9 @@ import InfoTooltip from "./InfoTooltip";
 import Image from "next/image";
 import { Bell } from "lucide-react";
 import { getUserData } from "@/app/actions/user";
+import { getUserSongCount } from "@/app/actions/songs";
+import { getMyGivenFeedbacksCount } from "@/app/actions/feedback";
+import { logAction } from "@/app/actions/logs";
 import UserPreferencesModal from "./UserPreferencesModal";
 import CreditTransferModal from "./CreditTransferModal";
 import styles from "./Navbar.module.css";
@@ -16,7 +19,8 @@ import { GiPodium } from "react-icons/gi";
 import CopyToast from "./CopyToast";
 import { useShare } from "@/hooks/useShare";
 import UserMenu from "./UserMenu";
-import RegistrationGate, { GateType } from "./RegistrationGate";
+import RegistrationGate from "./RegistrationGate";
+import { RegistrationGateOptions } from "@/lib/auth-events";
 import { useAuth } from "@clerk/nextjs";
 import Button from "./ui/Button";
 import { useUtmMode } from "@/hooks/useUtmMode";
@@ -25,17 +29,13 @@ import { SONG_SUBMISSION_COST } from "@/lib/constants";
 interface NavbarProps {
   isLoggedIn: boolean;
   initialTokens: number;
-  initialName?: string;
-  initialEmail?: string;
   isAdmin: boolean;
 }
 
-export default function Navbar({ isLoggedIn, initialTokens, initialName = "", initialEmail = "", isAdmin }: NavbarProps) {
+export default function Navbar({ isLoggedIn, initialTokens, isAdmin }: NavbarProps) {
   const pathname = usePathname();
   const { userId, isLoaded: authLoaded } = useAuth();
   const [tokens, setTokens] = useState<number | null>(isLoggedIn ? initialTokens : null);
-  const [userEmail, setUserEmail] = useState<string>(initialEmail);
-  const [userName, setUserName] = useState<string>(initialName);
   const [displayedTokens, setDisplayedTokens] = useState<number | null>(isLoggedIn ? initialTokens : null);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [firstUnreadSlug, setFirstUnreadSlug] = useState<string | null>(null);
@@ -45,8 +45,10 @@ export default function Navbar({ isLoggedIn, initialTokens, initialName = "", in
   const [showContactModal, setShowContactModal] = useState(false);
   const [showPreferencesModal, setShowPreferencesModal] = useState(false);
   const [showCreditModal, setShowCreditModal] = useState(false);
+  const [hasSongs, setHasSongs] = useState(false);
+  const [hasFeedbacksGiven, setHasFeedbacksGiven] = useState(false);
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
-  const [registrationType, setRegistrationType] = useState<GateType>("give-feedback");
+  const [gateOptions, setGateOptions] = useState<RegistrationGateOptions>({ type: "give-feedback" });
   const [pendingRedirect, setPendingRedirect] = useState<string | null>(null);
   const redirectUrlRef = useRef<string | null>(null);
   const tokenTriggerRef = useRef<HTMLDivElement>(null);
@@ -62,35 +64,71 @@ export default function Navbar({ isLoggedIn, initialTokens, initialName = "", in
     }
   }, [authLoaded, userId, isLoggedIn, router]);
 
+  // 1. Data Fetching Effect (On mount/login)
   useEffect(() => {
     const fetchUserData = async () => {
       if (isLoggedIn) {
-        const result = await getUserData();
-        if (result.success) {
-          if (result.tokens !== undefined) {
-            if (tokens !== null && result.tokens !== tokens) {
-              setGlowMode(result.tokens > tokens ? "positive" : "negative");
+        try {
+          const [result, songResult, feedbackCount] = await Promise.all([
+            getUserData(),
+            getUserSongCount(),
+            getMyGivenFeedbacksCount()
+          ]);
+
+          if (result.success) {
+            if (result.tokens !== undefined) {
+              setTokens(prev => {
+                if (prev !== null && result.tokens !== prev) {
+                  setGlowMode(result.tokens > prev ? "positive" : "negative");
+                }
+                return result.tokens;
+              });
+              setDisplayedTokens(prev => prev === null ? result.tokens : prev);
             }
-            setTokens(result.tokens);
-            if (displayedTokens === null) {
-              setDisplayedTokens(result.tokens);
+            if (result.unreadFeedbacksCount !== undefined) {
+              setUnreadCount(result.unreadFeedbacksCount);
+            }
+            if (result.firstUnreadSongSlug !== undefined) {
+              setFirstUnreadSlug(result.firstUnreadSongSlug);
             }
           }
-          setUserEmail(result.email || "");
-          setUserName(result.name || "");
-          if (result.unreadFeedbacksCount !== undefined) {
-            setUnreadCount(result.unreadFeedbacksCount);
-          }
-          if (result.firstUnreadSongSlug !== undefined) {
-            setFirstUnreadSlug(result.firstUnreadSongSlug);
-          }
+
+          setHasSongs(songResult.success && songResult.count > 0);
+          setHasFeedbacksGiven(feedbackCount > 0);
+        } catch (e) {
+          logAction({
+            message: "Failed to fetch user data in Navbar",
+            data: { error: e instanceof Error ? e.message : String(e) },
+            source: "Navbar.tsx:fetchUserData"
+          });
         }
       }
     };
-    fetchUserData();
 
-    const handleUpdate = () => {
-      fetchUserData();
+    fetchUserData();
+  }, [isLoggedIn]);
+
+  // 2. Event Listeners Effect
+  useEffect(() => {
+    const handleUpdate = async () => {
+      if (isLoggedIn) {
+        const [result, songResult, feedbackCount] = await Promise.all([
+          getUserData(),
+          getUserSongCount(),
+          getMyGivenFeedbacksCount()
+        ]);
+        
+        if (result.success && result.tokens !== undefined) {
+          setTokens(prev => {
+            if (prev !== null && result.tokens !== prev) {
+              setGlowMode(result.tokens > prev ? "positive" : "negative");
+            }
+            return result.tokens;
+          });
+        }
+        setHasSongs(songResult.success && songResult.count > 0);
+        setHasFeedbacksGiven(feedbackCount > 0);
+      }
     };
 
     window.addEventListener("tokens-updated", handleUpdate);
@@ -105,8 +143,8 @@ export default function Navbar({ isLoggedIn, initialTokens, initialName = "", in
     window.addEventListener("open-preferences-modal", handleOpenPrefs);
 
     const handleOpenAuth = (e: Event) => {
-      const customEvent = e as CustomEvent<{ type?: GateType }>;
-      setRegistrationType(customEvent.detail?.type || "give-feedback");
+      const customEvent = e as CustomEvent<RegistrationGateOptions>;
+      setGateOptions(customEvent.detail);
       setShowRegistrationModal(true);
     };
     window.addEventListener("open-registration-gate", handleOpenAuth);
@@ -117,7 +155,7 @@ export default function Navbar({ isLoggedIn, initialTokens, initialName = "", in
       window.removeEventListener("open-preferences-modal", handleOpenPrefs);
       window.removeEventListener("open-registration-gate", handleOpenAuth);
     };
-  }, [isLoggedIn, pathname, displayedTokens, tokens]);
+  }, [isLoggedIn]);
 
   useEffect(() => {
     if (pendingRedirect && !showPreferencesModal) {
@@ -195,7 +233,7 @@ export default function Navbar({ isLoggedIn, initialTokens, initialName = "", in
               variant="outline"
               className={styles.loginBtn}
               onClick={() => {
-                setRegistrationType("minimal");
+                setGateOptions({ type: "minimal" });
                 setShowRegistrationModal(true);
               }}
             >
@@ -265,12 +303,12 @@ export default function Navbar({ isLoggedIn, initialTokens, initialName = "", in
 
               <UserMenu
                 isAdmin={isAdmin}
-                name={userName}
-                email={userEmail}
                 onOpenPreferences={() => setShowPreferencesModal(true)}
                 onOpenContact={() => setShowContactModal(true)}
                 onOpenCreditTransfer={() => setShowCreditModal(true)}
                 onShare={handleShare}
+                hasSongs={hasSongs}
+                hasFeedbacksGiven={hasFeedbacksGiven}
               />
             </>
           )}
@@ -292,8 +330,22 @@ export default function Navbar({ isLoggedIn, initialTokens, initialName = "", in
       />
       <RegistrationGate
         isOpen={showRegistrationModal}
-        type={registrationType}
-        onClose={() => setShowRegistrationModal(false)}
+        type={gateOptions.type}
+        redirectUrl={gateOptions.redirectUrl}
+        userEmail={gateOptions.userEmail}
+        forceShowForm={gateOptions.forceShowForm}
+        onClose={() => {
+          setShowRegistrationModal(false);
+          if (gateOptions.onClose) gateOptions.onClose();
+        }}
+        onSuccess={() => {
+          setShowRegistrationModal(false);
+          if (gateOptions.onSuccess) {
+            gateOptions.onSuccess();
+          } else {
+            window.location.reload();
+          }
+        }}
       />
       <CopyToast isVisible={copied} />
     </nav>

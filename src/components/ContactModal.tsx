@@ -69,23 +69,22 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
                 </div>
               ) : (
                 <>
-                  <h2 className={styles.title}>מה תרצו לספר לנו?</h2>
-                  <p className={styles.subtitle}>לכל הצעה, בקשה או בעיה, דברו איתנו!</p>
+                  <h2 className={styles.title}>במה חופשית - דברו אלינו</h2>
                   <form onSubmit={handleSubmit} className={styles.form}>
-                      <div className={styles.textareaWrapper}>
-                        <textarea
-                          className={styles.textarea}
-                          value={message}
-                          onChange={(e) => setMessage(e.target.value.slice(0, 200))}
-                          maxLength={200}
-                          disabled={isSubmitting}
-                          placeholder="מה תרצו לספר לנו? נשמח לשמוע כל הצעה או בקשה..."
-                          required
-                        />
-                        <div className={`${styles.counter} ${message.length >= 190 ? styles.counterLow : message.length > 0 ? styles.counterValid : ""}`}>
-                          {message.length}/200
-                        </div>
+                    <div className={styles.textareaWrapper}>
+                      <textarea
+                        className={styles.textarea}
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value.slice(0, 200))}
+                        maxLength={200}
+                        disabled={isSubmitting}
+                        placeholder="נשמח לשמוע כל הצעה או בקשה..."
+                        required
+                      />
+                      <div className={`${styles.counter} ${message.length >= 190 ? styles.counterLow : message.length > 0 ? styles.counterValid : ""}`}>
+                        {message.length}/200
                       </div>
+                    </div>
 
                     {status === "error" && (
                       <p className={styles.error}>{errorMessage}</p>

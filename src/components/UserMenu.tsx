@@ -2,8 +2,10 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useUser, useClerk } from "@clerk/nextjs";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { User, Music, Share2, Gift, MessageCircle, BarChart, LogOut } from "lucide-react";
+import { GiPodium } from "react-icons/gi";
 import Link from "next/link";
 import Image from "next/image";
 import styles from "./UserMenu.module.css";
@@ -11,25 +13,26 @@ import { logoutUser } from "@/app/actions/user";
 
 interface UserMenuProps {
   isAdmin: boolean;
-  name?: string;
-  email?: string;
   onOpenPreferences: () => void;
   onOpenContact: () => void;
   onOpenCreditTransfer: () => void;
   onShare: () => void;
+  hasSongs?: boolean;
+  hasFeedbacksGiven?: boolean;
 }
 
 export default function UserMenu({
   isAdmin,
-  name,
-  email,
   onOpenPreferences,
   onOpenContact,
   onOpenCreditTransfer,
-  onShare
+  onShare,
+  hasSongs = false,
+  hasFeedbacksGiven = false
 }: UserMenuProps) {
   const { user, isLoaded } = useUser();
   const { signOut } = useClerk();
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -74,9 +77,9 @@ export default function UserMenu({
         aria-label="User menu"
       >
         {user?.imageUrl ? (
-          <Image 
-            src={user.imageUrl} 
-            alt={user.fullName || "User"} 
+          <Image
+            src={user.imageUrl}
+            alt={user.fullName || "User"}
             className={styles.avatar}
             width={32}
             height={32}
@@ -97,22 +100,56 @@ export default function UserMenu({
             transition={{ duration: 0.15, ease: "easeOut" }}
             className={styles.dropdown}
           >
-            <div className={styles.userInfo}>
-              <span className={styles.userName}>
-                {user?.fullName || name || (email ? email.split('@')[0] : "משתמש בקהילה")}
-              </span>
-              {user?.primaryEmailAddress ? (
-                <span className={styles.userEmail}>
-                  {user.primaryEmailAddress.emailAddress}
-                </span>
-              ) : email ? (
-                <span className={styles.userEmail}>{email}</span>
-              ) : null}
-            </div>
 
             <div className={styles.menuList}>
-              <button className={styles.menuItem} onClick={() => handleAction(onOpenPreferences)}>
+              {/* Navigation Items */}
+              <Link
+                href={hasSongs || hasFeedbacksGiven ? "/dashboard" : "/get-feedback"}
+                className={`${styles.menuItem} ${(pathname?.startsWith('/get-feedback') || pathname?.startsWith('/dashboard')) ? styles.disabled : ''}`}
+                onClick={(e) => {
+                  if (pathname?.startsWith('/get-feedback') || pathname?.startsWith('/dashboard')) e.preventDefault();
+                  else setIsOpen(false);
+                }}
+              >
                 <div className={styles.iconWrapper}><Music size={18} /></div>
+                <span>{(hasSongs || hasFeedbacksGiven) ? "האיזור האישי שלי" : "אני רוצה לקבל פידבק"}</span>
+              </Link>
+
+              <Link
+                href="/give-feedback"
+                className={`${styles.menuItem} ${pathname?.startsWith('/give-feedback') ? styles.disabled : ''}`}
+                onClick={(e) => {
+                  if (pathname?.startsWith('/give-feedback')) e.preventDefault();
+                  else setIsOpen(false);
+                }}
+              >
+                <div className={styles.iconWrapper}>
+                  <Image
+                    src="/LogoMenu.png"
+                    alt="פידבק ספייס"
+                    width={18}
+                    height={18}
+                  />
+                </div>
+                <span>אני רוצה לתת פידבק</span>
+              </Link>
+
+              <Link
+                href="/top-rated"
+                className={`${styles.menuItem} ${pathname?.startsWith('/top-rated') ? styles.disabled : ''}`}
+                onClick={(e) => {
+                  if (pathname?.startsWith('/top-rated')) e.preventDefault();
+                  else setIsOpen(false);
+                }}
+              >
+                <div className={styles.iconWrapper}><GiPodium size={18} /></div>
+                <span>היכל התהילה</span>
+              </Link>
+
+              <div className={styles.divider} />
+
+              <button className={styles.menuItem} onClick={() => handleAction(onOpenPreferences)}>
+                <div className={styles.iconWrapper}><User size={18} /></div>
                 <span>כרטיס ביקור מוזיקלי</span>
               </button>
 
@@ -128,7 +165,7 @@ export default function UserMenu({
 
               <button className={styles.menuItem} onClick={() => handleAction(onOpenContact)}>
                 <div className={styles.iconWrapper}><MessageCircle size={18} /></div>
-                <span>צרו איתנו קשר</span>
+                <span>דברו אלינו</span>
               </button>
 
               {isAdmin && (

@@ -12,10 +12,10 @@ import ArtistSocials from "@/components/ArtistSocials";
 import PopupMsg from "@/components/PopupMsg";
 import { MIN_LISTEN_TIME } from "@/lib/constants";
 import { logAction } from "@/app/actions/logs";
-import RegistrationGate from "@/components/RegistrationGate";
 import Typewriter from "@/components/Typewriter";
 import { useUtmMode } from "@/hooks/useUtmMode";
 import { isYouTubeUrl, isAudioUrl } from "@/lib/song-validation";
+import { openRegistrationGate } from "@/lib/auth-events";
 import styles from "./feed.module.css";
 
 function formatTime(timeInSeconds: number) {
@@ -104,6 +104,19 @@ export default function FeedContainer({
   const isCheckingGuest = !isUtmLoaded;
 
   const playerRef = useRef<UrlPlayerHandle>(null);
+
+  // Handle auth gate via global Navbar registration gate
+  const shouldShowAuth = (!isLoggedIn && !isCheckingGuest && !isGuestEligible);
+  
+  useEffect(() => {
+    if (shouldShowAuth) {
+      openRegistrationGate({
+        type: "give-feedback",
+        redirectUrl: typeof window !== 'undefined' ? window.location.pathname + window.location.search : undefined,
+        onClose: () => { window.location.href = "/"; }
+      });
+    }
+  }, [shouldShowAuth]);
 
   const markSongAsRatedInSession = useCallback((songId: string) => {
     try {
@@ -473,19 +486,6 @@ export default function FeedContainer({
         buttonText="הבנתי, בואו ניתן קצת פידבק לאחרים"
       />
 
-      {/* Hard block only for organic traffic (not from Ads) */}
-      <RegistrationGate
-        isOpen={!isLoggedIn && !isCheckingGuest && !isGuestEligible}
-        type="give-feedback"
-        onClose={() => {
-          // Return to home if organic user dismisses without logging in
-          window.location.href = "/";
-        }}
-        onSuccess={() => {
-          window.location.reload();
-        }}
-        redirectUrl={typeof window !== 'undefined' ? window.location.pathname + window.location.search : undefined}
-      />
     </div>
   );
 }

@@ -12,12 +12,12 @@ import { isYouTubeUrl, isShortsUrl, isPlaylistUrl, SONG_VALIDATION_MESSAGES, val
 import { useRouter } from "next/navigation";
 import styles from "./get-feedback.module.css";
 import { GENRES, SONG_SUBMISSION_COST, MAX_FILE_SIZE, MAX_FILE_SIZE_MB, MAX_SONG_NAME_LENGTH, MIN_SONG_DURATION_SECONDS } from "@/lib/constants";
-import RegistrationGate from "@/components/RegistrationGate";
 import PageHeader from "@/components/PageHeader";
 import Button from "@/components/ui/Button";
 import PopupMsg from "@/components/PopupMsg";
 import { useUtmMode } from "@/hooks/useUtmMode";
 import PlayButton from "@/components/PlayButton";
+import { openRegistrationGate } from "@/lib/auth-events";
 
 interface GetFeedbackProps {
   backHome?: boolean;
@@ -55,8 +55,22 @@ export default function GetFeedback({
   const [songDuration, setSongDuration] = useState<number>(0);
   const [isShorts, setIsShorts] = useState(false);
   const [isPlaylist, setIsPlaylist] = useState(false);
-  const [showAuthGate, setShowAuthGate] = useState(false);
   const router = useRouter();
+  
+  const { isUtmMode: isGuestEligible, isLoaded: isUtmLoaded } = useUtmMode();
+  const isCheckingGuest = !isUtmLoaded;
+
+  // Handle auth gate via global Navbar registration gate
+  const shouldShowAuth = (!isLoggedIn && !isCheckingGuest && !isGuestEligible);
+  
+  useEffect(() => {
+    if (shouldShowAuth) {
+      openRegistrationGate({
+        type: "get-feedback",
+        onClose: () => { window.location.href = "/"; }
+      });
+    }
+  }, [shouldShowAuth]);
 
   useEffect(() => {
     if (songTitle) {
@@ -84,8 +98,6 @@ export default function GetFeedback({
     }
   }, [songLink]);
 
-  const { isUtmMode: isGuestEligible, isLoaded: isUtmLoaded } = useUtmMode();
-  const isCheckingGuest = !isUtmLoaded;
 
   useEffect(() => {
     if (isLoggedIn && initialTokens < SONG_SUBMISSION_COST) {
@@ -301,7 +313,7 @@ export default function GetFeedback({
         const dest = backHome ? "/dashboard?backHome=true" : "/dashboard";
         router.push(dest);
       } else if (result.error === "AUTH_REQUIRED") {
-        setShowAuthGate(true);
+        openRegistrationGate({ type: "get-feedback", forceShowForm: true });
         setStatus("idle");
       } else {
         setErrorMessage(result.error || "שגיאה בביצוע הפעולה");
@@ -750,18 +762,6 @@ export default function GetFeedback({
           />
         </form>
       </motion.div>
-      <RegistrationGate
-        isOpen={(!isLoggedIn && !isCheckingGuest && !isGuestEligible) || showAuthGate}
-        type="get-feedback"
-        forceShowForm={showAuthGate}
-        onClose={() => {
-          if (showAuthGate) {
-            setShowAuthGate(false);
-          } else {
-            window.location.href = "/";
-          }
-        }}
-      />
     </div>
   );
 }
