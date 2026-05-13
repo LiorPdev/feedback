@@ -69,8 +69,6 @@ async function NavbarWrapper() {
       <Navbar
         isLoggedIn={!!dbUser}
         initialTokens={dbUser?.tokens ?? 0}
-        initialName={dbUser?.name || ""}
-        initialEmail={dbUser?.email || ""}
         isAdmin={dbUser?.email === ADMIN_EMAIL}
       />
     </>
