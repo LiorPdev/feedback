@@ -38,6 +38,7 @@ export default function Navbar({ isLoggedIn, initialTokens, isAdmin }: NavbarPro
   const [tokens, setTokens] = useState<number | null>(isLoggedIn ? initialTokens : null);
   const [displayedTokens, setDisplayedTokens] = useState<number | null>(isLoggedIn ? initialTokens : null);
   const [unreadCount, setUnreadCount] = useState<number>(0);
+  const [unreadSongsCount, setUnreadSongsCount] = useState<number>(0);
   const [firstUnreadSlug, setFirstUnreadSlug] = useState<string | null>(null);
   const [glowMode, setGlowMode] = useState<"positive" | "negative" | null>(null);
   const [showTokensInfo, setShowTokensInfo] = useState(false);
@@ -88,6 +89,9 @@ export default function Navbar({ isLoggedIn, initialTokens, isAdmin }: NavbarPro
             if (result.unreadFeedbacksCount !== undefined) {
               setUnreadCount(result.unreadFeedbacksCount);
             }
+            if (result.uniqueSongsCount !== undefined) {
+              setUnreadSongsCount(result.uniqueSongsCount);
+            }
             if (result.firstUnreadSongSlug !== undefined) {
               setFirstUnreadSlug(result.firstUnreadSongSlug);
             }
@@ -118,13 +122,24 @@ export default function Navbar({ isLoggedIn, initialTokens, isAdmin }: NavbarPro
           getMyGivenFeedbacksCount()
         ]);
         
-        if (result.success && result.tokens !== undefined) {
-          setTokens(prev => {
-            if (prev !== null && result.tokens !== prev) {
-              setGlowMode(result.tokens > prev ? "positive" : "negative");
-            }
-            return result.tokens;
-          });
+        if (result.success) {
+          if (result.tokens !== undefined) {
+            setTokens(prev => {
+              if (prev !== null && result.tokens !== prev) {
+                setGlowMode(result.tokens > prev ? "positive" : "negative");
+              }
+              return result.tokens;
+            });
+          }
+          if (result.unreadFeedbacksCount !== undefined) {
+            setUnreadCount(result.unreadFeedbacksCount);
+          }
+          if (result.uniqueSongsCount !== undefined) {
+            setUnreadSongsCount(result.uniqueSongsCount);
+          }
+          if (result.firstUnreadSongSlug !== undefined) {
+            setFirstUnreadSlug(result.firstUnreadSongSlug);
+          }
         }
         setHasSongs(songResult.success && songResult.count > 0);
         setHasFeedbacksGiven(feedbackCount > 0);
@@ -275,7 +290,7 @@ export default function Navbar({ isLoggedIn, initialTokens, isAdmin }: NavbarPro
               {unreadCount > 0 && (
                 <div className={styles.tokenWrapper}>
                   <Link
-                    href={pathname === "/dashboard" && firstUnreadSlug ? `/show-feedback/${firstUnreadSlug}` : "/dashboard?tab=songs"}
+                    href={unreadSongsCount === 1 && firstUnreadSlug ? `/show-feedback/${firstUnreadSlug}` : "/dashboard?tab=songs"}
                     className={styles.unreadBadge}
                     onClick={() => setShowUnreadInfo(!showUnreadInfo)}
                     ref={unreadTriggerRef}

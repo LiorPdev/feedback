@@ -83,6 +83,7 @@ export async function getUserData() {
     const unreadData = await db
       .select({ 
         count: sql<number>`count(*)`,
+        uniqueSongsCount: sql<number>`count(distinct ${songs.id})`,
         firstSlug: sql<string>`MAX(${songs.slug})`
       })
       .from(feedbacks)
@@ -104,6 +105,7 @@ export async function getUserData() {
       userGenre: dbUser.userGenre ?? null,
       socialLinks: dbUser.socialLinks ?? null,
       unreadFeedbacksCount: stats?.count ?? 0,
+      uniqueSongsCount: stats?.uniqueSongsCount ?? 0,
       firstUnreadSongSlug: stats?.firstSlug ?? null
     };
   } catch (error) {
