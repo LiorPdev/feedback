@@ -18,7 +18,7 @@ interface SongWithFeedbacks {
 
 interface SongRatingsChartProps {
   songs: SongWithFeedbacks[];
-  type?: "retention" | "trueRating";
+  type?: "retention" | "trueRating" | "weightedScore";
   globalAverage?: number;
   minThreshold?: number;
 }
@@ -28,6 +28,7 @@ interface ChartDataPoint {
   avgOverall: number;
   avgListenTime: number;
   trueRating: number;
+  weightedScore: number;
   userAverage: number;
   feedbacksCount: number;
   listenersCount: number;
@@ -64,14 +65,14 @@ export default function SongRatingsChart({ songs, type = "trueRating", globalAve
         const events = (song.listenEvents || []) as { playedSeconds: number }[];
 
         const isRetention = type === 'retention';
+        const isWeighted = type === 'weightedScore';
         const hasFeedbacks = fbs.length > 0;
         const hasEvents = events.length > 0;
 
         // FILTERING LOGIC:
-        // 1. For score-based charts (general, categories, trueRating), 
-        //    we MUST have at least one feedback.
-        // 2. For retention charts, we just need activity (feedback OR listen event).
         if (isRetention) {
+          if (!hasFeedbacks && !hasEvents) return null;
+        } else if (isWeighted) {
           if (!hasFeedbacks && !hasEvents) return null;
         } else {
           if (!hasFeedbacks) return null;
@@ -101,11 +102,22 @@ export default function SongRatingsChart({ songs, type = "trueRating", globalAve
           ? allPlayTimes.reduce((sum, t) => sum + t, 0) / allPlayTimes.length
           : 0;
 
+        // Promotion weighted score calculation (0 to 100)
+        // 45% Rating (scale 1-10 -> 0-100)
+        const normRating = (trueRating / 10) * 100;
+        // 45% Listen Time (cap at 120s -> 0-100)
+        const normListen = Math.min(avgListenTime / 120, 1) * 100;
+        // 10% Statistical confidence (cap at 5 feedbacks -> 0-100)
+        const normCount = Math.min(count / 5, 1) * 100;
+
+        const weightedScore = Math.round((normRating * 0.45) + (normListen * 0.45) + (normCount * 0.10));
+
         return {
           songTitle: song.title,
           avgOverall: Math.round(songAvgRating * 10) / 10,
           avgListenTime: Math.round(avgListenTime),
           trueRating: Math.round(trueRating * 100) / 100,
+          weightedScore,
           userAverage: Math.round(userAverage * 10) / 10,
           feedbacksCount: count,
           listenersCount: allPlayTimes.length,
@@ -113,12 +125,11 @@ export default function SongRatingsChart({ songs, type = "trueRating", globalAve
       })
       .filter(Boolean);
 
-
-
     return baseData.sort((a, b) => {
       if (!a || !b) return 0;
       if (type === 'trueRating') return b.trueRating - a.trueRating;
       if (type === 'retention') return b.avgListenTime - a.avgListenTime;
+      if (type === 'weightedScore') return b.weightedScore - a.weightedScore;
       return 0;
     }) as ChartDataPoint[];
 
@@ -131,7 +142,9 @@ export default function SongRatingsChart({ songs, type = "trueRating", globalAve
         <p className={styles.noDataSubText}>
           {type === 'retention'
             ? "שירים יופיעו כאן לאחר שתהיה בהם פעילות האזנה."
-            : "שירים יופיעו כאן לאחר שיקבלו פידבקים מהקהילה."}
+            : type === 'weightedScore'
+              ? "שירים יופיעו כאן לאחר שתהיה בהם פעילות האזנה או דירוגים."
+              : "שירים יופיעו כאן לאחר שיקבלו פידבקים מהקהילה."}
         </p>
       </div>
     );
@@ -154,6 +167,10 @@ export default function SongRatingsChart({ songs, type = "trueRating", globalAve
             <linearGradient id="colorRetentionGradient" x1="0" y1="0" x2="1" y2="0">
               <stop offset="0%" stopColor="#6d28d9" stopOpacity={1} />
               <stop offset="100%" stopColor="#c084fc" stopOpacity={1} />
+            </linearGradient>
+            <linearGradient id="colorWeightedGradient" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#881221ff" stopOpacity={1} />
+              <stop offset="100%" stopColor="#9ba233ff" stopOpacity={1} />
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" horizontal={false} vertical={true} stroke="#f0f0f0" />
@@ -222,9 +239,17 @@ export default function SongRatingsChart({ songs, type = "trueRating", globalAve
                         ממוצע האזנה: {Math.floor(data.avgListenTime / 60)}:{String(data.avgListenTime % 60).padStart(2, '0')} דקות
                       </p>
                     )}
+                    {type === 'weightedScore' && (
+                      <div className={styles.tooltipTrueRatingWrapper}>
+                        <p className={styles.tooltipTrueRatingTitle}>המלצה לקידום השיר: {data.weightedScore}/100</p>
+                        <p className={styles.tooltipTrueRatingDesc}>
+                          משקלל 45% דירוג איכות ({data.trueRating}), 45% זמן האזנה ({Math.floor(data.avgListenTime / 60)}:{String(data.avgListenTime % 60).padStart(2, '0')} {"דק'"}), ו-10% ביטחון סטטיסטי ({data.feedbacksCount} מדרגים).
+                        </p>
+                      </div>
+                    )}
 
                     <p className={styles.tooltipFooter}>
-                      {type === 'retention' ? `סה"כ האזנות שחושבו: ${data.listenersCount}` : `מספר מדרגים: ${data.feedbacksCount}`}
+                      {type === 'retention' ? `סה"כ האזנות שחושבו: ${data.listenersCount}` : type === 'weightedScore' ? `מבוסס על ${data.feedbacksCount} מדרגים ו-${data.listenersCount} האזנות` : `מספר מדרגים: ${data.feedbacksCount}`}
                     </p>
                   </div>
                 );
@@ -235,9 +260,9 @@ export default function SongRatingsChart({ songs, type = "trueRating", globalAve
 
 
           <Bar
-            name={type === 'trueRating' ? "מדד איכות" : "ממוצע האזנה"}
-            dataKey={type === 'trueRating' ? "trueRating" : "avgListenTime"}
-            fill={type === 'trueRating' ? "url(#colorRatingGradient)" : "url(#colorRetentionGradient)"}
+            name={type === 'trueRating' ? "מדד איכות" : type === 'retention' ? "ממוצע האזנה" : "מדד משוקלל"}
+            dataKey={type === 'trueRating' ? "trueRating" : type === 'retention' ? "avgListenTime" : "weightedScore"}
+            fill={type === 'trueRating' ? "url(#colorRatingGradient)" : type === 'retention' ? "url(#colorRetentionGradient)" : "url(#colorWeightedGradient)"}
             radius={[0, 4, 4, 0]}
             maxBarSize={100}
           />

@@ -17,6 +17,7 @@ interface PageHeaderProps {
   variant?: 'default' | 'compact' | 'hero';
   align?: 'start' | 'center';
   hideDivider?: boolean;
+  afterTitle?: ReactNode;
 }
 
 export default function PageHeader({
@@ -31,6 +32,7 @@ export default function PageHeader({
   variant = 'default',
   align = 'start',
   hideDivider = false,
+  afterTitle,
 }: PageHeaderProps) {
   const router = useRouter();
 
@@ -45,7 +47,7 @@ export default function PageHeader({
   };
 
   return (
-    <header className={`${styles.header} ${styles[variant]} ${hideDivider ? styles.noDivider : ""} ${className}`}>
+    <header className={`${styles.header} ${styles[variant] || ""} ${hideDivider ? styles.noDivider : ""} ${className}`.trim()}>
       <div className={styles.rightSection}>
         {showBack && (
           <button 
@@ -59,8 +61,11 @@ export default function PageHeader({
         )}
       </div>
 
-      <div className={`${styles.centerSection} ${styles[align]}`}>
-        <h1 className={styles.title}>{title}</h1>
+      <div className={`${styles.centerSection} ${styles[align] || ""}`.trim()}>
+        <div className={styles.titleWrapper}>
+          <h1 className={styles.title}>{title}</h1>
+          {afterTitle && <div className={styles.afterTitle}>{afterTitle}</div>}
+        </div>
         {subtitle && <div className={styles.subtitle}>{subtitle}</div>}
       </div>
 

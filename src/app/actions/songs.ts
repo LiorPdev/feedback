@@ -1050,6 +1050,49 @@ export async function getTopRatedSongs(): Promise<{ success: boolean; songs?: To
     }
 }
 
+export interface TopListenedSong {
+    id: string;
+    title: string;
+    url: string;
+    genre: string;
+    artist: string | null;
+    slug: string;
+    userId: string;
+    socialLinks: string | null;
+    averageListenSeconds: number;
+    totalListens: number;
+}
+
+export async function getTopListenedSongs(): Promise<{ success: boolean; songs?: TopListenedSong[]; error?: string }> {
+    const db = await getDb();
+    try {
+        const topSongs = await db.select({
+            id: songs.id,
+            title: songs.title,
+            url: songs.url,
+            genre: songs.genre,
+            artist: songs.artist,
+            slug: songs.slug,
+            userId: songs.userId,
+            socialLinks: users.socialLinks,
+            averageListenSeconds: sql<number>`CAST(AVG(${listenEvents.playedSeconds}) AS REAL)`,
+            totalListens: sql<number>`count(${listenEvents.id})`,
+        })
+            .from(songs)
+            .innerJoin(listenEvents, eq(songs.id, listenEvents.songId))
+            .innerJoin(users, eq(songs.userId, users.id)) // Song owner
+            .where(eq(songs.isActive, true))
+            .groupBy(songs.id)
+            .orderBy(sql`AVG(${listenEvents.playedSeconds}) DESC`, songs.id)
+            .limit(10);
+
+        return { success: true, songs: topSongs };
+    } catch (error) {
+        await logToDb({ message: "Failed to fetch top listened songs", data: error, source: "songs.ts:getTopListenedSongs" });
+        return { success: false, error: "שגיאה בטעינת השירים המואזנים ביותר" };
+    }
+}
+
 /**
  * Checks if any song in the current Top 10 should receive a notification.
  * Logic for non-developers:

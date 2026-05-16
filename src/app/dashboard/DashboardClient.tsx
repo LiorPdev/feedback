@@ -168,7 +168,7 @@ export default function DashboardClient({
   const urlTab = searchParams.get('tab') as "songs" | "insights" | "myFeedbacks" | null;
   const activeTab = urlTab || (onlyFeedbacksGiven ? "myFeedbacks" : "songs");
 
-  const [chartType, setChartType] = useState<"retention" | "trueRating">("trueRating");
+  const [chartType, setChartType] = useState<"retention" | "trueRating" | "weightedScore">("trueRating");
 
   const handleTabChange = useCallback((tab: "songs" | "insights" | "myFeedbacks") => {
     const params = new URLSearchParams(searchParams.toString());
@@ -248,11 +248,12 @@ export default function DashboardClient({
               className={styles.chartSelector}
               value={chartType}
               onChange={(e) => {
-                setChartType(e.target.value as "retention" | "trueRating");
+                setChartType(e.target.value as "retention" | "trueRating" | "weightedScore");
                 e.target.blur();
               }}
             >
-              <option value="trueRating">מדד איכות משוקלל</option>
+              <option value="weightedScore">מדד משוקלל</option>
+              <option value="trueRating">מדד הדירוג</option>
               <option value="retention">מדד האזנה</option>
             </select>
 
