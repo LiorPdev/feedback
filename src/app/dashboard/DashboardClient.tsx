@@ -168,7 +168,7 @@ export default function DashboardClient({
   const urlTab = searchParams.get('tab') as "songs" | "insights" | "myFeedbacks" | null;
   const activeTab = urlTab || (onlyFeedbacksGiven ? "myFeedbacks" : "songs");
 
-  const [chartType, setChartType] = useState<"retention" | "trueRating" | "weightedScore">("trueRating");
+  const [chartType, setChartType] = useState<"retention" | "trueRating" | "weightedScore">("weightedScore");
 
   const handleTabChange = useCallback((tab: "songs" | "insights" | "myFeedbacks") => {
     const params = new URLSearchParams(searchParams.toString());
