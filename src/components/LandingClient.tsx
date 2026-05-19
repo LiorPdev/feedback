@@ -24,6 +24,7 @@ import Button from "./ui/Button";
 import { useUtmMode } from "@/hooks/useUtmMode";
 import FeedbacksTypewriter from "./FeedbacksTypewriter";
 import { openRegistrationGate } from "@/lib/auth-events";
+import { useAuth } from "@clerk/nextjs";
 
 // Animation variants
 const fadeInUp = {
@@ -63,6 +64,7 @@ export default function LandingClient({
   const [userGenre, setUserGenre] = useState(initialGenre);
   const [userEmail, setUserEmail] = useState<string | undefined>(undefined);
   const { isUtmMode, utmSource } = useUtmMode();
+  const { userId } = useAuth();
 
   useEffect(() => {
     const handleUpdate = async () => {
@@ -98,12 +100,12 @@ export default function LandingClient({
       window.fbq("track", "Lead");
     }
 
-    if (isClerkUser || isUtmMode) {
+    if (isClerkUser || isUtmMode || userId) {
       const dest = `/get-feedback?backHome=true${utmSource ? `&utm_source=${utmSource}` : ""}`;
       router.push(dest);
     } else {
       openRegistrationGate({
-        type: isLoggedIn ? "complete-registration" : "get-feedback",
+        type: (isLoggedIn || userId) ? "complete-registration" : "get-feedback",
         redirectUrl: "/get-feedback",
         userEmail: userEmail
       });
@@ -113,8 +115,8 @@ export default function LandingClient({
   const handleGiveFeedbackClick = (e?: React.MouseEvent) => {
     if (e) e.preventDefault();
 
-    if (isClerkUser || isUtmMode) {
-      if (isLoggedIn && !userGenre) {
+    if (isClerkUser || isUtmMode || userId) {
+      if ((isLoggedIn || userId) && !userGenre) {
         window.dispatchEvent(new CustomEvent("open-preferences-modal", {
           detail: { redirectTo: "/give-feedback?backHome=true" }
         }));
@@ -124,7 +126,7 @@ export default function LandingClient({
       }
     } else {
       openRegistrationGate({
-        type: isLoggedIn ? "complete-registration" : "give-feedback",
+        type: (isLoggedIn || userId) ? "complete-registration" : "give-feedback",
         redirectUrl: "/give-feedback",
         userEmail: userEmail
       });

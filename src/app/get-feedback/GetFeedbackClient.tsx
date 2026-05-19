@@ -18,6 +18,7 @@ import PopupMsg from "@/components/PopupMsg";
 import { useUtmMode } from "@/hooks/useUtmMode";
 import PlayButton from "@/components/PlayButton";
 import { openRegistrationGate } from "@/lib/auth-events";
+import { useAuth } from "@clerk/nextjs";
 
 interface GetFeedbackProps {
   backHome?: boolean;
@@ -59,9 +60,12 @@ export default function GetFeedback({
   
   const { isUtmMode: isGuestEligible, isLoaded: isUtmLoaded } = useUtmMode();
   const isCheckingGuest = !isUtmLoaded;
+  const { userId, isLoaded: isAuthLoaded } = useAuth();
+  const isUserLoggedIn = isLoggedIn || !!userId;
+  const isCheckingAuth = !isAuthLoaded;
 
   // Handle auth gate via global Navbar registration gate
-  const shouldShowAuth = (!isLoggedIn && !isCheckingGuest && !isGuestEligible);
+  const shouldShowAuth = (!isUserLoggedIn && !isCheckingAuth && !isCheckingGuest && !isGuestEligible);
   
   useEffect(() => {
     if (shouldShowAuth) {
@@ -186,22 +190,30 @@ export default function GetFeedback({
   }, [songLink, submissionType]);
 
   const isPotentialLink = songLink.includes(".") || songLink.includes("://");
+  let isUrlMalformed = false;
+  if (songLink && isPotentialLink) {
+    try {
+      new URL(songLink);
+    } catch {
+      isUrlMalformed = true;
+    }
+  }
   const isSupportedLink = songLink.trim() !== "" && isYouTubeUrl(songLink);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!isLoggedIn && !isGuestEligible) {
+    if (!isUserLoggedIn && !isGuestEligible) {
       setErrorMessage("עליך להיות מחובר כדי לשלוח שיר");
       return;
     }
 
-    if (!isLoggedIn && !guestEmail) {
+    if (!isUserLoggedIn && !guestEmail) {
       setErrorMessage("יש להזין אימייל ליצירת קשר");
       return;
     }
 
-    if (!isLoggedIn && guestEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) {
+    if (!isUserLoggedIn && guestEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) {
       setErrorMessage("כתובת המייל שרשמת אינה תקינה");
       return;
     }
@@ -303,7 +315,7 @@ export default function GetFeedback({
     if (submissionType === "upload") {
       formData.append("duration", songDuration.toString());
     }
-    if (!isLoggedIn && guestEmail) {
+    if (!isUserLoggedIn && guestEmail) {
       formData.append("guestEmail", guestEmail);
     }
 
@@ -476,9 +488,9 @@ export default function GetFeedback({
                   )}
                 </AnimatePresence>
                 <AnimatePresence>
-                  {(songLink.trim() !== "" && isPotentialLink && !isSupportedLink) || isShorts || isPlaylist ? (
+                  {(songLink.trim() !== "" && isPotentialLink && (!isSupportedLink || isUrlMalformed)) || isShorts || isPlaylist ? (
                     <motion.div
-                      className={`${styles.infoWarning} ${(isShorts || isPlaylist || !isSupportedLink) ? styles.infoWarningError : ""}`}
+                      className={`${styles.infoWarning} ${(isShorts || isPlaylist || !isSupportedLink || isUrlMalformed) ? styles.infoWarningError : ""}`}
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
@@ -486,7 +498,8 @@ export default function GetFeedback({
                       <p className={styles.infoMsg}>
                         {isShorts ? SONG_VALIDATION_MESSAGES.NO_SHORTS :
                           isPlaylist ? SONG_VALIDATION_MESSAGES.NO_PLAYLIST :
-                            SONG_VALIDATION_MESSAGES.ONLY_YOUTUBE}
+                            isUrlMalformed ? "קישור לא תקין" :
+                              SONG_VALIDATION_MESSAGES.ONLY_YOUTUBE}
                       </p>
 
                       {songLink.includes("spotify.com") && youtubeAlternative && !isShorts && !isPlaylist && (
@@ -638,7 +651,7 @@ export default function GetFeedback({
           )}
 
           {/* Guest Email Field - Moved here and styled normally */}
-          {!isLoggedIn && isGuestEligible && (
+          {!isUserLoggedIn && isGuestEligible && (
             <>
               <div style={{ height: "20px" }}></div>
               <div className={styles.formGroup}>
@@ -666,7 +679,7 @@ export default function GetFeedback({
                     }
                   }}
                   onInput={(e) => (e.target as HTMLInputElement).setCustomValidity("")}
-                  required={!isLoggedIn && isGuestEligible}
+                  required={!isUserLoggedIn && isGuestEligible}
                 />
                 <p className={styles.tipText}>
                   למה? בלי זיהוי כלשהו, אין לנו דרך לשייך אליך את השיר ולשלוח את התגובות מהקהילה.

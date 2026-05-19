@@ -805,6 +805,12 @@ async function searchYouTube(query: string, targetDuration?: number) {
 }
 
 export async function getURLMetadata(url: string) {
+    try {
+        new URL(url);
+    } catch {
+        return { success: false, error: "קישור לא תקין" };
+    }
+
     if (isShortsUrl(url)) {
         return { success: false, error: SONG_VALIDATION_MESSAGES.NO_SHORTS };
     }

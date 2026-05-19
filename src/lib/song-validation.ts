@@ -36,6 +36,12 @@ export function validateSongUrl(url: string): { success: boolean; error?: string
 
   if (!normalizedUrl) return { success: true };
 
+  try {
+    new URL(normalizedUrl);
+  } catch {
+    return { success: false, error: "קישור לא תקין" };
+  }
+
   const isYT = isYouTubeUrl(normalizedUrl);
   const isR2 = isR2Url(normalizedUrl);
 
