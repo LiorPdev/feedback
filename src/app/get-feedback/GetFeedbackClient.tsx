@@ -57,7 +57,7 @@ export default function GetFeedback({
   const [isShorts, setIsShorts] = useState(false);
   const [isPlaylist, setIsPlaylist] = useState(false);
   const router = useRouter();
-  
+
   const { isUtmMode: isGuestEligible, isLoaded: isUtmLoaded } = useUtmMode();
   const isCheckingGuest = !isUtmLoaded;
   const { userId, isLoaded: isAuthLoaded } = useAuth();
@@ -66,7 +66,7 @@ export default function GetFeedback({
 
   // Handle auth gate via global Navbar registration gate
   const shouldShowAuth = (!isUserLoggedIn && !isCheckingAuth && !isCheckingGuest && !isGuestEligible);
-  
+
   useEffect(() => {
     if (shouldShowAuth) {
       openRegistrationGate({
@@ -637,10 +637,10 @@ export default function GetFeedback({
             <>
               <div style={{ height: "20px" }}></div>
               <div className={styles.formGroup}>
-                <label className={styles.label}>כמה מילים על השיר (אופציונלי)</label>
+                <label className={styles.label}>כמה מילים על השיר (מאוד מומלץ)</label>
                 <textarea
                   className={styles.textarea}
-                  placeholder="למשל: אשמח להתייחסות לסאונד של השירה, או האם הפזמון מספיק קליט.."
+                  placeholder="כשאנשים מקשיבים לשיר שלכם, החיבור אליו יהיה חזק בהרבה אם הם יכירו את הסיפור שלכם."
                   value={fewWords}
                   onChange={(e) => setFewWords(e.target.value.substring(0, 70))}
                   rows={2}

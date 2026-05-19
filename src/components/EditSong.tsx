@@ -186,10 +186,10 @@ export default function EditSong({ song }: EditSongProps) {
               </div>
 
               <div className={styles.field}>
-                <label className={styles.label}>כמה מילים על השיר (אופציונלי)</label>
+                <label className={styles.label}>כמה מילים על השיר (מאוד מומלץ)</label>
                 <textarea
                   className={styles.textarea}
-                  placeholder="למשל: אשמח להתייחסות לסאונד של השירה, או האם הפזמון מספיק קליט.."
+                  placeholder="כשאנשים מקשיבים לשיר שלכם, החיבור אליו יהיה חזק בהרבה אם הם יכירו את הסיפור שלכם."
                   value={fewWords}
                   onChange={(e) => setFewWords(e.target.value.substring(0, 70))}
                   rows={2}
