@@ -179,8 +179,7 @@ export default function SongRatingsChart({ songs, type = "trueRating", globalAve
             domain={[0, 'dataMax']}
             ticks={undefined}
             allowDecimals={true}
-            tick={false}
-            axisLine={false}
+            hide={true}
           />
 
           <YAxis
