@@ -77,9 +77,12 @@ export const syncUser = cache(async () => {
 
       // Metadata Sync or Weekly Refresh
       if (dbUser) {
+        // Only sync name from Clerk if the name in the DB is currently null/empty.
+        // This prevents overriding names updated customly by users (e.g. via song artist updates).
+        const shouldSyncName = !dbUser.name && !!name;
         const needsSync =
           dbUser.email !== email ||
-          dbUser.name !== name ||
+          shouldSyncName ||
           dbUser.provider !== provider ||
           dbUser.providerId !== providerId;
 
@@ -95,7 +98,7 @@ export const syncUser = cache(async () => {
         const [syncedUser] = await db.update(users)
           .set({
             email,
-            name,
+            name: dbUser.name || name,
             provider,
             providerId,
             updatedAt: new Date().toISOString(),

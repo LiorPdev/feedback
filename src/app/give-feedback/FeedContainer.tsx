@@ -32,6 +32,7 @@ interface Song {
   url: string;
   slug: string;
   fewWords?: string | null;
+  artist?: string | null;
   user?: {
     name: string | null;
     socialLinks?: string | null;
@@ -107,7 +108,7 @@ export default function FeedContainer({
 
   // Handle auth gate via global Navbar registration gate
   const shouldShowAuth = (!isLoggedIn && !isCheckingGuest && !isGuestEligible);
-  
+
   useEffect(() => {
     if (shouldShowAuth) {
       openRegistrationGate({
@@ -326,7 +327,12 @@ export default function FeedContainer({
           </div>
 
           <div className={styles.headerCenter}>
-            <h2 className={styles.title}>{currentSong.title}</h2>
+            <h2
+              className={styles.title}
+              title={currentSong.artist || currentSong.user?.name || "אמן לא ידוע"}
+            >
+              {currentSong.title}
+            </h2>
             {currentSong.genre && (
               <span className={styles.genreInline}>({currentSong.genre})</span>
             )}

@@ -82,6 +82,7 @@ export async function getAdminFeedbacksReport() {
             overall: feedbacks.overall,
             comment: feedbacks.comment,
             isLiked: feedbacks.isLiked,
+            isUnlocked: feedbacks.isUnlocked,
             songSlug: songs.slug,
             songUrl: songs.url
         })

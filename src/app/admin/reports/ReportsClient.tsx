@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { getAdminSongsReport, getAdminFeedbacksReport, getAdminUsersReport, getAdminLogsReport, getAdminTopRatedReport, deleteAdminFeedback, deleteAdminSong, getAdminWakeUpReport, getSongFeedbacks, generateAIFeedback, getAdminUnreadFeedbacksReport, sendUnreadReminderAction } from '@/app/actions/admin';
-import { ArrowUpDown, ArrowUp, ArrowDown, Trash2, Heart, Copy, Meh, Check, ExternalLink, RefreshCw, Sparkles, Code, Mail } from 'lucide-react';
+import { ArrowUpDown, ArrowUp, ArrowDown, Trash2, Heart, Copy, Meh, Check, RefreshCw, Sparkles, Code, Mail } from 'lucide-react';
 import { isSongPromoted } from '@/lib/utils';
 import { AI_SUMMARIZE_PROMPT } from '@/lib/ai-constants';
 import styles from './reports.module.css';
@@ -292,11 +292,11 @@ export function ReportsClient() {
                                     <th className={styles.checkboxCol}></th>
                                     <SortHeader label="תאריך" sortKey="createdAt" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="שם השיר" sortKey="songTitle" sortConfig={sortConfig} onSort={handleSort} />
-                                    <th style={{ width: '60px', textAlign: 'center' }}>קישור</th>
                                     <SortHeader label="מעלה השיר" sortKey="songCreatorName" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="שם המדרג" sortKey="authorName" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="ציון" sortKey="overall" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="לייק" sortKey="isLiked" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="נקרא" sortKey="isUnlocked" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="הערה" sortKey="comment" sortConfig={sortConfig} onSort={handleSort} />
                                 </tr>
                             ) : reportType === 'top-rated' ? (
@@ -366,17 +366,22 @@ export function ReportsClient() {
                                                 />
                                             </td>
                                             <td>{formatDate(item.createdAt)}</td>
-                                            <td
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    navigator.clipboard.writeText(item.url);
-                                                    alert('קישור השיר הועתק לזיכרון');
-                                                }}
-                                                style={{ cursor: 'pointer', textDecoration: 'underline' }}
-                                                title="העתק קישור לשיר (יוטיוב/קובץ)"
-                                            >
-                                                {item.title}
-                                            </td>
+                                            <td>
+                                                 {item.url ? (
+                                                     <a
+                                                         href={item.url}
+                                                         target="_blank"
+                                                         rel="noopener noreferrer"
+                                                         style={{ cursor: 'pointer', textDecoration: 'underline', color: 'inherit' }}
+                                                         title="פתח קישור לשיר"
+                                                         onClick={(e) => e.stopPropagation()}
+                                                     >
+                                                         {item.title}
+                                                     </a>
+                                                 ) : (
+                                                     item.title
+                                                 )}
+                                             </td>
                                             <td>{item.creatorEmail}</td>
                                             <td style={{ textAlign: 'center' }}>{item.creatorTokens}</td>
                                             <td>{item.lastFeedbackAt ? formatDate(item.lastFeedbackAt) : '-'}</td>
@@ -414,19 +419,20 @@ export function ReportsClient() {
                                                 />
                                             </td>
                                             <td>{formatDate(item.createdAt)}</td>
-                                            <td>{item.songTitle}</td>
-                                            <td style={{ textAlign: 'center' }}>
-                                                {item.songUrl && (
+                                            <td>
+                                                {item.songUrl ? (
                                                     <a
                                                         href={item.songUrl}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className={styles.linkIcon}
+                                                        style={{ cursor: 'pointer', textDecoration: 'underline', color: 'inherit' }}
                                                         title="פתח קישור לשיר"
                                                         onClick={(e) => e.stopPropagation()}
                                                     >
-                                                        <ExternalLink size={18} />
+                                                        {item.songTitle}
                                                     </a>
+                                                ) : (
+                                                    item.songTitle
                                                 )}
                                             </td>
                                             <td>
@@ -451,6 +457,13 @@ export function ReportsClient() {
                                                     <Meh size={18} color="#ef4444" />
                                                 ) : (
                                                     <span style={{ color: 'var(--text-muted)', opacity: 0.3 }}>-</span>
+                                                )}
+                                            </td>
+                                            <td style={{ textAlign: 'center' }}>
+                                                {item.isUnlocked ? (
+                                                    <span style={{ color: '#22c55e', fontWeight: 'bold' }}>כן</span>
+                                                ) : (
+                                                    <span style={{ color: '#ef4444', fontWeight: 'bold' }}>לא</span>
                                                 )}
                                             </td>
                                             <td>
