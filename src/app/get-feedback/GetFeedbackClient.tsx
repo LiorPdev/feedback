@@ -25,16 +25,19 @@ interface GetFeedbackProps {
   isLoggedIn: boolean;
   initialHasSongs: boolean;
   initialTokens: number;
+  initialArtistName?: string;
 }
 
 export default function GetFeedback({
   backHome = false,
   isLoggedIn,
   initialHasSongs,
-  initialTokens
+  initialTokens,
+  initialArtistName = ""
 }: GetFeedbackProps) {
   const [songLink, setSongLink] = useState("");
   const [songTitle, setSongTitle] = useState("");
+  const [artistName, setArtistName] = useState(initialArtistName);
   const [selectedGenre, setSelectedGenre] = useState("");
   const [fewWords, setFewWords] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success">("idle");
@@ -78,10 +81,23 @@ export default function GetFeedback({
 
   useEffect(() => {
     if (songTitle) {
-      const el = document.querySelector(`input[placeholder="איך שיר נולד..."]`) as HTMLInputElement;
+      const el = document.querySelector(`input[placeholder="שם השיר..."]`) as HTMLInputElement;
       if (el) el.setCustomValidity("");
     }
   }, [songTitle]);
+
+  useEffect(() => {
+    if (artistName) {
+      const el = document.querySelector(`input[placeholder="שם האמן..."]`) as HTMLInputElement;
+      if (el) el.setCustomValidity("");
+    }
+  }, [artistName]);
+
+  useEffect(() => {
+    if (initialArtistName) {
+      setArtistName(initialArtistName);
+    }
+  }, [initialArtistName]);
 
   useEffect(() => {
     if (selectedGenre) {
@@ -222,6 +238,10 @@ export default function GetFeedback({
       setErrorMessage("יש להזין את שם השיר");
       return;
     }
+    if (!artistName) {
+      setErrorMessage("יש להזין את שם האמן");
+      return;
+    }
     if (!selectedGenre) {
       setErrorMessage("יש לבחור סגנון לשיר");
       return;
@@ -308,6 +328,7 @@ export default function GetFeedback({
     const formData = new FormData();
     formData.append("url", finalUrl);
     formData.append("title", songTitle);
+    formData.append("artist", artistName);
     formData.append("genre", selectedGenre);
     if (!isGuestEligible && fewWords) {
       formData.append("fewWords", fewWords);
@@ -592,29 +613,48 @@ export default function GetFeedback({
             )}
           </div>
 
-          <div style={{ height: "20px" }}></div>
+          <div style={{ height: "16px" }}></div>
           <div className={styles.formGroup}>
-            <label className={styles.label}>
-              שם השיר
+            <div className={styles.inputWrapper}>
+              <input
+                type="text"
+                className={styles.input}
+                placeholder="שם השיר..."
+                value={songTitle}
+                onChange={(e) => setSongTitle(e.target.value.substring(0, MAX_SONG_NAME_LENGTH))}
+                onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity("אנא הזינו את שם השיר")}
+                onInput={(e) => (e.target as HTMLInputElement).setCustomValidity("")}
+                required
+                maxLength={MAX_SONG_NAME_LENGTH}
+                aria-label="שם השיר"
+              />
               {isFetchingMetadata && (
-                <span className={styles.fetchingIndicator}> (מחפש כותרת...)</span>
+                <div className={styles.inputSpinner}>
+                  <div className={styles.spinnerSmall} />
+                </div>
               )}
-            </label>
-            <input
-              type="text"
-              className={styles.input}
-              placeholder="איך שיר נולד..."
-              value={songTitle}
-              onChange={(e) => setSongTitle(e.target.value.substring(0, MAX_SONG_NAME_LENGTH))}
-              onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity("אנא הזינו את שם השיר")}
-              onInput={(e) => (e.target as HTMLInputElement).setCustomValidity("")}
-              required
-              maxLength={MAX_SONG_NAME_LENGTH}
-            />
+            </div>
+          </div>
+
+          <div style={{ height: "16px" }}></div>
+          <div className={styles.formGroup}>
+            <div className={styles.inputWrapper}>
+              <input
+                type="text"
+                className={styles.input}
+                placeholder="שם האמן..."
+                value={artistName}
+                onChange={(e) => setArtistName(e.target.value.substring(0, 50))}
+                onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity("אנא הזינו את שם האמן")}
+                onInput={(e) => (e.target as HTMLInputElement).setCustomValidity("")}
+                required
+                maxLength={50}
+                aria-label="שם האמן"
+              />
+            </div>
           </div>
 
           <div className={`${styles.formGroup} ${styles.genreGroup}`}>
-            <label className={styles.label}>סגנון</label>
             <div className={styles.selectWrapper}>
               <select
                 className={styles.select}
@@ -623,6 +663,7 @@ export default function GetFeedback({
                 onInvalid={(e) => (e.target as HTMLSelectElement).setCustomValidity("אנא בחרו סגנון מהרשימה")}
                 onInput={(e) => (e.target as HTMLSelectElement).setCustomValidity("")}
                 required
+                aria-label="סגנון שיר"
               >
                 <option value="" disabled>בחרו סגנון...</option>
                 {GENRES.map((genre) => (
@@ -636,16 +677,16 @@ export default function GetFeedback({
 
           {!isGuestEligible && (
             <>
-              <div style={{ height: "20px" }}></div>
+              <div style={{ height: "16px" }}></div>
               <div className={styles.formGroup}>
-                <label className={styles.label}>כמה מילים על השיר (מאוד מומלץ)</label>
                 <textarea
                   className={styles.textarea}
-                  placeholder="כשאנשים מקשיבים לשיר שלכם, החיבור אליו יהיה חזק בהרבה אם הם יכירו את הסיפור שלכם."
+                  placeholder="כמה מילים על השיר (מאוד מומלץ) - כשאנשים מקשיבים לשיר שלכם, החיבור אליו יהיה חזק בהרבה אם הם יכירו את הסיפור שלכם."
                   value={fewWords}
                   onChange={(e) => setFewWords(e.target.value.substring(0, 70))}
-                  rows={2}
+                  rows={3}
                   maxLength={70}
+                  aria-label="כמה מילים על השיר (מאוד מומלץ)"
                 />
               </div>
             </>
@@ -654,7 +695,7 @@ export default function GetFeedback({
           {/* Guest Email Field - Moved here and styled normally */}
           {!isUserLoggedIn && isGuestEligible && (
             <>
-              <div style={{ height: "20px" }}></div>
+              <div style={{ height: "16px" }}></div>
               <div className={styles.formGroup}>
                 <label className={styles.label}>אימייל</label>
                 <input

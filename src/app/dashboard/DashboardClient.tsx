@@ -25,6 +25,7 @@ interface DashboardSong {
   isActive: boolean;
   priority: number;
   promotedUntil?: string | null;
+  artist?: string | null;
   feedbacks?: {
     id: string;
     overall: number;

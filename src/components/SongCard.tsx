@@ -23,6 +23,7 @@ interface SongCardProps {
     fewWords?: string | null;
     priority: number;
     promotedUntil?: string | null;
+    artist?: string | null;
   };
   isNew?: boolean;
   activeSongsCount: number;

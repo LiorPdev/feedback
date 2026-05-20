@@ -34,6 +34,7 @@ export default async function GetFeedbackPage({ searchParams }: PageProps) {
       isLoggedIn={!!dbUser} 
       initialHasSongs={initialHasSongs}
       initialTokens={initialTokens}
+      initialArtistName={dbUser?.name || ""}
     />
   );
 }

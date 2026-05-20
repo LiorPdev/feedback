@@ -103,7 +103,10 @@ export default async function DashboardPage({
 
       <div className={styles.content}>
         <DashboardClient
-          songs={userSongs}
+          songs={userSongs.map(song => ({
+            ...song,
+            artist: song.artist || dbUser.name || ""
+          }))}
           newSlug={newSlug}
           globalAverage={globalAverage}
           minThreshold={TOP_RATED_MIN_RATINGS_THRESHOLD}

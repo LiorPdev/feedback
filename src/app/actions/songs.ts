@@ -28,6 +28,7 @@ export async function createSong(formData: FormData) {
     const title = cleanSongTitle(formData.get('title') as string);
     const genre = sanitizeInput(formData.get('genre') as string);
     const fewWords = sanitizeInput(formData.get('fewWords') as string || "");
+    const artist = sanitizeInput(formData.get('artist') as string || "").trim();
     const guestEmail = formData.get('guestEmail') as string | null;
 
     const isR2 = isR2Url(url);
@@ -114,12 +115,20 @@ export async function createSong(formData: FormData) {
             return { success: false, error: "יתרת קרדיט נמוכה מדי", type: "insufficient_tokens" };
         }
 
+        // Update user name in database if it changed
+        if (dbUser && artist && artist !== dbUser.name) {
+            await db.update(users)
+                .set({ name: artist, updatedAt: new Date().toISOString() })
+                .where(eq(users.id, dbUser.id));
+        }
+
         const [newSong] = await db.insert(songs).values({
             userId: dbUser.id,
             url,
             title,
             genre,
             fewWords,
+            artist: artist || null,
             slug,
         }).returning();
 
@@ -555,7 +564,7 @@ export async function getFeedSongs(firstSongSlug?: string) {
     }
 }
 
-export async function updateSong(songId: string, data: { title: string, url: string, genre: string, fewWords?: string }) {
+export async function updateSong(songId: string, data: { title: string, url: string, genre: string, fewWords?: string, artist?: string }) {
     try {
         const dbUser = await syncUser();
         if (!dbUser) return { success: false, error: "לא מחובר" };
@@ -574,12 +583,22 @@ export async function updateSong(songId: string, data: { title: string, url: str
             return { success: false, error: urlValidation.error };
         }
 
+        const sanitizedArtist = data.artist ? sanitizeInput(data.artist).trim() : "";
+
+        // Update user's name if it changed
+        if (dbUser && sanitizedArtist && sanitizedArtist !== dbUser.name) {
+            await db.update(users)
+                .set({ name: sanitizedArtist, updatedAt: new Date().toISOString() })
+                .where(eq(users.id, dbUser.id));
+        }
+
         await db.update(songs)
             .set({
                 title: cleanSongTitle(data.title),
                 url: data.url,
                 genre: sanitizeInput(data.genre),
                 fewWords: data.fewWords ? sanitizeInput(data.fewWords).substring(0, 70) : null,
+                artist: sanitizedArtist || null,
                 updatedAt: new Date().toISOString()
             })
             .where(eq(songs.id, songId));

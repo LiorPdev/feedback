@@ -18,6 +18,7 @@ interface EditSongProps {
     url: string;
     genre: string;
     fewWords?: string | null;
+    artist?: string | null;
   };
 }
 
@@ -27,11 +28,11 @@ export default function EditSong({ song }: EditSongProps) {
   const [showModal, setShowModal] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [mounted, setMounted] = useState(false);
-
   const [title, setTitle] = useState(song.title);
   const [url, setUrl] = useState(song.url);
   const [genre, setGenre] = useState(song.genre);
   const [fewWords, setFewWords] = useState(song.fewWords || "");
+  const [artist, setArtist] = useState(song.artist || "");
 
   useEffect(() => {
     setMounted(true);
@@ -45,8 +46,23 @@ export default function EditSong({ song }: EditSongProps) {
       setUrl(song.url);
       setGenre(song.genre);
       setFewWords(song.fewWords || "");
+      setArtist(song.artist || "");
     }
   }, [showModal, song]);
+
+  useEffect(() => {
+    if (title) {
+      const el = document.querySelector(`input[placeholder="שם השיר..."]`) as HTMLInputElement;
+      if (el) el.setCustomValidity("");
+    }
+  }, [title]);
+
+  useEffect(() => {
+    if (artist) {
+      const el = document.querySelector(`input[placeholder="שם האמן..."]`) as HTMLInputElement;
+      if (el) el.setCustomValidity("");
+    }
+  }, [artist]);
 
   useEffect(() => {
     const fetchMetadata = async () => {
@@ -92,7 +108,7 @@ export default function EditSong({ song }: EditSongProps) {
         }
       }
 
-      const result = await updateSong(song.id, { title, url: finalUrl, genre, fewWords });
+      const result = await updateSong(song.id, { title, url: finalUrl, genre, fewWords, artist });
       if (result.success) {
         setShowModal(false);
       } else {
@@ -126,7 +142,6 @@ export default function EditSong({ song }: EditSongProps) {
 
             <form onSubmit={handleSave} className={styles.form}>
               <div className={styles.field}>
-                <label>קישור לשיר</label>
                 <input
                   type="url"
                   className={styles.input}
@@ -135,7 +150,8 @@ export default function EditSong({ song }: EditSongProps) {
                   onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity("אנא הדביקו קישור ליוטיוב")}
                   onInput={(e) => (e.target as HTMLInputElement).setCustomValidity("")}
                   required
-                  placeholder="e.g. https://www.youtube.com/watch?v=wABCDEFaa8"
+                  placeholder="קישור לשיר..."
+                  aria-label="קישור לשיר"
                 />
                 {isUnsupportedLink && (
                   <p className={styles.errorText}>
@@ -155,7 +171,6 @@ export default function EditSong({ song }: EditSongProps) {
               </div>
 
               <div className={styles.field}>
-                <label>שם השיר</label>
                 <input
                   type="text"
                   className={styles.input}
@@ -164,13 +179,28 @@ export default function EditSong({ song }: EditSongProps) {
                   onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity("אנא הזינו את שם השיר")}
                   onInput={(e) => (e.target as HTMLInputElement).setCustomValidity("")}
                   required
-                  placeholder="לדוגמה: השיר החדש שלי"
+                  placeholder="שם השיר..."
                   maxLength={MAX_SONG_NAME_LENGTH}
+                  aria-label="שם השיר"
                 />
               </div>
 
               <div className={styles.field}>
-                <label>סגנון מוזיקלי</label>
+                <input
+                  type="text"
+                  className={styles.input}
+                  value={artist}
+                  onChange={(e) => setArtist(e.target.value.substring(0, 50))}
+                  onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity("אנא הזינו את שם האמן")}
+                  onInput={(e) => (e.target as HTMLInputElement).setCustomValidity("")}
+                  required
+                  placeholder="שם האמן..."
+                  maxLength={50}
+                  aria-label="שם האמן"
+                />
+              </div>
+
+              <div className={styles.field}>
                 <select
                   className={styles.select}
                   value={genre}
@@ -178,7 +208,9 @@ export default function EditSong({ song }: EditSongProps) {
                   onInvalid={(e) => (e.target as HTMLSelectElement).setCustomValidity("אנא בחרו סגנון מהרשימה")}
                   onInput={(e) => (e.target as HTMLSelectElement).setCustomValidity("")}
                   required
+                  aria-label="סגנון שיר"
                 >
+                  <option value="" disabled>בחרו סגנון...</option>
                   {GENRES.map(g => (
                     <option key={g} value={g}>{g}</option>
                   ))}
@@ -186,14 +218,14 @@ export default function EditSong({ song }: EditSongProps) {
               </div>
 
               <div className={styles.field}>
-                <label className={styles.label}>כמה מילים על השיר (מאוד מומלץ)</label>
                 <textarea
                   className={styles.textarea}
-                  placeholder="כשאנשים מקשיבים לשיר שלכם, החיבור אליו יהיה חזק בהרבה אם הם יכירו את הסיפור שלכם."
+                  placeholder="כמה מילים על השיר (מאוד מומלץ) - כשאנשים מקשיבים לשיר שלכם, החיבור אליו יהיה חזק בהרבה אם הם יכירו את הסיפור שלכם."
                   value={fewWords}
                   onChange={(e) => setFewWords(e.target.value.substring(0, 70))}
-                  rows={2}
+                  rows={3}
                   maxLength={70}
+                  aria-label="כמה מילים על השיר (מאוד מומלץ)"
                 />
               </div>
 
