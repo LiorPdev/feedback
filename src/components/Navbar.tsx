@@ -68,7 +68,7 @@ export default function Navbar({ isLoggedIn, initialTokens, isAdmin }: NavbarPro
   // 1. Data Fetching Effect (On mount/login)
   useEffect(() => {
     const fetchUserData = async () => {
-      if (isLoggedIn) {
+      if (isLoggedIn || userId) {
         try {
           const [result, songResult, feedbackCount] = await Promise.all([
             getUserData(),
@@ -110,12 +110,12 @@ export default function Navbar({ isLoggedIn, initialTokens, isAdmin }: NavbarPro
     };
 
     fetchUserData();
-  }, [isLoggedIn]);
+  }, [isLoggedIn, userId]);
 
   // 2. Event Listeners Effect
   useEffect(() => {
     const handleUpdate = async () => {
-      if (isLoggedIn) {
+      if (isLoggedIn || userId) {
         const [result, songResult, feedbackCount] = await Promise.all([
           getUserData(),
           getUserSongCount(),
@@ -170,7 +170,7 @@ export default function Navbar({ isLoggedIn, initialTokens, isAdmin }: NavbarPro
       window.removeEventListener("open-preferences-modal", handleOpenPrefs);
       window.removeEventListener("open-registration-gate", handleOpenAuth);
     };
-  }, [isLoggedIn]);
+  }, [isLoggedIn, userId]);
 
   useEffect(() => {
     if (pendingRedirect && !showPreferencesModal) {

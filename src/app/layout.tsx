@@ -67,6 +67,7 @@ async function NavbarWrapper() {
   return (
     <>
       <Navbar
+        key={dbUser?.id || "guest"}
         isLoggedIn={!!dbUser}
         initialTokens={dbUser?.tokens ?? 0}
         isAdmin={dbUser?.email === ADMIN_EMAIL}

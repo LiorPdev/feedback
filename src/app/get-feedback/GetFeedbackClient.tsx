@@ -322,6 +322,7 @@ export default function GetFeedback({
     try {
       const result = await createSong(formData);
       if (result.success && result.song) {
+        window.dispatchEvent(new CustomEvent("tokens-updated"));
         const dest = backHome ? "/dashboard?backHome=true" : "/dashboard";
         router.push(dest);
       } else if (result.error === "AUTH_REQUIRED") {
