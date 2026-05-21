@@ -14,7 +14,7 @@ import { syncUser } from '@/lib/user-auth';
 import { sanitizeInput, isSongPromoted } from '@/lib/utils';
 import { updateRaterScore } from '@/lib/rater-score';
 import { applyFeedAlgorithm } from '@/lib/feed-algorithms';
-import { validateSongUrl, cleanSongTitle, isShortsUrl, isPlaylistUrl, isR2Url, isYouTubeUrl, SONG_VALIDATION_MESSAGES } from '@/lib/song-validation';
+import { validateSongUrl, cleanSongTitle, cleanFewWords, isShortsUrl, isPlaylistUrl, isR2Url, isYouTubeUrl, SONG_VALIDATION_MESSAGES } from '@/lib/song-validation';
 
 export async function createSong(formData: FormData) {
     const url = (formData.get('url') as string || "").trim();
@@ -25,10 +25,10 @@ export async function createSong(formData: FormData) {
         return { success: false, error: urlValidation.error };
     }
 
-    const title = cleanSongTitle(formData.get('title') as string);
-    const genre = sanitizeInput(formData.get('genre') as string);
-    const fewWords = sanitizeInput(formData.get('fewWords') as string || "");
     const artist = sanitizeInput(formData.get('artist') as string || "").trim();
+    const title = cleanSongTitle(formData.get('title') as string || "");
+    const genre = sanitizeInput(formData.get('genre') as string);
+    const fewWords = cleanFewWords(formData.get('fewWords') as string || "");
     const guestEmail = formData.get('guestEmail') as string | null;
 
     const isR2 = isR2Url(url);
@@ -597,7 +597,7 @@ export async function updateSong(songId: string, data: { title: string, url: str
                 title: cleanSongTitle(data.title),
                 url: data.url,
                 genre: sanitizeInput(data.genre),
-                fewWords: data.fewWords ? sanitizeInput(data.fewWords).substring(0, 70) : null,
+                fewWords: data.fewWords ? cleanFewWords(data.fewWords) : null,
                 artist: sanitizedArtist || null,
                 updatedAt: new Date().toISOString()
             })
@@ -659,7 +659,7 @@ export async function promoteSong(songId: string) {
         if (isSongPromoted(song.priority, song.promotedUntil)) {
             return { success: false, error: `השיר כבר מקודם עד ${new Date(song.promotedUntil!).toLocaleDateString('he-IL')}` };
         }
-        
+
         const now = new Date();
 
         if (dbUser.tokens < PROMOTION_COST) {
@@ -1030,15 +1030,15 @@ export async function getTopRatedSongs(): Promise<{ success: boolean; songs?: To
         const C_sql = sql<number>`(SELECT avg(f_global.overall) FROM Feedback f_global WHERE f_global.overall > 0)`;
 
         const nowStr = new Date().toISOString();
-        
+
         // Listen stats subquery
         const listenStats = db.select({
             songId: listenEvents.songId,
             avgPlayedSeconds: sql<number>`AVG(${listenEvents.playedSeconds})`.as('avgPlayedSeconds')
         })
-        .from(listenEvents)
-        .groupBy(listenEvents.songId)
-        .as('listenStats');
+            .from(listenEvents)
+            .groupBy(listenEvents.songId)
+            .as('listenStats');
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const weightedRatingSql = getBayesianRatingSql(m, C_sql, nowStr, (listenStats as any).avgPlayedSeconds);
@@ -1148,15 +1148,15 @@ export async function checkAndNotifyTopRated(triggerSongId?: string) {
         // 1. Get current Top 10 using the shared Bayesian logic
         const m = TOP_RATED_MIN_RATINGS_THRESHOLD;
         const C_sql = sql<number>`(SELECT avg(f_global.overall) FROM Feedback f_global WHERE f_global.overall > 0)`;
-        
+
         // Listen stats subquery
         const listenStats = db.select({
             songId: listenEvents.songId,
             avgPlayedSeconds: sql<number>`AVG(${listenEvents.playedSeconds})`.as('avgPlayedSeconds')
         })
-        .from(listenEvents)
-        .groupBy(listenEvents.songId)
-        .as('listenStats');
+            .from(listenEvents)
+            .groupBy(listenEvents.songId)
+            .as('listenStats');
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const weightedRatingSql = getBayesianRatingSql(m, C_sql, nowStr, (listenStats as any).avgPlayedSeconds);

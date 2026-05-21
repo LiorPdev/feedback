@@ -80,7 +80,7 @@ export default async function DashboardPage({
       <div className={styles.headerWrapper}>
         <div className={styles.headerRow}>
           <PageHeader
-            title={<><span className={styles.welcomeText}>שלום </span>{dbUser.name ? dbUser.name.split(" ")[0] : ""}</>}
+            title={dbUser.name || "האיזור האישי"}
             subtitle={
               <RaterScoreInfo
                 score={dbUser.raterScore}

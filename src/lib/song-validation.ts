@@ -1,4 +1,4 @@
-import { MAX_SONG_NAME_LENGTH } from "./constants";
+import { MAX_SONG_NAME_LENGTH, MAX_FEW_WORDS_LENGTH } from "./constants";
 import { sanitizeInput } from "./utils";
 
 export const YOUTUBE_DOMAINS = ["youtube.com", "youtu.be"];
@@ -63,6 +63,20 @@ export function validateSongUrl(url: string): { success: boolean; error?: string
 
 export function cleanSongTitle(title: string): string {
   return sanitizeInput(title).substring(0, MAX_SONG_NAME_LENGTH);
+}
+
+export function detectArtistInTitle(title: string, artistName: string): boolean {
+  const normArtist = artistName.trim().toLowerCase().replace(/\s+/g, ' ');
+  const normTitle = title.trim().toLowerCase().replace(/\s+/g, ' ');
+  if (normArtist.length <= 2 || !normTitle) {
+    return false;
+  }
+
+  return normTitle.includes(normArtist);
+}
+
+export function cleanFewWords(text: string = ""): string {
+  return sanitizeInput(text).substring(0, MAX_FEW_WORDS_LENGTH);
 }
 
 /**

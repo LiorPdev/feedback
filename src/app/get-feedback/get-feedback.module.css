@@ -144,7 +144,17 @@
   font-size: 0.85rem;
   font-weight: 600;
   text-align: right;
-  margin-top: 0.1rem;
+  margin-top: 0.4rem;
+  display: block;
+}
+
+.formErrorMsg {
+  color: #ef4444;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  margin-top: 1rem;
+  display: block;
 }
 
 .tipText {
@@ -278,27 +288,6 @@
   animation: spin 0.8s linear infinite;
 }
 
-.fetchingIndicator {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #1d4fd8;
-  margin-right: 8px;
-  animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-  0% {
-    opacity: 0.6;
-  }
-
-  50% {
-    opacity: 1;
-  }
-
-  100% {
-    opacity: 0.6;
-  }
-}
 
 .playButtonInInput {
   flex-shrink: 0;
@@ -451,10 +440,6 @@
     gap: 8px;
   }
 
-  .header h1 {
-    font-size: 1.8rem;
-  }
-
   .radioGroup {
     gap: 1rem;
   }
@@ -465,21 +450,5 @@
 
   .alternativeTitle {
     display: none;
-  }
-}
-
-@media (max-width: 400px) {
-  .backButton {
-    top: -1.25rem;
-  }
-
-  .header h1 {
-    font-size: 1.6rem;
-  }
-}
-
-@media (max-width: 300px) {
-  .backButton {
-    display: none !important;
   }
 }

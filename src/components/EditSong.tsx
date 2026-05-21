@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { Pencil } from "lucide-react";
 import { updateSong, getURLMetadata } from "@/app/actions/songs";
 import { logAction } from "@/app/actions/logs";
-import { isYouTubeUrl, isShortsUrl, isPlaylistUrl, isR2Url, SONG_VALIDATION_MESSAGES } from "@/lib/song-validation";
+import { isYouTubeUrl, isShortsUrl, isPlaylistUrl, isR2Url, SONG_VALIDATION_MESSAGES, detectArtistInTitle } from "@/lib/song-validation";
 import styles from "./EditSong.module.css";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "./ui/Button";
@@ -22,7 +22,7 @@ interface EditSongProps {
   };
 }
 
-import { GENRES, MAX_SONG_NAME_LENGTH } from "@/lib/constants";
+import { GENRES, MAX_SONG_NAME_LENGTH, MAX_FEW_WORDS_LENGTH } from "@/lib/constants";
 
 export default function EditSong({ song }: EditSongProps) {
   const [showModal, setShowModal] = useState(false);
@@ -93,6 +93,7 @@ export default function EditSong({ song }: EditSongProps) {
   const isUnsupportedLink = url.trim() !== "" && !isYouTubeUrl(url) && !isR2Url(url);
   const isShorts = isShortsUrl(url);
   const isPlaylist = isPlaylistUrl(url);
+  const isArtistInTitle = detectArtistInTitle(title, artist);
   const isInvalid = isUnsupportedLink || isShorts || isPlaylist;
 
   const handleSave = async (e: React.FormEvent) => {
@@ -183,6 +184,18 @@ export default function EditSong({ song }: EditSongProps) {
                   maxLength={MAX_SONG_NAME_LENGTH}
                   aria-label="שם השיר"
                 />
+                <AnimatePresence>
+                  {isArtistInTitle && (
+                    <motion.p
+                      className={styles.errorText}
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                    >
+                      אנא וודאו ששם האמן לא מופיע בשם השיר
+                    </motion.p>
+                  )}
+                </AnimatePresence>
               </div>
 
               <div className={styles.field}>
@@ -220,11 +233,11 @@ export default function EditSong({ song }: EditSongProps) {
               <div className={styles.field}>
                 <textarea
                   className={styles.textarea}
-                  placeholder="כמה מילים על השיר (מאוד מומלץ) - כשאנשים מקשיבים לשיר שלכם, החיבור אליו יהיה חזק בהרבה אם הם יכירו את הסיפור שלכם."
+                  placeholder="כמה מילים על השיר (מאוד מומלץ)... כשאנשים מקשיבים לשיר שלכם, החיבור אליו יהיה חזק בהרבה אם הם יכירו את הסיפור מאחורי הקלעים."
                   value={fewWords}
-                  onChange={(e) => setFewWords(e.target.value.substring(0, 70))}
+                  onChange={(e) => setFewWords(e.target.value.substring(0, MAX_FEW_WORDS_LENGTH))}
                   rows={3}
-                  maxLength={70}
+                  maxLength={MAX_FEW_WORDS_LENGTH}
                   aria-label="כמה מילים על השיר (מאוד מומלץ)"
                 />
               </div>

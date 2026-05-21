@@ -37,11 +37,6 @@
   gap: 0.5rem;
 }
 
-.field label {
-  font-weight: 700;
-  color: var(--text-main);
-  font-size: 0.9rem;
-}
 
 .input {
   width: 100%;
@@ -133,7 +128,7 @@
   color: #ef4444;
   font-weight: 700;
   font-size: 0.85rem;
-  margin-top: 0.25rem;
+  margin-top: 0.4rem;
   display: block;
   text-align: right;
 }

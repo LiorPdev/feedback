@@ -8,10 +8,10 @@ import Image from "next/image";
 import { createSong, getURLMetadata, searchYouTubeVideos } from "@/app/actions/songs";
 import { getPresignedUploadUrl } from "@/app/actions/upload";
 import { logAction } from "@/app/actions/logs";
-import { isYouTubeUrl, isShortsUrl, isPlaylistUrl, SONG_VALIDATION_MESSAGES, validateSongUrl } from "@/lib/song-validation";
+import { isYouTubeUrl, isShortsUrl, isPlaylistUrl, SONG_VALIDATION_MESSAGES, validateSongUrl, detectArtistInTitle } from "@/lib/song-validation";
 import { useRouter } from "next/navigation";
 import styles from "./get-feedback.module.css";
-import { GENRES, SONG_SUBMISSION_COST, MAX_FILE_SIZE, MAX_FILE_SIZE_MB, MAX_SONG_NAME_LENGTH, MIN_SONG_DURATION_SECONDS } from "@/lib/constants";
+import { GENRES, SONG_SUBMISSION_COST, MAX_FILE_SIZE, MAX_FILE_SIZE_MB, MAX_SONG_NAME_LENGTH, MIN_SONG_DURATION_SECONDS, MAX_FEW_WORDS_LENGTH } from "@/lib/constants";
 import PageHeader from "@/components/PageHeader";
 import Button from "@/components/ui/Button";
 import PopupMsg from "@/components/PopupMsg";
@@ -242,6 +242,7 @@ export default function GetFeedback({
       setErrorMessage("יש להזין את שם האמן");
       return;
     }
+
     if (!selectedGenre) {
       setErrorMessage("יש לבחור סגנון לשיר");
       return;
@@ -503,7 +504,6 @@ export default function GetFeedback({
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
                       className={styles.errorMsg}
-                      style={{ marginTop: '0.5rem', textAlign: 'right' }}
                     >
                       {linkError}
                     </motion.div>
@@ -603,7 +603,6 @@ export default function GetFeedback({
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
-                      style={{ marginTop: '0.25rem', fontSize: '0.875rem' }}
                     >
                       {fileError}
                     </motion.p>
@@ -634,6 +633,18 @@ export default function GetFeedback({
                 </div>
               )}
             </div>
+            <AnimatePresence>
+              {detectArtistInTitle(songTitle, artistName) && (
+                <motion.p
+                  className={styles.errorMsg}
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                >
+                  אנא וודאו ששם האמן לא מופיע בשם השיר
+                </motion.p>
+              )}
+            </AnimatePresence>
           </div>
 
           <div style={{ height: "16px" }}></div>
@@ -681,11 +692,11 @@ export default function GetFeedback({
               <div className={styles.formGroup}>
                 <textarea
                   className={styles.textarea}
-                  placeholder="כמה מילים על השיר (מאוד מומלץ) - כשאנשים מקשיבים לשיר שלכם, החיבור אליו יהיה חזק בהרבה אם הם יכירו את הסיפור שלכם."
+                  placeholder="כמה מילים על השיר (מאוד מומלץ)... כשאנשים מקשיבים לשיר שלכם, החיבור אליו יהיה חזק בהרבה אם הם יכירו את הסיפור מאחורי הקלעים."
                   value={fewWords}
-                  onChange={(e) => setFewWords(e.target.value.substring(0, 70))}
+                  onChange={(e) => setFewWords(e.target.value.substring(0, MAX_FEW_WORDS_LENGTH))}
                   rows={3}
-                  maxLength={70}
+                  maxLength={MAX_FEW_WORDS_LENGTH}
                   aria-label="כמה מילים על השיר (מאוד מומלץ)"
                 />
               </div>
@@ -761,8 +772,7 @@ export default function GetFeedback({
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
-                className={styles.errorMsg}
-                style={{ marginTop: '1rem', textAlign: 'center' }}
+                className={styles.formErrorMsg}
               >
                 {errorMessage.split('[MUSIC_ICON]').map((part, i, arr) => (
                   <Fragment key={i}>
