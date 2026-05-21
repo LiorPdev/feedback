@@ -60,4 +60,4 @@ export const FEEDBACK_COUNT_FACTOR = 35;
 // Algorithm: (Priority from DB * FEED_PRIORITY_WEIGHT) + FEED_RANDOM_JITTER_RANGE + (FEED_FEEDBACK_BOOST_COEFFICIENT / (totalFeedbacks + 1))
 export const FEED_PRIORITY_WEIGHT = 2.0;            // Multiplier for the song's priority level
 export const FEED_RANDOM_JITTER_RANGE = 1.5;        // Range of random noise (0 to 1.5)
-export const FEED_FEEDBACK_BOOST_COEFFICIENT = 0.5; // Max boost for songs with 0 feedbacks
+export const FEED_FEEDBACK_BOOST_COEFFICIENT = 0.3; // Max boost for songs with 0 feedbacks
