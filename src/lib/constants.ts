@@ -40,7 +40,7 @@ export const PROMOTION_COST = 300;
 export const MIN_COMMENT_LENGTH = 70;
 export const MAX_COMMENT_LENGTH = 500;
 export const MIN_LISTEN_TIME = 40;
-export const MIN_LISTEN_EVENT_SECONDS = 20;       // Minimum seconds needed to play a song to be entered into listenEvents table
+export const MIN_LISTEN_EVENT_SECONDS = 40;       // Minimum seconds needed to play a song to be entered into listenEvents table
 
 // Top Rated List Configuration
 export const LISTEN_TIME_WEIGHT = 0.3;            // Every minute of average listening adds this many points to the rating
