@@ -2,7 +2,7 @@
 
 import { getDb } from '@/lib/db';
 import { syncUser } from '@/lib/user-auth';
-import { desc, eq, aliasedTable, sql, and, gt } from 'drizzle-orm';
+import { desc, eq, aliasedTable, sql, and, gt, inArray } from 'drizzle-orm';
 import { users, songs, feedbacks, logs, listenEvents } from '@/lib/schema';
 import { ADMIN_EMAIL, TOP_RATED_DECAY_FACTOR, TOP_RATED_MIN_RATINGS_THRESHOLD, LISTEN_TIME_WEIGHT } from '@/lib/constants';
 import { logAction } from './logs';
@@ -191,44 +191,64 @@ export async function getAdminLogsReport() {
     }
 }
 
-export async function deleteAdminFeedback(id: string) {
+export async function deleteAdminFeedbacks(ids: string[]) {
     const admin = await getAdminUser();
     if (!admin) return { success: false, error: "Unauthorized" };
 
     const db = await getDb();
     try {
-        await db.delete(feedbacks).where(eq(feedbacks.id, id));
+        await db.delete(feedbacks).where(inArray(feedbacks.id, ids));
         return { success: true };
     } catch (error) {
         const err = error as Error;
         await logAction({
-            message: "Failed to delete feedback",
-            data: { error: err.message, stack: err.stack, feedbackId: id },
-            source: "actions/admin.ts:deleteAdminFeedback",
+            message: "Failed to delete feedbacks",
+            data: { error: err.message, stack: err.stack, feedbackIds: ids },
+            source: "actions/admin.ts:deleteAdminFeedbacks",
             userId: admin.id
         });
-        return { success: false, error: "Failed to delete feedback" };
+        return { success: false, error: "Failed to delete feedbacks" };
     }
 }
 
-export async function deleteAdminSong(id: string) {
+export async function deleteAdminSongs(ids: string[]) {
     const admin = await getAdminUser();
     if (!admin) return { success: false, error: "Unauthorized" };
 
     const db = await getDb();
     try {
         // Cascading deletes are handled by SQLite because of the schema definitions
-        await db.delete(songs).where(eq(songs.id, id));
+        await db.delete(songs).where(inArray(songs.id, ids));
         return { success: true };
     } catch (error) {
         const err = error as Error;
         await logAction({
-            message: "Failed to delete song",
-            data: { error: err.message, stack: err.stack, songId: id },
-            source: "actions/admin.ts:deleteAdminSong",
+            message: "Failed to delete songs",
+            data: { error: err.message, stack: err.stack, songIds: ids },
+            source: "actions/admin.ts:deleteAdminSongs",
             userId: admin.id
         });
-        return { success: false, error: "Failed to delete song" };
+        return { success: false, error: "Failed to delete songs" };
+    }
+}
+
+export async function deleteAdminLogs(ids: string[]) {
+    const admin = await getAdminUser();
+    if (!admin) return { success: false, error: "Unauthorized" };
+
+    const db = await getDb();
+    try {
+        await db.delete(logs).where(inArray(logs.id, ids));
+        return { success: true };
+    } catch (error) {
+        const err = error as Error;
+        await logAction({
+            message: "Failed to delete logs",
+            data: { error: err.message, stack: err.stack, logIds: ids },
+            source: "actions/admin.ts:deleteAdminLogs",
+            userId: admin.id
+        });
+        return { success: false, error: "Failed to delete logs" };
     }
 }
 export async function getAdminTopRatedReport() {
@@ -491,5 +511,30 @@ export async function sendUnreadReminderAction({
         return result;
     } catch {
         return { success: false, error: "Failed to send reminder" };
+    }
+}
+
+export async function resetSongDecay(songId: string) {
+    const admin = await getAdminUser();
+    if (!admin) return { success: false, error: "Unauthorized" };
+
+    const db = await getDb();
+    try {
+        await db.update(songs)
+            .set({ 
+                topRatedLastNotified: null,
+                updatedAt: new Date().toISOString()
+            })
+            .where(eq(songs.id, songId));
+        return { success: true };
+    } catch (error) {
+        const err = error as Error;
+        await logAction({
+            message: "Failed to reset song decay",
+            data: { error: err.message, stack: err.stack, songId },
+            source: "actions/admin.ts:resetSongDecay",
+            userId: admin.id
+        });
+        return { success: false, error: "Failed to reset decay" };
     }
 }

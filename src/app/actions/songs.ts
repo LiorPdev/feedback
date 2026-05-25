@@ -1109,7 +1109,7 @@ export async function getTopListenedSongs(): Promise<{ success: boolean; songs?:
             .where(
                 and(
                     eq(songs.isActive, true),
-                    sql`(SELECT COUNT(*) FROM Feedback WHERE song_id = ${songs.id}) > ${TOP_LISTENED_MIN_FEEDBACKS}`
+                    sql`(SELECT COUNT(*) FROM Feedback WHERE songId = ${songs.id}) > ${TOP_LISTENED_MIN_FEEDBACKS}`
                 )
             )
             .groupBy(songs.id)

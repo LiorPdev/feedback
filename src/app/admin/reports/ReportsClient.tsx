@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { getAdminSongsReport, getAdminFeedbacksReport, getAdminUsersReport, getAdminLogsReport, getAdminTopRatedReport, deleteAdminFeedback, deleteAdminSong, getAdminWakeUpReport, getSongFeedbacks, generateAIFeedback, getAdminUnreadFeedbacksReport, sendUnreadReminderAction } from '@/app/actions/admin';
+import { getAdminSongsReport, getAdminFeedbacksReport, getAdminUsersReport, getAdminLogsReport, getAdminTopRatedReport, deleteAdminFeedbacks, deleteAdminSongs, deleteAdminLogs, getAdminWakeUpReport, getSongFeedbacks, generateAIFeedback, getAdminUnreadFeedbacksReport, sendUnreadReminderAction, resetSongDecay } from '@/app/actions/admin';
 import { ArrowUpDown, ArrowUp, ArrowDown, Trash2, Heart, Copy, Meh, Check, RefreshCw, Sparkles, Code, Mail } from 'lucide-react';
 import { isSongPromoted } from '@/lib/utils';
 import { AI_SUMMARIZE_PROMPT } from '@/lib/ai-constants';
@@ -56,38 +56,63 @@ export function ReportsClient() {
     const [data, setData] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
     const [loading, setLoading] = useState(true);
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({ key: 'createdAt', direction: 'desc' });
-    const [selectedId, setSelectedId] = useState<string | null>(null);
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [expandedFeedbacks, setExpandedFeedbacks] = useState<{ songId: string, feedbacks: any[] } | null>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
     const [fetchingFeedbacks, setFetchingFeedbacks] = useState(false);
     const [aiFeedback, setAiFeedback] = useState<string | null>(null);
     const [generatingAI, setGeneratingAI] = useState(false);
     const [copyingPrompt, setCopyingPrompt] = useState(false);
 
-    const canDelete = reportType === 'songs' || reportType === 'feedbacks';
+    const canDelete = reportType === 'songs' || reportType === 'feedbacks' || reportType === 'logs';
+
+    const toggleSelect = (id: string) => {
+        setSelectedIds(prev => 
+            prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+        );
+    };
+
+
 
     const handleDelete = async () => {
-        if (!selectedId || !canDelete) return;
+        if (selectedIds.length === 0 || !canDelete) return;
 
         const confirmMsg = reportType === 'songs'
-            ? "האם אתה בטוח שברצונך למחוק את השיר? פעולה זו תמחק גם את כל הפידבקים והלוגים הקשורים אליו."
-            : "האם אתה בטוח שברצונך למחוק את הפידבק?";
+            ? `האם אתה בטוח שברצונך למחוק את ${selectedIds.length} השירים שנבחרו? פעולה זו תמחק גם את כל הפידבקים והלוגים הקשורים אליהם.`
+            : reportType === 'logs'
+            ? `האם אתה בטוח שברצונך למחוק את ${selectedIds.length} רשומות הלוג שנבחרו?`
+            : `האם אתה בטוח שברצונך למחוק את ${selectedIds.length} הפידבקים שנבחרו?`;
 
         if (!window.confirm(confirmMsg)) return;
 
         setLoading(true);
         let result;
         if (reportType === 'songs') {
-            result = await deleteAdminSong(selectedId);
+            result = await deleteAdminSongs(selectedIds);
+        } else if (reportType === 'logs') {
+            result = await deleteAdminLogs(selectedIds);
         } else {
-            result = await deleteAdminFeedback(selectedId);
+            result = await deleteAdminFeedbacks(selectedIds);
         }
 
         if (result.success) {
-            setSelectedId(null);
+            setSelectedIds([]);
             // Re-fetch data
             await fetchData();
         } else {
             alert(result.error || "מחיקה נכשלה");
+            setLoading(false);
+        }
+    };
+
+    const handleResetDecay = async (songId: string, songTitle: string) => {
+        if (!window.confirm(`האם אתה בטוח שברצונך לאפס את ההתיישנות עבור השיר "${songTitle}"?`)) return;
+
+        setLoading(true);
+        const result = await resetSongDecay(songId);
+        if (result.success) {
+            await fetchData();
+        } else {
+            alert(result.error || "איפוס נכשל");
             setLoading(false);
         }
     };
@@ -163,6 +188,23 @@ export function ReportsClient() {
 
         return sortConfig.direction === 'desc' ? sorted.reverse() : sorted;
     }, [data, sortConfig]);
+
+    const allIdsOnPage = useMemo(() => {
+        return sortedData.map(item => item.id).filter(Boolean);
+    }, [sortedData]);
+
+    const isAllSelected = allIdsOnPage.length > 0 && allIdsOnPage.every(id => selectedIds.includes(id));
+
+    const toggleSelectAll = () => {
+        if (isAllSelected) {
+            setSelectedIds(prev => prev.filter(id => !allIdsOnPage.includes(id)));
+        } else {
+            setSelectedIds(prev => {
+                const uniqueNew = allIdsOnPage.filter(id => !prev.includes(id));
+                return [...prev, ...uniqueNew];
+            });
+        }
+    };
 
     useEffect(() => {
         fetchData();
@@ -245,7 +287,7 @@ export function ReportsClient() {
                     value={reportType}
                     onChange={(e) => {
                         setReportType(e.target.value as ReportType);
-                        setSelectedId(null);
+                        setSelectedIds([]);
                     }}
                 >
                     <option value="users">משתמשים רשומים</option>
@@ -257,13 +299,15 @@ export function ReportsClient() {
                     <option value="logs">לוגים</option>
                 </select>
 
-                {canDelete && selectedId && (
+                {canDelete && selectedIds.length > 0 && (
                     <button
                         className={styles.trashBtn}
                         onClick={handleDelete}
-                        title="מחק שורה נבחרת"
+                        title="מחק שורות נבחרות"
+                        style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
                     >
                         <Trash2 size={20} />
+                        <span style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>({selectedIds.length})</span>
                     </button>
                 )}
             </div>
@@ -280,7 +324,14 @@ export function ReportsClient() {
                         <thead>
                             {reportType === 'songs' ? (
                                 <tr>
-                                    <th className={styles.checkboxCol}></th>
+                                    <th className={styles.checkboxCol}>
+                                        <input
+                                            type="checkbox"
+                                            className={styles.checkbox}
+                                            checked={isAllSelected}
+                                            onChange={toggleSelectAll}
+                                        />
+                                    </th>
                                     <SortHeader label="תאריך העלאה" sortKey="createdAt" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="שם השיר" sortKey="title" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="מעלה השיר" sortKey="creatorEmail" sortConfig={sortConfig} onSort={handleSort} />
@@ -291,7 +342,14 @@ export function ReportsClient() {
                                 </tr>
                             ) : reportType === 'feedbacks' ? (
                                 <tr>
-                                    <th className={styles.checkboxCol}></th>
+                                    <th className={styles.checkboxCol}>
+                                        <input
+                                            type="checkbox"
+                                            className={styles.checkbox}
+                                            checked={isAllSelected}
+                                            onChange={toggleSelectAll}
+                                        />
+                                    </th>
                                     <SortHeader label="תאריך" sortKey="createdAt" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="שם השיר" sortKey="songTitle" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="מעלה השיר" sortKey="songCreatorName" sortConfig={sortConfig} onSort={handleSort} />
@@ -336,6 +394,14 @@ export function ReportsClient() {
                                 </tr>
                             ) : reportType === 'logs' ? (
                                 <tr>
+                                    <th className={styles.checkboxCol}>
+                                        <input
+                                            type="checkbox"
+                                            className={styles.checkbox}
+                                            checked={isAllSelected}
+                                            onChange={toggleSelectAll}
+                                        />
+                                    </th>
                                     <SortHeader label="תאריך" sortKey="createdAt" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="הודעה" sortKey="message" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="מידע" sortKey="data" sortConfig={sortConfig} onSort={handleSort} />
@@ -354,7 +420,7 @@ export function ReportsClient() {
                             {sortedData.map((item) => (
                                 <tr
                                     key={item.id}
-                                    className={selectedId === item.id ? styles.selected : ''}
+                                    className={selectedIds.includes(item.id) ? styles.selected : ''}
                                 >
                                     {reportType === 'songs' && (
                                         <>
@@ -362,8 +428,8 @@ export function ReportsClient() {
                                                 <input
                                                     type="checkbox"
                                                     className={styles.checkbox}
-                                                    checked={selectedId === item.id}
-                                                    onChange={() => setSelectedId(selectedId === item.id ? null : item.id)}
+                                                    checked={selectedIds.includes(item.id)}
+                                                    onChange={() => toggleSelect(item.id)}
                                                 />
                                             </td>
                                             <td>{formatDate(item.createdAt)}</td>
@@ -417,8 +483,8 @@ export function ReportsClient() {
                                                 <input
                                                     type="checkbox"
                                                     className={styles.checkbox}
-                                                    checked={selectedId === item.id}
-                                                    onChange={() => setSelectedId(selectedId === item.id ? null : item.id)}
+                                                    checked={selectedIds.includes(item.id)}
+                                                    onChange={() => toggleSelect(item.id)}
                                                 />
                                             </td>
                                             <td>{formatDate(item.createdAt)}</td>
@@ -493,7 +559,13 @@ export function ReportsClient() {
                                             </td>
                                             <td>{typeof item.weightedSum === 'number' ? item.weightedSum.toFixed(2) : item.weightedSum}</td>
                                             <td>{typeof item.bayesianAvg === 'number' ? item.bayesianAvg.toFixed(3) : item.bayesianAvg}</td>
-                                            <td>{typeof item.decay === 'number' ? item.decay.toFixed(3) : item.decay}</td>
+                                            <td
+                                                title="דאבל-קליק לאיפוס התיישנות"
+                                                onDoubleClick={() => handleResetDecay(item.id, item.title)}
+                                                style={{ cursor: 'pointer', userSelect: 'none' }}
+                                            >
+                                                {typeof item.decay === 'number' ? item.decay.toFixed(3) : item.decay}
+                                            </td>
                                             <td style={{ fontWeight: 'bold', color: 'var(--accent)', minWidth: '140px', textAlign: 'center' }}>
                                                 <div>{typeof item.finalScore === 'number' ? item.finalScore.toFixed(4) : item.finalScore}</div>
                                                 <div style={{
@@ -581,6 +653,14 @@ export function ReportsClient() {
                                     )}
                                     {reportType === 'logs' && (
                                         <>
+                                            <td className={styles.checkboxCol} onClick={(e) => e.stopPropagation()}>
+                                                <input
+                                                    type="checkbox"
+                                                    className={styles.checkbox}
+                                                    checked={selectedIds.includes(item.id)}
+                                                    onChange={() => toggleSelect(item.id)}
+                                                />
+                                            </td>
                                             <td>{formatDate(item.createdAt)}</td>
                                             <td>{item.message}</td>
                                             <td>
