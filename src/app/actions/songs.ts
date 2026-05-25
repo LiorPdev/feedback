@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { eq, sql, and, notInArray, gt, aliasedTable, type SQL } from 'drizzle-orm';
 import { users, songs, feedbacks, listenEvents } from '@/lib/schema';
-import { SONG_SUBMISSION_COST, REWARD_PER_COMMENT_STEP, COMMENT_STEP_LENGTH, MAX_COMMENT_LENGTH, TOP_RATED_MIN_RATINGS_THRESHOLD, TOP_RATED_DECAY_FACTOR, MIN_SONG_DURATION_SECONDS, PROMOTION_COST, MIN_LISTEN_EVENT_SECONDS, LISTEN_TIME_WEIGHT } from '@/lib/constants';
+import { SONG_SUBMISSION_COST, REWARD_PER_COMMENT_STEP, COMMENT_STEP_LENGTH, MAX_COMMENT_LENGTH, TOP_RATED_MIN_RATINGS_THRESHOLD, TOP_RATED_DECAY_FACTOR, MIN_SONG_DURATION_SECONDS, PROMOTION_COST, MIN_LISTEN_EVENT_SECONDS, LISTEN_TIME_WEIGHT, TOP_LISTENED_MIN_FEEDBACKS } from '@/lib/constants';
 import { sendFeedbackNotification, sendTopRatedNotification } from '@/lib/mail';
 import { logToDb } from "@/lib/logger";
 import { deleteFileFromR2 } from '@/app/actions/upload';
@@ -1106,7 +1106,12 @@ export async function getTopListenedSongs(): Promise<{ success: boolean; songs?:
             .from(songs)
             .innerJoin(listenEvents, eq(songs.id, listenEvents.songId))
             .innerJoin(users, eq(songs.userId, users.id)) // Song owner
-            .where(eq(songs.isActive, true))
+            .where(
+                and(
+                    eq(songs.isActive, true),
+                    sql`(SELECT COUNT(*) FROM Feedback WHERE song_id = ${songs.id}) > ${TOP_LISTENED_MIN_FEEDBACKS}`
+                )
+            )
             .groupBy(songs.id)
             .orderBy(sql`AVG(${listenEvents.playedSeconds}) DESC`, songs.id)
             .limit(10);

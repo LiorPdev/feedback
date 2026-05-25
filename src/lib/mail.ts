@@ -350,7 +350,7 @@ export async function sendUnreadFeedbackReminder({
   const body = {
     sender: { name: "Feedback Space", email: "contact@feedback.activitywiz.com" },
     to: [{ email: to }],
-    subject: `היי, מחכים לך פידבקים חדשים שטרם קראת`,
+    subject: `תזכורת, מחכים לך פידבקים חדשים שטרם קראת`,
     htmlContent: `
       <div dir="rtl" style="font-family: sans-serif; line-height: 1.6; text-align: right; background-color: #f8fafc; padding: 20px; border-radius: 12px;">
         <div style="background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
@@ -362,7 +362,7 @@ export async function sendUnreadFeedbackReminder({
           </p>
           <p style="font-size: 15px; color: #475569; margin: 25px 0; padding: 16px; background-color: #f8fafc; border-radius: 8px; border-right: 4px solid #cbd5e1; line-height: 1.5;">
             <strong style="color: #1e293b;">חשוב לדעת:</strong> 
-            שירים עם פידבקים שטרם נקראו מוסתרים זמנית כדי למנוע השקעת מאמץ מיותר מצד הקהילה. 
+            שירים עם פידבקים שטרם נקראו לא מוצגים עוד לקהילה כדי למנוע השקעת מאמץ מיותרת מצידם. 
             מיד לאחר קריאת הפידבקים החדשים, השיר יחזור להופיע בפיד. 
             <span style="display: block; margin-top: 8px; font-size: 14px; color: #64748b;">
               לתשומת לבך, שירים עם פידבקים שלא ייקראו לאורך זמן יוסרו מהמערכת.

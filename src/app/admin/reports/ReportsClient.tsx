@@ -22,17 +22,20 @@ interface SortHeaderProps {
     sortKey: string;
     sortConfig: { key: string; direction: 'asc' | 'desc' } | null;
     onSort: (key: string) => void;
+    align?: 'center' | 'left' | 'right';
 }
 
-const SortHeader = ({ label, sortKey, sortConfig, onSort }: SortHeaderProps) => {
+const SortHeader = ({ label, sortKey, sortConfig, onSort, align }: SortHeaderProps) => {
     const isActive = sortConfig?.key === sortKey;
+    const justify = align === 'center' ? 'center' : 'flex-start';
     return (
         <th
             className={styles.sortable}
             onClick={() => onSort(sortKey)}
             title={`מיין לפי ${label}`}
+            style={align ? { textAlign: align } : undefined}
         >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '4px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: justify, gap: '4px' }}>
                 <span>{label}</span>
                 <div className={`${styles.sortIcon} ${isActive ? styles.active : ''}`}>
                     {!isActive ? (
@@ -280,10 +283,9 @@ export function ReportsClient() {
                                     <th className={styles.checkboxCol}></th>
                                     <SortHeader label="תאריך העלאה" sortKey="createdAt" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="שם השיר" sortKey="title" sortConfig={sortConfig} onSort={handleSort} />
-                                    <SortHeader label="אימייל" sortKey="creatorEmail" sortConfig={sortConfig} onSort={handleSort} />
-                                    <SortHeader label="טוקנים" sortKey="creatorTokens" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="מעלה השיר" sortKey="creatorEmail" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="פידבק אחרון" sortKey="lastFeedbackAt" sortConfig={sortConfig} onSort={handleSort} />
-                                    <SortHeader label="#פידבקים" sortKey="feedbackCount" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="#פידבקים" sortKey="feedbackCount" sortConfig={sortConfig} onSort={handleSort} align="center" />
                                     <th style={{ width: '60px', textAlign: 'center' }}>פרסום</th>
                                     <th style={{ width: '80px', textAlign: 'center' }}>תן פידבק</th>
                                 </tr>
@@ -295,8 +297,8 @@ export function ReportsClient() {
                                     <SortHeader label="מעלה השיר" sortKey="songCreatorName" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="שם המדרג" sortKey="authorName" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="ציון" sortKey="overall" sortConfig={sortConfig} onSort={handleSort} />
-                                    <SortHeader label="לייק" sortKey="isLiked" sortConfig={sortConfig} onSort={handleSort} />
-                                    <SortHeader label="נקרא" sortKey="isUnlocked" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="לייק" sortKey="isLiked" sortConfig={sortConfig} onSort={handleSort} align="center" />
+                                    <SortHeader label="נקרא" sortKey="isUnlocked" sortConfig={sortConfig} onSort={handleSort} align="center" />
                                     <SortHeader label="הערה" sortKey="comment" sortConfig={sortConfig} onSort={handleSort} />
                                 </tr>
                             ) : reportType === 'top-rated' ? (
@@ -309,7 +311,7 @@ export function ReportsClient() {
                                     <SortHeader label="ניקוד מדרגים מצטבר" sortKey="weightedSum" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="Bayesian" sortKey="bayesianAvg" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="התיישנות" sortKey="decay" sortConfig={sortConfig} onSort={handleSort} />
-                                    <SortHeader label="ציון סופי" sortKey="finalScore" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="ציון סופי" sortKey="finalScore" sortConfig={sortConfig} onSort={handleSort} align="center" />
                                     <th style={{ width: '80px', textAlign: 'center' }}>תן פידבק</th>
                                 </tr>
                             ) : reportType === 'users' ? (
@@ -326,10 +328,10 @@ export function ReportsClient() {
                             ) : reportType === 'wake-up' ? (
                                 <tr>
                                     <SortHeader label="שם משתמש" sortKey="userName" sortConfig={sortConfig} onSort={handleSort} />
-                                    <SortHeader label="טוקנים" sortKey="userTokens" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="טוקנים" sortKey="userTokens" sortConfig={sortConfig} onSort={handleSort} align="center" />
                                     <SortHeader label="כניסה אחרונה" sortKey="lastVisit" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="שם השיר" sortKey="songTitle" sortConfig={sortConfig} onSort={handleSort} />
-                                    <SortHeader label="#פידבקים" sortKey="feedbackCount" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="#פידבקים" sortKey="feedbackCount" sortConfig={sortConfig} onSort={handleSort} align="center" />
                                     <th style={{ width: '100px', textAlign: 'center' }}>תן פידבק</th>
                                 </tr>
                             ) : reportType === 'logs' ? (
@@ -342,9 +344,8 @@ export function ReportsClient() {
                                 </tr>
                             ) : (
                                 <tr>
-                                    <SortHeader label="הועלה על ידי" sortKey="creatorName" sortConfig={sortConfig} onSort={handleSort} />
-                                    <SortHeader label="אימייל" sortKey="creatorEmail" sortConfig={sortConfig} onSort={handleSort} />
-                                    <SortHeader label="פידבקים שלא נפתחו" sortKey="unreadCount" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="מעלה השיר" sortKey="creatorName" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="פידבקים שלא נפתחו" sortKey="unreadCount" sortConfig={sortConfig} onSort={handleSort} align="center" />
                                     <th style={{ width: '80px', textAlign: 'center' }}>שלח תזכורת</th>
                                 </tr>
                             )}
@@ -382,8 +383,10 @@ export function ReportsClient() {
                                                      item.title
                                                  )}
                                              </td>
-                                            <td>{item.creatorEmail}</td>
-                                            <td style={{ textAlign: 'center' }}>{item.creatorTokens}</td>
+                                            <td>
+                                                <div>{item.creatorName || 'ללא שם'}</div>
+                                                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{item.creatorEmail}</div>
+                                            </td>
                                             <td>{item.lastFeedbackAt ? formatDate(item.lastFeedbackAt) : '-'}</td>
                                             <td style={{ textAlign: 'center' }}>{item.feedbackCount}</td>
                                             <td style={{ textAlign: 'center' }}>
@@ -436,9 +439,8 @@ export function ReportsClient() {
                                                 )}
                                             </td>
                                             <td>
-                                                <div className={styles.maxWidthCol} title={item.songCreatorName || item.songCreatorEmail}>
-                                                    {item.songCreatorName || item.songCreatorEmail}
-                                                </div>
+                                                <div>{item.songCreatorName || 'ללא שם'}</div>
+                                                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{item.songCreatorEmail}</div>
                                             </td>
                                             <td>
                                                 <div className={styles.maxWidthCol} title={item.authorName || item.authorEmail}>
@@ -592,8 +594,10 @@ export function ReportsClient() {
                                     )}
                                     {reportType === 'unread-feedbacks' && (
                                         <>
-                                            <td>{item.creatorName}</td>
-                                            <td>{item.creatorEmail}</td>
+                                            <td>
+                                                <div>{item.creatorName || 'ללא שם'}</div>
+                                                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{item.creatorEmail}</div>
+                                            </td>
                                             <td style={{ textAlign: 'center', fontWeight: 'bold', color: 'var(--accent)' }}>{item.unreadCount}</td>
                                             <td style={{ textAlign: 'center' }}>
                                                 <button
