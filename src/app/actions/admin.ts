@@ -538,3 +538,40 @@ export async function resetSongDecay(songId: string) {
         return { success: false, error: "Failed to reset decay" };
     }
 }
+
+export async function updateAdminSongTitle(songId: string, newTitle: string) {
+    const admin = await getAdminUser();
+    if (!admin) return { success: false, error: "Unauthorized" };
+
+    const cleanTitle = newTitle.trim();
+    if (!cleanTitle) {
+        return { success: false, error: "Song title cannot be empty" };
+    }
+
+    const db = await getDb();
+    try {
+        await db.update(songs)
+            .set({ 
+                title: cleanTitle,
+                updatedAt: new Date().toISOString()
+            })
+            .where(eq(songs.id, songId));
+
+        await logAction({
+            message: `Admin updated song title for song ID: ${songId} to "${cleanTitle}"`,
+            source: "actions/admin.ts:updateAdminSongTitle",
+            userId: admin.id
+        });
+
+        return { success: true };
+    } catch (error) {
+        const err = error as Error;
+        await logAction({
+            message: "Failed to update song title",
+            data: { error: err.message, stack: err.stack, songId, newTitle: cleanTitle },
+            source: "actions/admin.ts:updateAdminSongTitle",
+            userId: admin.id
+        });
+        return { success: false, error: "Failed to update song title" };
+    }
+}

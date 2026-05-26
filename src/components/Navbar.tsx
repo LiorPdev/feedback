@@ -7,9 +7,7 @@ import ContactModal from "./ContactModal";
 import InfoTooltip from "./InfoTooltip";
 import Image from "next/image";
 import { Bell } from "lucide-react";
-import { getUserData } from "@/app/actions/user";
-import { getUserSongCount } from "@/app/actions/songs";
-import { getMyGivenFeedbacksCount } from "@/app/actions/feedback";
+import { getUserNavbarData } from "@/app/actions/user";
 import { logAction } from "@/app/actions/logs";
 import UserPreferencesModal from "./UserPreferencesModal";
 import CreditTransferModal from "./CreditTransferModal";
@@ -28,11 +26,12 @@ import { SONG_SUBMISSION_COST } from "@/lib/constants";
 
 interface NavbarProps {
   isLoggedIn: boolean;
+  isClerkUser: boolean;
   initialTokens: number;
   isAdmin: boolean;
 }
 
-export default function Navbar({ isLoggedIn, initialTokens, isAdmin }: NavbarProps) {
+export default function Navbar({ isLoggedIn, isClerkUser, initialTokens, isAdmin }: NavbarProps) {
   const pathname = usePathname();
   const { userId, isLoaded: authLoaded } = useAuth();
   const [tokens, setTokens] = useState<number | null>(isLoggedIn ? initialTokens : null);
@@ -58,23 +57,24 @@ export default function Navbar({ isLoggedIn, initialTokens, isAdmin }: NavbarPro
   const { share, copied } = useShare();
   const { isUtmMode } = useUtmMode();
 
-  // Sync server state with client state if mismatch detected
+  // Sync server state with client state only if user logged in via Clerk but server isn't synced
   useEffect(() => {
-    if (authLoaded && !!userId !== isLoggedIn) {
-      router.refresh();
+    if (authLoaded) {
+      const hasClerkSessionOnClient = !!userId;
+      const needsSync = hasClerkSessionOnClient && !isClerkUser;
+
+      if (needsSync) {
+        router.refresh();
+      }
     }
-  }, [authLoaded, userId, isLoggedIn, router]);
+  }, [authLoaded, userId, isClerkUser, router]);
 
   // 1. Data Fetching Effect (On mount/login)
   useEffect(() => {
     const fetchUserData = async () => {
       if (isLoggedIn || userId) {
         try {
-          const [result, songResult, feedbackCount] = await Promise.all([
-            getUserData(),
-            getUserSongCount(),
-            getMyGivenFeedbacksCount()
-          ]);
+          const result = await getUserNavbarData();
 
           if (result.success) {
             if (result.tokens !== undefined) {
@@ -95,16 +95,19 @@ export default function Navbar({ isLoggedIn, initialTokens, isAdmin }: NavbarPro
             if (result.firstUnreadSongSlug !== undefined) {
               setFirstUnreadSlug(result.firstUnreadSongSlug);
             }
+            setHasSongs(result.songCount > 0);
+            setHasFeedbacksGiven(result.givenFeedbacksCount > 0);
           }
-
-          setHasSongs(songResult.success && songResult.count > 0);
-          setHasFeedbacksGiven(feedbackCount > 0);
         } catch (e) {
-          logAction({
-            message: "Failed to fetch user data in Navbar",
-            data: { error: e instanceof Error ? e.message : String(e) },
-            source: "Navbar.tsx:fetchUserData"
-          });
+          const errorMsg = e instanceof Error ? e.message : String(e);
+          const isAbortError =
+            errorMsg === "Load failed" ||
+            errorMsg.includes("Failed to fetch") ||
+            (e instanceof Error && e.name === "AbortError");
+
+          if (!isAbortError) {
+            logAction({ message: "Failed to fetch user data in Navbar", data: { error: errorMsg }, source: "Navbar.tsx:fetchUserData" });
+          }
         }
       }
     };
@@ -116,33 +119,41 @@ export default function Navbar({ isLoggedIn, initialTokens, isAdmin }: NavbarPro
   useEffect(() => {
     const handleUpdate = async () => {
       if (isLoggedIn || userId) {
-        const [result, songResult, feedbackCount] = await Promise.all([
-          getUserData(),
-          getUserSongCount(),
-          getMyGivenFeedbacksCount()
-        ]);
-        
-        if (result.success) {
-          if (result.tokens !== undefined) {
-            setTokens(prev => {
-              if (prev !== null && result.tokens !== prev) {
-                setGlowMode(result.tokens > prev ? "positive" : "negative");
-              }
-              return result.tokens;
-            });
+        try {
+          const result = await getUserNavbarData();
+
+          if (result.success) {
+            if (result.tokens !== undefined) {
+              setTokens(prev => {
+                if (prev !== null && result.tokens !== prev) {
+                  setGlowMode(result.tokens > prev ? "positive" : "negative");
+                }
+                return result.tokens;
+              });
+            }
+            if (result.unreadFeedbacksCount !== undefined) {
+              setUnreadCount(result.unreadFeedbacksCount);
+            }
+            if (result.uniqueSongsCount !== undefined) {
+              setUnreadSongsCount(result.uniqueSongsCount);
+            }
+            if (result.firstUnreadSongSlug !== undefined) {
+              setFirstUnreadSlug(result.firstUnreadSongSlug);
+            }
+            setHasSongs(result.songCount > 0);
+            setHasFeedbacksGiven(result.givenFeedbacksCount > 0);
           }
-          if (result.unreadFeedbacksCount !== undefined) {
-            setUnreadCount(result.unreadFeedbacksCount);
-          }
-          if (result.uniqueSongsCount !== undefined) {
-            setUnreadSongsCount(result.uniqueSongsCount);
-          }
-          if (result.firstUnreadSongSlug !== undefined) {
-            setFirstUnreadSlug(result.firstUnreadSongSlug);
+        } catch (e) {
+          const errorMsg = e instanceof Error ? e.message : String(e);
+          const isAbortError =
+            errorMsg === "Load failed" ||
+            errorMsg.includes("Failed to fetch") ||
+            (e instanceof Error && e.name === "AbortError");
+
+          if (!isAbortError) {
+            logAction({ message: "Failed to update user data in Navbar event handler", data: { error: errorMsg }, source: "Navbar.tsx:handleUpdate" });
           }
         }
-        setHasSongs(songResult.success && songResult.count > 0);
-        setHasFeedbacksGiven(feedbackCount > 0);
       }
     };
 
@@ -212,7 +223,7 @@ export default function Navbar({ isLoggedIn, initialTokens, isAdmin }: NavbarPro
   const handleShare = () => {
     share({
       title: 'פידבק ספייס',
-      text: 'מוזמנים להצטרף אלי ולתת פידבק על שירים בקהילת פידבק ספייס!',
+      text: 'יצא לך להכיר את פידבק ספייס? אחלה מקום לשתף שירים ולקבל חוות דעת מאנשים. שווה בדיקה: ',
       url: window.location.origin,
     });
   };

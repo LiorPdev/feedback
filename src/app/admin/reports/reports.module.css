@@ -465,3 +465,107 @@
   width: 40px;
   height: 40px;
 }
+
+.songTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.editSongTitleBtn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  opacity: 0.4;
+}
+
+tr:hover .editSongTitleBtn,
+.editSongTitleBtn:focus {
+  opacity: 1;
+  color: var(--brand-primary);
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.editSongTitleBtn:hover {
+  transform: scale(1.1);
+}
+
+.editSongContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 300px;
+}
+
+.editTitleInput {
+  flex: 1;
+  padding: 6px 10px;
+  border: 2px solid var(--brand-primary);
+  border-radius: 8px;
+  outline: none;
+  font-size: 0.95rem;
+  font-family: inherit;
+  width: 100%;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  transition: all 0.2s ease;
+}
+
+.editTitleInput:focus {
+  border-color: var(--brand-primary);
+}
+
+.editActions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.saveTitleBtn,
+.cancelTitleBtn {
+  border: none;
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.saveTitleBtn {
+  background: #22c55e;
+  color: white;
+}
+
+.saveTitleBtn:hover {
+  background: #16a34a;
+  transform: scale(1.1);
+  box-shadow: 0 2px 6px rgba(34, 197, 94, 0.3);
+}
+
+.cancelTitleBtn {
+  background: #ef4444;
+  color: white;
+}
+
+.cancelTitleBtn:hover {
+  background: #dc2626;
+  transform: scale(1.1);
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
+}
+
+.saveTitleBtn:active,
+.cancelTitleBtn:active {
+  transform: scale(0.95);
+}

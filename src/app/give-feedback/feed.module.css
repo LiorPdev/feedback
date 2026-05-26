@@ -337,6 +337,9 @@
   color: var(--text-main);
   white-space: pre-wrap;
   margin-top: 1rem;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 .emptyState {

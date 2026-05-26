@@ -197,3 +197,62 @@ export async function redeemCreditCode(code: string) {
     return { success: false, error: "שגיאה במימוש הקוד" };
   }
 }
+
+export async function getUserNavbarData() {
+  try {
+    const dbUser = await syncUser();
+    if (!dbUser) return { success: false as const, error: "משתמש לא מחובר" };
+
+    const db = await getDb();
+
+    // Run database queries in parallel as a batch (single roundtrip HTTP call to D1 database)
+    const [unreadData, songCountResult, givenCountResult] = await db.batch([
+      db
+        .select({ 
+          count: sql<number>`count(*)`,
+          uniqueSongsCount: sql<number>`count(distinct ${songs.id})`,
+          firstSlug: sql<string>`MAX(${songs.slug})`
+        })
+        .from(feedbacks)
+        .innerJoin(songs, eq(feedbacks.songId, songs.id))
+        .where(
+          and(
+            eq(songs.userId, dbUser.id),
+            eq(feedbacks.isUnlocked, false)
+          )
+        ),
+      db
+        .select({ count: sql<number>`count(*)` })
+        .from(songs)
+        .where(eq(songs.userId, dbUser.id)),
+      db
+        .select({ count: sql<number>`count(*)` })
+        .from(feedbacks)
+        .where(eq(feedbacks.authorId, dbUser.id))
+    ]);
+
+    const stats = unreadData[0];
+
+    return {
+      success: true as const,
+      email: dbUser.email,
+      name: dbUser.name,
+      tokens: dbUser.tokens ?? 0,
+      userGenre: dbUser.userGenre ?? null,
+      socialLinks: dbUser.socialLinks ?? null,
+      unreadFeedbacksCount: stats?.count ?? 0,
+      uniqueSongsCount: stats?.uniqueSongsCount ?? 0,
+      firstUnreadSongSlug: stats?.firstSlug ?? null,
+      songCount: songCountResult[0]?.count ?? 0,
+      givenFeedbacksCount: givenCountResult[0]?.count ?? 0
+    };
+  } catch (error) {
+    await logAction({
+      message: "Failed to get user navbar data",
+      data: error,
+      source: "actions/user.ts:getUserNavbarData"
+    });
+    return { success: false as const, error: "שגיאה בטעינת נתוני הניווט" };
+  }
+}
+

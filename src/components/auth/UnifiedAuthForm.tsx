@@ -24,6 +24,7 @@ export default function UnifiedAuthForm({ onSuccess, onStepChange, redirectUrl }
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<"signIn" | "signUp" | null>(null);
   const [selectedStrategy, setSelectedStrategy] = useState<string>("email_code");
@@ -173,7 +174,9 @@ export default function UnifiedAuthForm({ onSuccess, onStepChange, redirectUrl }
   };
 
   const handleGoogleLogin = async () => {
-    if (!signInLoaded || !signIn) return;
+    if (!signInLoaded || !signIn || googleLoading) return;
+    setGoogleLoading(true);
+    setError(null);
     try {
       const targetUrl = redirectUrl || "/";
       if (typeof window !== "undefined") {
@@ -186,6 +189,7 @@ export default function UnifiedAuthForm({ onSuccess, onStepChange, redirectUrl }
       });
     } catch (err) {
       logAction({ message: "Google Auth Error", data: err, source: "UnifiedAuthForm:handleGoogleLogin" });
+      setGoogleLoading(false);
     }
   };
 
@@ -199,18 +203,25 @@ export default function UnifiedAuthForm({ onSuccess, onStepChange, redirectUrl }
               onClick={handleGoogleLogin}
               className={styles.googleButton}
               fullWidth
+              disabled={googleLoading || loading}
             >
-              <div className={styles.googleIconWrapper}>
-                <Image
-                  src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-                  alt="Google"
-                  width={18}
-                  height={18}
-                  className={styles.googleIcon}
-                />
-              </div>
-              <span className={styles.googleButtonTextFull}>ממשיכים בקליק עם Google</span>
-              <span className={styles.googleButtonTextShort}>מתחברים עם Google</span>
+              {googleLoading ? (
+                <Loader2 className="animate-spin w-5 h-5" />
+              ) : (
+                <>
+                  <div className={styles.googleIconWrapper}>
+                    <Image
+                      src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                      alt="Google"
+                      width={18}
+                      height={18}
+                      className={styles.googleIcon}
+                    />
+                  </div>
+                  <span className={styles.googleButtonTextFull}>ממשיכים בקליק עם Google</span>
+                  <span className={styles.googleButtonTextShort}>מתחברים עם Google</span>
+                </>
+              )}
             </Button>
 
             <div className={styles.divider}>
@@ -235,6 +246,7 @@ export default function UnifiedAuthForm({ onSuccess, onStepChange, redirectUrl }
                     onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity('אנא הזינו כתובת אימייל תקינה')}
                     onInput={(e) => (e.target as HTMLInputElement).setCustomValidity('')}
                     className={styles.input}
+                    disabled={loading || googleLoading}
                     required
                   />
                 </div>
@@ -242,7 +254,7 @@ export default function UnifiedAuthForm({ onSuccess, onStepChange, redirectUrl }
                 <Button
                   type="submit"
                   variant="outline"
-                  disabled={loading}
+                  disabled={loading || googleLoading}
                 >
                   {loading ? <Loader2 className="animate-spin w-5 h-5" /> : "אישור"}
                 </Button>

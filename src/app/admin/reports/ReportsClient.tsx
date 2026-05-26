@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { getAdminSongsReport, getAdminFeedbacksReport, getAdminUsersReport, getAdminLogsReport, getAdminTopRatedReport, deleteAdminFeedbacks, deleteAdminSongs, deleteAdminLogs, getAdminWakeUpReport, getSongFeedbacks, generateAIFeedback, getAdminUnreadFeedbacksReport, sendUnreadReminderAction, resetSongDecay } from '@/app/actions/admin';
-import { ArrowUpDown, ArrowUp, ArrowDown, Trash2, Heart, Copy, Meh, Check, RefreshCw, Sparkles, Code, Mail } from 'lucide-react';
+import { getAdminSongsReport, getAdminFeedbacksReport, getAdminUsersReport, getAdminLogsReport, getAdminTopRatedReport, deleteAdminFeedbacks, deleteAdminSongs, deleteAdminLogs, getAdminWakeUpReport, getSongFeedbacks, generateAIFeedback, getAdminUnreadFeedbacksReport, sendUnreadReminderAction, resetSongDecay, updateAdminSongTitle } from '@/app/actions/admin';
+import { ArrowUpDown, ArrowUp, ArrowDown, Trash2, Heart, Copy, Meh, Check, RefreshCw, Sparkles, Code, Mail, Edit2, X } from 'lucide-react';
 import { isSongPromoted } from '@/lib/utils';
 import { AI_SUMMARIZE_PROMPT } from '@/lib/ai-constants';
 import styles from './reports.module.css';
@@ -62,6 +62,41 @@ export function ReportsClient() {
     const [aiFeedback, setAiFeedback] = useState<string | null>(null);
     const [generatingAI, setGeneratingAI] = useState(false);
     const [copyingPrompt, setCopyingPrompt] = useState(false);
+    const [editingSongId, setEditingSongId] = useState<string | null>(null);
+    const [editTitle, setEditTitle] = useState<string>('');
+    const [isSaving, setIsSaving] = useState(false);
+
+    const handleStartEdit = (songId: string, currentTitle: string) => {
+        setEditingSongId(songId);
+        setEditTitle(currentTitle);
+    };
+
+    const handleCancelEdit = () => {
+        setEditingSongId(null);
+        setEditTitle('');
+    };
+
+    const handleSaveEdit = async (songId: string) => {
+        const cleanTitle = editTitle.trim();
+        if (!cleanTitle) {
+            alert('שם השיר אינו יכול להיות ריק');
+            return;
+        }
+        setIsSaving(true);
+        const result = await updateAdminSongTitle(songId, cleanTitle);
+        if (result.success) {
+            setData(prevData =>
+                prevData.map(item =>
+                    item.id === songId ? { ...item, title: cleanTitle } : item
+                )
+            );
+            setEditingSongId(null);
+            setEditTitle('');
+        } else {
+            alert(result.error || 'שגיאה בעדכון שם השיר');
+        }
+        setIsSaving(false);
+    };
 
     const canDelete = reportType === 'songs' || reportType === 'feedbacks' || reportType === 'logs';
 
@@ -288,6 +323,8 @@ export function ReportsClient() {
                     onChange={(e) => {
                         setReportType(e.target.value as ReportType);
                         setSelectedIds([]);
+                        setEditingSongId(null);
+                        setEditTitle('');
                     }}
                 >
                     <option value="users">משתמשים רשומים</option>
@@ -433,22 +470,65 @@ export function ReportsClient() {
                                                 />
                                             </td>
                                             <td>{formatDate(item.createdAt)}</td>
-                                            <td>
-                                                 {item.url ? (
-                                                     <a
-                                                         href={item.url}
-                                                         target="_blank"
-                                                         rel="noopener noreferrer"
-                                                         style={{ cursor: 'pointer', textDecoration: 'underline', color: 'inherit' }}
-                                                         title="פתח קישור לשיר"
-                                                         onClick={(e) => e.stopPropagation()}
-                                                     >
-                                                         {item.title}
-                                                     </a>
-                                                 ) : (
-                                                     item.title
-                                                 )}
-                                             </td>
+                                            <td onClick={(e) => e.stopPropagation()}>
+                                                {editingSongId === item.id ? (
+                                                    <div className={styles.editSongContainer}>
+                                                        <input
+                                                            type="text"
+                                                            value={editTitle}
+                                                            onChange={(e) => setEditTitle(e.target.value)}
+                                                            className={styles.editTitleInput}
+                                                            disabled={isSaving}
+                                                            autoFocus
+                                                            onKeyDown={(e) => {
+                                                                if (e.key === 'Enter') handleSaveEdit(item.id);
+                                                                if (e.key === 'Escape') handleCancelEdit();
+                                                            }}
+                                                        />
+                                                        <div className={styles.editActions}>
+                                                            <button
+                                                                className={styles.saveTitleBtn}
+                                                                onClick={() => handleSaveEdit(item.id)}
+                                                                disabled={isSaving}
+                                                                title="שמור שינויים"
+                                                            >
+                                                                <Check size={16} />
+                                                            </button>
+                                                            <button
+                                                                className={styles.cancelTitleBtn}
+                                                                onClick={handleCancelEdit}
+                                                                disabled={isSaving}
+                                                                title="ביטול"
+                                                            >
+                                                                <X size={16} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className={styles.songTitleRow}>
+                                                        {item.url ? (
+                                                            <a
+                                                                href={item.url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                style={{ cursor: 'pointer', textDecoration: 'underline', color: 'inherit' }}
+                                                                title="פתח קישור לשיר"
+                                                            >
+                                                                {item.title}
+                                                            </a>
+                                                        ) : (
+                                                            <span>{item.title}</span>
+                                                        )}
+                                                        <button
+                                                            className={styles.editSongTitleBtn}
+                                                            onClick={() => handleStartEdit(item.id, item.title)}
+                                                            title="ערוך שם שיר"
+                                                        >
+                                                            <Edit2 size={14} />
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </td>
                                             <td>
                                                 <div>{item.creatorName || 'ללא שם'}</div>
                                                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{item.creatorEmail}</div>
