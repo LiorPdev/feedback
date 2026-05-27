@@ -18,7 +18,7 @@ export const ADMIN_EMAIL = "lior.porat.music@gmail.com";
 export const MAX_SONG_NAME_LENGTH = 25;
 export const MAX_FEW_WORDS_LENGTH = 110;
 export const MAX_ACTIVE_SONGS = 6;
-export const MAX_FILE_SIZE_MB = 13;
+export const MAX_FILE_SIZE_MB = 15;
 export const MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024;
 export const MIN_SONG_DURATION_SECONDS = 50;
 
