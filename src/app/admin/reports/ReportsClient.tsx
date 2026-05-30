@@ -163,10 +163,8 @@ export function ReportsClient() {
             result = await getAdminLogsReport();
         } else if (reportType === 'top-rated') {
             result = await getAdminTopRatedReport();
-            setSortConfig({ key: 'finalScore', direction: 'desc' });
         } else if (reportType === 'wake-up') {
             result = await getAdminWakeUpReport();
-            setSortConfig({ key: 'lastVisit', direction: 'asc' });
         } else if (reportType === 'unread-feedbacks') {
             result = await getAdminUnreadFeedbacksReport();
         } else {
@@ -321,10 +319,22 @@ export function ReportsClient() {
                     className={styles.select}
                     value={reportType}
                     onChange={(e) => {
-                        setReportType(e.target.value as ReportType);
+                        const newType = e.target.value as ReportType;
+                        setReportType(newType);
                         setSelectedIds([]);
                         setEditingSongId(null);
                         setEditTitle('');
+                        
+                        // Set the default sortConfig directly during selection change to avoid hook warning
+                        if (newType === 'top-rated') {
+                            setSortConfig({ key: 'finalScore', direction: 'desc' });
+                        } else if (newType === 'wake-up') {
+                            setSortConfig({ key: 'lastVisit', direction: 'asc' });
+                        } else if (newType === 'unread-feedbacks') {
+                            setSortConfig({ key: 'unreadCount', direction: 'desc' });
+                        } else {
+                            setSortConfig({ key: 'createdAt', direction: 'desc' });
+                        }
                     }}
                 >
                     <option value="users">משתמשים רשומים</option>
@@ -427,6 +437,7 @@ export function ReportsClient() {
                                     <SortHeader label="כניסה אחרונה" sortKey="lastVisit" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="שם השיר" sortKey="songTitle" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="#פידבקים" sortKey="feedbackCount" sortConfig={sortConfig} onSort={handleSort} align="center" />
+                                    <SortHeader label="לא נקראו" sortKey="lockedCount" sortConfig={sortConfig} onSort={handleSort} align="center" />
                                     <th style={{ width: '100px', textAlign: 'center' }}>תן פידבק</th>
                                 </tr>
                             ) : reportType === 'logs' ? (
@@ -713,6 +724,9 @@ export function ReportsClient() {
                                                 >
                                                     {item.feedbackCount}
                                                 </button>
+                                            </td>
+                                            <td style={{ textAlign: 'center', fontWeight: 'bold', color: item.lockedCount > 0 ? '#ef4444' : 'var(--text-muted)' }}>
+                                                {item.lockedCount}
                                             </td>
                                             <td style={{ textAlign: 'center' }}>
                                                 <button

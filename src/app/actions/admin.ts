@@ -275,9 +275,9 @@ export async function getAdminTopRatedReport() {
             songId: listenEvents.songId,
             avgPlayedSeconds: sql<number>`AVG(${listenEvents.playedSeconds})`.as('avgPlayedSeconds')
         })
-        .from(listenEvents)
-        .groupBy(listenEvents.songId)
-        .as('listenStats');
+            .from(listenEvents)
+            .groupBy(listenEvents.songId)
+            .as('listenStats');
 
         const bayesianAvg = sql`(((${weightedSum}) + (${TOP_RATED_MIN_RATINGS_THRESHOLD} * ${C_sql})) / ((${weightedCount}) + ${TOP_RATED_MIN_RATINGS_THRESHOLD}))`;
         const listenBonus = sql`(COALESCE(${listenStats.avgPlayedSeconds}, 0) / 60.0 * ${LISTEN_TIME_WEIGHT})`;
@@ -326,8 +326,7 @@ export async function getAdminWakeUpReport() {
     const db = await getDb();
     try {
         // 1. Get users who have at least one song
-        // 2. AND have no locked feedbacks (isUnlocked = false)
-        // 3. AND sort by last visit (updatedAt)
+        // 2. AND sort by last visit (updatedAt)
 
         // Subquery to count locked feedbacks per user
         const lockedFeedbacksSubquery = db.select({
@@ -362,7 +361,7 @@ export async function getAdminWakeUpReport() {
             songTitle: songs.title,
             songSlug: songs.slug,
             feedbackCount: sql<number>`COALESCE(${songFeedbackCounts.count}, 0)`.as('feedbackCount'),
-            lockedCount: lockedFeedbacksSubquery.lockedCount,
+            lockedCount: sql<number>`COALESCE(${lockedFeedbacksSubquery.lockedCount}, 0)`.as('lockedCount'),
         })
             .from(users)
             .innerJoin(songs, eq(users.id, songs.userId))
@@ -371,15 +370,9 @@ export async function getAdminWakeUpReport() {
             .where(eq(songs.isActive, true))
             .orderBy(users.updatedAt);
 
-        console.log(`Debug Wake Up: Found ${result.length} user/song pairs. Filtering for no locked feedbacks...`);
-        result.forEach(r => console.log(`User: ${r.userEmail}, Locked: ${r.lockedCount}`));
-
-        const filteredResult = result.filter(r => r.lockedCount === null || r.lockedCount === 0);
-        console.log(`After filter: ${filteredResult.length} pairs remaining`);
-
         type WakeUpRow = (typeof result)[number];
         const userMap = new Map<string, WakeUpRow>();
-        for (const row of filteredResult) {
+        for (const row of result) {
             const existing = userMap.get(row.userId);
             if (!existing || row.feedbackCount < existing.feedbackCount) {
                 userMap.set(row.userId, row);
@@ -521,7 +514,7 @@ export async function resetSongDecay(songId: string) {
     const db = await getDb();
     try {
         await db.update(songs)
-            .set({ 
+            .set({
                 topRatedLastNotified: null,
                 updatedAt: new Date().toISOString()
             })
@@ -551,17 +544,11 @@ export async function updateAdminSongTitle(songId: string, newTitle: string) {
     const db = await getDb();
     try {
         await db.update(songs)
-            .set({ 
+            .set({
                 title: cleanTitle,
                 updatedAt: new Date().toISOString()
             })
             .where(eq(songs.id, songId));
-
-        await logAction({
-            message: `Admin updated song title for song ID: ${songId} to "${cleanTitle}"`,
-            source: "actions/admin.ts:updateAdminSongTitle",
-            userId: admin.id
-        });
 
         return { success: true };
     } catch (error) {

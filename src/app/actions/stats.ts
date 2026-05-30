@@ -37,8 +37,9 @@ export async function getCommunityStats() {
                 SELECT 
                   CASE 
                     WHEN feedback_count >= 11 THEN 'מעל 10'
-                    WHEN feedback_count >= 6 THEN '6-10'
-                    WHEN feedback_count >= 1 THEN '1-5'
+                    WHEN feedback_count >= 7 THEN '7-10'
+                    WHEN feedback_count >= 4 THEN '4-6'
+                    WHEN feedback_count >= 1 THEN '1-3 פידבקים'
                     ELSE '0'
                   END as genre,
                   COUNT(*) as count

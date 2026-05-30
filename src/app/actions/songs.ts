@@ -463,8 +463,8 @@ export async function getFeedSongs(firstSongSlug?: string) {
                 // Only show active songs
                 filters.push(eq(songs.isActive, true));
 
-                // Don't show songs where the artist has any unread feedbacks
-                filters.push(sql`(SELECT COUNT(*) FROM Feedback WHERE songId = ${songs.id} AND isUnlocked = 0) = 0`);
+                // Don't show songs where the artist has 2 or more unread feedbacks
+                filters.push(sql`(SELECT COUNT(*) FROM Feedback WHERE songId = ${songs.id} AND isUnlocked = 0) <= 1`);
 
                 return filters.length > 0 ? and(...filters) : undefined;
             },
