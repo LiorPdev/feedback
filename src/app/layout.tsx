@@ -114,6 +114,23 @@ export default async function RootLayout({
               }}
             />
             <Script
+              src="https://www.googletagmanager.com/gtag/js?id=G-BP9CLFL2CS"
+              strategy="afterInteractive"
+            />
+            <Script
+              id="google-analytics"
+              strategy="afterInteractive"
+              dangerouslySetInnerHTML={{
+                __html: `
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+
+                  gtag('config', 'G-BP9CLFL2CS');
+                `,
+              }}
+            />
+            <Script
               id="fb-pixel"
               strategy="afterInteractive"
               dangerouslySetInnerHTML={{
