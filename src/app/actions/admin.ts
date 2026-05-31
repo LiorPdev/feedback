@@ -513,10 +513,11 @@ export async function resetSongDecay(songId: string) {
 
     const db = await getDb();
     try {
+        const nowStr = new Date().toISOString();
         await db.update(songs)
             .set({
-                topRatedLastNotified: null,
-                updatedAt: new Date().toISOString()
+                topRatedLastNotified: nowStr,
+                updatedAt: nowStr
             })
             .where(eq(songs.id, songId));
         return { success: true };
