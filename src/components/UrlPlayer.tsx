@@ -5,7 +5,6 @@
  *    if it requires changing the code flow (e.g., switching from `mounted` to `useSyncExternalStore`), 
  *    as this might break the player loading timing.
  * 
- * DEAR DEVELOPERS (AND AIs): Change this code carefully!
  */
 
 "use client";
@@ -68,12 +67,12 @@ export interface UrlPlayerHandle {
 const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, onPlay, onPause, onReady, onError, onEnded, isHidden = false, feedbackId = null }, ref) => {
   const isUnmountingRef = useRef(false);
   const [mounted, setMounted] = useState(false);
-
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const isYouTube = isYouTubeUrl(url);
   const isAudio = isAudioUrl(url);
   const embedUrl = getEmbedUrl(url, origin);
   const ytIframeSrc = mounted ? embedUrl : null;
+  const uniqueId = songId || url.replace(/[^a-zA-Z0-9]/g, "").slice(-20);
 
   useEffect(() => {
     setMounted(true);
@@ -318,11 +317,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
               },
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               onError: (event: any) => {
-                logAction({
-                  message: "YouTube Player Error Event",
-                  data: { errorCode: event.data, url: latestUrlRef.current },
-                  source: "UrlPlayer.tsx:onError"
-                });
+                logAction({ message: "YouTube Player Error Event", data: { errorCode: event.data, url: latestUrlRef.current }, source: "UrlPlayer.tsx:onError" });
                 if (onErrorRef.current) {
                   guard(onErrorRef.current)(event.data);
                 }
@@ -416,6 +411,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
     <div className={`${styles.playerWrapper} ${isHidden ? styles.hidden : ""}`}>
       {isAudio ? (
         <audio
+          key={url}
           ref={audioRef}
           src={url}
           preload="none"
@@ -440,6 +436,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
         />
       ) : (
         <iframe
+          key={url}
           ref={iframeRef}
           width="100%"
           height="152"
@@ -449,7 +446,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
           allowFullScreen
           src={ytIframeSrc || undefined}
           title="Media Player"
-          id="player-iframe"
+          id={`player-iframe-${uniqueId}`}
           className={styles.iframe}
         ></iframe>
       )}

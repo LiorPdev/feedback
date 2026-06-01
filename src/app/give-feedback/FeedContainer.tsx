@@ -294,8 +294,10 @@ export default function FeedContainer({
 
     if (isPlaying) {
       playerRef.current.pause();
+      setIsPlaying(false);
     } else {
       playerRef.current.play();
+      setIsPlaying(true);
     }
   };
 
