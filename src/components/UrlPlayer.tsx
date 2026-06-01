@@ -68,22 +68,15 @@ export interface UrlPlayerHandle {
 const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, onPlay, onPause, onReady, onError, onEnded, isHidden = false, feedbackId = null }, ref) => {
   const isUnmountingRef = useRef(false);
   const [mounted, setMounted] = useState(false);
-  // ytIframeSrc is set once after mount so the iframe src includes the correct
-  // window.location.origin (not available during SSR / first render)
-  const [ytIframeSrc, setYtIframeSrc] = useState<string | null>(null);
 
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const isYouTube = isYouTubeUrl(url);
   const isAudio = isAudioUrl(url);
   const embedUrl = getEmbedUrl(url, origin);
+  const ytIframeSrc = mounted ? embedUrl : null;
 
   useEffect(() => {
     setMounted(true);
-    if (isYouTube) {
-      // Set the iframe src once after mount so origin is included correctly
-      setYtIframeSrc(getEmbedUrl(url, window.location.origin));
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -133,10 +126,10 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
     if (delta >= MIN_LISTEN_EVENT_SECONDS) {
       const id = songIdRef.current;
       const fbId = feedbackIdRef.current;
-      recordListenEvent({ 
-        songId: id, 
-        playedSeconds: delta, 
-        feedbackId: fbId || undefined 
+      recordListenEvent({
+        songId: id,
+        playedSeconds: delta,
+        feedbackId: fbId || undefined
       }).catch(() => null);
     }
 
@@ -250,21 +243,8 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
     return () => clearInterval(interval);
   }, [isYouTube, isAudio]);
 
-  // NEW EFFECT: Handle URL changes via loadVideoById to prevent losing mobile autoplay context
-  useEffect(() => {
-    if (isYouTube && mounted && playerRef.current && typeof playerRef.current.loadVideoById === "function") {
-      const vidId = getYouTubeVideoId(url);
-      if (vidId) {
-        try {
-          playerRef.current.loadVideoById(vidId);
-          playerRef.current.playVideo();
-          if (onReadyRef.current) {
-            guard(onReadyRef.current)();
-          }
-        } catch { /* ignore errors */ }
-      }
-    }
-  }, [url, isYouTube, mounted]);
+  // URL changes are handled robustly by reloading the iframe and initializing a new YT.Player instance.
+  // This completely avoids flakiness in the YouTube API when cueing/loading videos on an active player.
 
   useEffect(() => {
     if (!mounted || !embedUrl) return;
@@ -309,23 +289,25 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
                 if (event.data === window.YT.PlayerState.PLAYING) {
                   handlePlayStart();
                   guard(onPlayRef.current)();
-                } else if (event.data === window.YT.PlayerState.PAUSED) {
+                } else if (
+                  event.data === window.YT.PlayerState.PAUSED ||
+                  event.data === window.YT.PlayerState.ENDED
+                ) {
                   handlePlayStop();
                   guard(onPauseRef.current)();
-                } else if (event.data === window.YT.PlayerState.ENDED) {
-                  handlePlayStop();
-                  guard(onPauseRef.current)();
-                  guard(onEndedRef.current)();
+                  if (event.data === window.YT.PlayerState.ENDED) {
+                    guard(onEndedRef.current)();
+                  }
                 }
               },
               onReady: () => {
                 guard(onReadyRef.current)();
 
-                // If URL was switched while the SDK was initializing, load the new one now
+                // If URL was switched while the SDK was initializing, cue the new one now
                 const currentVidId = getYouTubeVideoId(latestUrlRef.current);
                 const initialVidId = getYouTubeVideoId(ytIframeSrc || "");
                 if (currentVidId && initialVidId && currentVidId !== initialVidId) {
-                  try { playerRef.current?.loadVideoById(currentVidId); } catch { /* ignore */ }
+                  try { playerRef.current?.cueVideoById(currentVidId); } catch { /* ignore */ }
                 }
 
                 // If play() was called before the YT player was ready, execute it now
@@ -334,6 +316,17 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
                   try { playerRef.current?.playVideo(); } catch { /* ignore */ }
                 }
               },
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              onError: (event: any) => {
+                logAction({
+                  message: "YouTube Player Error Event",
+                  data: { errorCode: event.data, url: latestUrlRef.current },
+                  source: "UrlPlayer.tsx:onError"
+                });
+                if (onErrorRef.current) {
+                  guard(onErrorRef.current)(event.data);
+                }
+              }
             },
           });
         } catch (e) {
@@ -394,7 +387,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
       playerRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mounted, isYouTube, isAudio, handlePlayStart, handlePlayStop]);
+  }, [mounted, url, isYouTube, isAudio, handlePlayStart, handlePlayStop]);
 
   if (!mounted) {
     return (
@@ -454,7 +447,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
           frameBorder="no"
           allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
-          src={ytIframeSrc || ""}
+          src={ytIframeSrc || undefined}
           title="Media Player"
           id="player-iframe"
           className={styles.iframe}

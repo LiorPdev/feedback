@@ -91,6 +91,7 @@ export default function FeedContainer({
   const [secondsRemaining, setSecondsRemaining] = useState<number>(MIN_LISTEN_TIME);
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isActionPending, setIsActionPending] = useState(false);
 
   const hasRatedCurrent = !isJustRated && (
     currentSong?.id === originalFirstSongId && !!initialFeedback
@@ -171,6 +172,15 @@ export default function FeedContainer({
     setDuration(0);
     setLastFeedbackId(null);
   }, []);
+
+  // Fallback timer: YouTube API can be slow/flaky, ensure we never get stuck in transitioning state
+  useEffect(() => {
+    if (!isTransitioning) return;
+    const timer = setTimeout(() => {
+      setIsTransitioning(false);
+    }, 2000); // 2 seconds fallback
+    return () => clearTimeout(timer);
+  }, [isTransitioning]);
 
   useEffect(() => {
     if (!isTimerActive) return;
@@ -270,20 +280,21 @@ export default function FeedContainer({
   };
 
   const togglePlayback = () => {
-    if (!playerRef.current) return;
+    if (!playerRef.current || isActionPending) return;
 
     // If not logged in AND not coming from an ad, block playback
     if (!isLoggedIn && !isGuestEligible) {
       return;
     }
 
+    setIsActionPending(true);
+    setTimeout(() => {
+      setIsActionPending(false);
+    }, 800); // 800ms throttle to prevent spam click state desync
+
     if (isPlaying) {
-      setIsPlaying(false); // Optimistic UI update
-      setIsTimerActive(false);
       playerRef.current.pause();
     } else {
-      setIsPlaying(true); // Optimistic UI update
-      setIsTimerActive(true);
       playerRef.current.play();
     }
   };
@@ -384,7 +395,7 @@ export default function FeedContainer({
               <button
                 className={isProminentNext ? styles.btnSkip : (isPlaying ? styles.btnStop : styles.btnPlay)}
                 onClick={togglePlayback}
-                disabled={(!isLoggedIn && !isGuestEligible) || showSpinner}
+                disabled={(!isLoggedIn && !isGuestEligible) || showSpinner || isActionPending}
               >
                 {isPlaying ? (
                   <>
