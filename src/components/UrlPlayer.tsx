@@ -36,13 +36,17 @@ interface UrlPlayerProps {
   feedbackId?: string | null;
 }
 
-export const getEmbedUrl = (url: string) => {
+export const getEmbedUrl = (url: string, origin?: string) => {
   if (!url) return null;
 
   // YouTube
   const videoId = getYouTubeVideoId(url);
   if (videoId) {
-    return `https://www.youtube.com/embed/${videoId}?enablejsapi=1`;
+    let embedUrl = `https://www.youtube.com/embed/${videoId}?enablejsapi=1`;
+    if (origin) {
+      embedUrl += `&origin=${encodeURIComponent(origin)}`;
+    }
+    return embedUrl;
   }
 
   // Audio files
@@ -64,17 +68,24 @@ export interface UrlPlayerHandle {
 const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, onPlay, onPause, onReady, onError, onEnded, isHidden = false, feedbackId = null }, ref) => {
   const isUnmountingRef = useRef(false);
   const [mounted, setMounted] = useState(false);
-  const [origin, setOrigin] = useState("");
+  // ytIframeSrc is set once after mount so the iframe src includes the correct
+  // window.location.origin (not available during SSR / first render)
+  const [ytIframeSrc, setYtIframeSrc] = useState<string | null>(null);
+
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const isYouTube = isYouTubeUrl(url);
+  const isAudio = isAudioUrl(url);
+  const embedUrl = getEmbedUrl(url, origin);
 
   useEffect(() => {
     setMounted(true);
-    setOrigin(window.location.origin);
+    if (isYouTube) {
+      // Set the iframe src once after mount so origin is included correctly
+      setYtIframeSrc(getEmbedUrl(url, window.location.origin));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const isYouTube = isYouTubeUrl(url);
-  const isAudio = isAudioUrl(url);
-
-  const embedUrl = getEmbedUrl(url);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -97,14 +108,6 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
   useEffect(() => {
     latestUrlRef.current = url;
   }, [url]);
-
-  // Track the initial iframe src so we never trigger a DOM-level reload of the iframe
-  const [ytIframeSrc, setYtIframeSrc] = useState<string | null>(isYouTube ? embedUrl : null);
-  useEffect(() => {
-    if (isYouTube && !ytIframeSrc) {
-      setYtIframeSrc(embedUrl);
-    }
-  }, [isYouTube, embedUrl, ytIframeSrc]);
 
   useEffect(() => {
     onPlayRef.current = onPlay;
@@ -255,6 +258,9 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
         try {
           playerRef.current.loadVideoById(vidId);
           playerRef.current.playVideo();
+          if (onReadyRef.current) {
+            guard(onReadyRef.current)();
+          }
         } catch { /* ignore errors */ }
       }
     }
@@ -314,7 +320,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
               },
               onReady: () => {
                 guard(onReadyRef.current)();
-                
+
                 // If URL was switched while the SDK was initializing, load the new one now
                 const currentVidId = getYouTubeVideoId(latestUrlRef.current);
                 const initialVidId = getYouTubeVideoId(ytIframeSrc || "");
@@ -370,25 +376,25 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
     }
 
     return () => {
-      // Cleanup
+      // Cleanup: do NOT call player.destroy() here.
+      // React removes the iframe from the DOM before this cleanup runs.
+      // Calling destroy() on a player whose iframe is already gone corrupts
+      // window.YT's internal player registry, causing onReady to never fire
+      // the next time a player is created on the same page.
       isUnmountingRef.current = true;
       handlePlayStop(); // Record final session before unmount
       const player = playerRef.current;
       if (player) {
         try {
-          if (isYouTube && typeof player.destroy === 'function') {
-            // Only destroy if the player is still connected to its iframe
-            player.destroy();
+          if (isYouTube && typeof player.pauseVideo === 'function') {
+            player.pauseVideo();
           }
-        } catch (e) {
-          // Swallow errors during cleanup but log to DB
-          logAction({ message: "Player cleanup error", data: e, source: "UrlPlayer.tsx:cleanup" });
-        }
+        } catch { /* ignore */ }
       }
       playerRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mounted, origin, isYouTube, isAudio, handlePlayStart, handlePlayStop]);
+  }, [mounted, isYouTube, isAudio, handlePlayStart, handlePlayStop]);
 
   if (!mounted) {
     return (

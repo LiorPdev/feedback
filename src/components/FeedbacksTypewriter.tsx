@@ -17,6 +17,7 @@ export default function FeedbacksTypewriter({
 }: FeedbacksTypewriterProps) {
   const [allTexts, setAllTexts] = useState<string[]>(initialTexts);
   const [isFetching, setIsFetching] = useState(false);
+  const [hasAttempted, setHasAttempted] = useState(false);
 
   const fetchFeedbacks = useCallback(async () => {
     if (isFetching) return;
@@ -31,14 +32,15 @@ export default function FeedbacksTypewriter({
       logAction({ message: "Failed to fetch feedbacks", data: error, source: "FeedbacksTypewriter" });
     } finally {
       setIsFetching(false);
+      setHasAttempted(true);
     }
   }, [isFetching]);
 
   useEffect(() => {
-    if (allTexts.length === 0) {
+    if (allTexts.length === 0 && !hasAttempted && !isFetching) {
       fetchFeedbacks();
     }
-  }, [allTexts.length, fetchFeedbacks]);
+  }, [allTexts.length, hasAttempted, isFetching, fetchFeedbacks]);
 
   if (allTexts.length === 0 && !isFetching) return null;
 

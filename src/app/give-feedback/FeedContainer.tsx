@@ -350,7 +350,7 @@ export default function FeedContainer({
         {/* Player Section */}
         <div className={styles.playerSection}>
           <motion.div
-            key={currentSong.id + "-player"}
+            key="static-player-container"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
