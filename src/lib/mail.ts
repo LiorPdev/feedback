@@ -351,7 +351,7 @@ export async function sendUnreadFeedbackReminder({
         </p>
         <p style="font-size: 15px; margin: 20px 0; padding: 16px; border-right: 4px solid #cbd5e1; line-height: 1.5; background-color: #f8fafc;">
           <strong style="color: #1e293b;">חשוב לדעת:</strong> 
-          שירים עם פידבקים שטרם נקראו לא מוצגים עוד לקהילה כדי למנוע השקעת מאמץ מיותרת מצידם. 
+          שירים עם פידבקים שטרם נקראו לא מוצגים עוד לקהילה. 
           מיד לאחר קריאת הפידבקים החדשים, השיר יחזור להופיע בפיד. 
           <span style="display: block; margin-top: 8px; font-size: 14px; color: #64748b;">
             לתשומת לבך, שירים עם פידבקים שלא ייקראו לאורך זמן יוסרו מהמערכת.

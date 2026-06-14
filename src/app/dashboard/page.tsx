@@ -6,6 +6,7 @@ import { TOP_RATED_MIN_RATINGS_THRESHOLD } from "@/lib/constants";
 import { getDb } from "@/lib/db";
 import { feedbacks } from "@/lib/schema";
 import DashboardClient from "./DashboardClient";
+import DashboardTitle from "./DashboardTitle";
 import { getMyGivenFeedbacks } from "@/app/actions/feedback";
 import type { GivenFeedbackItem } from "@/app/actions/feedback";
 import RaterScoreInfo from "@/components/RaterScoreInfo";
@@ -80,7 +81,7 @@ export default async function DashboardPage({
       <div className={styles.headerWrapper}>
         <div className={styles.headerRow}>
           <PageHeader
-            title={dbUser.name || "האיזור האישי"}
+            title={<DashboardTitle name={dbUser.name || "האיזור האישי"} />}
             subtitle={
               <RaterScoreInfo
                 score={dbUser.raterScore}
