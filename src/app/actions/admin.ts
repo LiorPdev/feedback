@@ -4,7 +4,7 @@ import { getDb } from '@/lib/db';
 import { syncUser } from '@/lib/user-auth';
 import { desc, eq, aliasedTable, sql, and, gt, inArray } from 'drizzle-orm';
 import { users, songs, feedbacks, logs, listenEvents } from '@/lib/schema';
-import { ADMIN_EMAIL, TOP_RATED_DECAY_FACTOR, TOP_RATED_MIN_RATINGS_THRESHOLD, LISTEN_TIME_WEIGHT } from '@/lib/constants';
+import { ADMIN_EMAIL, TOP_RATED_DECAY_FACTOR, TOP_RATED_MIN_RATINGS_THRESHOLD, LISTEN_TIME_WEIGHT, TOP_RATED_MIN_FEEDBACKS } from '@/lib/constants';
 import { logAction } from './logs';
 import { summarizeFeedbacks } from '@/lib/ai-service';
 import { sendUnreadFeedbackReminder } from '@/lib/mail';
@@ -304,6 +304,7 @@ export async function getAdminTopRatedReport() {
             .leftJoin(listenStats, eq(songs.id, listenStats.songId))
             .where(eq(songs.isActive, true))
             .groupBy(songs.id)
+            .having(sql`count(${feedbacks.id}) >= ${TOP_RATED_MIN_FEEDBACKS}`)
             .orderBy(desc(finalScore));
 
         return { success: true, data: result };

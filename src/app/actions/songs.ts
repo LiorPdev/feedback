@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { eq, sql, and, notInArray, gt, aliasedTable, type SQL } from 'drizzle-orm';
 import { users, songs, feedbacks, listenEvents } from '@/lib/schema';
-import { SONG_SUBMISSION_COST, REWARD_PER_COMMENT_STEP, COMMENT_STEP_LENGTH, MAX_COMMENT_LENGTH, TOP_RATED_MIN_RATINGS_THRESHOLD, TOP_RATED_DECAY_FACTOR, MIN_SONG_DURATION_SECONDS, PROMOTION_COST, MIN_LISTEN_EVENT_SECONDS, LISTEN_TIME_WEIGHT, TOP_LISTENED_MIN_FEEDBACKS } from '@/lib/constants';
+import { SONG_SUBMISSION_COST, REWARD_PER_COMMENT_STEP, COMMENT_STEP_LENGTH, MAX_COMMENT_LENGTH, TOP_RATED_MIN_RATINGS_THRESHOLD, TOP_RATED_DECAY_FACTOR, MIN_SONG_DURATION_SECONDS, PROMOTION_COST, MIN_LISTEN_EVENT_SECONDS, LISTEN_TIME_WEIGHT, TOP_LISTENED_MIN_FEEDBACKS, TOP_RATED_MIN_FEEDBACKS } from '@/lib/constants';
 import { sendFeedbackNotification, sendTopRatedNotification } from '@/lib/mail';
 import { logToDb } from "@/lib/logger";
 import { deleteFileFromR2 } from '@/app/actions/upload';
@@ -1065,6 +1065,7 @@ export async function getTopRatedSongs(): Promise<{ success: boolean; songs?: To
             .leftJoin(listenStats as any, eq(songs.id, (listenStats as any).songId))
             .where(eq(songs.isActive, true))
             .groupBy(songs.id)
+            .having(sql`count(${feedbacks.id}) >= ${TOP_RATED_MIN_FEEDBACKS}`)
             .orderBy(sql`${weightedRatingSql} DESC`, songs.id)
             .limit(10);
 
@@ -1182,6 +1183,7 @@ export async function checkAndNotifyTopRated(triggerSongId?: string) {
             .leftJoin(listenStats as any, eq(songs.id, (listenStats as any).songId))
             .where(eq(songs.isActive, true))
             .groupBy(songs.id)
+            .having(sql`count(${feedbacks.id}) >= ${TOP_RATED_MIN_FEEDBACKS}`)
             .orderBy(sql`${weightedRatingSql} DESC`, songs.id)
             .limit(10);
 

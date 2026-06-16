@@ -47,6 +47,7 @@ export const LISTEN_TIME_WEIGHT = 0.3;            // Every minute of average lis
 export const TOP_RATED_DECAY_FACTOR = 0.07;       // Amount of score points a song loses for each day it stays in the Top 10 list. To prevent the same songs from dominating the Top 10 for too long. Lower value (e.g. 0.005) means songs stay longer; higher value (e.g. 0.05) means faster turnover.
 export const TOP_RATED_MIN_RATINGS_THRESHOLD = 4; // Damping factor (m) for Bayesian rating. Higher value means more ratings are needed to overcome the global average and reach the top.
 export const TOP_LISTENED_MIN_FEEDBACKS = 3;      // Display songs in top rated by listen time only if were rated at least 3 times
+export const TOP_RATED_MIN_FEEDBACKS = 3;         // Minimum feedbacks required for a song to enter the Top Rated list
 
 // Rater Score Configuration
 export const RATER_WEIGHT_LIKES_RATE = 0.6;        // 60% - Weight for percentage of feeds liked by authors
