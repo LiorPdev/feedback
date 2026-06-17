@@ -53,6 +53,7 @@ export default function Navbar({ isLoggedIn, isClerkUser, initialTokens, isAdmin
   const redirectUrlRef = useRef<string | null>(null);
   const tokenTriggerRef = useRef<HTMLDivElement>(null);
   const unreadTriggerRef = useRef<HTMLAnchorElement>(null);
+  const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const router = useRouter();
   const { share, copied } = useShare();
   const { isUtmMode } = useUtmMode();
@@ -119,41 +120,46 @@ export default function Navbar({ isLoggedIn, isClerkUser, initialTokens, isAdmin
   useEffect(() => {
     const handleUpdate = async () => {
       if (isLoggedIn || userId) {
-        try {
-          const result = await getUserNavbarData();
-
-          if (result.success) {
-            if (result.tokens !== undefined) {
-              setTokens(prev => {
-                if (prev !== null && result.tokens !== prev) {
-                  setGlowMode(result.tokens > prev ? "positive" : "negative");
-                }
-                return result.tokens;
-              });
-            }
-            if (result.unreadFeedbacksCount !== undefined) {
-              setUnreadCount(result.unreadFeedbacksCount);
-            }
-            if (result.uniqueSongsCount !== undefined) {
-              setUnreadSongsCount(result.uniqueSongsCount);
-            }
-            if (result.firstUnreadSongSlug !== undefined) {
-              setFirstUnreadSlug(result.firstUnreadSongSlug);
-            }
-            setHasSongs(result.songCount > 0);
-            setHasFeedbacksGiven(result.givenFeedbacksCount > 0);
-          }
-        } catch (e) {
-          const errorMsg = e instanceof Error ? e.message : String(e);
-          const isAbortError =
-            errorMsg === "Load failed" ||
-            errorMsg.includes("Failed to fetch") ||
-            (e instanceof Error && e.name === "AbortError");
-
-          if (!isAbortError) {
-            logAction({ message: "Failed to update user data in Navbar event handler", data: { error: errorMsg }, source: "Navbar.tsx:handleUpdate" });
-          }
+        if (refreshTimeoutRef.current) {
+          clearTimeout(refreshTimeoutRef.current);
         }
+        refreshTimeoutRef.current = setTimeout(async () => {
+          try {
+            const result = await getUserNavbarData();
+
+            if (result.success) {
+              if (result.tokens !== undefined) {
+                setTokens(prev => {
+                  if (prev !== null && result.tokens !== prev) {
+                    setGlowMode(result.tokens > prev ? "positive" : "negative");
+                  }
+                  return result.tokens;
+                });
+              }
+              if (result.unreadFeedbacksCount !== undefined) {
+                setUnreadCount(result.unreadFeedbacksCount);
+              }
+              if (result.uniqueSongsCount !== undefined) {
+                setUnreadSongsCount(result.uniqueSongsCount);
+              }
+              if (result.firstUnreadSongSlug !== undefined) {
+                setFirstUnreadSlug(result.firstUnreadSongSlug);
+              }
+              setHasSongs(result.songCount > 0);
+              setHasFeedbacksGiven(result.givenFeedbacksCount > 0);
+            }
+          } catch (e) {
+            const errorMsg = e instanceof Error ? e.message : String(e);
+            const isAbortError =
+              errorMsg === "Load failed" ||
+              errorMsg.includes("Failed to fetch") ||
+              (e instanceof Error && e.name === "AbortError");
+
+            if (!isAbortError) {
+              logAction({ message: "Failed to update user data in Navbar event handler", data: { error: errorMsg }, source: "Navbar.tsx:handleUpdate" });
+            }
+          }
+        }, 500);
       }
     };
 
@@ -176,6 +182,9 @@ export default function Navbar({ isLoggedIn, isClerkUser, initialTokens, isAdmin
     window.addEventListener("open-registration-gate", handleOpenAuth);
 
     return () => {
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current);
+      }
       window.removeEventListener("tokens-updated", handleUpdate);
       window.removeEventListener("feedbacks-updated", handleUpdate);
       window.removeEventListener("open-preferences-modal", handleOpenPrefs);
