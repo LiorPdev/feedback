@@ -238,13 +238,15 @@ export async function addFeedback(data: {
             ? allFeedbacks.reduce((acc, f) => acc + f.overall, 0) / totalRatedFeedbacks
             : 0;
 
+        // Check and notify for Top-Rated status
+        try {
+            await checkAndNotifyTopRated(data.songId);
+        } catch (err) {
+            await logToDb({ message: "checkAndNotifyTopRated failed", data: err, source: "songs.ts:addFeedback" });
+        }
+
         // Revalidate top-rated as well since it might change
         revalidatePath('/top-rated');
-
-        // Check and notify for Top-Rated status (asynchronously)
-        checkAndNotifyTopRated(data.songId).catch(err =>
-            logToDb({ message: "Async checkAndNotifyTopRated failed", data: err, source: "songs.ts:addFeedback" })
-        );
 
         return { success: true, feedback, averageRating, totalFeedbacks: totalRatedFeedbacks, error: undefined };
 
@@ -1132,7 +1134,6 @@ export async function getTopListenedSongs(): Promise<{ success: boolean; songs?:
  *    - Check if we already sent them an email in the last 24h jitter period.
  *    - If not, send a celebratory email and mark them as "In Top 10".
  * 3. If a song is no longer in the Top 10, mark it as "Out" so we can detect its next entry.
- * Runs asynchronously to avoid blocking the main feedback submission flow.
  */
 export async function checkAndNotifyTopRated(triggerSongId?: string) {
     const db = await getDb();
@@ -1140,15 +1141,12 @@ export async function checkAndNotifyTopRated(triggerSongId?: string) {
         const now = new Date();
         const nowStr = now.toISOString();
 
-        // 0. Immediate Decay Reset: If this was triggered by a specific song that is NOT in Top 10,
+        // 0. Immediate Decay Reset: If this was triggered by a specific song,
         // reset its decay so the subsequent Top 10 calculation considers its full score.
         if (triggerSongId) {
             await db.update(songs)
-                .set({ topRatedLastNotified: null })
-                .where(and(
-                    eq(songs.id, triggerSongId),
-                    eq(songs.isInTopRated, false)
-                ));
+                .set({ topRatedLastNotified: nowStr })
+                .where(eq(songs.id, triggerSongId));
         }
 
         // 1. Get current Top 10 using the shared Bayesian logic
