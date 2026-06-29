@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { eq, sql, and, notInArray, gt, aliasedTable, type SQL } from 'drizzle-orm';
 import { users, songs, feedbacks, listenEvents } from '@/lib/schema';
-import { SONG_SUBMISSION_COST, REWARD_PER_COMMENT_STEP, COMMENT_STEP_LENGTH, MAX_COMMENT_LENGTH, TOP_RATED_MIN_RATINGS_THRESHOLD, TOP_RATED_DECAY_FACTOR, MIN_SONG_DURATION_SECONDS, PROMOTION_COST, MIN_LISTEN_EVENT_SECONDS, LISTEN_TIME_WEIGHT, TOP_LISTENED_MIN_FEEDBACKS, TOP_RATED_MIN_FEEDBACKS } from '@/lib/constants';
+import { SONG_SUBMISSION_COST, REWARD_PER_COMMENT_STEP, COMMENT_STEP_LENGTH, MAX_COMMENT_LENGTH, TOP_RATED_MIN_RATINGS_THRESHOLD, TOP_RATED_DECAY_FACTOR, MIN_SONG_DURATION_SECONDS, PROMOTION_COST, MIN_LISTEN_EVENT_SECONDS, LISTEN_TIME_WEIGHT, TOP_LISTENED_MIN_FEEDBACKS, TOP_RATED_MIN_FEEDBACKS, MAX_UNREAD_FEEDBACKS_PER_ARTIST } from '@/lib/constants';
 import { sendFeedbackNotification, sendTopRatedNotification } from '@/lib/mail';
 import { logToDb } from "@/lib/logger";
 import { deleteFileFromR2 } from '@/app/actions/upload';
@@ -465,8 +465,8 @@ export async function getFeedSongs(firstSongSlug?: string) {
                 // Only show active songs
                 filters.push(eq(songs.isActive, true));
 
-                // Don't show songs where the artist has 2 or more unread feedbacks
-                filters.push(sql`(SELECT COUNT(*) FROM Feedback WHERE songId = ${songs.id} AND isUnlocked = 0) <= 1`);
+                // Don't show songs where the artist has more than MAX_UNREAD_FEEDBACKS_PER_ARTIST unread feedbacks across all their songs
+                filters.push(sql`(SELECT COUNT(*) FROM Feedback F INNER JOIN Song S ON F.songId = S.id WHERE S.userId = ${songs.userId} AND F.isUnlocked = 0) <= ${MAX_UNREAD_FEEDBACKS_PER_ARTIST}`);
 
                 return filters.length > 0 ? and(...filters) : undefined;
             },
