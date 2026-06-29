@@ -312,6 +312,7 @@ export default function DashboardClient({
           isHidden={true}
           onReady={onGlobalPlayerReady}
           onEnded={() => setActiveFeedbackId(null)}
+          playSource="dashboard"
         />
       )}
     </div>

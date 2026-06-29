@@ -380,6 +380,7 @@ export default function FeedContainer({
                 onError={onPlayerError}
                 isHidden={isHiddenPlayer}
                 feedbackId={lastFeedbackId}
+                playSource="feed"
               />
             )}
           </motion.div>

@@ -17,6 +17,7 @@ export default function TopRatedPlayer({ url, songId }: TopRatedPlayerProps) {
         size={36}
         className={styles.playButton}
         playingClassName={styles.isPlaying}
+        playSource="top10"
       />
     </div>
   );

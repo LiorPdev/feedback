@@ -77,6 +77,7 @@ export default function SongPlayer({ url, className }: SongPlayerProps) {
         onEnded={() => setIsPlaying(false)}
         onError={() => setIsReady(true)}
         isHidden={true}
+        playSource="show-feedback"
       />
     </div>
   );

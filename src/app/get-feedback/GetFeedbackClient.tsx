@@ -492,7 +492,7 @@ export default function GetFeedback({
                   </div>
                   {submissionType === "link" && isSupportedLink && !isFetchingMetadata && !isSearching && (
                     <div className={styles.playButtonInInput}>
-                      <PlayButton url={songLink} size={42} />
+                      <PlayButton url={songLink} size={42} playSource="get-feedback" />
                     </div>
                   )}
                 </div>

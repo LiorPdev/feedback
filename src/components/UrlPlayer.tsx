@@ -33,6 +33,7 @@ interface UrlPlayerProps {
   onEnded?: () => void;
   isHidden?: boolean;
   feedbackId?: string | null;
+  playSource?: string;
 }
 
 export const getEmbedUrl = (url: string, origin?: string) => {
@@ -64,7 +65,7 @@ export interface UrlPlayerHandle {
   pause: () => void;
 }
 
-const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, onPlay, onPause, onReady, onError, onEnded, isHidden = false, feedbackId = null }, ref) => {
+const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, onPlay, onPause, onReady, onError, onEnded, isHidden = false, feedbackId = null, playSource = "other" }, ref) => {
   const isUnmountingRef = useRef(false);
   const [mounted, setMounted] = useState(false);
   const origin = typeof window !== "undefined" ? window.location.origin : "";
@@ -97,9 +98,15 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
   const ytPendingPlayRef = useRef<boolean>(false);
 
   const latestUrlRef = useRef(url);
+  const playSourceRef = useRef(playSource);
+
   useEffect(() => {
     latestUrlRef.current = url;
   }, [url]);
+
+  useEffect(() => {
+    playSourceRef.current = playSource;
+  }, [playSource]);
 
   useEffect(() => {
     onPlayRef.current = onPlay;
@@ -203,13 +210,27 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
           const playPromise = audioRef.current.play();
           if (playPromise !== undefined) {
             playPromise.catch((e) => {
-              logAction({ message: "Audio play promise rejected", data: e?.message || e, source: "UrlPlayer.tsx:play" });
+              logAction({
+                message: "Audio play promise rejected",
+                data: {
+                  error: e?.message || e,
+                  playSource: playSourceRef.current
+                },
+                source: "UrlPlayer.tsx:play"
+              });
               if (onErrorRef.current) guard(onErrorRef.current)(e);
             });
           }
         }
       } catch (e) {
-        logAction({ message: "Play error", data: e, source: "UrlPlayer.tsx:play" });
+        logAction({
+          message: "Play error",
+          data: {
+            error: e instanceof Error ? e.message : String(e),
+            playSource: playSourceRef.current
+          },
+          source: "UrlPlayer.tsx:play"
+        });
       }
     },
     pause: () => {
@@ -220,7 +241,14 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
           audioRef.current.pause();
         }
       } catch (e) {
-        logAction({ message: "Pause error", data: e, source: "UrlPlayer.tsx:pause" });
+        logAction({
+          message: "Pause error",
+          data: {
+            error: e instanceof Error ? e.message : String(e),
+            playSource: playSourceRef.current
+          },
+          source: "UrlPlayer.tsx:pause"
+        });
       }
     }
   }));
@@ -317,7 +345,15 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
               },
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               onError: (event: any) => {
-                logAction({ message: "YouTube Player Error Event", data: { errorCode: event.data, url: latestUrlRef.current }, source: "UrlPlayer.tsx:onError" });
+                logAction({
+                  message: "YouTube Player Error Event",
+                  data: {
+                    errorCode: event.data,
+                    url: latestUrlRef.current,
+                    playSource: playSourceRef.current
+                  },
+                  source: "UrlPlayer.tsx:onError"
+                });
                 if (onErrorRef.current) {
                   guard(onErrorRef.current)(event.data);
                 }
@@ -332,6 +368,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
               url: url,
               origin: origin,
               iframeExists: !!iframeRef.current,
+              playSource: playSourceRef.current,
               error: e instanceof Error ? {
                 message: e.message,
                 stack: e.stack,

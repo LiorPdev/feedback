@@ -32,9 +32,10 @@ interface PlayButtonProps {
   className?: string;
   /** Extra class applied to the button when playing */
   playingClassName?: string;
+  playSource?: string;
 }
 
-export default function PlayButton({ url, songId, size = 32, className, playingClassName }: PlayButtonProps) {
+export default function PlayButton({ url, songId, size = 32, className, playingClassName, playSource }: PlayButtonProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const playerRef = useRef<UrlPlayerHandle>(null);
@@ -113,6 +114,7 @@ export default function PlayButton({ url, songId, size = 32, className, playingC
         }}
         onPause={() => setIsPlaying(false)}
         onEnded={() => setIsPlaying(false)}
+        playSource={playSource}
       />
     </div>
   );
