@@ -1,5 +1,14 @@
 import { logToDb } from "./logger";
 
+async function getErrorData(response: Response) {
+  const text = await response.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { rawResponse: text, status: response.status };
+  }
+}
+
 export async function sendFeedbackNotification({
   to,
   songTitle,
@@ -58,7 +67,7 @@ export async function sendFeedbackNotification({
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await getErrorData(response);
       await logToDb({
         message: "Brevo API error",
         data: errorData,
@@ -127,7 +136,7 @@ export async function sendContactUsEmail({
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await getErrorData(response);
       await logToDb({
         message: "Brevo API error (contact email)",
         data: errorData,
@@ -206,7 +215,7 @@ export async function sendTopRatedNotification({
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await getErrorData(response);
       await logToDb({
         message: "Brevo API error (top-rated notification)",
         data: errorData,
@@ -294,7 +303,7 @@ export async function sendGiftNotification({
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await getErrorData(response);
       await logToDb({
         message: "Brevo API error (gift notification)",
         data: errorData,
@@ -382,7 +391,7 @@ export async function sendUnreadFeedbackReminder({
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await getErrorData(response);
       await logToDb({
         message: "Brevo API error (unread feedback reminder)",
         data: errorData,
