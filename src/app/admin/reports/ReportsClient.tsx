@@ -423,6 +423,7 @@ export function ReportsClient() {
                                 <tr>
                                     <SortHeader label="מייל" sortKey="email" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="שם" sortKey="name" sortConfig={sortConfig} onSort={handleSort} />
+                                    <SortHeader label="סגנונות" sortKey="userGenre" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="טוקנים" sortKey="tokens" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="איכות המדרג" sortKey="raterScore" sortConfig={sortConfig} onSort={handleSort} />
                                     <SortHeader label="תאריך רישום" sortKey="createdAt" sortConfig={sortConfig} onSort={handleSort} />
@@ -694,6 +695,7 @@ export function ReportsClient() {
                                         <>
                                             <td>{item.email}</td>
                                             <td>{item.name}</td>
+                                            <td>{item.userGenre || '-'}</td>
                                             <td>{item.tokens}</td>
                                             <td>{typeof item.raterScore === 'number' ? item.raterScore.toFixed(1) : '-'}</td>
                                             <td>{formatDate(item.createdAt)}</td>
