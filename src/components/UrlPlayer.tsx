@@ -210,10 +210,22 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
           const playPromise = audioRef.current.play();
           if (playPromise !== undefined) {
             playPromise.catch((e) => {
+              const errStr = (e as Error)?.message || String(e);
+              const errName = (e as Error)?.name;
+              const isAbortError =
+                errName === "AbortError" ||
+                errStr.includes("interrupted by") ||
+                errStr.includes("interrupted");
+
+              if (isAbortError) {
+                return;
+              }
+
               logAction({
                 message: "Audio play promise rejected",
                 data: {
-                  error: e?.message || e,
+                  error: errStr,
+                  url: latestUrlRef.current,
                   playSource: playSourceRef.current
                 },
                 source: "UrlPlayer.tsx:play"
@@ -467,6 +479,22 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
           }}
           onCanPlay={() => {
             guard(onReadyRef.current)();
+          }}
+          onError={(e) => {
+            const mediaError = audioRef.current?.error;
+            const errorMsg = mediaError
+              ? `Audio error code ${mediaError.code}: ${mediaError.message || 'Media load failed'}`
+              : "Audio load error";
+            logAction({
+              message: "Audio Element Error Event",
+              data: {
+                error: errorMsg,
+                url: latestUrlRef.current,
+                playSource: playSourceRef.current
+              },
+              source: "UrlPlayer.tsx:audio.onError"
+            });
+            if (onErrorRef.current) guard(onErrorRef.current)(e);
           }}
           className={styles.audio}
           controls={!isHidden}

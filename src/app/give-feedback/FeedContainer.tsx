@@ -221,15 +221,6 @@ export default function FeedContainer({
   }, [isPlaying, onPlayerEnded]);
 
   const onPlayerError = useCallback((error: unknown) => {
-    logAction({
-      message: "Player Error (FeedContainer)",
-      data: {
-        error: (error as Error)?.message || String(error),
-        url: currentSong?.url,
-        timestamp: new Date().toISOString(),
-      },
-      source: "FeedContainer.tsx:onPlayerError"
-    });
     setIsPlaying(false);
     setIsTransitioning(false);
 
@@ -240,7 +231,7 @@ export default function FeedContainer({
     } else {
       setPlayerError("שגיאה בטעינת הנגן. אנא נסו לרענן או לעבור לשיר הבא.");
     }
-  }, [currentSong?.url]);
+  }, []);
 
   const handleSkip = () => {
     if (songs.length <= 1) return;
