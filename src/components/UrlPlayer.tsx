@@ -296,29 +296,29 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
     }
 
     if (isYouTube && iframeRef.current) {
+      // Track any pending setTimeout so we can cancel it on cleanup
+      let ytInitTimerId: ReturnType<typeof setTimeout> | null = null;
+
       const initYT = () => {
         if (isUnmountingRef.current) return;
 
         if (!window.YT || !window.YT.Player) {
           // If YT is loading but not ready, check again shortly
-          setTimeout(initYT, 100);
+          ytInitTimerId = setTimeout(initYT, 100);
           return;
         }
 
         try {
-          if (!iframeRef.current) {
-            // Only log if we are NOT unmounting
-            if (!isUnmountingRef.current) {
-              logAction({
-                message: "YouTube Init: No iframe ref",
-                data: { url, origin },
-                source: "UrlPlayer.tsx:initYT"
-              });
-            }
+          // iframeRef.current can be null if the component unmounted before
+          // the YT SDK finished loading (e.g. user navigated away). Check
+          // isConnected so we exit silently instead of logging a false-positive.
+          const iframe = iframeRef.current;
+          if (!iframe || !iframe.isConnected) {
+            // Element is gone — expected unmount race, not a real error.
             return;
           }
 
-          playerRef.current = new window.YT.Player(iframeRef.current, {
+          playerRef.current = new window.YT.Player(iframe, {
             playerVars: {
               origin: origin,
             },
@@ -410,6 +410,11 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
       } else {
         initYT();
       }
+
+      // Expose the cancel handle so the cleanup below can cancel a pending poll
+      return () => {
+        if (ytInitTimerId !== null) clearTimeout(ytInitTimerId);
+      };
     }
 
     return () => {
@@ -429,6 +434,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
         } catch { /* ignore */ }
       }
       playerRef.current = null;
+      // Note: the ytInitTimerId cancel is handled by the inner return above
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mounted, url, isYouTube, isAudio, handlePlayStart, handlePlayStop]);
