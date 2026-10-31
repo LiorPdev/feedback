@@ -31,7 +31,7 @@ export const LISTEN_REWARD_INTERVAL_SECONDS = 10; // Seconds of playback require
 export const LISTEN_REWARD_TOKENS = 1;            // Amount of tokens rewarded for each interval.
 
 // Tokens i spend (Try and keep the same amount 50/50)
-export const SONG_SUBMISSION_COST = 50;
+export const SONG_SUBMISSION_COST = 10;
 export const UNLOCK_FEEDBACK_COST = 50;
 export const PROMOTION_COST = 300;
 

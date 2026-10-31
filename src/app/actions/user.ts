@@ -206,12 +206,13 @@ export async function getUserNavbarData() {
     const db = await getDb();
 
     // Run database queries in parallel as a batch (single roundtrip HTTP call to D1 database)
-    const [unreadData, songCountResult, givenCountResult] = await db.batch([
+    const [unreadSongsData, songCountResult, givenCountResult] = await db.batch([
       db
-        .select({ 
-          count: sql<number>`count(*)`,
-          uniqueSongsCount: sql<number>`count(distinct ${songs.id})`,
-          firstSlug: sql<string>`MAX(${songs.slug})`
+        .select({
+          id: songs.id,
+          title: songs.title,
+          slug: songs.slug,
+          unreadCount: sql<number>`count(*)`
         })
         .from(feedbacks)
         .innerJoin(songs, eq(feedbacks.songId, songs.id))
@@ -220,7 +221,8 @@ export async function getUserNavbarData() {
             eq(songs.userId, dbUser.id),
             eq(feedbacks.isUnlocked, false)
           )
-        ),
+        )
+        .groupBy(songs.id, songs.title, songs.slug),
       db
         .select({ count: sql<number>`count(*)` })
         .from(songs)
@@ -231,7 +233,13 @@ export async function getUserNavbarData() {
         .where(eq(feedbacks.authorId, dbUser.id))
     ]);
 
-    const stats = unreadData[0];
+    const unreadSongs = unreadSongsData.map((s) => ({
+      id: s.id,
+      title: s.title,
+      slug: s.slug,
+      unreadCount: Number(s.unreadCount),
+    }));
+    const totalUnreadCount = unreadSongs.reduce((sum, s) => sum + s.unreadCount, 0);
 
     return {
       success: true as const,
@@ -240,9 +248,10 @@ export async function getUserNavbarData() {
       tokens: dbUser.tokens ?? 0,
       userGenre: dbUser.userGenre ?? null,
       socialLinks: dbUser.socialLinks ?? null,
-      unreadFeedbacksCount: stats?.count ?? 0,
-      uniqueSongsCount: stats?.uniqueSongsCount ?? 0,
-      firstUnreadSongSlug: stats?.firstSlug ?? null,
+      unreadFeedbacksCount: totalUnreadCount,
+      uniqueSongsCount: unreadSongs.length,
+      firstUnreadSongSlug: unreadSongs[0]?.slug ?? null,
+      unreadSongs,
       songCount: songCountResult[0]?.count ?? 0,
       givenFeedbacksCount: givenCountResult[0]?.count ?? 0
     };

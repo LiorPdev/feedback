@@ -22,7 +22,6 @@ import { RegistrationGateOptions } from "@/lib/auth-events";
 import { useAuth } from "@clerk/nextjs";
 import Button from "./ui/Button";
 import { useUtmMode } from "@/hooks/useUtmMode";
-import { SONG_SUBMISSION_COST } from "@/lib/constants";
 
 interface NavbarProps {
   isLoggedIn: boolean;
@@ -37,8 +36,7 @@ export default function Navbar({ isLoggedIn, isClerkUser, initialTokens, isAdmin
   const [tokens, setTokens] = useState<number | null>(isLoggedIn ? initialTokens : null);
   const [displayedTokens, setDisplayedTokens] = useState<number | null>(isLoggedIn ? initialTokens : null);
   const [unreadCount, setUnreadCount] = useState<number>(0);
-  const [unreadSongsCount, setUnreadSongsCount] = useState<number>(0);
-  const [firstUnreadSlug, setFirstUnreadSlug] = useState<string | null>(null);
+  const [unreadSongs, setUnreadSongs] = useState<{ id: string; title: string; slug: string; unreadCount: number }[]>([]);
   const [glowMode, setGlowMode] = useState<"positive" | "negative" | null>(null);
   const [showTokensInfo, setShowTokensInfo] = useState(false);
   const [showUnreadInfo, setShowUnreadInfo] = useState(false);
@@ -52,7 +50,7 @@ export default function Navbar({ isLoggedIn, isClerkUser, initialTokens, isAdmin
   const [pendingRedirect, setPendingRedirect] = useState<string | null>(null);
   const redirectUrlRef = useRef<string | null>(null);
   const tokenTriggerRef = useRef<HTMLDivElement>(null);
-  const unreadTriggerRef = useRef<HTMLAnchorElement>(null);
+  const unreadTriggerRef = useRef<HTMLButtonElement>(null);
   const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const router = useRouter();
   const { share, copied } = useShare();
@@ -90,11 +88,8 @@ export default function Navbar({ isLoggedIn, isClerkUser, initialTokens, isAdmin
             if (result.unreadFeedbacksCount !== undefined) {
               setUnreadCount(result.unreadFeedbacksCount);
             }
-            if (result.uniqueSongsCount !== undefined) {
-              setUnreadSongsCount(result.uniqueSongsCount);
-            }
-            if (result.firstUnreadSongSlug !== undefined) {
-              setFirstUnreadSlug(result.firstUnreadSongSlug);
+            if (result.unreadSongs !== undefined) {
+              setUnreadSongs(result.unreadSongs);
             }
             setHasSongs(result.songCount > 0);
             setHasFeedbacksGiven(result.givenFeedbacksCount > 0);
@@ -139,11 +134,8 @@ export default function Navbar({ isLoggedIn, isClerkUser, initialTokens, isAdmin
               if (result.unreadFeedbacksCount !== undefined) {
                 setUnreadCount(result.unreadFeedbacksCount);
               }
-              if (result.uniqueSongsCount !== undefined) {
-                setUnreadSongsCount(result.uniqueSongsCount);
-              }
-              if (result.firstUnreadSongSlug !== undefined) {
-                setFirstUnreadSlug(result.firstUnreadSongSlug);
+              if (result.unreadSongs !== undefined) {
+                setUnreadSongs(result.unreadSongs);
               }
               setHasSongs(result.songCount > 0);
               setHasFeedbacksGiven(result.givenFeedbacksCount > 0);
@@ -298,7 +290,7 @@ export default function Navbar({ isLoggedIn, isClerkUser, initialTokens, isAdmin
                     onClose={() => setShowTokensInfo(false)}
                     title="איך עובד מנגנון הקרדיטים?"
                     content={
-                      <p>העלאת שיר וצפיה בפידבק מורידה {SONG_SUBMISSION_COST} תווי קרדיט. כדי לצבור תווי קרדיט חדשים, פשוט תנו פידבק לשירים של יוצרים אחרים בקהילה.</p>
+                      <p>העלאת שיר וצפיה בפידבק מורידה תווי קרדיט. כדי לצבור תווי קרדיט חדשים, פשוט תנו פידבק לשירים של יוצרים אחרים בקהילה.</p>
                     }
                     arrowPosition="left"
                     align="left"
@@ -309,21 +301,35 @@ export default function Navbar({ isLoggedIn, isClerkUser, initialTokens, isAdmin
 
               {unreadCount > 0 && (
                 <div className={styles.tokenWrapper}>
-                  <Link
-                    href={unreadSongsCount === 1 && firstUnreadSlug ? `/show-feedback/${firstUnreadSlug}` : "/dashboard?tab=songs"}
+                  <button
+                    type="button"
                     className={styles.unreadBadge}
                     onClick={() => setShowUnreadInfo(!showUnreadInfo)}
                     ref={unreadTriggerRef}
+                    aria-label="פידבקים חדשים"
                   >
                     <Bell size={16} fill="currentColor" />
-                  </Link>
+                  </button>
 
                   <InfoTooltip
                     isOpen={showUnreadInfo}
                     onClose={() => setShowUnreadInfo(false)}
-                    title={`מחכים לך ${unreadCount} פידבקים חדשים!`}
+                    title=""
+                    className={styles.unreadTooltip}
                     content={
-                      <p></p>
+                      <div className={styles.unreadSongsList}>
+                        {unreadSongs.map((song) => (
+                          <Link
+                            key={song.id}
+                            href={`/show-feedback/${song.slug}`}
+                            className={styles.unreadSongItem}
+                            onClick={() => setShowUnreadInfo(false)}
+                          >
+                            <span className={styles.unreadSongTitle}>{song.title}</span>
+                            <span className={styles.unreadSongBadge}>{song.unreadCount}</span>
+                          </Link>
+                        ))}
+                      </div>
                     }
                     arrowPosition="left"
                     align="left"
@@ -331,7 +337,6 @@ export default function Navbar({ isLoggedIn, isClerkUser, initialTokens, isAdmin
                     showIcon={false}
                     arrowOffset={14}
                     forceRelative={true}
-                    autoCloseMs={2000}
                   />
                 </div>
               )}
