@@ -8,7 +8,7 @@ import Image from "next/image";
 import { createSong, getURLMetadata, searchYouTubeVideos } from "@/app/actions/songs";
 import { getPresignedUploadUrl } from "@/app/actions/upload";
 import { logAction } from "@/app/actions/logs";
-import { isYouTubeUrl, isShortsUrl, isPlaylistUrl, SONG_VALIDATION_MESSAGES, validateSongUrl, detectArtistInTitle } from "@/lib/song-validation";
+import { isYouTubeUrl, isShortsUrl, isPlaylistUrl, normalizeSongUrl, SONG_VALIDATION_MESSAGES, validateSongUrl, detectArtistInTitle } from "@/lib/song-validation";
 import { useRouter } from "next/navigation";
 import styles from "./get-feedback.module.css";
 import { GENRES, SONG_SUBMISSION_COST, MAX_FILE_SIZE, MAX_FILE_SIZE_MB, MAX_SONG_NAME_LENGTH, MIN_SONG_DURATION_SECONDS, MAX_FEW_WORDS_LENGTH } from "@/lib/constants";
@@ -432,8 +432,12 @@ export default function GetFeedback({
                       placeholder="קישור מיוטיוב או הקלידו טקסט לחיפוש"
                       value={songLink}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                        const val = e.target.value;
+                        const rawVal = e.target.value;
+                        const val = isYouTubeUrl(rawVal) && !isShortsUrl(rawVal) && !isPlaylistUrl(rawVal)
+                          ? normalizeSongUrl(rawVal)
+                          : rawVal;
                         setSongLink(val);
+                        setLinkError("");
                         if (!val) {
                           setSongTitle("");
                           setYoutubeAlternative(null);
@@ -490,9 +494,9 @@ export default function GetFeedback({
                       </div>
                     )}
                   </div>
-                  {submissionType === "link" && isSupportedLink && !isFetchingMetadata && !isSearching && (
+                  {submissionType === "link" && isSupportedLink && !linkError && !isShorts && !isPlaylist && !isSearching && (
                     <div className={styles.playButtonInInput}>
-                      <PlayButton url={songLink} size={42} playSource="get-feedback" />
+                      <PlayButton key={normalizeSongUrl(songLink)} url={songLink} size={42} playSource="get-feedback" />
                     </div>
                   )}
                 </div>

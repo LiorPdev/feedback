@@ -14,16 +14,18 @@ import { syncUser } from '@/lib/user-auth';
 import { sanitizeInput, isSongPromoted } from '@/lib/utils';
 import { updateRaterScore } from '@/lib/rater-score';
 import { applyFeedAlgorithm } from '@/lib/feed-algorithms';
-import { validateSongUrl, cleanSongTitle, cleanFewWords, isShortsUrl, isPlaylistUrl, isR2Url, isYouTubeUrl, SONG_VALIDATION_MESSAGES } from '@/lib/song-validation';
+import { validateSongUrl, cleanSongTitle, cleanFewWords, isShortsUrl, isPlaylistUrl, isR2Url, isYouTubeUrl, normalizeSongUrl, SONG_VALIDATION_MESSAGES } from '@/lib/song-validation';
 
 export async function createSong(formData: FormData) {
-    const url = (formData.get('url') as string || "").trim();
+    const rawUrl = (formData.get('url') as string || "").trim();
 
     // Standard URL validation (Shorts, Playlists, non-YouTube)
-    const urlValidation = validateSongUrl(url);
+    const urlValidation = validateSongUrl(rawUrl);
     if (!urlValidation.success) {
         return { success: false, error: urlValidation.error };
     }
+
+    const url = normalizeSongUrl(rawUrl);
 
     const artist = sanitizeInput(formData.get('artist') as string || "").trim();
     const title = cleanSongTitle(formData.get('title') as string || "");
@@ -597,7 +599,7 @@ export async function updateSong(songId: string, data: { title: string, url: str
         await db.update(songs)
             .set({
                 title: cleanSongTitle(data.title),
-                url: data.url,
+                url: normalizeSongUrl(data.url),
                 genre: sanitizeInput(data.genre),
                 fewWords: data.fewWords ? cleanFewWords(data.fewWords) : null,
                 artist: sanitizedArtist || null,
@@ -937,11 +939,22 @@ export async function getURLMetadata(url: string) {
 
         // Support YouTube OEmbed
         if (isYouTubeUrl(url)) {
-            const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`;
+            const cleanYtUrl = normalizeSongUrl(url);
+            const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(cleanYtUrl)}&format=json`;
             const res = await fetch(oembedUrl);
             if (res.ok) {
                 const data = await res.json();
-                return { success: true, title: cleanTitle(decodeHtmlEntities(data.title)) };
+                return {
+                    success: true,
+                    title: cleanTitle(decodeHtmlEntities(data.title)),
+                    resolvedUrl: cleanYtUrl
+                };
+            }
+            if (res.status === 401 || res.status === 403) {
+                return {
+                    success: false,
+                    error: "בעל הסרטון ביוטיוב חסם אפשרות להטמיע את השיר באתרים חיצוניים. אנא בחרו קישור אחר או העלו קובץ שמע."
+                };
             }
         }
 

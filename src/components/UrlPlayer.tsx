@@ -9,7 +9,7 @@
 
 "use client";
 
-import { useEffect, useRef, forwardRef, useImperativeHandle, useState, useCallback } from "react";
+import { useEffect, useRef, forwardRef, useImperativeHandle, useState, useCallback, useId } from "react";
 import { logAction } from "@/app/actions/logs";
 import { recordListenEvent } from "@/app/actions/songs";
 import { isYouTubeUrl, isAudioUrl, getYouTubeVideoId } from "@/lib/song-validation";
@@ -73,7 +73,9 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
   const isAudio = isAudioUrl(url);
   const embedUrl = getEmbedUrl(url, origin);
   const ytIframeSrc = mounted ? embedUrl : null;
-  const uniqueId = songId || url.replace(/[^a-zA-Z0-9]/g, "").slice(-20);
+  const reactId = useId().replace(/[^a-zA-Z0-9]/g, "");
+  const videoId = getYouTubeVideoId(url);
+  const uniqueId = `${songId || videoId || url.replace(/[^a-zA-Z0-9]/g, "").slice(-20)}-${reactId}`;
 
   useEffect(() => {
     setMounted(true);
@@ -295,9 +297,9 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
       guard(onReadyRef.current)();
     }
 
+    let ytInitTimerId: ReturnType<typeof setTimeout> | null = null;
+
     if (isYouTube && iframeRef.current) {
-      // Track any pending setTimeout so we can cancel it on cleanup
-      let ytInitTimerId: ReturnType<typeof setTimeout> | null = null;
 
       const initYT = () => {
         if (isUnmountingRef.current) return;
@@ -410,11 +412,6 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
       } else {
         initYT();
       }
-
-      // Expose the cancel handle so the cleanup below can cancel a pending poll
-      return () => {
-        if (ytInitTimerId !== null) clearTimeout(ytInitTimerId);
-      };
     }
 
     return () => {
@@ -423,6 +420,7 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
       // Calling destroy() on a player whose iframe is already gone corrupts
       // window.YT's internal player registry, causing onReady to never fire
       // the next time a player is created on the same page.
+      if (ytInitTimerId !== null) clearTimeout(ytInitTimerId);
       isUnmountingRef.current = true;
       handlePlayStop(); // Record final session before unmount
       const player = playerRef.current;
@@ -434,10 +432,9 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
         } catch { /* ignore */ }
       }
       playerRef.current = null;
-      // Note: the ytInitTimerId cancel is handled by the inner return above
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mounted, url, isYouTube, isAudio, handlePlayStart, handlePlayStop]);
+  }, [mounted, embedUrl, isYouTube, isAudio, handlePlayStart, handlePlayStop]);
 
   if (!mounted) {
     return (
@@ -507,13 +504,14 @@ const UrlPlayer = forwardRef<UrlPlayerHandle, UrlPlayerProps>(({ url, songId, on
         />
       ) : (
         <iframe
-          key={url}
+          key={embedUrl || url}
           ref={iframeRef}
           width="100%"
           height="152"
           scrolling="no"
           frameBorder="no"
           allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          referrerPolicy="strict-origin-when-cross-origin"
           allowFullScreen
           src={ytIframeSrc || undefined}
           title="Media Player"

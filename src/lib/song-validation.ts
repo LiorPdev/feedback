@@ -88,3 +88,19 @@ export function getYouTubeVideoId(url: string): string | null {
   );
   return ytMatch ? ytMatch[1] : null;
 }
+
+/**
+ * Normalizes YouTube URLs to canonical https://www.youtube.com/watch?v=VIDEO_ID
+ * stripping playlist/radio/tracking parameters (&list=..., &start_radio=1, ?si=..., etc.)
+ */
+export function normalizeSongUrl(url: string = ""): string {
+  const trimmed = url.trim();
+  if (!trimmed) return "";
+  if (isYouTubeUrl(trimmed) && !isShortsUrl(trimmed)) {
+    const videoId = getYouTubeVideoId(trimmed);
+    if (videoId) {
+      return `https://www.youtube.com/watch?v=${videoId}`;
+    }
+  }
+  return trimmed;
+}
