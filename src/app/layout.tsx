@@ -1,26 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Heebo } from "next/font/google";
 import { ClerkProvider } from '@clerk/nextjs'
 import { heIL } from '@clerk/localizations'
 import Navbar from "@/components/Navbar";
 import "./globals.css";
 import Script from "next/script";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const heebo = Heebo({
-  variable: "--font-heebo",
-  subsets: ["hebrew", "latin"],
-  weight: ["300", "400", "700", "900"],
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://feedback.activitywiz.com"),
@@ -87,9 +70,7 @@ export default async function RootLayout({
       localization={heIL}
     >
       <html lang="he" dir="rtl" suppressHydrationWarning>
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} ${heebo.variable} antialiased`}
-        >
+        <body className="antialiased">
           <Suspense fallback={null}>
             <SourceTracker />
           </Suspense>

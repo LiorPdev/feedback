@@ -17,7 +17,7 @@ declare global {
   }
 }
 import { useRouter, useSearchParams } from "next/navigation";
-import { GiPodium } from "react-icons/gi";
+import { GiPodium } from "@/style/icons";
 import Image from "next/image";
 import PageHeader from "./PageHeader";
 import Button from "./ui/Button";

@@ -13,7 +13,7 @@ import UserPreferencesModal from "./UserPreferencesModal";
 import CreditTransferModal from "./CreditTransferModal";
 import styles from "./Navbar.module.css";
 import AnimatedTokenCounter from "./AnimatedTokenCounter";
-import { GiPodium } from "react-icons/gi";
+import { GiPodium } from "@/style/icons";
 import CopyToast from "./CopyToast";
 import { useShare } from "@/hooks/useShare";
 import UserMenu from "./UserMenu";

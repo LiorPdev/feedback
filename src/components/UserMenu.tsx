@@ -5,7 +5,7 @@ import { useUser, useClerk } from "@clerk/nextjs";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { User, Music, Share2, Gift, MessageCircle, BarChart, LogOut } from "lucide-react";
-import { GiPodium } from "react-icons/gi";
+import { GiPodium } from "@/style/icons";
 import Link from "next/link";
 import Image from "next/image";
 import styles from "./UserMenu.module.css";
