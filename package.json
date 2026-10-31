@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "start http://localhost:3000 && next dev",
     "build": "next build --webpack",
-    "build:cloudflare": "npm run build && npx @opennextjs/cloudflare build && node src/scripts/post-build.js",
+    "build:cloudflare": "npx @opennextjs/cloudflare build && node src/scripts/post-build.js",
     "studio": "powershell -Command \"$env:DATABASE_URL = (Get-ChildItem -Path .wrangler\\state\\v3\\d1\\miniflare-D1DatabaseObject\\ -Filter *.sqlite -Recurse | Select-Object -First 1).FullName; npx drizzle-kit studio\"",
     "start": "next start",
     "lint": "eslint"
@@ -16,7 +16,6 @@
     "@clerk/localizations": "^4.2.2",
     "@clerk/nextjs": "^6.12.1",
     "@google/generative-ai": "^0.24.1",
-    "@prisma/config": "^7.5.0",
     "better-sqlite3": "^12.8.0",
     "drizzle-orm": "^0.45.1",
     "framer-motion": "^12.38.0",
