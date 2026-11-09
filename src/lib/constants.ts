@@ -40,7 +40,7 @@ export const MIN_COMMENT_LENGTH = 70;
 export const MAX_COMMENT_LENGTH = 500;
 export const MIN_LISTEN_TIME = 30;
 export const MIN_LISTEN_EVENT_SECONDS = 40;       // Minimum seconds needed to play a song to be entered into listenEvents table
-export const MAX_UNREAD_FEEDBACKS_PER_ARTIST = 3;  // Maximum unread feedbacks an artist can have before their songs are hidden from feed
+export const MAX_UNREAD_FEEDBACKS_PER_ARTIST = 10;  // Maximum unread feedbacks an artist can have before their songs are hidden from feed
 
 // Top Rated List Configuration
 export const LISTEN_TIME_WEIGHT = 0.3;            // Every minute of average listening adds this many points to the rating
